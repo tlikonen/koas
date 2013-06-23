@@ -1,4 +1,5 @@
-;;; Tietokantaohjelma oppilasarviointiin
+;;;; Tietokantaohjelma oppilasarviointiin
+
 
 ;;; Copyright (C) 2013 Teemu Likonen <tlikonen@iki.fi>
 ;;;
@@ -482,14 +483,6 @@
       (make-instance 'suoritusryhmät :ryhmälista ryhmät))))
 
 
-;; (defun hae-suoritus (ryhmä lyhenne)
-;;   (let ((suor (hae-suoritukset ryhmä)))
-;;     (when suor
-;;       (find lyhenne (suorituslista suor)
-;;             :test #'string-equal
-;;             :key #'lyhenne))))
-
-
 (defun hae-arvosanat-suoritukset (ryhmä &optional (nimi "") (lyhenne ""))
   (let ((suor (hae-suoritukset ryhmä))
         (kaikki))
@@ -902,16 +895,11 @@
 (defmethod tulosta ((lista suoritusryhmät))
   (setf *muokattavat* nil)
   (let ((rivi nil)
-        (rivit nil)
-        ;; (suurin-leveys (length (princ-to-string (length (ryhmälista lista)))))
-        )
+        (rivit nil))
     (loop :with n := 1
           :for (ryhmä . loput) :on (ryhmälista lista)
           :for laskuri :upfrom 1
           :do
-          ;; (push (tasaa-mj (princ-to-string laskuri) suurin-leveys
-          ;;                 :laita :oikea)
-          ;;       rivi)
           (push ryhmä rivi)
           (if (and (< n 6) loput)
               (incf n)
@@ -1080,7 +1068,6 @@
         (sid (sid arv)))
     (ignore-errors
       (query "delete from suoritus_~A where oid=~A" sid oid))))
-
 
 
 (defun erota-ensimmäinen-sana (mj)
@@ -1285,12 +1272,6 @@
                 (progn (poista kohde)
                        (setf (elt *muokattavat* (1- i)) nil))
                 (format t "~&Kohtaa ~A on jo käsitelty.~%" i))))))
-
-
-;; (defun whitespace-char-p (object)
-;;   (and (characterp object)
-;;        (or (not (graphic-char-p object))
-;;            (char= #\Space object))))
 
 
 (defun on-sisältöä-p (mj)

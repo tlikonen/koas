@@ -41,11 +41,6 @@
     (format *error-output* "~&~A~%" c)
     (sb-ext:exit :code 1)))
 
-;; (push (lambda ()
-;;         (asdf:initialize-source-registry)
-;;         (asdf:initialize-output-translations))
-;;       sb-ext:*init-hooks*)
-
 (sb-ext:save-lisp-and-die
  (nth 1 sb-ext:*posix-argv*)
  :executable t
