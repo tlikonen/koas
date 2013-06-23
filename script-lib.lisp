@@ -21,8 +21,8 @@
         (setf *rl-inhibit-completion* 1))
 
     (cffi:load-foreign-library-error ()
-      (msgerr "~%VAROITUS: Readline-kirjasto ei ole käytössä. ~
-                    Asenna paketti libreadline-dev.~%"))))
+      (msgerr "~%WARNING: Readline library is not available. ~
+                    Install libreadline-dev.~%"))))
 
 (defun readline (prompt &optional add-history)
   (handler-case
