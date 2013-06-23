@@ -34,8 +34,6 @@
     (format *error-output* "~&~A~%" c)
     (sb-ext:exit :code 1)))
 
-(pushnew :interactive *features*)
-
 (handler-case (ql:quickload *system*)
   (sb-sys:interactive-interrupt ()
     (sb-ext:exit :code 1))
@@ -46,6 +44,8 @@
 (sb-ext:save-lisp-and-die
  *image*
  :executable t
- :toplevel (lambda () (koas::main (script:argv)))
+ :toplevel (lambda ()
+             (let ((koas::*readline* t))
+               (koas::main (script:argv))))
  :save-runtime-options t
  :compression (and (member :sb-core-compression *features*) t))

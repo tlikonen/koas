@@ -37,6 +37,7 @@
                                   :name "koas" :type "db")
                    (user-homedir-pathname)))
 
+(defvar *readline* nil)
 (defvar *tietokanta* nil)
 (defvar *muokattavat* nil)
 (defvar *vuorovaikutteinen* t)
@@ -158,7 +159,12 @@
 
 
 (defun lue-rivi (kehote &optional muistiin)
-  (script:readline kehote muistiin))
+  (if *readline*
+      (script:readline kehote muistiin)
+      (progn
+        (format *query-io* "~A" kehote)
+        (force-output *query-io*)
+        (read-line *query-io*))))
 
 
 (defun otsikko (mj)
@@ -1602,5 +1608,5 @@ Esimerkiksi
                 (format t "~%"))))))))
 
 
-#-interactive
-(main (script:argv))
+#+script
+(let ((*readline* t)) (main (script:argv)))
