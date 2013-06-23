@@ -1592,9 +1592,11 @@ Esimerkiksi
       (if (rest argv)
           (let ((*vuorovaikutteinen* nil))
             (käsittele-komentorivi (format nil "~{~A~^ ~}" (rest argv))))
-          (let ((*vuorovaikutteinen* t))
+          (let ((*vuorovaikutteinen* t)
+                (kehote (format nil "~:@(~A~)> "
+                                (pathname-name (or (first argv) "koas")))))
             (handler-case
-                (loop (käsittele-komentorivi (lue-rivi "KOAS> " t)))
+                (loop (käsittele-komentorivi (lue-rivi kehote t)))
               (poistu-ohjelmasta () nil)
               (sb-sys:interactive-interrupt ()
                 (format t "~%"))))))))

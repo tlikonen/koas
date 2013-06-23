@@ -6,7 +6,9 @@
 
 
 (defun argv ()
-  (cons *load-pathname* (rest sb-ext:*posix-argv*)))
+  (cons (or *load-pathname*
+            (first sb-ext:*posix-argv*))
+        (rest sb-ext:*posix-argv*)))
 
 
 (defun msgerr (control-string &rest args)
