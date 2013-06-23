@@ -46,8 +46,6 @@
 (sb-ext:save-lisp-and-die
  *image*
  :executable t
- :toplevel (lambda ()
-             (arviointi::main (script:argv))
-             (sb-ext:exit))
+ :toplevel (lambda () (arviointi::main (script:argv)))
  :save-runtime-options t
  :compression (and (member :sb-core-compression *features*) t))
