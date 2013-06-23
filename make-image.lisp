@@ -1,11 +1,13 @@
-(let ((image (nth 1 sb-ext:*posix-argv*)))
-  (when (or (not image)
-            (zerop (length image)))
-    (write-line "Image file name missing." *error-output*)
-    (sb-ext:exit :code 1)))
+(defparameter *system* (nth 1 sb-ext:*posix-argv*))
+(defparameter *image* (nth 2 sb-ext:*posix-argv*))
+
+(when (or (not *image*)
+          (zerop (length *image*)))
+  (write-line "Image file name missing." *error-output*)
+  (sb-ext:exit :code 1))
 
 (format t "Creating SBCL image file: ~A~%~A ~A~%~%"
-        (nth 1 sb-ext:*posix-argv*)
+        *image*
         (lisp-implementation-type)
         (lisp-implementation-version))
 
@@ -34,7 +36,7 @@
 
 (pushnew :interactive *features*)
 
-(handler-case (ql:quickload (nth 1 sb-ext:*posix-argv*))
+(handler-case (ql:quickload *system*)
   (sb-sys:interactive-interrupt ()
     (sb-ext:exit :code 1))
   (error (c)
@@ -42,7 +44,7 @@
     (sb-ext:exit :code 1)))
 
 (sb-ext:save-lisp-and-die
- (nth 1 sb-ext:*posix-argv*)
+ *image*
  :executable t
  :toplevel (lambda ()
              (arviointi::main (script:argv))

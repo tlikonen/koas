@@ -1,13 +1,12 @@
 bindir = $(HOME)/bin
 IMAGE = arviointi
+SYSTEM = arviointi
 MAKEIMG = make-image.lisp
 SBCL = sbcl --script
 LISPFILES = arviointi.asd arviointi.lisp script-lib.lisp
 
-# all: $(IMAGE)
-
-$(IMAGE): $(MAKEIMG) $(ASD) $(LISPFILES)
-	@$(SBCL) $(MAKEIMG) $(IMAGE)
+$(IMAGE): $(MAKEIMG) $(LISPFILES)
+	@$(SBCL) $(MAKEIMG) $(SYSTEM) $(IMAGE)
 
 install: $(IMAGE)
 	install -d -- $(bindir)
