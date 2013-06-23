@@ -1,4 +1,4 @@
-;;;; Tietokantaohjelma oppilasarviointiin
+;;;; Koas - kouluarvosanatietokanta
 
 
 ;;; Copyright (C) 2013 Teemu Likonen <tlikonen@iki.fi>
@@ -25,16 +25,16 @@
 ;;; - muokkaa ryhmän nimeä (ryhmat-taulukossa)
 
 
-(defpackage #:arviointi
+(defpackage #:koas
   (:use #:cl)
   (:import-from #:split-sequence #:split-sequence))
 
-(in-package #:arviointi)
+(in-package #:koas)
 
 
 (defvar *tiedosto*
   (merge-pathnames (make-pathname :directory '(:relative ".config")
-                                  :name "arviointi" :type "db")
+                                  :name "koas" :type "db")
                    (user-homedir-pathname)))
 
 (defvar *tietokanta* nil)
@@ -1594,7 +1594,7 @@ Esimerkiksi
             (käsittele-komentorivi (format nil "~{~A~^ ~}" (rest argv))))
           (let ((*vuorovaikutteinen* t))
             (handler-case
-                (loop (käsittele-komentorivi (lue-rivi "Komento> " t)))
+                (loop (käsittele-komentorivi (lue-rivi "KOAS> " t)))
               (poistu-ohjelmasta () nil)
               (sb-sys:interactive-interrupt ()
                 (format t "~%"))))))))

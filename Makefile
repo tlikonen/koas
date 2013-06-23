@@ -1,9 +1,9 @@
 bindir = $(HOME)/bin
-IMAGE = arviointi
-SYSTEM = arviointi
+IMAGE = koas
+SYSTEM = koas
 MAKEIMG = make-image.lisp
 SBCL = sbcl --script
-LISPFILES = arviointi.asd arviointi.lisp script-lib.lisp
+LISPFILES = koas.asd koas.lisp script-lib.lisp
 
 $(IMAGE): $(MAKEIMG) $(LISPFILES)
 	@$(SBCL) $(MAKEIMG) $(SYSTEM) $(IMAGE)
