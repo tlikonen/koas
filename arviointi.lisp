@@ -1569,12 +1569,12 @@ Esimerkiksi
             ((testaa "has") (komento-hae-arvosanat-suoritukset arg))
             ((testaa "hao") (komento-hae-arvosanat-oppilaat arg))
             ((testaa "hak") (komento-hae-arvosanat-koonti arg))
+            ((testaa "lo") (komento-lisää-oppilas arg))
+            ((testaa "ls") (komento-lisää-suoritus arg))
             ((or (testaa "?") (testaa "??")) (ohjeet komento))
             (*vuorovaikutteinen*
              (cond
                ((testaa "") (signal 'poistu-ohjelmasta))
-               ((testaa "lo") (komento-lisää-oppilas arg))
-               ((testaa "ls") (komento-lisää-suoritus arg))
                ((testaa "poista") (komento-poista arg))
                ((testaa "m") (komento-muokkaa arg))
                (t (tuntematon))))
