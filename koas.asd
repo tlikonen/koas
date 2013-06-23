@@ -1,5 +1,5 @@
 (defsystem :koas
-  :description "Tietokantaohjelma oppilaiden arvosanoille"
+  :description "Koas - tietokantaohjelma kouluarvosanoille"
   :author "Teemu Likonen <tlikonen@iki.fi>"
   :licence "The GNU General Public License version 3"
   :depends-on (:cffi :sqlite :decimals :split-sequence)

@@ -1,4 +1,4 @@
-;;;; Koas - kouluarvosanatietokanta
+;;;; Koas - tietokantaohjelma kouluarvosanoille
 
 
 ;;; Copyright (C) 2013 Teemu Likonen <tlikonen@iki.fi>
