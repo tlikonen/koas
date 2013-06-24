@@ -652,8 +652,11 @@
              (if (muoto :org nil) (list :viiva))))
 
     (when *muokattavat*
-      (format t "~&Muokattavat kentät: /sukunimi/etunimi/ryhmät~
-                        /lisätiedot~%"))))
+      (format t "~&Muokattavat tietueet: ~A. Kentät: /sukunimi/etunimi/~
+                        ryhmät/lisätiedot~%"
+              (if (> (length *muokattavat*) 1)
+                  (format nil "1-~A" (length *muokattavat*))
+                  "1")))))
 
 
 (defmethod tulosta ((suo suoritus))
@@ -696,10 +699,12 @@
              (if (muoto :org nil) (list :viiva))))
 
     (when *muokattavat*
-      (format t "~&Muokattavat kentät: /suoritus/lyhenne/painokerroin/~
-                sijainti(1~A)~%"
-              (let ((suurin (length *muokattavat*)))
-                (if (> suurin 1) (format nil "-~A" suurin) ""))))
+      (let ((lukuväli (if (> (length *muokattavat*) 1)
+                          (format nil "1-~A" (length *muokattavat*))
+                          "1")))
+        (format t "~&Muokattavat tietueet: ~A. Kentät: /suoritus/lyhenne/~
+                painokerroin/sijainti(~A)~%"
+                lukuväli lukuväli)))
 
     (unless (muoto nil)
       (format t "~%")
@@ -760,7 +765,10 @@
         :if lisää :do (format t "~%~%"))
 
   (when *muokattavat*
-    (format t "~&Muokattavat kentät: /arvosana/lisätiedot~%")))
+    (format t "~&Muokattavat tietueet: ~A. Kentät: /arvosana/lisätiedot~%"
+            (if (> (length *muokattavat*) 1)
+                (format nil "1-~A" (length *muokattavat*))
+                "1"))))
 
 
 (defmethod tulosta ((arv arvosanat-oppilaat))
@@ -829,7 +837,10 @@
                            enintään)))
 
   (when *muokattavat*
-    (format t "~&Muokattavat kentät: /arvosana/lisätiedot~%")))
+    (format t "~&Muokattavat tietueet: ~A. Kentät: /arvosana/lisätiedot~%"
+            (if (> (length *muokattavat*) 1)
+                (format nil "1-~A" (length *muokattavat*))
+                "1"))))
 
 
 (defmethod tulosta ((koonti arvosanat-koonti))
