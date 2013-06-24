@@ -174,7 +174,6 @@
 
 
 (defun normalisoi-ryhmät (asia)
-  (declare (sb-ext:muffle-conditions sb-ext:compiler-note))
   (assert (or (stringp asia) (listp asia)))
   (when (stringp asia)
     (setf asia (mj-lista-listaksi asia)))
