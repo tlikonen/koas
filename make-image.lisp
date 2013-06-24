@@ -46,6 +46,6 @@
  :executable t
  :toplevel (lambda ()
              (let ((koas::*readline* t))
-               (koas::main (script:argv))))
+               (koas:main (script:argv))))
  :save-runtime-options t
  :compression (and (member :sb-core-compression *features*) t))

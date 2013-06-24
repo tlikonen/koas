@@ -27,7 +27,8 @@
 
 (defpackage #:koas
   (:use #:cl)
-  (:import-from #:split-sequence #:split-sequence))
+  (:import-from #:split-sequence #:split-sequence)
+  (:export #:main))
 
 (in-package #:koas)
 
