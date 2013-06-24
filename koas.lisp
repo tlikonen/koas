@@ -168,6 +168,29 @@
         (read-line *query-io*))))
 
 
+(defun normalisoi-mj (mj)
+  (format nil "~{~A~^ ~}"
+          (split-sequence #\space mj :remove-empty-subseqs t)))
+
+
+(defun normalisoi-ryhmät (asia)
+  (declare (sb-ext:muffle-conditions sb-ext:compiler-note))
+  (assert (or (stringp asia) (listp asia)))
+  (when (stringp asia)
+    (setf asia (mj-lista-listaksi asia)))
+  (setf asia (mapcar #'normalisoi-mj asia))
+  (setf asia (remove-duplicates asia :test #'equalp))
+  (sort asia #'string-lessp))
+
+
+(defun normalisoi-painokerroin (asia)
+  (cond
+    ((integerp asia) asia)
+    ((stringp asia)
+     (let ((luku (lue-numero asia)))
+       (if (integerp luku) luku)))))
+
+
 (defun otsikko (mj)
   (setf mj (or mj ""))
   (case *tulostusmuoto*
@@ -946,8 +969,7 @@
         values (~A,~A,~A,~A)"
          (sql-mj (sukunimi opp))
          (sql-mj (etunimi opp))
-         (sql-mj (lista-mj-listaksi (sort (copy-seq (ryhmälista opp))
-                                          #'string-lessp)))
+         (sql-mj (lista-mj-listaksi (ryhmälista opp)))
          (sql-mj (lisätiedot opp)))
   (let ((oid (query-last-insert-rowid)))
     (setf (oid opp) oid)
@@ -994,8 +1016,7 @@
         where oid=~A"
          (sql-mj (sukunimi opp))
          (sql-mj (etunimi opp))
-         (sql-mj (lista-mj-listaksi (sort (copy-seq (ryhmälista opp))
-                                          #'string-lessp)))
+         (sql-mj (lista-mj-listaksi (ryhmälista opp)))
          (sql-mj (lisätiedot opp))
          (oid opp))
   opp)
@@ -1176,19 +1197,15 @@
   (when (zerop (length arg))
     (virhe "Anna lisättävän oppilaan tiedot. Ohjeita saa ?:llä."))
   (let ((jaettu (pilko-erottimella arg)))
-    (setf jaettu (loop :for i :in jaettu
-                       :collect (string-trim " " i)))
-    (when (or (zerop (length (nth 0 jaettu)))
-              (zerop (length (nth 1 jaettu))))
+    (when (or (zerop (length (normalisoi-mj (nth 0 jaettu))))
+              (zerop (length (normalisoi-mj (nth 1 jaettu)))))
       (virhe "Pitää antaa vähintään sukunimi ja etunimi. Ohjeita saa ?:llä."))
     (with-transaction
       (lisää (make-instance 'oppilas
-                            :sukunimi (nth 0 jaettu)
-                            :etunimi (nth 1 jaettu)
-                            :ryhmälista (sort (mj-lista-listaksi
-                                               (or (nth 2 jaettu) ""))
-                                              #'string-lessp)
-                            :lisätiedot (or (nth 3 jaettu) ""))))))
+                            :sukunimi (normalisoi-mj (nth 0 jaettu))
+                            :etunimi (normalisoi-mj (nth 1 jaettu))
+                            :ryhmälista (normalisoi-ryhmät (nth 2 jaettu))
+                            :lisätiedot (normalisoi-mj (nth 3 jaettu)))))))
 
 
 (defun komento-lisää-suoritus (arg)
@@ -1196,7 +1213,7 @@
   (multiple-value-bind (ryhmä tiedot)
       (erota-ensimmäinen-sana arg)
     (setf tiedot (loop :for i :in (pilko-erottimella tiedot)
-                       :collect (string-trim " " i)))
+                       :collect (normalisoi-mj i)))
     (unless tiedot
       (virhe "Anna lisättävän suorituksen tiedot."))
 
@@ -1321,36 +1338,35 @@
     (when (and suku
                (on-sisältöä-p suku)
                (not useita))
-      (setf uusi-suku (string-trim " " suku)))
+      (setf uusi-suku suku))
 
     (when (and etu
                (on-sisältöä-p etu)
                (not useita))
-      (setf uusi-etu (string-trim " " etu)))
+      (setf uusi-etu etu))
 
     (when ryhmä
       (cond ((on-sisältöä-p ryhmä)
-             (setf uusi-ryhmä (sort (mj-lista-listaksi ryhmä)
-                                    #'string-lessp)))
+             (setf uusi-ryhmä ryhmä))
             ((and (plusp (length ryhmä))
                   (not (on-sisältöä-p ryhmä)))
              (setf uusi-ryhmä nil))))
 
     (when lisä
       (cond ((on-sisältöä-p lisä)
-             (setf uusi-lisä (string-trim " " lisä)))
+             (setf uusi-lisä lisä))
             ((and (plusp (length lisä))
                   (not (on-sisältöä-p lisä)))
-             (setf uusi-lisä ""))))
+             (setf uusi-lisä nil))))
 
     (unless (eql uusi-suku :tyhjä)
-      (setf (sukunimi kohde) uusi-suku))
+      (setf (sukunimi kohde) (normalisoi-mj uusi-suku)))
     (unless (eql uusi-etu :tyhjä)
-      (setf (etunimi kohde) uusi-etu))
+      (setf (etunimi kohde) (normalisoi-mj uusi-etu)))
     (unless (eql uusi-ryhmä :tyhjä)
-      (setf (ryhmälista kohde) uusi-ryhmä))
+      (setf (ryhmälista kohde) (normalisoi-ryhmät uusi-ryhmä)))
     (unless (eql uusi-lisä :tyhjä)
-      (setf (lisätiedot kohde) uusi-lisä))
+      (setf (lisätiedot kohde) (normalisoi-mj uusi-lisä)))
     (muokkaa kohde)))
 
 
@@ -1373,11 +1389,11 @@
 
     (when (and nimi
                (on-sisältöä-p nimi))
-      (setf uusi-nimi (string-trim " " nimi)))
+      (setf uusi-nimi nimi))
 
     (when (and lyhenne
                (on-sisältöä-p lyhenne))
-      (setf uusi-lyhenne (string-trim " " lyhenne)))
+      (setf uusi-lyhenne lyhenne))
 
     (when painokerroin
       (let ((num (lue-numero painokerroin)))
@@ -1411,11 +1427,11 @@
            (virhe "Sijainnin täytyy olla positiivinen kokonaisluku.")))))
 
     (unless (eql uusi-nimi :tyhjä)
-      (setf (nimi kohde) uusi-nimi))
+      (setf (nimi kohde) (normalisoi-mj uusi-nimi)))
     (unless (eql uusi-lyhenne :tyhjä)
-      (setf (lyhenne kohde) uusi-lyhenne))
+      (setf (lyhenne kohde) (normalisoi-mj uusi-lyhenne)))
     (unless (eql uusi-painokerroin :tyhjä)
-      (setf (painokerroin kohde) uusi-painokerroin))
+      (setf (painokerroin kohde) (normalisoi-painokerroin uusi-painokerroin)))
     (muokkaa kohde :uusi-sijainti (if (eql uusi-sija :tyhjä)
                                       nil
                                       uusi-sija))))
@@ -1428,21 +1444,21 @@
         (uusi-lisätiedot :tyhjä))
     (when arvosana
       (cond ((on-sisältöä-p arvosana)
-             (setf uusi-arvosana (string-trim " " arvosana)))
+             (setf uusi-arvosana arvosana))
             ((and (plusp (length arvosana))
                   (not (on-sisältöä-p arvosana)))
              (setf uusi-arvosana ""))))
     (when lisätiedot
       (cond ((on-sisältöä-p lisätiedot)
-             (setf uusi-lisätiedot (string-trim " " lisätiedot)))
+             (setf uusi-lisätiedot lisätiedot))
             ((and (plusp (length lisätiedot))
                   (not (on-sisältöä-p lisätiedot)))
              (setf uusi-lisätiedot nil))))
 
     (unless (eql uusi-arvosana :tyhjä)
-      (setf (arvosana kohde) uusi-arvosana))
+      (setf (arvosana kohde) (normalisoi-mj uusi-arvosana)))
     (unless (eql uusi-lisätiedot :tyhjä)
-      (setf (lisätiedot kohde) uusi-lisätiedot))
+      (setf (lisätiedot kohde) (normalisoi-mj uusi-lisätiedot)))
     (muokkaa kohde)))
 
 
