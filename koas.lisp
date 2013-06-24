@@ -32,11 +32,7 @@
 (in-package #:koas)
 
 
-(defvar *tiedosto*
-  (merge-pathnames (make-pathname :directory '(:relative ".config")
-                                  :name "koas" :type "db")
-                   (user-homedir-pathname)))
-
+(defvar *tiedosto* nil)
 (defvar *readline* nil)
 (defvar *tietokanta* nil)
 (defvar *muokattavat* nil)
@@ -44,6 +40,15 @@
 (defvar *tulostusmuoto* nil)
 (defvar *suppea* nil)
 (defvar *poistoraja* 10)
+
+
+(defun alusta-tiedostopolku ()
+  (unless *tiedosto*
+    (setf *tiedosto*
+          (merge-pathnames (make-pathname :directory '(:relative ".config")
+                                          :name "koas" :type "db")
+                           (user-homedir-pathname))))
+  (ensure-directories-exist *tiedosto*))
 
 
 (define-condition poistu-ohjelmasta () nil)
@@ -1614,7 +1619,7 @@ Esimerkiksi
 
 (defun main (&optional argv)
   (script:with-pp-errors
-    (ensure-directories-exist *tiedosto*)
+    (alusta-tiedostopolku)
     (with-open-database
       (varmista-taulujen-olemassaolo)
       (if (rest argv)
