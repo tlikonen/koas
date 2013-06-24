@@ -40,7 +40,7 @@ asennettuna täytyy olla [Readline][]-kirjaston sekä
 Lisäksi kääntämisen yhteydessä käytetään `wget`-ohjelmaa, jolla haetaan
 internetistä [Quicklisp][QL], jos sitä ei ole jo valmiiksi asennettuna.
 Quicklispin avulla ladataan internetistä automaattisesti eräitä Common
-Lisp -kirjastoja, muun muassa [CFFI][] ja [Decimals][].
+Lisp -kirjastoja.
 
 Ohjelma käännetään komennolla `make` ja asennetaan komennolla `make
 install`. Ohjelmatiedosto on nimeltään `koas` ja se asentuu oletuksena
@@ -51,10 +51,7 @@ tavalla: `make install bindir=/jokin/muu/hakemisto`.
 [Readline]: http://www.gnu.org/software/readline/
 [SQLite3]:  http://www.sqlite.org/
 [Debian]:   http://www.debian.org/
-
 [QL]:       http://www.quicklisp.org/
-[CFFI]:     http://common-lisp.net/project/cffi/
-[Decimals]: https://github.com/tlikonen/cl-decimals
 
 
 Käyttö
