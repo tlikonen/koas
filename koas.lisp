@@ -653,9 +653,6 @@
                      :collect (append
                                (list (sukunimi oppilas))
                                (list (etunimi oppilas))
-                               ;; (list (format nil "~A, ~A"
-                               ;;               (sukunimi oppilas)
-                               ;;               (etunimi oppilas)))
                                (list (lista-mj-listaksi
                                       (ryhmälista oppilas)))
                                (unless *suppea*
@@ -666,7 +663,6 @@
              (list (append (if *muokattavat* (list nil))
                            (list (otsikko "Sukunimi"))
                            (list (otsikko "Etunimi"))
-                           ;; (list (otsikko "Oppilas"))
                            (list (otsikko "Ryhmät"))
                            (unless *suppea*
                              (list (otsikko "Lisätiedot")))))
