@@ -112,12 +112,6 @@
                 painokerroin integer)")))))
 
 
-(defun numeromerkki (merkki)
-  ;; Tarvitaan, koska SBCL:ssä digit-char-p aiheuttaa joskus virheen
-  ;; (bugi?).
-  (char<= #\0 merkki #\9))
-
-
 (defun arvottu-järjestys (lista)
   (flet ((poista-osa (n sequence)
            (delete-if (constantly t) sequence :start n :count 1)))
@@ -399,13 +393,13 @@
        (cond
          ((and lisa
                (not merkki)
-               (every #'numeromerkki objekti))
+               (every #'digit-char-p objekti))
           (+ (parse-integer objekti) lisa))
          ((and (not lisa)
                (every (lambda (c)
-                        (or (numeromerkki c) (char= #\. c)))
+                        (or (digit-char-p c) (char= #\. c)))
                       objekti)
-               (some #'numeromerkki objekti)
+               (some #'digit-char-p objekti)
                (<= 0 (count #\. objekti) 1))
           (* (or merkki 1) (decimals:parse-decimal-number objekti))))))))
 
@@ -1256,14 +1250,14 @@
   (loop :with valmis := nil
         :for i :in (split-sequence #\, mj :remove-empty-subseqs t)
         :do
-        (if (every #'numeromerkki i)
+        (if (every #'digit-char-p i)
             (push (lue-numero i) valmis)
             (let ((lista (split-sequence #\- i :remove-empty-subseqs nil)))
               (if (or (/= 2 (length lista))
                       (zerop (length (nth 0 lista)))
                       (zerop (length (nth 1 lista)))
-                      (notevery #'numeromerkki (nth 0 lista))
-                      (notevery #'numeromerkki (nth 1 lista)))
+                      (notevery #'digit-char-p (nth 0 lista))
+                      (notevery #'digit-char-p (nth 1 lista)))
                   (return nil)
                   (destructuring-bind (eka toka)
                       (mapcar #'lue-numero lista)
