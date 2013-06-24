@@ -1518,8 +1518,8 @@
      ("m" "numerot /.../.../.../..." "Muokkaa valittuja tietueita ja kenttiä.")
      ("poista" "numerot" "Poista valitut tietueet.")
      :viiva
-     ("?" "" "Tulostaa ohjeet.")
-     ("??" "" "Tulostaa tarkemmat ohjeet.")
+     ("?" "" "Tulosta ohjeet.")
+     ("??" "" "Tulosta tarkemmat ohjeet.")
      :viiva))
 
   (when (equal komento "?")
