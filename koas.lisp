@@ -1284,11 +1284,12 @@
     (with-transaction
       (loop :for i :in numeroluettelo
             :for kohde := (elt *muokattavat* (1- i))
-            :do
-            (if kohde
-                (progn (poista kohde)
+            :do (cond ((and kohde (not (typep kohde 'arvosana)))
+                       (poista kohde)
                        (setf (elt *muokattavat* (1- i)) nil))
-                (format t "~&Kohtaa ~A on jo käsitelty.~%" i))))))
+                      ((and kohde (typep kohde 'arvosana))
+                       (poista kohde))
+                      (t (format t "~&Tietue ~A on jo poistettu.~%" i)))))))
 
 
 (defun on-sisältöä-p (mj)
@@ -1477,7 +1478,7 @@
                    (komento-muokkaa-suoritus numeroluettelo tiedot kohde))
                   (arvosana
                    (komento-muokkaa-arvosana tiedot kohde))
-                  (t (virhe "Tuntematon muokattava.")))))))
+                  (t (virhe "Tietue ~A on poistettu." i)))))))
 
 
 (defun ohjeet (&optional komento)
