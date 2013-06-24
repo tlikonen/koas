@@ -89,7 +89,8 @@
              (member asia kaikki :test #'string-equal))
            (teksti ()
              (when valmistellaan
-               (format t "~&Valmistellaan tietokanta (~A).~%"
+               (format t "~&Valmistellaan tietokanta (~A).~%~
+        Ota tietokantatiedostosta varmuuskopio riittävän usein.~%"
                        (sb-ext:native-pathname *tiedosto*))
                (setf valmistellaan nil))))
       (unless (löytyy "oppilaat")
