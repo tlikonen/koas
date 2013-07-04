@@ -488,8 +488,8 @@
 
 (defun hae-suoritukset (ryhmä)
   (let ((ryhmä-suoritukset
-         (first (query "select * from ryhmat where ryhma = ~A"
-                       (sql-mj ryhmä)))))
+         (first (query "select * from ryhmat where ryhma like ~A"
+                       (sql-like-suoja ryhmä)))))
     (when ryhmä-suoritukset
       (let ((suoritukset
              (loop :for id :in (split-sequence
@@ -996,16 +996,17 @@
 
       (let ((ryhmän-suoritukset
              (first (first (query "select suoritukset from ryhmat where ~
-                                ryhma=~A" (sql-mj (ryhmä suo)))))))
+                                ryhma like ~A"
+                                  (sql-like-suoja (ryhmä suo)))))))
 
         (if ryhmän-suoritukset
             (progn
               (setf ryhmän-suoritukset
                     (lisää-mj-listaan (princ-to-string sid)
                                       ryhmän-suoritukset sijainti))
-              (query "update ryhmat set suoritukset=~A where ryhma=~A"
+              (query "update ryhmat set suoritukset=~A where ryhma like ~A"
                      (sql-mj ryhmän-suoritukset)
-                     (sql-mj (ryhmä suo))))
+                     (sql-like-suoja (ryhmä suo))))
             (query "insert into ryhmat (ryhma,suoritukset) values (~A,~A)"
                    (sql-mj (ryhmä suo))
                    (sql-mj sid))))))
@@ -1038,17 +1039,17 @@
     (let ((sid-mj (princ-to-string (sid suo)))
           (ryhmän-suoritukset
            (first (first (query "select suoritukset from ryhmat ~
-                                where ryhma=~A"
-                                (sql-mj (ryhmä suo)))))))
+                                where ryhma like ~A"
+                                (sql-like-suoja (ryhmä suo)))))))
 
       (if ryhmän-suoritukset
           (progn
             (setf ryhmän-suoritukset
                   (siirrä-mj-listassa sid-mj ryhmän-suoritukset
                                       uusi-sijainti))
-            (query "update ryhmat set suoritukset=~A where ryhma=~A"
+            (query "update ryhmat set suoritukset=~A where ryhma like ~A"
                    (sql-mj ryhmän-suoritukset)
-                   (sql-mj (ryhmä suo))))
+                   (sql-like-suoja (ryhmä suo))))
           (query "insert into ryhmat (ryhma,suoritukset) values (~A,~A)"
                  (sql-mj (ryhmä suo))
                  (sql-mj sid-mj))))))
@@ -1088,19 +1089,20 @@
 
 (defmethod poista ((suo suoritus))
   (let ((ryhmän-suoritukset
-         (first (first (query "select suoritukset from ryhmat where ryhma=~A"
-                              (sql-mj (ryhmä suo)))))))
+         (first (first (query "select suoritukset from ryhmat ~
+                                where ryhma like ~A"
+                              (sql-like-suoja (ryhmä suo)))))))
 
     (when ryhmän-suoritukset
       (setf ryhmän-suoritukset
             (poista-mj-listasta (princ-to-string (sid suo))
                                 ryhmän-suoritukset))
       (if (string= "" ryhmän-suoritukset)
-          (query "delete from ryhmat where ryhma=~A"
-                 (sql-mj (ryhmä suo)))
-          (query "update ryhmat set suoritukset=~A where ryhma=~A"
+          (query "delete from ryhmat where ryhma like ~A"
+                 (sql-like-suoja (ryhmä suo)))
+          (query "update ryhmat set suoritukset=~A where ryhma like ~A"
                  (sql-mj ryhmän-suoritukset)
-                 (sql-mj (ryhmä suo))))))
+                 (sql-like-suoja (ryhmä suo))))))
 
   (query "delete from suoritukset where sid=~A" (sid suo))
   (ignore-errors (query "drop table suoritus_~A" (sid suo))))
