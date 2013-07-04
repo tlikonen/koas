@@ -16,13 +16,11 @@
 ;;; The license text: <http://www.gnu.org/licenses/gpl-3.0.html>
 
 
-;;; Tarvittavat komennot:
+;;; Kehitysideoita:
 ;;;
 ;;; - muokkaa arvosanoja sarjana
-;;;
-;;; Ehkä:
-;;;
 ;;; - muokkaa ryhmän nimeä (ryhmat-taulukossa)
+;;; - automaattinen "vacuum", kun kertyy tarpeeksi muokkauksia
 
 
 (defpackage #:koas
