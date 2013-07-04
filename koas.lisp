@@ -38,7 +38,7 @@
 (defvar *tulostusmuoto* nil)
 (defvar *suppea* nil)
 (defvar *poistoraja* 10)
-(defvar *muokkaukset-kunnes-vacuum* 500)
+(defvar *muokkaukset-kunnes-vacuum* 1000)
 
 
 (defun alusta-tiedostopolku ()
