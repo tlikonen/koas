@@ -65,6 +65,7 @@
 
 (defun connect ()
   (unless (typep *tietokanta* 'sqlite:sqlite-handle)
+    (alusta-tiedostopolku)
     (setf *tietokanta* (sqlite:connect *tiedosto*))))
 
 
