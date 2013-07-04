@@ -462,14 +462,12 @@
 
 
 (defun muokkauslaskuri-vacuum (muokkaukset)
-  (let ((laskuri (lue-numero
-                  (first (first (query "select arvo from hallinto ~
-                where avain='muokkauslaskuri'"))))))
+  (let ((laskuri (query "select arvo from hallinto ~
+                where avain='muokkauslaskuri'")))
     (unless laskuri
-      (setf laskuri 0)
       (query "insert into hallinto (avain, arvo) ~
                                 values ('muokkauslaskuri', '0')"))
-    (incf laskuri muokkaukset)
+    (setf laskuri (+ muokkaukset (or (lue-numero (first (first laskuri))) 0)))
     (when (>= laskuri *muokkaukset-kunnes-vacuum*)
       (ignore-errors
         (query "vacuum")
