@@ -66,11 +66,7 @@
                           (apply #'format nil format-string parameters)))
 
 
-(defun tietokannan-asetukset ()
-  (query "pragma case_sensitive_like = 0"))
-
-
-(defun varmista-taulujen-olemassaolo ()
+(defun alusta-tietokanta ()
   (let ((kaikki (mapcar #'first (query "select name from sqlite_master ~
                                         where type='table'")))
         (valmistellaan t))
@@ -98,15 +94,16 @@
                 (sid integer unique primary key, ~
                 nimi text default '', ~
                 lyhenne text default '', ~
-                painokerroin integer)")))))
+                painokerroin integer)"))
+
+      (query "pragma case_sensitive_like = 0"))))
 
 
 (defun connect ()
   (unless (typep *tietokanta* 'sqlite:sqlite-handle)
     (alusta-tiedostopolku)
     (setf *tietokanta* (sqlite:connect *tiedosto*))
-    (tietokannan-asetukset)
-    (varmista-taulujen-olemassaolo)
+    (alusta-tietokanta)
     *tietokanta*))
 
 
