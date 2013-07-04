@@ -20,7 +20,6 @@
 ;;;
 ;;; - muokkaa arvosanoja sarjana
 ;;; - muokkaa ryhmän nimeä (ryhmat-taulukossa)
-;;; - automaattinen "vacuum", kun kertyy tarpeeksi muokkauksia
 
 
 (defpackage #:koas
@@ -39,6 +38,7 @@
 (defvar *tulostusmuoto* nil)
 (defvar *suppea* nil)
 (defvar *poistoraja* 10)
+(defvar *muokkaukset-kunnes-vacuum* 500)
 
 
 (defun alusta-tiedostopolku ()
@@ -95,6 +95,9 @@
                 nimi text default '', ~
                 lyhenne text default '', ~
                 painokerroin integer)"))
+      (unless (löytyy "hallinto")
+        (teksti)
+        (query "create table hallinto (avain text unique, arvo text)"))
 
       (query "pragma case_sensitive_like = 0"))))
 
@@ -456,6 +459,25 @@
         (if (= painotussumma 0)
             ""
             (tulosta-luku (/ summa painotussumma) desimaalit)))))
+
+
+(defun muokkauslaskuri-vacuum (muokkaukset)
+  (let ((laskuri (lue-numero
+                  (first (first (query "select arvo from hallinto ~
+                where avain='muokkauslaskuri'"))))))
+    (unless laskuri
+      (setf laskuri 0)
+      (query "insert into hallinto (avain, arvo) ~
+                                values ('muokkauslaskuri', '0')"))
+    (incf laskuri muokkaukset)
+    (if (>= laskuri *muokkaukset-kunnes-vacuum*)
+        (progn
+          (setf laskuri 0)
+          (query "update hallinto set arvo='0' where avain='muokkauslaskuri'")
+          (query "vacuum"))
+        (query "update hallinto set arvo=~A where avain='muokkauslaskuri'"
+               (sql-mj laskuri)))
+    laskuri))
 
 
 (defun hae-oppilaat (sukunimi &optional (etunimi "") (ryhmät "")
@@ -1207,7 +1229,8 @@
                             :sukunimi (normalisoi-mj (nth 0 jaettu))
                             :etunimi (normalisoi-mj (nth 1 jaettu))
                             :ryhmälista (normalisoi-ryhmät (nth 2 jaettu))
-                            :lisätiedot (normalisoi-mj (nth 3 jaettu)))))))
+                            :lisätiedot (normalisoi-mj (nth 3 jaettu)))))
+    (muokkauslaskuri-vacuum 1)))
 
 
 (defun komento-lisää-suoritus (arg)
@@ -1251,7 +1274,8 @@
                               :nimi nimi
                               :lyhenne lyh
                               :painokerroin paino)
-               :sijainti sija)))))
+               :sijainti sija))
+      (muokkauslaskuri-vacuum 1))))
 
 
 (defun jäsennä-numeroluettelo (mj)
@@ -1309,7 +1333,8 @@
                        (setf (elt *muokattavat* (1- i)) nil))
                       ((and kohde (typep kohde 'arvosana))
                        (poista kohde))
-                      (t (format t "~&Tietue ~A on jo poistettu.~%" i)))))))
+                      (t (format t "~&Tietue ~A on jo poistettu.~%" i)))))
+    (muokkauslaskuri-vacuum (length numeroluettelo))))
 
 
 (defun on-sisältöä-p (mj)
@@ -1497,7 +1522,8 @@
                    (komento-muokkaa-suoritus numeroluettelo tiedot kohde))
                   (arvosana
                    (komento-muokkaa-arvosana tiedot kohde))
-                  (t (virhe "Tietue ~A on poistettu." i)))))))
+                  (t (virhe "Tietue ~A on poistettu." i)))))
+    (muokkauslaskuri-vacuum (length numeroluettelo))))
 
 
 (defun ohjeet (&optional komento)
