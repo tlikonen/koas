@@ -63,10 +63,21 @@
   (error 'virhe :teksti (apply #'format nil fmt args)))
 
 
+(defun query (format-string &rest parameters)
+  (sqlite:execute-to-list *tietokanta*
+                          (apply #'format nil format-string parameters)))
+
+
+(defun tietokannan-asetukset ()
+  (query "pragma case_sensitive_like = 0"))
+
+
 (defun connect ()
   (unless (typep *tietokanta* 'sqlite:sqlite-handle)
     (alusta-tiedostopolku)
-    (setf *tietokanta* (sqlite:connect *tiedosto*))))
+    (setf *tietokanta* (sqlite:connect *tiedosto*))
+    (tietokannan-asetukset)
+    *tietokanta*))
 
 
 (defun disconnect ()
@@ -76,16 +87,13 @@
 
 
 (defmacro with-open-database (&body body)
-  `(sqlite:with-open-database (*tietokanta* *tiedosto*) ,@body))
+  `(sqlite:with-open-database (*tietokanta* *tiedosto*)
+                              (tietokannan-asetukset)
+                              ,@body))
 
 
 (defmacro with-transaction (&body body)
   `(sqlite:with-transaction *tietokanta* ,@body))
-
-
-(defun query (format-string &rest parameters)
-  (sqlite:execute-to-list *tietokanta*
-                          (apply #'format nil format-string parameters)))
 
 
 (defun varmista-taulujen-olemassaolo ()
