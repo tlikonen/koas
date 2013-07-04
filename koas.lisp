@@ -1585,7 +1585,7 @@ Esimerkiksi
         (flet ((testaa (mj)
                  (equalp komento mj))
                (tuntematon ()
-                 (format t "~&Tuntematon komento. Ohjeita saa ?:llä.~%")))
+                 (virhe "Tuntematon komento. Ohjeita saa ?:llä.")))
           (cond
             ((testaa "wilma") (let ((*tulostusmuoto* :wilma))
                                 (käsittele-komentorivi arg)))
