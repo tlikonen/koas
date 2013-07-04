@@ -470,13 +470,12 @@
       (query "insert into hallinto (avain, arvo) ~
                                 values ('muokkauslaskuri', '0')"))
     (incf laskuri muokkaukset)
-    (if (>= laskuri *muokkaukset-kunnes-vacuum*)
-        (progn
-          (setf laskuri 0)
-          (query "update hallinto set arvo='0' where avain='muokkauslaskuri'")
-          (query "vacuum"))
-        (query "update hallinto set arvo=~A where avain='muokkauslaskuri'"
-               (sql-mj laskuri)))
+    (when (>= laskuri *muokkaukset-kunnes-vacuum*)
+      (ignore-errors
+        (query "vacuum")
+        (setf laskuri 0))) ;Ei suoriteta, jos vacuum epäonnistuu.
+    (query "update hallinto set arvo=~A where avain='muokkauslaskuri'"
+           (sql-mj laskuri))
     laskuri))
 
 
