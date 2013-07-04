@@ -75,6 +75,7 @@
     (alusta-tiedostopolku)
     (setf *tietokanta* (sqlite:connect *tiedosto*))
     (tietokannan-asetukset)
+    (varmista-taulujen-olemassaolo)
     *tietokanta*))
 
 
@@ -84,10 +85,10 @@
       (setf *tietokanta* nil))))
 
 
-(defmacro with-open-database (&body body)
-  `(sqlite:with-open-database (*tietokanta* *tiedosto*)
-                              (tietokannan-asetukset)
-                              ,@body))
+(defmacro tietokanta-käytössä (&body body)
+  `(let ((*tietokanta* nil))
+     (unwind-protect (progn (connect) ,@body)
+       (disconnect))))
 
 
 (defmacro with-transaction (&body body)
@@ -1625,9 +1626,7 @@ Esimerkiksi
 
 (defun main (&optional argv)
   (script:with-pp-errors
-    (alusta-tiedostopolku)
-    (with-open-database
-      (varmista-taulujen-olemassaolo)
+    (tietokanta-käytössä
       (if (rest argv)
           (let ((*vuorovaikutteinen* nil))
             (käsittele-komentorivi (format nil "~{~A~^ ~}" (rest argv))))
