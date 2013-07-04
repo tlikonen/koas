@@ -70,31 +70,6 @@
   (query "pragma case_sensitive_like = 0"))
 
 
-(defun connect ()
-  (unless (typep *tietokanta* 'sqlite:sqlite-handle)
-    (alusta-tiedostopolku)
-    (setf *tietokanta* (sqlite:connect *tiedosto*))
-    (tietokannan-asetukset)
-    (varmista-taulujen-olemassaolo)
-    *tietokanta*))
-
-
-(defun disconnect ()
-  (when (typep *tietokanta* 'sqlite:sqlite-handle)
-    (prog1 (sqlite:disconnect *tietokanta*)
-      (setf *tietokanta* nil))))
-
-
-(defmacro tietokanta-käytössä (&body body)
-  `(let ((*tietokanta* nil))
-     (unwind-protect (progn (connect) ,@body)
-       (disconnect))))
-
-
-(defmacro with-transaction (&body body)
-  `(sqlite:with-transaction *tietokanta* ,@body))
-
-
 (defun varmista-taulujen-olemassaolo ()
   (let ((kaikki (mapcar #'first (query "select name from sqlite_master ~
                                         where type='table'")))
@@ -124,6 +99,31 @@
                 nimi text default '', ~
                 lyhenne text default '', ~
                 painokerroin integer)")))))
+
+
+(defun connect ()
+  (unless (typep *tietokanta* 'sqlite:sqlite-handle)
+    (alusta-tiedostopolku)
+    (setf *tietokanta* (sqlite:connect *tiedosto*))
+    (tietokannan-asetukset)
+    (varmista-taulujen-olemassaolo)
+    *tietokanta*))
+
+
+(defun disconnect ()
+  (when (typep *tietokanta* 'sqlite:sqlite-handle)
+    (prog1 (sqlite:disconnect *tietokanta*)
+      (setf *tietokanta* nil))))
+
+
+(defmacro tietokanta-käytössä (&body body)
+  `(let ((*tietokanta* nil))
+     (unwind-protect (progn (connect) ,@body)
+       (disconnect))))
+
+
+(defmacro with-transaction (&body body)
+  `(sqlite:with-transaction *tietokanta* ,@body))
 
 
 (defun arvottu-järjestys (lista)
