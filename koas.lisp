@@ -666,20 +666,6 @@
 (defgeneric tulosta (object))
 
 
-(defmethod tulosta ((opp oppilas))
-  (tulosta-taulu
-   (append (if (muoto :org nil) (list :viiva))
-           (list (append (list (otsikko "Sukunimi"))
-                         (list (otsikko "Etunimi"))
-                         (list (otsikko "Ryhmät"))
-                         (list (otsikko "Lisätiedot"))))
-           (if (muoto :org nil) (list :viiva))
-           (list (list (sukunimi opp) (etunimi opp)
-                       (lista-mj-listaksi (ryhmälista opp))
-                       (lisätiedot opp)))
-           (if (muoto :org nil) (list :viiva)))))
-
-
 (defmethod tulosta ((opp oppilaat))
   (setf *muokattavat* (when (and *vuorovaikutteinen*
                                  (not *tulostusmuoto*)
@@ -712,19 +698,6 @@
               (if (> (length *muokattavat*) 1)
                   (format nil "1-~A" (length *muokattavat*))
                   "1")))))
-
-
-(defmethod tulosta ((suo suoritus))
-  (tulosta-taulu
-   (append (if (muoto :org nil) (list :viiva))
-           (list (append (list (otsikko "Ryhmä"))
-                         (list (otsikko "Suoritus"))
-                         (list (otsikko "Lyhenne"))
-                         (list (otsikko "K"))))
-           (if (muoto :org nil) (list :viiva))
-           (list (list (ryhmä suo) (nimi suo) (lyhenne suo)
-                       (painokerroin suo)))
-           (if (muoto :org nil) (list :viiva)))))
 
 
 (defmethod tulosta ((suo suoritukset))
