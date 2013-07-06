@@ -44,9 +44,10 @@
 (defun alusta-tiedostopolku ()
   (unless *tiedosto*
     (setf *tiedosto*
-          (merge-pathnames (make-pathname :directory '(:relative ".config")
-                                          :name "koas" :type "db")
-                           (user-homedir-pathname))))
+          (make-pathname
+           :directory (append (pathname-directory (user-homedir-pathname))
+                              '(".config"))
+           :name "koas" :type "db")))
   (ensure-directories-exist *tiedosto*))
 
 
