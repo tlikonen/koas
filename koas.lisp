@@ -63,8 +63,10 @@
 
 
 (defun query (format-string &rest parameters)
-  (sqlite:execute-to-list *tietokanta*
-                          (apply #'format nil format-string parameters)))
+  (if (typep *tietokanta* 'sqlite:sqlite-handle)
+      (sqlite:execute-to-list *tietokanta*
+                              (apply #'format nil format-string parameters))
+      (virhe "Ei yhteyttä tietokantaan.")))
 
 
 (defun alusta-tietokanta ()
