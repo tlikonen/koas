@@ -948,7 +948,10 @@
 
 
 (defmethod tulosta ((lista suoritusryhmät))
-  (setf *muokattavat* nil)
+  (setf *muokattavat* (when (and *vuorovaikutteinen*
+                                 (not *tulostusmuoto*)
+                                 (not *suppea*))
+                        (coerce (ryhmälista lista) 'vector)))
   (let ((suurin-leveys (olion-mj-pituus (length (ryhmälista lista))))
         (rivi nil)
         (rivit nil))
@@ -1535,6 +1538,8 @@
                    (komento-muokkaa-suoritus numeroluettelo tiedot kohde))
                   (arvosana
                    (komento-muokkaa-arvosana tiedot kohde))
+                  (ryhmä
+                   (virhe "Vielä ei voi ryhmää muokata."))
                   (t (virhe "Tietue ~A on poistettu." i))))
       (muokkauslaskuri (length numeroluettelo)))
     (ehkä-vacuum)))
