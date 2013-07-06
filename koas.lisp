@@ -354,6 +354,10 @@
   ((ryhmä :reader ryhmä :initarg :ryhmä)
    (suorituslista :reader suorituslista :initarg :suorituslista)))
 
+(defclass ryhmä ()
+  ((ryhmä :accessor ryhmä :initarg :ryhmä)
+   (vanha-ryhmä :accessor vanha-ryhmä :initarg :vanha-ryhmä)))
+
 (defclass suoritusryhmät ()
   ((ryhmälista :reader ryhmälista :initarg :ryhmälista)))
 
@@ -541,11 +545,14 @@
 
 
 (defun hae-suoritusryhmät ()
-  (let ((ryhmät
-         (mapcar #' first
-                    (query "select ryhma from ryhmat group by ryhma"))))
+  (let ((ryhmät (mapcar #'first (query "select ryhma from ryhmat ~
+                                        group by ryhma"))))
     (when ryhmät
-      (make-instance 'suoritusryhmät :ryhmälista ryhmät))))
+      (make-instance
+       'suoritusryhmät
+       :ryhmälista (loop :for ryhmä :in ryhmät
+                         :collect
+                         (make-instance 'ryhmä :ryhmä ryhmä))))))
 
 
 (defun hae-arvosanat-suoritukset (ryhmä &optional (nimi "") (lyhenne ""))
@@ -939,13 +946,20 @@
 
 (defmethod tulosta ((lista suoritusryhmät))
   (setf *muokattavat* nil)
-  (let ((rivi nil)
+  (let ((suurin-leveys (olion-mj-pituus (length (ryhmälista lista))))
+        (rivi nil)
         (rivit nil))
     (loop :with n := 1
-          :for (ryhmä . loput) :on (ryhmälista lista)
+          :for (ryhmä . loput) :on (mapcar #'ryhmä (ryhmälista lista))
           :for laskuri :upfrom 1
           :do
-          (push ryhmä rivi)
+          (push (if *muokattavat*
+                    (format nil "~A) ~A" (tasaa-mj (princ-to-string laskuri)
+                                                   suurin-leveys
+                                                   :laita :oikea)
+                            ryhmä)
+                    ryhmä)
+                rivi)
           (if (and (< n 6) loput)
               (incf n)
               (progn
@@ -953,7 +967,12 @@
                 (setf rivi nil n 1)))
           :finally (setf rivit (nreverse rivit)))
     (format t "~&Seuraavilla ryhmillä on suorituksia:~%~%")
-    (tulosta-taulu rivit)))
+    (tulosta-taulu rivit)
+    (when *muokattavat*
+      (format t "~&Muokattavat tietueet: ~A. Kenttä: /ryhmä~%"
+              (if (> (length *muokattavat*) 1)
+                  (format nil "1-~A" (length *muokattavat*))
+                  "1")))))
 
 
 (defmethod tulosta ((object t))
