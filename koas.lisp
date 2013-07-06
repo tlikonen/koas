@@ -219,8 +219,12 @@
           (:oikea (replace tulos mj :start1 (- leveys (length mj))))))))
 
 
+(defun olion-mj-pituus (olio)
+  (length (prin1-to-string olio)))
+
+
 (defun numeroi (taulu)
-  (let ((suurin-leveys (length (prin1-to-string (length taulu)))))
+  (let ((suurin-leveys (olion-mj-pituus (length taulu))))
     (loop :for i :upfrom 1
           :for rivi :in taulu
           :collect (cons (tasaa-mj (princ-to-string i) suurin-leveys
