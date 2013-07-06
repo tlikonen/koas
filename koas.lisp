@@ -1077,6 +1077,12 @@
                  (sql-mj sid-mj))))))
 
 
+(defmethod muokkaa ((ryh ryhmä) &key)
+  (query "update ryhmat set ryhma=~A where ryhma=~A"
+         (sql-mj (ryhmä ryh))
+         (sql-mj (vanha-ryhmä ryh))))
+
+
 (defmethod muokkaa ((arv arvosana) &key)
   (let ((oid (oid (oppilas arv)))
         (lisätiedot (let ((lisä (lisätiedot arv)))
