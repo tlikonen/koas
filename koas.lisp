@@ -1703,7 +1703,7 @@ muokkauskomennoista:
 (defun käsittele-komentorivi (mj)
   (when (null mj)
     (format t "~%")
-    (signal 'poistu-ohjelmasta))
+    (error 'poistu-ohjelmasta))
   (handler-case
       (multiple-value-bind (komento arg)
           (erota-ensimmäinen-sana mj)
