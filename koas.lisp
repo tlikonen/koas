@@ -1331,7 +1331,10 @@
     (with-transaction
       (loop :for i :in numeroluettelo
             :for kohde := (elt *muokattavat* (1- i))
-            :do (cond ((and kohde (not (typep kohde 'arvosana)))
+            :do (cond ((typep kohde 'ryhmä)
+                       (virhe "Ryhmä poistetaan siten, että poistetaan siltä ~
+                        kaikki suoritukset."))
+                      ((and kohde (not (typep kohde 'arvosana)))
                        (poista kohde)
                        (setf (elt *muokattavat* (1- i)) nil))
                       ((and kohde (typep kohde 'arvosana))
