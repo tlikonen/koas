@@ -674,7 +674,7 @@
 
 (defun tulosta-muokattavat (&rest kentät)
   (when *muokattavat*
-    (format t "~&Muokattavat tietueet 1~[~;~:;-~:*~A~]. ~
+    (format t "~&Muokattavat tietueet: 1~[~;~:;-~:*~A~]. ~
                         Kentät: ~:[~;/~]~{~A~^/~}~%"
             (length *muokattavat*)
             (> (length kentät) 1)
@@ -1544,7 +1544,7 @@
 (defun ohjeet (&optional komento)
   (tulosta-taulu
    '(:viiva
-     ("Komento" "Lisätiedot" "Selitys")
+     ("Komento" "Lisätiedot" "Tarkoitus")
      :viiva
      ("ho" "/sukunimi/etunimi/ryhmät/lisätiedot" "Hae oppilaita.")
      ("hoa" "/sukunimi/etunimi/ryhmät/lisätiedot"
@@ -1562,9 +1562,9 @@
      ("m" "numerot /.../.../.../..." "Muokkaa valittuja tietueita ja kenttiä.")
      ("poista" "numerot" "Poista valitut tietueet.")
      :viiva
-     ("?" "" "Tulosta ohjeet.")
-     ("??" "" "Tulosta tarkemmat ohjeet.")
-     ("???" "" "Tulosta aloitusvinkkejä.")
+     ("?" "" "Ohjeet.")
+     ("??" "" "Tarkemmat ohjeet.")
+     ("???" "" "Aloitusvinkkejä.")
      :viiva))
 
   (cond ((equal komento "?")
@@ -1572,28 +1572,60 @@
         ((equal komento "??")
          (format t "~%~
 
-Lisätiedoissa \"numerot\" tarkoittaa kokonaislukujen luetteloa,
-esimerkiksi \"1,4\" tai \"2-5,9\". Niiden avulla valitaan, mitä
-tietueita muokataan tai mitkä poistetaan.
-
-Vinoviiva (/) tarkoittaa kenttien erotinmerkkiä (/.../...). Ensimmäisenä
-oleva merkki määrittää erotinmerkin, ja se voi olla mikä tahansa.
-Esimerkiksi seuraavat komennot toimivat samalla tavalla:
+Lisätiedot-sarakkeessa vinoviiva (/) tarkoittaa kenttien
+erotinmerkkiä (/.../...). Ensimmäisenä oleva merkki määrittää komennossa
+käytettävän erotinmerkin, joka voi olla mikä tahansa. Esimerkiksi alla
+olevat komennot toimivat samalla tavalla. Niillä haetaan oppilaita (ho)
+sukunimen ja etunimen perusteella. Kentät on erotettu toisistaan eri
+erotinmerkeillä.
 
     ho /Meikäl/Mat
     ho ,Meikäl,Mat
     ho 3Meikäl3Mat
 
-Kaikkia kenttiä ei välttämättä tarvitse asettaa. Alla on esimerkki
+Komentojen \"m\" ja \"poista\" kohdalla lisätieto \"numerot\" tarkoittaa
+kokonaislukujen luetteloa, esimerkiksi \"1,4\" tai \"2-5,9\". Niiden
+avulla valitaan, mitä tietueita muokataan tai mitkä poistetaan.
+
+Hakutoiminnot (h:lla alkavat komennot) tulostavat tietokannassa olevia
+tietoja. Hakutoiminnon tulosteessa voi olla numeroituja tietueita.
+Lisäksi tulosteen lopussa on esimerkiksi seuraavanlainen rivi:
+
+    Muokattavat tietueet: 1-22. Kentät: /arvosana/lisätiedot
+
+Se tarkoittaa, että mainittuja tietueita (1-22) ja kenttiä (arvosana,
+lisätiedot) on mahdollista muokata tai poistaa. Tietueita poistetaan
+esimerkiksi seuraavilla komennoilla:
+
+    poista 1
+    poista 4,7,9
+    poista 2-6,10,14-19
+
+Tietueita muokataan m-komennolla. Esimerkiksi arvosanahaun (hao- ja
+has-komennot) jälkeen voidaan muokata jokaisesta tietueesta arvosana- ja
+lisätiedot-kenttää. Eri kentät erotetaan toisistaan jollakin
+erotinmerkillä. Tässä esimerkissä käytetään vinoviivaa (/):
+
+    m 1 /8+/Eri koe kuin muilla
+    m 3,9,14 /7½
+
+Kaikkia kenttiä ei tarvitse asettaa. Oppilashaun (ho- ja hoa-komennot)
+jälkeen on mahdollista muokata neljää kenttää: sukunimi, etunimi, ryhmät
+ja lisätiedot. Ne kentät, joita ei haluta muuttaa, voidaan jättää
+tyhjiksi, eli erotinmerkkien välissä ei ole mitään. Alla on esimerkki
 viiden oppilaan (tietueet 1-5) ryhmät-kentän (3. vasemmalta)
-samanaikaisesta muokkaamisesta:
+samanaikaisesta muokkaamisesta. Ryhmätunnukset erotetaan toisistaan
+välilyönnillä.
 
-    m 1-5 ///2013:7a
+    m 1-5 ///2013:7a 2014:8a
 
-Kentän tyhjentäminen tapahtuu laittamalla kenttään pelkkä välilyönti.
+Kenttä tyhjennetään laittamalla kenttään pelkkä välilyönti:
 
-Tulostusasua voi muuttaa kirjoittamalla komentorivin alkuun tietyn
-avainsanan. Alla oleva taulukko selventää niitä.
+    m 1 / / /
+
+Hakutoimintojen tulostusasua voi muuttaa kirjoittamalla komentorivin
+alkuun tietyn avainsanan. Alla oleva taulukko ja esimerkki selventää
+niitä.
 
 ")
          (tulosta-taulu
@@ -1616,9 +1648,13 @@ Esimerkiksi
         ((equal komento "???")
          (format t "~%~
 
-Ohjelman käyttö kannattaa aloittaa lisäämällä oppilaita:
+Tietokantaohjelman käyttö kannattaa aloittaa lisäämällä oppilaita.
+Lisäystoiminnossa (lo) syötettävät kentät ovat vasemmalta oikealle
+sukunimi, etunimi, ryhmät ja lisätiedot. Ainakin sukunimi ja etunimi
+täytyy syöttää. Kentät erotetaan toisistaan jollakin erotinmerkillä.
+Tässä esimerkissä käytetään vivoviivaa (/):
 
-    lo /Meiläkäinen/Matti/2013:7a
+    lo /Meikäläinen/Matti/2013:7a
     lo /Oppilas/Oona/2013:7a
     lo /Koululainen/Kalle/2013:7a/lukivaikeus
     ...
@@ -1630,28 +1666,36 @@ välilyönnein:
 
     lo /Meikäläinen/Maija/2013:7a 2014:8a 2015:9a
 
-Kun tietokannassa on tarpeeksi oppilaita, voi luoda ryhmille
-suorituksia, esimerkiksi:
+Sitten voi luoda ryhmälle suorituksia. Suoritustiedoissa kentät ovat
+seuraavat: suorituksen nimi, lyhenne, painokerroin ja sijainti eli
+järjestysnumero. Suorituksen lyhennettä käytetään arvosanojen
+koonnissa (hak-komento). Painokerrointa käytetään suoritusten keskiarvon
+laskennassa. Sen täytyy olla positiivinen kokonaisluku. Jos
+painokerrointa ei ole, kyseistä suoritusta ei huomioida keskiarvon
+laskennassa. Alla on esimerkkejä suoritusten lisäämisestä.
 
     ls 2013:7a /Kirje opettajalle/kir
     ls 2013:7a /Sanaluokkakoe/san/2
     ls 2013:7a /Kirjoitelma romaanista/rom/3
+    ls 2013:7a /Välitodistus/vto
     ...
 
-Tämän jälkeen hakutoiminnot (ho, hs, hao, has, hak) löytävät
-tietokannasta oppilaita ja heidän suorituksiaan. Hakutoiminto tulostaa
-taulukon, ja jos taulukon tietoja on mahdollista muokata, näkyy taulukon
-alla seuraavanlainen rivi:
+Tiedot ryhmän suorituksista tulostetaan komennolla \"hs 2013:7a\".
+Arvosanoja voi muokata siten, että ensin haetaan arvosanoista tiedot
+esimerkiksi seuraavilla komennoilla:
 
-    Muokattavat tietueet 1-10. Kentät: /arvosana/lisätiedot
+    hao /Meikäl/Mai
+    has 2013:7a /Sanaluokk
 
-Tietueita voi poistaa komennolla \"poista\" ja muokata komennolla \"m\",
-esimerkiksi
+Sitten käytetään m-komentoa muokkaamiseen. Arvosanatiedoissa on
+muokattavana kaksi kenttää: arvosana ja lisätiedot. Alla on esimerkkejä
+muokkauskomennoista:
 
-    poista 1-2,5
-    m 3 /8½
+    m 1 /8½
+    m 3 /6+
     m 4 /8-/Kirjoitelma palautettu myöhässä.
-    m 6,9,14-15 /7½
+    m 6,14-15 /7½
+    m 16 //Koe toistaiseksi tekemättä.
 
 "))))
 
