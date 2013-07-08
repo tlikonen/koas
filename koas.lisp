@@ -1493,6 +1493,15 @@
     (muokkaa kohde)))
 
 
+(defun komento-muokkaa-ryhmä (uusi-ryhmä ryhmäolio)
+  (when (query "select * from ryhmat where ryhma like ~A"
+               (sql-like-suoja uusi-ryhmä))
+    (virhe "Ryhmä nimeltä ~A on jo olemassa." uusi-ryhmä))
+  (setf (vanha-ryhmä ryhmäolio) (ryhmä ryhmäolio)
+        (ryhmä ryhmäolio) uusi-ryhmä)
+  (muokkaa ryhmäolio))
+
+
 (defun komento-muokkaa (arg)
   ;; numeroluettelo //// (tilannekohtaiset kentät)
   (cond
@@ -1519,14 +1528,12 @@
             :for i :in numeroluettelo
             :for kohde := (elt *muokattavat* (1- i))
             :do (typecase kohde
-                  (oppilas
-                   (komento-muokkaa-oppilas numeroluettelo tiedot kohde))
-                  (suoritus
-                   (komento-muokkaa-suoritus numeroluettelo tiedot kohde))
-                  (arvosana
-                   (komento-muokkaa-arvosana tiedot kohde))
-                  (ryhmä
-                   (virhe "Vielä ei voi ryhmää muokata."))
+                  (oppilas (komento-muokkaa-oppilas numeroluettelo tiedot kohde))
+                  (suoritus (komento-muokkaa-suoritus
+                             numeroluettelo tiedot kohde))
+                  (arvosana (komento-muokkaa-arvosana tiedot kohde))
+                  (ryhmä (komento-muokkaa-ryhmä
+                          (erota-ensimmäinen-sana loput) kohde))
                   (t (virhe "Tietue ~A on poistettu." i))))
       (muokkauslaskuri (length numeroluettelo)))
     (ehkä-vacuum)))
