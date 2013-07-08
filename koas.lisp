@@ -1324,8 +1324,7 @@
       (when (notevery (lambda (n)
                         (<= 1 n suurin))
                       numeroluettelo)
-        (virhe "Vain seuraavia voi käsitellä: ~A."
-               (if (> suurin 1) (format nil "1-~A" suurin) "1"))))
+        (virhe "Vain seuraavat voi poistaa: 1~[~;~:;-~:*~A~]." suurin)))
     (when (> (length numeroluettelo) *poistoraja*)
       (virhe "Vain ~A kpl voi poistaa kerralla." *poistoraja*))
 
@@ -1511,8 +1510,7 @@
              (notevery (lambda (nro)
                          (<= 1 nro suurin))
                        numeroluettelo))
-         (virhe "Vain seuraavia voi käsitellä: ~A."
-                (if (> suurin 1) (format nil "1-~A" suurin) "1")))
+         (virhe "Vain seuraavia voi muokata: 1~[~;~:;-~:*~A~]." suurin))
         ((zerop (length loput))
          (virhe "Anna uudet tiedot. Ohjeita saa ?:llä."))))
 
