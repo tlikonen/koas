@@ -673,6 +673,15 @@
                          :taulukko taulukko))))))
 
 
+(defun tulosta-muokattavat (&rest kentät)
+  (when *muokattavat*
+    (format t "~&Muokattavat tietueet 1~[~;~:;-~:*~A~]. ~
+                        Kentät: ~:[~;/~]~{~A~^/~}~%"
+            (length *muokattavat*)
+            (> (length kentät) 1)
+            kentät)))
+
+
 (defgeneric tulosta (object))
 
 
@@ -703,11 +712,7 @@
              (if (muoto :org nil) (list :viiva))))
 
     (when *muokattavat*
-      (format t "~&Muokattavat tietueet: ~A. Kentät: /sukunimi/etunimi/~
-                        ryhmät/lisätiedot~%"
-              (if (> (length *muokattavat*) 1)
-                  (format nil "1-~A" (length *muokattavat*))
-                  "1")))))
+      (tulosta-muokattavat "sukunimi" "etunimi" "ryhmät" "lisätiedot"))))
 
 
 (defmethod tulosta ((suo suoritukset))
@@ -736,13 +741,9 @@
              (if *muokattavat* (numeroi taulu) taulu)
              (if (muoto :org nil) (list :viiva))))
 
-    (when *muokattavat*
-      (let ((lukuväli (if (> (length *muokattavat*) 1)
-                          (format nil "1-~A" (length *muokattavat*))
-                          "1")))
-        (format t "~&Muokattavat tietueet: ~A. Kentät: /suoritus/lyhenne/~
-                painokerroin/sijainti(~A)~%"
-                lukuväli lukuväli)))
+    (tulosta-muokattavat "suoritus" "lyhenne" "painokerroin"
+                         (format nil "sijainti(1~[~;~:;-~:*~A~])"
+                                 (length *muokattavat*)))
 
     (unless (muoto nil)
       (format t "~%")
@@ -802,11 +803,7 @@
 
         :if lisää :do (format t "~%~%"))
 
-  (when *muokattavat*
-    (format t "~&Muokattavat tietueet: ~A. Kentät: /arvosana/lisätiedot~%"
-            (if (> (length *muokattavat*) 1)
-                (format nil "1-~A" (length *muokattavat*))
-                "1"))))
+  (tulosta-muokattavat "arvosana" "lisätiedot"))
 
 
 (defmethod tulosta ((arv arvosanat-oppilaat))
@@ -874,11 +871,7 @@
                    (format t "~%Enimmäismäärä ~A kpl tuli täyteen.~%"
                            enintään)))
 
-  (when *muokattavat*
-    (format t "~&Muokattavat tietueet: ~A. Kentät: /arvosana/lisätiedot~%"
-            (if (> (length *muokattavat*) 1)
-                (format nil "1-~A" (length *muokattavat*))
-                "1"))))
+  (tulosta-muokattavat "arvosana" "lisätiedot"))
 
 
 (defmethod tulosta ((koonti arvosanat-koonti))
@@ -974,11 +967,7 @@
           :finally (setf rivit (nreverse rivit)))
     (format t "~&Seuraavilla ryhmillä on suorituksia:~%~%")
     (tulosta-taulu rivit)
-    (when *muokattavat*
-      (format t "~&Muokattavat tietueet: ~A. Kenttä: /ryhmä~%"
-              (if (> (length *muokattavat*) 1)
-                  (format nil "1-~A" (length *muokattavat*))
-                  "1")))))
+    (tulosta-muokattavat "ryhmä")))
 
 
 (defmethod tulosta ((object t))
