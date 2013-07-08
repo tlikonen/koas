@@ -1741,7 +1741,7 @@ muokkauskomennoista:
             (t (tuntematon)))))
 
     (virhe (tila)
-      (viesti "~&~A~%" tila))))
+      (format *error-output* "~&~A~%" tila))))
 
 
 (defun main (&optional argv)
