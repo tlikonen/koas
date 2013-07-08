@@ -54,8 +54,8 @@
 
 (define-condition virhe ()
   ((teksti :reader teksti :initarg :teksti))
-  (:report (lambda (c stream)
-             (format stream "~A" (teksti c)))))
+  (:report (lambda (tila virta)
+             (format virta "~A" (teksti tila)))))
 
 (defun virhe (fmt &rest args)
   (error 'virhe :teksti (apply #'format nil fmt args)))
@@ -1740,8 +1740,8 @@ muokkauskomennoista:
                (t (tuntematon))))
             (t (tuntematon)))))
 
-    (virhe (c)
-      (viesti "~&~A~%" c))))
+    (virhe (tila)
+      (viesti "~&~A~%" tila))))
 
 
 (defun main (&optional argv)
