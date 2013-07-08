@@ -61,6 +61,10 @@
   (error 'virhe :teksti (apply #'format nil fmt args)))
 
 
+(defun viesti (fmt &rest args)
+  (apply #'format t fmt args))
+
+
 (defun query (format-string &rest parameters)
   (if (typep *tietokanta* 'sqlite:sqlite-handle)
       (sqlite:execute-to-list *tietokanta*
@@ -76,7 +80,7 @@
              (member asia kaikki :test #'string-equal))
            (teksti ()
              (when valmistellaan
-               (format t "~&Valmistellaan tietokanta (~A).~%~
+               (viesti "~&Valmistellaan tietokanta (~A).~%~
         Ota tietokantatiedostosta varmuuskopio riittävän usein.~%"
                        (sb-ext:native-pathname *tiedosto*))
                (setf valmistellaan nil))))
@@ -674,7 +678,7 @@
 
 (defun tulosta-muokattavat (&rest kentät)
   (when *muokattavat*
-    (format t "~&Muokattavat tietueet: 1~[~;~:;-~:*~A~]. ~
+    (viesti "~&Muokattavat tietueet: 1~[~;~:;-~:*~A~]. ~
                         Kentät: ~:[~;/~]~{~A~^/~}~%"
             (length *muokattavat*)
             (> (length kentät) 1)
@@ -728,7 +732,7 @@
      (append (if (muoto :org nil) (list :viiva))
              (list (list (otsikko "Ryhmä:") (ryhmä suo)))
              (if (muoto :org nil) (list :viiva))))
-    (format t "~%")
+    (viesti "~%")
 
     (tulosta-taulu
      (append (if (muoto :org nil) (list :viiva))
@@ -745,7 +749,7 @@
                                  (length *muokattavat*)))
 
     (unless (muoto nil)
-      (format t "~%")
+      (viesti "~%")
       (tulosta-taulu (list (list (otsikko "K") "= painokerroin"))))))
 
 
@@ -778,7 +782,7 @@
                    (list (list (otsikko "Ryhmä:") (ryhmä arv-suo)))
                    (list (list (otsikko "Suoritus:") suoritus))
                    (if (muoto :org nil) (list :viiva))))
-          (format t "~%")
+          (viesti "~%")
 
           (tulosta-taulu
            (append (if (muoto :org nil) (list :viiva))
@@ -796,11 +800,11 @@
                    (if (muoto :org nil) (list :viiva))))
 
           (unless (muoto nil)
-            (format t "~%")
+            (viesti "~%")
             (tulosta-taulu
              (list (list (otsikko "As") "= arvosana")))))
 
-        :if lisää :do (format t "~%~%"))
+        :if lisää :do (viesti "~%~%"))
 
   (tulosta-muokattavat "arvosana" "lisätiedot"))
 
@@ -841,7 +845,7 @@
                          nil
                          (list (list (otsikko "Lisätiedot:") lis))))
                    (if (muoto :org nil) (list :viiva))))
-          (format t "~%")
+          (viesti "~%")
 
           (tulosta-taulu
            (append (if (muoto :org nil) (list :viiva))
@@ -860,14 +864,14 @@
                    (if (muoto :org nil) (list :viiva))))
 
           (when (not (muoto nil))
-            (format t "~%")
+            (viesti "~%")
             (tulosta-taulu
              (list (list (otsikko "As") "= arvosana"
                          (otsikko "K") "= painokerroin")))))
 
-        :if (and lisää (< n enintään)) :do (format t "~%~%")
+        :if (and lisää (< n enintään)) :do (viesti "~%~%")
         :finally (when (> n enintään)
-                   (format t "~%Enimmäismäärä ~A kpl tuli täyteen.~%"
+                   (viesti "~%Enimmäismäärä ~A kpl tuli täyteen.~%"
                            enintään)))
 
   (tulosta-muokattavat "arvosana" "lisätiedot"))
@@ -907,7 +911,7 @@
      (append (if (muoto :org nil) (list :viiva))
              (list (append (list (otsikko "Ryhmä:")) (list (ryhmä koonti))))
              (if (muoto :org nil) (list :viiva))))
-    (format t "~%")
+    (viesti "~%")
 
     (tulosta-taulu
      (append (if (muoto :org nil) (list :viiva))
@@ -927,7 +931,7 @@
              (if (muoto :org nil) (list :viiva))))
 
     (unless *suppea*
-      (format t "~%")
+      (viesti "~%")
       (tulosta-taulu
        (append (if (muoto :org nil) (list :viiva))
                (list (list (otsikko "Lyh") (otsikko "Suoritus")))
@@ -964,7 +968,7 @@
                 (push (nreverse rivi) rivit)
                 (setf rivi nil n 1)))
           :finally (setf rivit (nreverse rivit)))
-    (format t "~&Seuraavilla ryhmillä on suorituksia:~%~%")
+    (viesti "~&Seuraavilla ryhmillä on suorituksia:~%~%")
     (tulosta-taulu rivit)
     (tulosta-muokattavat "ryhmä")))
 
@@ -1338,7 +1342,7 @@
                        (setf (elt *muokattavat* (1- i)) nil))
                       ((and kohde (typep kohde 'arvosana))
                        (poista kohde))
-                      (t (format t "~&Tietue ~A on jo poistettu.~%" i))))
+                      (t (viesti "~&Tietue ~A on jo poistettu.~%" i))))
       (muokkauslaskuri (length numeroluettelo)))
     (ehkä-vacuum)))
 
@@ -1570,7 +1574,7 @@
   (cond ((equal komento "?")
          (return-from ohjeet))
         ((equal komento "??")
-         (format t "~%~
+         (viesti "~%~
 
 Lisätiedot-sarakkeessa vinoviiva (/) tarkoittaa kenttien
 erotinmerkkiä (/.../...). Ensimmäisenä oleva merkki määrittää komennossa
@@ -1637,7 +1641,7 @@ niitä.
             ("suppea" "Karsitaan tulostuksesta Lisätiedot-kentät yms.")
             :viiva))
 
-         (format t "~%~
+         (viesti "~%~
 
 Esimerkiksi
 
@@ -1646,7 +1650,7 @@ Esimerkiksi
 "))
 
         ((equal komento "???")
-         (format t "~%~
+         (viesti "~%~
 
 Tietokantaohjelman käyttö kannattaa aloittaa lisäämällä oppilaita.
 Lisäystoiminnossa (lo) syötettävät kentät ovat vasemmalta oikealle
@@ -1702,7 +1706,7 @@ muokkauskomennoista:
 
 (defun käsittele-komentorivi (mj)
   (when (null mj)
-    (format t "~%")
+    (viesti "~%")
     (error 'poistu-ohjelmasta))
   (handler-case
       (multiple-value-bind (komento arg)
@@ -1737,7 +1741,7 @@ muokkauskomennoista:
             (t (tuntematon)))))
 
     (virhe (c)
-      (format t "~&~A~%" c))))
+      (viesti "~&~A~%" c))))
 
 
 (defun main (&optional argv)
@@ -1753,7 +1757,7 @@ muokkauskomennoista:
                 (loop (käsittele-komentorivi (lue-rivi kehote t)))
               (poistu-ohjelmasta () nil)
               (sb-sys:interactive-interrupt ()
-                (format t "~%"))))))))
+                (viesti "~%"))))))))
 
 
 #+script
