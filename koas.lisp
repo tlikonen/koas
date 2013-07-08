@@ -1562,12 +1562,13 @@
      :viiva
      ("?" "" "Tulosta ohjeet.")
      ("??" "" "Tulosta tarkemmat ohjeet.")
+     ("???" "" "Tulosta aloitusvinkkejä.")
      :viiva))
 
-  (when (equal komento "?")
-    (return-from ohjeet))
-
-  (format t "~%~
+  (cond ((equal komento "?")
+         (return-from ohjeet))
+        ((equal komento "??")
+         (format t "~%~
 
 Lisätiedoissa \"numerot\" tarkoittaa kokonaislukujen luetteloa,
 esimerkiksi \"1,4\" tai \"2-5,9\". Niiden avulla valitaan, mitä
@@ -1581,43 +1582,76 @@ Esimerkiksi seuraavat komennot toimivat samalla tavalla:
     ho ,Meikäl,Mat
     ho 3Meikäl3Mat
 
-Kaikkia kenttiä ei välttämättä tarvitse asettaa. Kun haluaa muokata vain
-tiettyä kenttää, jätetään toiset kentät tyhjiksi. Alla on esimerkki
-viiden oppilaan ryhmät-kentän (3. vasemmalta) samanaikaisesta
-muokkaamisesta:
+Kaikkia kenttiä ei välttämättä tarvitse asettaa. Alla on esimerkki
+viiden oppilaan (tietueet 1-5) ryhmät-kentän (3. vasemmalta)
+samanaikaisesta muokkaamisesta:
 
     m 1-5 ///2013:7a
 
-Kentän tyhjentäminen tapahtuu laittamalla kenttään pelkkiä välilyöntejä.
+Kentän tyhjentäminen tapahtuu laittamalla kenttään pelkkä välilyönti.
+
+Tulostusasua voi muuttaa kirjoittamalla komentorivin alkuun tietyn
+avainsanan. Alla oleva taulukko selventää niitä.
+
+")
+         (tulosta-taulu
+          '(:viiva
+            ("Sana" "Selitys")
+            :viiva
+            ("wilma" "Wilma-viestiin sopiva taulukkomalli.")
+            ("org" "Emacsin Org-tilaan sopiva taulukkomalli.")
+            ("suppea" "Karsitaan tulostuksesta Lisätiedot-kentät yms.")
+            :viiva))
+
+         (format t "~%~
+
+Esimerkiksi
+
+    wilma suppea hao /Meikäl/Mat/2013:7a
+
+"))
+
+        ((equal komento "???")
+         (format t "~%~
+
+Ohjelman käyttö kannattaa aloittaa lisäämällä oppilaita:
+
+    lo /Meiläkäinen/Matti/2013:7a
+    lo /Oppilas/Oona/2013:7a
+    lo /Koululainen/Kalle/2013:7a/lukivaikeus
+    ...
 
 Kannattaa nimetä ryhmät lukuvuoden aloitusvuoden ja ryhmätunnuksen
 avulla, esimerkiksi \"2013:7a\". Näin ryhmät voi yksilöidä usean
 lukuvuoden aikana. Oppilaan tiedoissa eri ryhmät erotetaan toisistaan
 välilyönnein:
 
-    lo /Meikäläinen/Matti/2011:7a 2012:8a 2013:9a/lisätietoja
+    lo /Meikäläinen/Maija/2013:7a 2014:8a 2015:9a
 
-Tulostusasua voi muuttaa kirjoittamalla komentorivin alkuun tietyn
-avainsanan. Alla oleva taulukko selventää niitä.
+Kun tietokannassa on tarpeeksi oppilaita, voi luoda ryhmille
+suorituksia, esimerkiksi:
 
-")
+    ls 2013:7a /Kirje opettajalle/kir
+    ls 2013:7a /Sanaluokkakoe/san/2
+    ls 2013:7a /Kirjoitelma romaanista/rom/3
+    ...
 
-  (tulosta-taulu
-   '(:viiva
-     ("Sana" "Selitys")
-     :viiva
-     ("wilma" "Wilma-viestiin sopiva taulukkomalli.")
-     ("org" "Emacsin Org-tilaan sopiva taulukkomalli.")
-     ("suppea" "Karsitaan tulostuksesta Lisätiedot-kentät yms.")
-     :viiva))
+Tämän jälkeen hakutoiminnot (ho, hs, hao, has, hak) löytävät
+tietokannasta oppilaita ja heidän suorituksiaan. Hakutoiminto tulostaa
+taulukon, ja jos taulukon tietoja on mahdollista muokata, näkyy taulukon
+alla seuraavanlainen rivi:
 
-  (format t "~%~
+    Muokattavat tietueet 1-10. Kentät: /arvosana/lisätiedot
 
-Esimerkiksi
+Tietueita voi poistaa komennolla \"poista\" ja muokata komennolla \"m\",
+esimerkiksi
 
-    wilma suppea hao /Meikäl/Mat/2012:8a
+    poista 1-2,5
+    m 3 /8½
+    m 4 /8-/Kirjoitelma palautettu myöhässä.
+    m 6,9,14-15 /7½
 
-"))
+"))))
 
 
 (defun käsittele-komentorivi (mj)
@@ -1647,7 +1681,7 @@ Esimerkiksi
             ((testaa "hak") (komento-hae-arvosanat-koonti arg))
             ((testaa "lo") (komento-lisää-oppilas arg))
             ((testaa "ls") (komento-lisää-suoritus arg))
-            ((or (testaa "?") (testaa "??")) (ohjeet komento))
+            ((or (testaa "?") (testaa "??") (testaa "???")) (ohjeet komento))
             (*vuorovaikutteinen*
              (cond
                ((testaa "") (signal 'poistu-ohjelmasta))
