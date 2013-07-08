@@ -37,7 +37,7 @@
 (defvar *tulostusmuoto* nil)
 (defvar *suppea* nil)
 (defvar *poistoraja* 10)
-(defvar *muokkaukset-kunnes-vacuum* 1000)
+(defvar *muokkaukset-kunnes-eheytys* 1000)
 
 
 (defun alusta-tiedostopolku ()
@@ -487,11 +487,11 @@
     laskuri))
 
 
-(defun ehkä-vacuum ()
+(defun ehkä-eheytys ()
   (let ((laskuri (query "select arvo from hallinto ~
                                 where avain='muokkauslaskuri'")))
     (setf laskuri (or (lue-numero (first (first laskuri))) 0))
-    (if (>= laskuri *muokkaukset-kunnes-vacuum*)
+    (if (>= laskuri *muokkaukset-kunnes-eheytys*)
         (ignore-errors
           (query "vacuum")
           (query "update hallinto set arvo='0' where avain='muokkauslaskuri'")
@@ -1236,7 +1236,7 @@
                             :ryhmälista (normalisoi-ryhmät (nth 2 jaettu))
                             :lisätiedot (normalisoi-mj (nth 3 jaettu))))
       (muokkauslaskuri 1))
-    (ehkä-vacuum)))
+    (ehkä-eheytys)))
 
 
 (defun komento-lisää-suoritus (arg)
@@ -1282,7 +1282,7 @@
                               :painokerroin paino)
                :sijainti sija)
         (muokkauslaskuri 1))
-      (ehkä-vacuum))))
+      (ehkä-eheytys))))
 
 
 (defun jäsennä-numeroluettelo (mj)
@@ -1344,7 +1344,7 @@
                        (poista kohde))
                       (t (viesti "~&Tietue ~A on jo poistettu.~%" i))))
       (muokkauslaskuri (length numeroluettelo)))
-    (ehkä-vacuum)))
+    (ehkä-eheytys)))
 
 
 (defun on-sisältöä-p (mj)
@@ -1542,7 +1542,7 @@
                           (erota-ensimmäinen-sana loput) kohde))
                   (t (virhe "Tietue ~A on poistettu." i))))
       (muokkauslaskuri (length numeroluettelo)))
-    (ehkä-vacuum)))
+    (ehkä-eheytys)))
 
 
 (defun ohjeet (&optional komento)
