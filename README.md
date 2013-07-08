@@ -37,10 +37,10 @@ asennettuna täytyy olla [Readline][]-kirjaston sekä
 -käyttöjärjestelmässä edellä mainitut ovat asennuspaketeissa nimeltä
 `sbcl`, `libreadline6-dev` ja `libsqlite3-dev`.
 
-Lisäksi kääntämisen yhteydessä käytetään `wget`-ohjelmaa, jolla haetaan
-internetistä [Quicklisp][QL], jos sitä ei ole jo valmiiksi asennettuna.
-Quicklispin avulla ladataan internetistä automaattisesti eräitä Common
-Lisp -kirjastoja.
+Ensimmäisellä kerralla kääntämisen yhteydessä käytetään `wget`-ohjelmaa,
+jolla haetaan internetistä [Quicklisp][QL], jos sitä ei ole jo valmiiksi
+asennettuna. Quicklispin avulla ladataan internetistä automaattisesti
+eräitä Common Lisp -kirjastoja.
 
 Ohjelma käännetään komennolla `make` ja asennetaan komennolla `make
 install`. Ohjelmatiedosto on nimeltään `koas` ja se asentuu oletuksena
@@ -65,10 +65,10 @@ eli se kannattaa varmuuskopioida riittävän usein.
 Ohjelman käyttö on yleensä vuorovaikutteista ja perustuu komentojen
 syöttämiseen näppäimistöltä. Kun ohjelma on käynnissä, komentojen kehote
 on `KOAS>`, jolloin komentoja voi syöttää. Ohjeita komentoihin ja niiden
-käyttöön saa komennoilla `?` ja `??`.
+käyttöön saa komennoilla `?`, `??` ja `???`.
 
-Useimmat toiminnot ovat käytettävissä myös komentoriviargumenttien
-kautta. Esimerkiksi kaikki tiedonhakukomennot ovat tällaisia.
+Useimmat toiminnot ovat käytettävissä myös ei-vuorovaikutteisesti eli
+komentotulkista. Esimerkiksi kaikki tiedonhakukomennot ovat tällaisia.
 Kirjoittamalla ohjelman komennot suoraan komentoriviargumenteiksi
 suoritetaan vain kyseinen toiminto eikä käynnistetä vuorovaikutteista
 tilaa lainkaan.
