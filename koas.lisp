@@ -19,7 +19,6 @@
 ;;; Kehitysideoita:
 ;;;
 ;;; - muokkaa arvosanoja sarjana
-;;; - muokkaa ryhmän nimeä (ryhmat-taulukossa)
 
 
 (defpackage #:koas
