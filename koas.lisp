@@ -16,11 +16,6 @@
 ;;; The license text: <http://www.gnu.org/licenses/gpl-3.0.html>
 
 
-;;; Kehitysideoita:
-;;;
-;;; - muokkaa arvosanoja sarjana
-
-
 (defpackage #:koas
   (:use #:cl)
   (:import-from #:split-sequence #:split-sequence)
@@ -1509,6 +1504,58 @@
   (muokkaa ryhmäolio))
 
 
+(defun komento-muokkaa-sarjana (arg)
+  ;; numeroluettelo kentän_numero ////
+  (cond
+    ((not *muokattavat*)
+     (virhe "Edellinen komento ei sisällä muokattavia."))
+    ((zerop (length arg))
+     (virhe "Anna tietueiden numerot, kentän numero ja uudet tiedot. ~
+                Ohjeita saa ?:llä.")))
+
+  (multiple-value-bind (numeroluettelo loput)
+      (erota-ensimmäinen-sana arg)
+    (setf numeroluettelo (jäsennä-numeroluettelo numeroluettelo))
+    (let ((suurin (length *muokattavat*)))
+      (cond
+        ((or (not numeroluettelo)
+             (notevery (lambda (nro)
+                         (<= 1 nro suurin))
+                       numeroluettelo))
+         (virhe "Vain seuraavia voi muokata: 1~[~;~:;-~:*~A~]." suurin))
+        ((not (on-sisältöä-p loput))
+         (virhe "Anna muokkausta varten kentän numero. Ohjeita saa ?:llä."))))
+
+    (multiple-value-bind (kentän-numero loput)
+        (erota-ensimmäinen-sana loput)
+      (setf kentän-numero (lue-numero kentän-numero))
+      (cond
+        ((not (and (integerp kentän-numero)
+                   (plusp kentän-numero)))
+         (virhe "Kentän numeron täytyy olla positiivinen kokonaisluku."))
+        ((not (on-sisältöä-p loput))
+         (virhe "Anna muokkausta varten uudet tiedot. Ohjeita saa ?:llä.")))
+
+      (let ((arvot (pilko-erottimella loput)))
+        (with-transaction
+          (loop :for arvo :in arvot
+                :for kentät := (append (make-list (1- kentän-numero)
+                                                  :initial-element "")
+                                       (list arvo))
+                :for i :in numeroluettelo
+                :for kohde := (elt *muokattavat* (1- i))
+                :do (typecase kohde
+                      (oppilas (komento-muokkaa-oppilas
+                                numeroluettelo kentät kohde))
+                      (suoritus (komento-muokkaa-suoritus
+                                 numeroluettelo kentät kohde))
+                      (arvosana (komento-muokkaa-arvosana kentät kohde))
+                      (ryhmä (komento-muokkaa-ryhmä kentät kohde))
+                      (t (virhe "Tietue ~A on poistettu." i))))
+          (muokkauslaskuri (min (length numeroluettelo) (length arvot)))))
+      (ehkä-eheytys))))
+
+
 (defun komento-muokkaa (arg)
   ;; numeroluettelo //// (tilannekohtaiset kentät)
   (cond
@@ -1565,6 +1612,7 @@
       "Lisää ryhmälle suoritus.")
      :viiva
      ("m" "numerot /.../.../.../..." "Muokkaa valittuja tietueita ja kenttiä.")
+     ("ms" "numerot kenttä /.../.../..." "Muokkaa samaa kenttää sarjana.")
      ("poista" "numerot" "Poista valitut tietueet.")
      :viiva
      ("?" "" "Ohjeet.")
@@ -1627,6 +1675,23 @@ välilyönnillä.
 Kenttä tyhjennetään laittamalla kenttään pelkkä välilyönti:
 
     m 1 / / /
+
+Toinen muokkauskomento on \"ms\". Myös sille annetaan ensimmäiseksi
+argumentiksi luettelo muokattavista tietueista. Toiseksi argumentiksi
+annetaan muokattavan kentän numero: ensimmäinen kenttä vasemmalta on 1,
+toinen vasemmalta on 2 jne. Sen jälkeen luetellaan erotinmerkin avulla
+kyseiseen kenttään tulevat tiedot.
+
+Esimerkiksi jos halutaan kirjata arvosana usealle oppilaalle, haetaan
+ensin halutut suoritustiedot has-komennolla ja annetaan sitten
+seuraavanlainen muokkauskomento:
+
+    ms 1-9,11 1 /8-/6½/8+/7-/7½/7-/7/6½/9-/8+
+
+Yllä oleva komento muokkaa tietueita 1-9 ja 11. Kaikista tietueista
+muokataan kenttää numero 1 (arvosana-kenttä). Kenttiin tulevat arvosanat
+on lueteltu erotinmerkin \"/\" avulla samassa järjestyksessä kuin
+tietueetkin on annettu (1-9,11).
 
 Hakutoimintojen tulostusasua voi muuttaa kirjoittamalla komentorivin
 alkuun tietyn avainsanan. Alla oleva taulukko ja esimerkki selventää
@@ -1738,6 +1803,7 @@ muokkauskomennoista:
                ((testaa "") (signal 'poistu-ohjelmasta))
                ((testaa "poista") (komento-poista arg))
                ((testaa "m") (komento-muokkaa arg))
+               ((testaa "ms") (komento-muokkaa-sarjana arg))
                (t (tuntematon))))
             (t (tuntematon)))))
 
