@@ -673,7 +673,7 @@
 
 (defun tulosta-muokattavat (&rest kentät)
   (when *muokattavat*
-    (viesti "~&Muokattavat tietueet: 1~[~;~:;-~:*~A~]. ~
+    (viesti "~&~[~;Muokattava tietue: 1~:;Muokattavat tietueet: 1-~:*~A~]. ~
                         ~:[Kenttä: ~;Kentät: /~]~{~A~^/~}~%"
             (length *muokattavat*)
             (> (length kentät) 1)
