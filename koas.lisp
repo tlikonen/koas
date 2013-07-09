@@ -1355,12 +1355,12 @@
             mj))
 
 
-(defun komento-muokkaa-oppilas (numeroluettelo tiedot kohde)
+(defun komento-muokkaa-oppilas (numeroluettelo kentät kohde)
   (let ((useita (> (length numeroluettelo) 1))
-        (suku (nth 0 tiedot))
-        (etu (nth 1 tiedot))
-        (ryhmä (nth 2 tiedot))
-        (lisä (nth 3 tiedot))
+        (suku (nth 0 kentät))
+        (etu (nth 1 kentät))
+        (ryhmä (nth 2 kentät))
+        (lisä (nth 3 kentät))
         (uusi-suku :tyhjä)
         (uusi-etu :tyhjä)
         (uusi-ryhmä :tyhjä)
@@ -1407,12 +1407,12 @@
     (muokkaa kohde)))
 
 
-(defun komento-muokkaa-suoritus (numeroluettelo tiedot kohde)
+(defun komento-muokkaa-suoritus (numeroluettelo kentät kohde)
   (let ((useita (> (length numeroluettelo) 1))
-        (nimi (nth 0 tiedot))
-        (lyhenne (nth 1 tiedot))
-        (painokerroin (nth 2 tiedot))
-        (sija (nth 3 tiedot))
+        (nimi (nth 0 kentät))
+        (lyhenne (nth 1 kentät))
+        (painokerroin (nth 2 kentät))
+        (sija (nth 3 kentät))
         (uusi-nimi :tyhjä)
         (uusi-lyhenne :tyhjä)
         (uusi-painokerroin :tyhjä)
@@ -1474,9 +1474,9 @@
                                       uusi-sija))))
 
 
-(defun komento-muokkaa-arvosana (tiedot kohde)
-  (let ((arvosana (nth 0 tiedot))
-        (lisätiedot (nth 1 tiedot))
+(defun komento-muokkaa-arvosana (kentät kohde)
+  (let ((arvosana (nth 0 kentät))
+        (lisätiedot (nth 1 kentät))
         (uusi-arvosana :tyhjä)
         (uusi-lisätiedot :tyhjä))
     (when arvosana
@@ -1530,14 +1530,14 @@
          (virhe "Anna uudet tiedot. Ohjeita saa ?:llä."))))
 
     (with-transaction
-      (loop :with tiedot := (pilko-erottimella loput)
+      (loop :with kentät := (pilko-erottimella loput)
             :for i :in numeroluettelo
             :for kohde := (elt *muokattavat* (1- i))
             :do (typecase kohde
-                  (oppilas (komento-muokkaa-oppilas numeroluettelo tiedot kohde))
+                  (oppilas (komento-muokkaa-oppilas numeroluettelo kentät kohde))
                   (suoritus (komento-muokkaa-suoritus
-                             numeroluettelo tiedot kohde))
-                  (arvosana (komento-muokkaa-arvosana tiedot kohde))
+                             numeroluettelo kentät kohde))
+                  (arvosana (komento-muokkaa-arvosana kentät kohde))
                   (ryhmä (komento-muokkaa-ryhmä
                           (erota-ensimmäinen-sana loput) kohde))
                   (t (virhe "Tietue ~A on poistettu." i))))
