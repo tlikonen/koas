@@ -740,7 +740,7 @@
              (if (muoto :org nil) (list :viiva))))
 
     (tulosta-muokattavat "suoritus" "lyhenne" "painokerroin"
-                         (format nil "sijainti(1~[~;~:;-~:*~A~])"
+                         (format nil "sija(1~[~;~:;-~:*~A~])"
                                  (length *muokattavat*)))
 
     (unless (muoto nil)
@@ -1002,7 +1002,7 @@
     opp))
 
 
-(defmethod lisää ((suo suoritus) &key sijainti)
+(defmethod lisää ((suo suoritus) &key sija)
   (query "insert into suoritukset (nimi,lyhenne,painokerroin) ~
         values (~A,~A,~A)"
          (sql-mj (nimi suo))
@@ -1025,7 +1025,7 @@
             (progn
               (setf ryhmän-suoritukset
                     (lisää-mj-listaan (princ-to-string sid)
-                                      ryhmän-suoritukset sijainti))
+                                      ryhmän-suoritukset sija))
               (query "update ryhmat set suoritukset=~A where ryhma like ~A"
                      (sql-mj ryhmän-suoritukset)
                      (sql-like-suoja (ryhmä suo))))
@@ -1049,7 +1049,7 @@
   opp)
 
 
-(defmethod muokkaa ((suo suoritus) &key uusi-sijainti)
+(defmethod muokkaa ((suo suoritus) &key sija)
   (query "update suoritukset set nimi=~A,lyhenne=~A,painokerroin=~A ~
                 where sid=~A"
          (sql-mj (nimi suo))
@@ -1057,7 +1057,7 @@
          (if (painokerroin suo) (painokerroin suo) "NULL")
          (sid suo))
 
-  (when uusi-sijainti
+  (when sija
     (let ((sid-mj (princ-to-string (sid suo)))
           (ryhmän-suoritukset
            (first (first (query "select suoritukset from ryhmat ~
@@ -1067,8 +1067,7 @@
       (if ryhmän-suoritukset
           (progn
             (setf ryhmän-suoritukset
-                  (siirrä-mj-listassa sid-mj ryhmän-suoritukset
-                                      uusi-sijainti))
+                  (siirrä-mj-listassa sid-mj ryhmän-suoritukset sija))
             (query "update ryhmat set suoritukset=~A where ryhma like ~A"
                    (sql-mj ryhmän-suoritukset)
                    (sql-like-suoja (ryhmä suo))))
@@ -1269,8 +1268,7 @@
                 (virhe "Painokertoimen täytyy olla positiivinen kokonaisluku ~
                          (tai jättää pois).")))
           (setf paino nil))
-      (if (and sija
-               (on-sisältöä-p sija))
+      (if (and sija (on-sisältöä-p sija))
           (let ((num (lue-numero sija)))
             (if (and (integerp num)
                      (plusp num))
@@ -1285,7 +1283,7 @@
                               :nimi nimi
                               :lyhenne lyh
                               :painokerroin paino)
-               :sijainti sija)
+               :sija sija)
         (muokkauslaskuri 1))
       (ehkä-eheytys))))
 
@@ -1442,11 +1440,11 @@
            (setf uusi-sija (1- num)))
           ((and (integerp num)
                 (not (<= 1 num suurin)))
-           (virhe "Sopivia sijainteja ovat seuraavat: ~A."
+           (virhe "Sopivia sijoja ovat seuraavat: ~A."
                   (if (> suurin 1) (format nil "1-~A" suurin) "1")))
           ((and (on-sisältöä-p sija)
                 (not (integerp num)))
-           (virhe "Sijainnin täytyy olla positiivinen kokonaisluku.")))))
+           (virhe "Sijan täytyy olla positiivinen kokonaisluku.")))))
 
     (unless (eql uusi-nimi :tyhjä)
       (setf (nimi kohde) (normalisoi-mj uusi-nimi)))
@@ -1454,9 +1452,7 @@
       (setf (lyhenne kohde) (normalisoi-mj uusi-lyhenne)))
     (unless (eql uusi-painokerroin :tyhjä)
       (setf (painokerroin kohde) (normalisoi-painokerroin uusi-painokerroin)))
-    (muokkaa kohde :uusi-sijainti (if (eql uusi-sija :tyhjä)
-                                      nil
-                                      uusi-sija))))
+    (muokkaa kohde :sija (if (eql uusi-sija :tyhjä) nil uusi-sija))))
 
 
 (defun komento-muokkaa-arvosana (kentät kohde)
@@ -1586,7 +1582,7 @@
                      (if (and (> (length numeroluettelo) 1)
                               sija (on-sisältöä-p sija))
                          (virhe "Usealle suoritukselle ei voi asettaa samaa ~
-                                        sijainta yhtä aikaa.")
+                                        sijaa yhtä aikaa.")
                          (komento-muokkaa-suoritus kentät kohde))))
 
                   (arvosana
@@ -1617,7 +1613,7 @@
      ("hak" "ryhmä" "Hae arvosanojen koonti.")
      :viiva
      ("lo" "/sukunimi/etunimi/ryhmät/lisätiedot" "Lisää oppilas.")
-     ("ls" "ryhmä /suoritus/lyhenne/painokerroin/sijainti"
+     ("ls" "ryhmä /suoritus/lyhenne/painokerroin/sija"
       "Lisää ryhmälle suoritus.")
      :viiva
      ("m" "numerot /.../.../.../..." "Muokkaa valittuja tietueita ja kenttiä.")
@@ -1746,7 +1742,7 @@ välilyönnein:
     lo /Meikäläinen/Maija/2013:7a 2014:8a 2015:9a
 
 Sitten voi luoda ryhmälle suorituksia. Suoritustiedoissa kentät ovat
-seuraavat: suorituksen nimi, lyhenne, painokerroin ja sijainti eli
+seuraavat: suorituksen nimi, lyhenne, painokerroin ja sija eli
 järjestysnumero. Suorituksen lyhennettä käytetään arvosanojen
 koonnissa (hak-komento). Painokerrointa käytetään suoritusten keskiarvon
 laskennassa. Sen täytyy olla positiivinen kokonaisluku. Jos
