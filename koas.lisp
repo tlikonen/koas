@@ -1350,9 +1350,8 @@
             mj))
 
 
-(defun komento-muokkaa-oppilas (numeroluettelo kentät kohde)
-  (let ((useita (> (length numeroluettelo) 1))
-        (suku (nth 0 kentät))
+(defun komento-muokkaa-oppilas (kentät kohde)
+  (let ((suku (nth 0 kentät))
         (etu (nth 1 kentät))
         (ryhmä (nth 2 kentät))
         (lisä (nth 3 kentät))
@@ -1361,20 +1360,10 @@
         (uusi-ryhmä :tyhjä)
         (uusi-lisä :tyhjä))
 
-    (when (and useita
-               (or (and suku (on-sisältöä-p suku))
-                   (and etu (on-sisältöä-p etu))))
-      (virhe "Usealle oppilaalle ei voi vaihtaa kerralla samaa suku- tai ~
-                etunimeä."))
-
-    (when (and suku
-               (on-sisältöä-p suku)
-               (not useita))
+    (when (and suku (on-sisältöä-p suku))
       (setf uusi-suku suku))
 
-    (when (and etu
-               (on-sisältöä-p etu)
-               (not useita))
+    (when (and etu (on-sisältöä-p etu))
       (setf uusi-etu etu))
 
     (when ryhmä
@@ -1402,9 +1391,8 @@
     (muokkaa kohde)))
 
 
-(defun komento-muokkaa-suoritus (numeroluettelo kentät kohde)
-  (let ((useita (> (length numeroluettelo) 1))
-        (nimi (nth 0 kentät))
+(defun komento-muokkaa-suoritus (kentät kohde)
+  (let ((nimi (nth 0 kentät))
         (lyhenne (nth 1 kentät))
         (painokerroin (nth 2 kentät))
         (sija (nth 3 kentät))
@@ -1413,18 +1401,10 @@
         (uusi-painokerroin :tyhjä)
         (uusi-sija :tyhjä))
 
-    (when (and useita
-               sija
-               (on-sisältöä-p sija))
-      (virhe "Sijaintia ei voi muuttaa, jos muokataan useita suorituksia ~
-                samaan aikaan."))
-
-    (when (and nimi
-               (on-sisältöä-p nimi))
+    (when (and nimi (on-sisältöä-p nimi))
       (setf uusi-nimi nimi))
 
-    (when (and lyhenne
-               (on-sisältöä-p lyhenne))
+    (when (and lyhenne (on-sisältöä-p lyhenne))
       (setf uusi-lyhenne lyhenne))
 
     (when painokerroin
@@ -1438,8 +1418,8 @@
            (setf uusi-painokerroin num))
           ((and (on-sisältöä-p painokerroin)
                 (or (not (integerp num))
-                    (integerp num)
-                    (not (plusp num))))
+                    (and (integerp num)
+                         (not (plusp num)))))
            (virhe "Painokertoimen täytyy olla positiivinen kokonaisluku ~
                 (tai välilyönti).")))))
 
@@ -1545,10 +1525,8 @@
                 :for i :in numeroluettelo
                 :for kohde := (elt *muokattavat* (1- i))
                 :do (typecase kohde
-                      (oppilas (komento-muokkaa-oppilas
-                                numeroluettelo kentät kohde))
-                      (suoritus (komento-muokkaa-suoritus
-                                 numeroluettelo kentät kohde))
+                      (oppilas (komento-muokkaa-oppilas kentät kohde))
+                      (suoritus (komento-muokkaa-suoritus kentät kohde))
                       (arvosana (komento-muokkaa-arvosana kentät kohde))
                       (ryhmä (komento-muokkaa-ryhmä kentät kohde))
                       (t (virhe "Tietue ~A on poistettu." i))))
@@ -1582,13 +1560,34 @@
             :for i :in numeroluettelo
             :for kohde := (elt *muokattavat* (1- i))
             :do (typecase kohde
-                  (oppilas (komento-muokkaa-oppilas numeroluettelo kentät kohde))
-                  (suoritus (komento-muokkaa-suoritus
-                             numeroluettelo kentät kohde))
-                  (arvosana (komento-muokkaa-arvosana kentät kohde))
-                  (ryhmä (komento-muokkaa-ryhmä
-                          (list (erota-ensimmäinen-sana loput)) kohde))
+
+                  (oppilas
+                   (let ((suku (nth 0 kentät))
+                         (etu (nth 1 kentät)))
+                     (if (and (> (length numeroluettelo) 1)
+                              (or (and suku (on-sisältöä-p suku))
+                                  (and etu (on-sisältöä-p etu))))
+                         (virhe "Usealle oppilaalle ei voi vaihtaa kerralla ~
+                                samaa suku- tai etunimeä.")
+                         (komento-muokkaa-oppilas kentät kohde))))
+
+                  (suoritus
+                   (let ((sija (nth 3 kentät)))
+                     (if (and (> (length numeroluettelo) 1)
+                              sija (on-sisältöä-p sija))
+                         (virhe "Usealle suoritukselle ei voi asettaa samaa ~
+                                        sijainta yhtä aikaa.")
+                         (komento-muokkaa-suoritus kentät kohde))))
+
+                  (arvosana
+                   (komento-muokkaa-arvosana kentät kohde))
+
+                  (ryhmä
+                   (komento-muokkaa-ryhmä
+                    (list (erota-ensimmäinen-sana loput)) kohde))
+
                   (t (virhe "Tietue ~A on poistettu." i))))
+
       (muokkauslaskuri (length numeroluettelo)))
     (ehkä-eheytys)))
 
