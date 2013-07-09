@@ -1514,7 +1514,7 @@
     ((not *muokattavat*)
      (virhe "Edellinen komento ei sisällä muokattavia."))
     ((zerop (length arg))
-     (virhe "Anna numero ja uudet tiedot. Ohjeita saa ?:llä.")))
+     (virhe "Anna tietueiden numerot ja uudet tiedot. Ohjeita saa ?:llä.")))
 
   (multiple-value-bind (numeroluettelo loput)
       (erota-ensimmäinen-sana arg)
@@ -1526,8 +1526,8 @@
                          (<= 1 nro suurin))
                        numeroluettelo))
          (virhe "Vain seuraavia voi muokata: 1~[~;~:;-~:*~A~]." suurin))
-        ((zerop (length loput))
-         (virhe "Anna uudet tiedot. Ohjeita saa ?:llä."))))
+        ((not (on-sisältöä-p loput))
+         (virhe "Anna muokkausta varten uudet tiedot. Ohjeita saa ?:llä."))))
 
     (with-transaction
       (loop :with kentät := (pilko-erottimella loput)
