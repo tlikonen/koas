@@ -160,11 +160,10 @@
                                 (character (string mj))
                                 (integer (princ-to-string mj))
                                 (t ""))
-          :do
-          (princ (cond ((char= merkki #\') "''")
-                       ((find merkki "_%\\") (format nil "\\~A" merkki))
-                       (t merkki))
-                 ulos))
+          :do (princ (cond ((char= merkki #\') "''")
+                           ((find merkki "_%\\") (format nil "\\~A" merkki))
+                           (t merkki))
+                     ulos))
     (format ulos "~A' escape '\\'" loppu)))
 
 
@@ -178,8 +177,7 @@
 
 
 (defun normalisoi-mj (mj)
-  (format nil "~{~A~^ ~}"
-          (split-sequence #\space mj :remove-empty-subseqs t)))
+  (format nil "~{~A~^ ~}" (split-sequence #\space mj :remove-empty-subseqs t)))
 
 
 (defun normalisoi-ryhmät (asia)
@@ -312,23 +310,20 @@
                                           :initial-element :viiva)
                                rivi)
               :do
-              (format virta "~A" (if (and (viivap rivi) (muoto nil)) "+" "|"))
+              (format virta "~:[|~;+~]" (and (viivap rivi) (muoto nil)))
               (loop :for (osa . loput) :on uusi
                     :for leveys :in leveimmät-sarakkeet
                     :do
                     (cond
-                      ((and (viivap osa)
-                            (or (muoto :org) (muoto nil)))
+                      ((and (viivap osa) (or (muoto :org) (muoto nil)))
                        (format virta "~A~A"
                                (tasaa-mj "" (+ 2 leveys) :laita :vasen
                                          :merkki #\-)
                                (if (or loput (and (not loput) (muoto nil)))
                                    "+" "|")))
-                      ((and (viivap osa)
-                            (muoto :wilma))
-                       (format virta " ~A |" (make-string leveys
-                                                          :initial-element
-                                                          #\space)))
+                      ((and (viivap osa) (muoto :wilma))
+                       (format virta " ~A |"
+                               (make-string leveys :initial-element #\space)))
                       (t (format virta " ~A |"
                                  (tasaa-mj osa leveys :laita :vasen)))))
               (format virta "~%"))))))
@@ -414,9 +409,7 @@
        (if (string= objekti "") (setf objekti "0"))
 
        (cond
-         ((and lisa
-               (not merkki)
-               (every #'digit-char-p objekti))
+         ((and lisa (not merkki) (every #'digit-char-p objekti))
           (+ (parse-integer objekti) lisa))
          ((and (not lisa)
                (every (lambda (c)
@@ -522,6 +515,7 @@
   (let ((ryhmä-suoritukset
          (first (query "select * from ryhmat where ryhma like ~A"
                        (sql-like-suoja ryhmä)))))
+
     (when ryhmä-suoritukset
       (let ((suoritukset
              (loop :for id :in (split-sequence
@@ -537,7 +531,6 @@
                                            :nimi nimi
                                            :lyhenne lyh
                                            :painokerroin kerroin))))
-
 
         (when suoritukset
           (make-instance 'suoritukset
@@ -564,6 +557,7 @@
             :for suoritus :in (suorituslista suor)
             :if (and (search nimi (nimi suoritus) :test #'char-equal)
                      (search lyhenne (lyhenne suoritus) :test #'char-equal))
+
             :do
             (let ((kysely (query "select oppilaat.oid,oppilaat.sukunimi,~
                         oppilaat.etunimi,oppilaat.ryhmat,oppilaat.lisatiedot,~
@@ -576,6 +570,7 @@
                                  (sid suoritus)
                                  (sid suoritus)
                                  (sql-like-suoja ryhmä "%" "%"))))
+
               (when kysely
                 (loop :for i :upfrom 1
                       :for (oid suku etu ryh ol arv al) :in kysely
@@ -624,8 +619,7 @@
                                    := (first
                                        (query "select arvosana,lisatiedot ~
                                         from suoritus_~A where oid = ~A"
-                                              (sid suoritus)
-                                              (oid oppilas)))
+                                              (sid suoritus) (oid oppilas)))
                                    :collect
                                    (make-instance 'arvosana
                                                   :oppilas oppilas
@@ -647,6 +641,7 @@
   (let ((suorituslista (let ((suoritukset (hae-suoritukset ryhmä)))
                          (when suoritukset
                            (suorituslista suoritukset)))))
+
     (when suorituslista
       (let (taulut joinit taulukko)
         (loop :repeat 64 ;SQLiten suurin joinien määrä
@@ -658,12 +653,14 @@
                                (sid s) (sid s))
               :into joi
               :finally (setf taulut tau joinit joi))
+
         (setf taulukko
               (query "select oppilaat.sukunimi,oppilaat.etunimi,~
                 ~{~A~^,~} from oppilaat ~{~A~^ ~} ~
                 where oppilaat.ryhmat like ~A ~
                 group by oppilaat.sukunimi,oppilaat.etunimi"
                      taulut joinit (sql-like-suoja ryhmä "%" "%")))
+
         (when taulukko
           (make-instance 'arvosanat-koonti
                          :ryhmä ryhmä
@@ -709,8 +706,7 @@
              (if *muokattavat* (numeroi taulu) taulu)
              (if (muoto :org nil) (list :viiva))))
 
-    (when *muokattavat*
-      (tulosta-muokattavat "sukunimi" "etunimi" "ryhmät" "lisätiedot"))))
+    (tulosta-muokattavat "sukunimi" "etunimi" "ryhmät" "lisätiedot")))
 
 
 (defmethod tulosta ((suo suoritukset))
@@ -718,6 +714,7 @@
                                  (not *tulostusmuoto*)
                                  (not *suppea*))
                         (coerce (suorituslista suo) 'vector)))
+
   (let ((taulu (loop :for suoritus :in (suorituslista suo)
                      :collect (list (nimi suoritus)
                                     (lyhenne suoritus)
@@ -790,14 +787,12 @@
                    (if *muokattavat* (numeroi taulu) taulu)
                    (if (muoto :wilma) (list nil) (list :viiva))
                    (list (append (if *muokattavat* (list nil))
-                                 (list "Keskiarvo"
-                                       (keskiarvo arvot))))
+                                 (list "Keskiarvo" (keskiarvo arvot))))
                    (if (muoto :org nil) (list :viiva))))
 
           (unless (muoto nil)
             (viesti "~%")
-            (tulosta-taulu
-             (list (list (otsikko "As") "= arvosana")))))
+            (tulosta-taulu (list (list (otsikko "As") "= arvosana")))))
 
         :if lisää :do (viesti "~%~%"))
 
@@ -866,8 +861,7 @@
 
         :if (and lisää (< n enintään)) :do (viesti "~%~%")
         :finally (when (> n enintään)
-                   (viesti "~%Enimmäismäärä ~A kpl tuli täyteen.~%"
-                           enintään)))
+                   (viesti "~%Enimmäismäärä ~A kpl tuli täyteen.~%" enintään)))
 
   (tulosta-muokattavat "arvosana" "lisätiedot"))
 
@@ -932,8 +926,7 @@
                (list (list (otsikko "Lyh") (otsikko "Suoritus")))
                (if (muoto :org nil) (list :viiva))
                (loop :for suoritus :in (suorituslista koonti)
-                     :collect (list (lyhenne suoritus)
-                                    (nimi suoritus)))
+                     :collect (list (lyhenne suoritus) (nimi suoritus)))
                '(("ka" "Keskiarvo"))
                (if (muoto :org nil) (list :viiva)))))))
 
@@ -949,8 +942,7 @@
          (rivejä (multiple-value-bind (koko jäännös)
                      (truncate (length ryhmät) sarakkeita)
                    (if (plusp jäännös) (1+ koko) koko)))
-         (taulukko (make-array (list sarakkeita rivejä)
-                               :initial-element "")))
+         (taulukko (make-array (list sarakkeita rivejä) :initial-element "")))
 
     (loop :with i := 0
           :for x :from 0 :below sarakkeita
@@ -963,8 +955,7 @@
                           (if *muokattavat*
                               (format nil "~A. ~A"
                                       (tasaa-mj (princ-to-string (1+ i))
-                                                numeron-leveys
-                                                :laita :oikea)
+                                                numeron-leveys :laita :oikea)
                                       (aref ryhmät i))
                               (aref ryhmät i)))
                     (incf i)))
@@ -993,8 +984,7 @@
 (defmethod lisää ((opp oppilas) &key)
   (query "insert into oppilaat (sukunimi,etunimi,ryhmat,lisatiedot) ~
         values (~A,~A,~A,~A)"
-         (sql-mj (sukunimi opp))
-         (sql-mj (etunimi opp))
+         (sql-mj (sukunimi opp)) (sql-mj (etunimi opp))
          (sql-mj (lista-mj-listaksi (ryhmälista opp)))
          (sql-mj (lisätiedot opp)))
   (let ((oid (query-last-insert-rowid)))
@@ -1005,8 +995,7 @@
 (defmethod lisää ((suo suoritus) &key sija)
   (query "insert into suoritukset (nimi,lyhenne,painokerroin) ~
         values (~A,~A,~A)"
-         (sql-mj (nimi suo))
-         (sql-mj (lyhenne suo))
+         (sql-mj (nimi suo)) (sql-mj (lyhenne suo))
          (or (painokerroin suo) "NULL"))
 
   (let ((sid (query-last-insert-rowid)))
@@ -1027,11 +1016,9 @@
                     (lisää-mj-listaan (princ-to-string sid)
                                       ryhmän-suoritukset sija))
               (query "update ryhmat set suoritukset=~A where ryhma like ~A"
-                     (sql-mj ryhmän-suoritukset)
-                     (sql-like-suoja (ryhmä suo))))
+                     (sql-mj ryhmän-suoritukset) (sql-like-suoja (ryhmä suo))))
             (query "insert into ryhmat (ryhma,suoritukset) values (~A,~A)"
-                   (sql-mj (ryhmä suo))
-                   (sql-mj sid))))))
+                   (sql-mj (ryhmä suo)) (sql-mj sid))))))
   suo)
 
 
@@ -1041,19 +1028,16 @@
 (defmethod muokkaa ((opp oppilas) &key)
   (query "update oppilaat set sukunimi=~A,etunimi=~A,ryhmat=~A,lisatiedot=~A ~
         where oid=~A"
-         (sql-mj (sukunimi opp))
-         (sql-mj (etunimi opp))
+         (sql-mj (sukunimi opp)) (sql-mj (etunimi opp))
          (sql-mj (lista-mj-listaksi (ryhmälista opp)))
-         (sql-mj (lisätiedot opp))
-         (oid opp))
+         (sql-mj (lisätiedot opp)) (oid opp))
   opp)
 
 
 (defmethod muokkaa ((suo suoritus) &key sija)
   (query "update suoritukset set nimi=~A,lyhenne=~A,painokerroin=~A ~
                 where sid=~A"
-         (sql-mj (nimi suo))
-         (sql-mj (lyhenne suo))
+         (sql-mj (nimi suo)) (sql-mj (lyhenne suo))
          (if (painokerroin suo) (painokerroin suo) "NULL")
          (sid suo))
 
@@ -1069,11 +1053,9 @@
             (setf ryhmän-suoritukset
                   (siirrä-mj-listassa sid-mj ryhmän-suoritukset sija))
             (query "update ryhmat set suoritukset=~A where ryhma like ~A"
-                   (sql-mj ryhmän-suoritukset)
-                   (sql-like-suoja (ryhmä suo))))
+                   (sql-mj ryhmän-suoritukset) (sql-like-suoja (ryhmä suo))))
           (query "insert into ryhmat (ryhma,suoritukset) values (~A,~A)"
-                 (sql-mj (ryhmä suo))
-                 (sql-mj sid-mj))))))
+                 (sql-mj (ryhmä suo)) (sql-mj sid-mj))))))
 
 
 (defmethod muokkaa ((ryh ryhmä) &key)
@@ -1259,19 +1241,16 @@
       (when (or (not (and nimi (on-sisältöä-p nimi)))
                 (not (and lyh (on-sisältöä-p lyh))))
         (virhe "Pitää antaa vähintään suorituksen nimi ja lyhenne."))
-      (if (and paino
-               (on-sisältöä-p paino))
+      (if (and paino (on-sisältöä-p paino))
           (let ((num (lue-numero paino)))
-            (if (and (integerp num)
-                     (plusp num))
+            (if (and (integerp num) (plusp num))
                 (setf paino num)
                 (virhe "Painokertoimen täytyy olla positiivinen kokonaisluku ~
                          (tai jättää pois).")))
           (setf paino nil))
       (if (and sija (on-sisältöä-p sija))
           (let ((num (lue-numero sija)))
-            (if (and (integerp num)
-                     (plusp num))
+            (if (and (integerp num) (plusp num))
                 (setf sija (1- num))
                 (virhe "Sijainnin täytyy olla positiivinen kokonaisluku ~
                         (tai jättää pois).")))
@@ -1339,7 +1318,7 @@
             :for kohde := (elt *muokattavat* (1- i))
             :do (cond ((typep kohde 'ryhmä)
                        (virhe "Ryhmä poistetaan siten, että poistetaan siltä ~
-                        kaikki suoritukset."))
+                                kaikki suoritukset."))
                       ((and kohde (not (typep kohde 'arvosana)))
                        (poista kohde)
                        (setf (elt *muokattavat* (1- i)) nil))
@@ -1377,15 +1356,13 @@
     (when ryhmä
       (cond ((on-sisältöä-p ryhmä)
              (setf uusi-ryhmä ryhmä))
-            ((and (plusp (length ryhmä))
-                  (not (on-sisältöä-p ryhmä)))
+            ((and (plusp (length ryhmä)) (not (on-sisältöä-p ryhmä)))
              (setf uusi-ryhmä nil))))
 
     (when lisä
       (cond ((on-sisältöä-p lisä)
              (setf uusi-lisä lisä))
-            ((and (plusp (length lisä))
-                  (not (on-sisältöä-p lisä)))
+            ((and (plusp (length lisä)) (not (on-sisältöä-p lisä)))
              (setf uusi-lisä nil))))
 
     (unless (eql uusi-suku :tyhjä)
@@ -1421,8 +1398,7 @@
           ((and (plusp (length painokerroin))
                 (not (on-sisältöä-p painokerroin)))
            (setf uusi-painokerroin nil))
-          ((and (integerp num)
-                (plusp num))
+          ((and (integerp num) (plusp num))
            (setf uusi-painokerroin num))
           ((and (on-sisältöä-p painokerroin)
                 (or (not (integerp num))
@@ -1463,8 +1439,7 @@
     (when arvosana
       (cond ((on-sisältöä-p arvosana)
              (setf uusi-arvosana arvosana))
-            ((and (plusp (length arvosana))
-                  (not (on-sisältöä-p arvosana)))
+            ((and (plusp (length arvosana)) (not (on-sisältöä-p arvosana)))
              (setf uusi-arvosana ""))))
     (when lisätiedot
       (cond ((on-sisältöä-p lisätiedot)
