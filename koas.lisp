@@ -943,28 +943,38 @@
                                  (not *tulostusmuoto*)
                                  (not *suppea*))
                         (coerce (ryhmälista lista) 'vector)))
-  (let ((suurin-leveys (olion-mj-pituus (length (ryhmälista lista))))
-        (rivi nil)
-        (rivit nil))
-    (loop :with n := 1
-          :for (ryhmä . loput) :on (mapcar #'ryhmä (ryhmälista lista))
-          :for laskuri :upfrom 1
-          :do
-          (push (if *muokattavat*
-                    (format nil "~A) ~A" (tasaa-mj (princ-to-string laskuri)
-                                                   suurin-leveys
-                                                   :laita :oikea)
-                            ryhmä)
-                    ryhmä)
-                rivi)
-          (if (and (< n 6) loput)
-              (incf n)
-              (progn
-                (push (nreverse rivi) rivit)
-                (setf rivi nil n 1)))
-          :finally (setf rivit (nreverse rivit)))
-    (viesti "~&Seuraavilla ryhmillä on suorituksia:~%~%")
-    (tulosta-taulu rivit)
+
+  (let* ((ryhmät (map 'vector #'ryhmä (ryhmälista lista)))
+         (sarakkeita (min 7 (1+ (truncate (1- (length ryhmät)) 10))))
+         (rivejä (multiple-value-bind (koko jäännös)
+                     (truncate (length ryhmät) sarakkeita)
+                   (if (plusp jäännös) (1+ koko) koko)))
+         (taulukko (make-array (list sarakkeita rivejä)
+                               :initial-element "")))
+
+    (loop :with i := 0
+          :for x :from 0 :below sarakkeita
+          :for numeron-leveys := (olion-mj-pituus
+                                  (min (* (1+ x) rivejä) (length ryhmät)))
+          :do (loop :for y :from 0 :below rivejä
+                    :while (< i (length ryhmät))
+                    :do
+                    (setf (aref taulukko x y)
+                          (if *muokattavat*
+                              (format nil "~A. ~A"
+                                      (tasaa-mj (princ-to-string (1+ i))
+                                                numeron-leveys
+                                                :laita :oikea)
+                                      (aref ryhmät i))
+                              (aref ryhmät i)))
+                    (incf i)))
+
+    (tulosta-taulu
+     (append (if (muoto :org nil) (list :viiva))
+             (loop :for y :from 0 :below rivejä
+                   :collect (loop :for x :from 0 :below sarakkeita
+                                  :collect (aref taulukko x y)))
+             (if (muoto :org nil) (list :viiva))))
     (tulosta-muokattavat "ryhmä")))
 
 
