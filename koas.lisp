@@ -1500,6 +1500,7 @@
 
 
 (defun komento-muokkaa-ryhmä (uusi-ryhmä ryhmäolio)
+  (setf uusi-ryhmä (first uusi-ryhmä))
   (when (query "select * from ryhmat where ryhma like ~A"
                (sql-like-suoja uusi-ryhmä))
     (virhe "Ryhmä nimeltä ~A on jo olemassa." uusi-ryhmä))
@@ -1539,7 +1540,7 @@
                              numeroluettelo kentät kohde))
                   (arvosana (komento-muokkaa-arvosana kentät kohde))
                   (ryhmä (komento-muokkaa-ryhmä
-                          (erota-ensimmäinen-sana loput) kohde))
+                          (list (erota-ensimmäinen-sana loput)) kohde))
                   (t (virhe "Tietue ~A on poistettu." i))))
       (muokkauslaskuri (length numeroluettelo)))
     (ehkä-eheytys)))
