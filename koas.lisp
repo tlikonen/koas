@@ -209,15 +209,6 @@
   (member *tulostusmuoto* tyypit :test #'eql))
 
 
-(defun tasaa-mj (mj leveys &key (laita :vasen) (merkki #\Space))
-  (if (>= (length mj) leveys)
-      mj
-      (let ((tulos (make-string leveys :initial-element merkki)))
-        (ecase laita
-          (:vasen (replace tulos mj))
-          (:oikea (replace tulos mj :start1 (- leveys (length mj))))))))
-
-
 (defun olion-mj-pituus (olio)
   (length (prin1-to-string olio)))
 
@@ -226,9 +217,7 @@
   (let ((suurin-leveys (olion-mj-pituus (length taulu))))
     (loop :for i :upfrom 1
           :for rivi :in taulu
-          :collect (cons (tasaa-mj (princ-to-string i) suurin-leveys
-                                   :laita :oikea)
-                         rivi))))
+          :collect (cons (format nil "~V@A" suurin-leveys i) rivi))))
 
 
 (defun mj-lista-listaksi (mj-lista)
@@ -316,16 +305,11 @@
                     :do
                     (cond
                       ((and (viivap osa) (or (muoto :org) (muoto nil)))
-                       (format virta "~A~A"
-                               (tasaa-mj "" (+ 2 leveys) :laita :vasen
-                                         :merkki #\-)
-                               (if (or loput (and (not loput) (muoto nil)))
-                                   "+" "|")))
+                       (format virta "--~V,,,'-<~>~:[|~;+~]" leveys
+                               (or loput (and (not loput) (muoto nil)))))
                       ((and (viivap osa) (muoto :wilma))
-                       (format virta " ~A |"
-                               (make-string leveys :initial-element #\space)))
-                      (t (format virta " ~A |"
-                                 (tasaa-mj osa leveys :laita :vasen)))))
+                       (format virta " ~V<~> |" leveys))
+                      (t (format virta " ~VA |" leveys osa))))
               (format virta "~%"))))))
 
 
@@ -785,7 +769,7 @@
                                    (list (otsikko "Lisätiedot")))))
                    (if (muoto :org nil) (list :viiva))
                    (if *muokattavat* (numeroi taulu) taulu)
-                   (if (muoto :wilma) (list nil) (list :viiva))
+                   (list :viiva)
                    (list (append (if *muokattavat* (list nil))
                                  (list "Keskiarvo" (keskiarvo arvot))))
                    (if (muoto :org nil) (list :viiva))))
@@ -847,7 +831,7 @@
                                    (list (otsikko "Lisätiedot")))))
                    (if (muoto :org nil) (list :viiva))
                    (if *muokattavat* (numeroi taulu) taulu)
-                   (if (muoto :wilma) (list nil) (list :viiva))
+                   (list :viiva)
                    (list (append (if *muokattavat* (list nil))
                                  (list "Keskiarvo"
                                        (keskiarvo arvot kertoimet 2))))
@@ -953,9 +937,7 @@
                     :do
                     (setf (aref taulukko x y)
                           (if *muokattavat*
-                              (format nil "~A. ~A"
-                                      (tasaa-mj (princ-to-string (1+ i))
-                                                numeron-leveys :laita :oikea)
+                              (format nil "~V@A. ~A" numeron-leveys (1+ i)
                                       (aref ryhmät i))
                               (aref ryhmät i)))
                     (incf i)))
