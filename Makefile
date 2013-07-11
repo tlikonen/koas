@@ -2,11 +2,11 @@ bindir = $(HOME)/bin
 IMAGE = koas
 SYSTEM = koas
 MAKEIMG = make-image.lisp
-SBCL = sbcl --script
+SBCL = sbcl
 LISPFILES = koas.asd koas.lisp script-lib.lisp
 
 $(IMAGE): $(MAKEIMG) $(LISPFILES)
-	@$(SBCL) $(MAKEIMG) $(SYSTEM) $(IMAGE)
+	@$(SBCL) --script $(MAKEIMG) $(SYSTEM) $(IMAGE)
 
 install: $(IMAGE)
 	install -d -- $(bindir)
