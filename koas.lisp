@@ -1639,7 +1639,7 @@ Kenttä tyhjennetään laittamalla kenttään pelkkä välilyönti:
     m 1 / / /
 
 Toinen muokkauskomento on \"ms\". Myös sille annetaan ensimmäiseksi
-argumentiksi luettelo muokattavista tietueista. Toiseksi argumentiksi
+lisätiedoksi luettelo muokattavista tietueista. Toiseksi lisätiedoksi
 annetaan muokattavan kentän numero: ensimmäinen kenttä vasemmalta on 1,
 toinen vasemmalta on 2 jne. Sen jälkeen luetellaan erotinmerkin avulla
 kyseiseen kenttään tulevat tiedot.
