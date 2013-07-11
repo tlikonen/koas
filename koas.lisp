@@ -1598,9 +1598,9 @@ erotinmerkeillä.
     ho ,Meikäl,Mat
     ho 3Meikäl3Mat
 
-Komentojen \"m\" ja \"poista\" kohdalla lisätieto \"numerot\" tarkoittaa
-kokonaislukujen luetteloa, esimerkiksi \"1,4\" tai \"2-5,9\". Niiden
-avulla valitaan, mitä tietueita muokataan tai mitkä poistetaan.
+Komentojen \"m\", \"ms\" ja \"poista\" kohdalla lisätieto \"numerot\"
+tarkoittaa kokonaislukujen luetteloa, esimerkiksi \"1,4\" tai \"2-5,9\".
+Niiden avulla valitaan, mitä tietueita muokataan tai mitkä poistetaan.
 
 Hakutoiminnot (h:lla alkavat komennot) tulostavat tietokannassa olevia
 tietoja. Hakutoiminnon tulosteessa voi olla numeroituja tietueita.
@@ -1616,21 +1616,21 @@ esimerkiksi seuraavilla komennoilla:
     poista 4,7,9
     poista 2-6,10,14-19
 
-Tietueita muokataan m-komennolla. Esimerkiksi arvosanahaun (hao- ja
-has-komennot) jälkeen voidaan muokata jokaisesta tietueesta arvosana- ja
-lisätiedot-kenttää. Eri kentät erotetaan toisistaan jollakin
+Tietueita muokataan m- tai ms-komennolla. Esimerkiksi arvosanahaun (hao-
+ja has-komennot) jälkeen voidaan muokata jokaisesta tietueesta arvosana-
+ja lisätiedot-kenttää. Eri kentät erotetaan toisistaan jollakin
 erotinmerkillä. Tässä esimerkissä käytetään vinoviivaa (/):
 
     m 1 /8+/Eri koe kuin muilla
     m 3,9,14 /7½
 
-Kaikkia kenttiä ei tarvitse asettaa. Oppilashaun (ho- ja hoa-komennot)
-jälkeen on mahdollista muokata neljää kenttää: sukunimi, etunimi, ryhmät
-ja lisätiedot. Ne kentät, joita ei haluta muuttaa, voidaan jättää
-tyhjiksi, eli erotinmerkkien välissä ei ole mitään. Alla on esimerkki
-viiden oppilaan (tietueet 1-5) ryhmät-kentän (3. vasemmalta)
-samanaikaisesta muokkaamisesta. Ryhmätunnukset erotetaan toisistaan
-välilyönnillä.
+Kaikkia kenttiä ei tarvitse asettaa. Esimerkiksi oppilashaun (ho- ja
+hoa-komennot) jälkeen on mahdollista muokata neljää kenttää: sukunimi,
+etunimi, ryhmät ja lisätiedot. Ne kentät, joita ei haluta muuttaa,
+voidaan jättää tyhjiksi, eli erotinmerkkien välissä ei ole mitään. Alla
+on esimerkki viiden oppilaan (tietueet 1-5) ryhmät-kentän (3.
+vasemmalta) samanaikaisesta muokkaamisesta. Ryhmätunnukset erotetaan
+toisistaan välilyönnillä.
 
     m 1-5 ///2013:7a 2014:8a
 
@@ -1641,8 +1641,8 @@ Kenttä tyhjennetään laittamalla kenttään pelkkä välilyönti:
 Toinen muokkauskomento on \"ms\". Myös sille annetaan ensimmäiseksi
 lisätiedoksi luettelo muokattavista tietueista. Toiseksi lisätiedoksi
 annetaan muokattavan kentän numero: ensimmäinen kenttä vasemmalta on 1,
-toinen vasemmalta on 2 jne. Sen jälkeen luetellaan erotinmerkin avulla
-kyseiseen kenttään tulevat tiedot.
+toinen vasemmalta on 2 jne. Kolmantena lisätietona luetellaan
+erotinmerkin avulla kyseiseen kenttään tulevat tiedot eri tietueissa.
 
 Esimerkiksi jos halutaan kirjata arvosana usealle oppilaalle, haetaan
 ensin halutut suoritustiedot has-komennolla ja annetaan sitten
@@ -1674,6 +1674,7 @@ niitä.
 Esimerkiksi
 
     wilma suppea hao /Meikäl/Mat/2013:7a
+    org hak 2013:7a
 
 "))
 
