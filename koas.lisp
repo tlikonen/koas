@@ -76,7 +76,8 @@
            (teksti ()
              (when valmistellaan
                (viesti "~&Valmistellaan tietokanta (~A).~%~
-        Ota tietokantatiedostosta varmuuskopio riittävän usein.~%"
+        Ota tietokantatiedostosta varmuuskopio riittävän usein.~%~
+        Ohjelman käyttöön saa apua ?-komennolla.~%"
                        (sb-ext:native-pathname *tiedosto*))
                (setf valmistellaan nil))))
       (unless (löytyy "oppilaat")
