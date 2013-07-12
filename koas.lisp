@@ -97,7 +97,6 @@
                 lyhenne text default '', ~
                 painokerroin integer)"))
       (unless (löytyy "hallinto")
-        (teksti)
         (query "create table hallinto (avain text unique, arvo text)"))
 
       (query "pragma case_sensitive_like = 0"))))
