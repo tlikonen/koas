@@ -31,17 +31,26 @@
           (pwd *default-pathname-defaults*))
       (flet ((probe-load (path &optional (default home))
                (let ((path (merge-pathnames path default)))
-                 (when (probe-file path) (load path)))))
+                 (when (probe-file path) (load path))))
+             (funcallstr (string &rest args)
+               (apply (read-from-string string) args)))
         (or (probe-load #p"quicklisp/setup.lisp" home)
             (probe-load #p".quicklisp/setup.lisp" home)
             (probe-load #p"quicklisp/setup.lisp" pwd)
-            (let ((init "quicklisp.lisp")
+            (let ((init (nth-value 1 (progn
+                                       (require :sb-posix)
+                                       (funcallstr "sb-posix:mkstemp"
+                                                   "/tmp/quicklisp-XXXXXX"))))
                   (url "http://beta.quicklisp.org/quicklisp.lisp"))
-              (sb-ext:run-program "wget" (list "-O" init url)
-                                  :search t :output t)
-              (when (probe-load init pwd)
-                (funcall (read-from-string "quicklisp-quickstart:install")
-                         :path (merge-pathnames #p"quicklisp/" pwd)))))))
+              (unwind-protect
+                   (progn
+                     (sb-ext:run-program "wget" (list "-O" init url)
+                                         :search t :output t)
+                     (when (probe-load init pwd)
+                       (funcallstr
+                        "quicklisp-quickstart:install"
+                        :path (merge-pathnames #p"quicklisp/" pwd))))
+                (delete-file init))))))
 
   (sb-sys:interactive-interrupt ()
     (sb-ext:exit :code 1))

@@ -20,6 +20,5 @@ clean:
 
 clean-all: clean
 	rm -fr -- quicklisp
-	rm -f -- quicklisp.lisp
 
-.PHONY: all clean clean-all install uninstall
+.PHONY: clean clean-all install uninstall
