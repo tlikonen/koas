@@ -1149,7 +1149,7 @@
 (defun komento-hae-suoritukset (arg)
   ;; ryhmä
   (when (zerop (length arg))
-    (virhe "Anna ryhmän tunnus Ohjeita saa ?:llä."))
+    (virhe "Anna ryhmän tunnus. Ohjeita saa ?:llä."))
   (tulosta (hae-suoritukset (erota-ensimmäinen-sana arg))))
 
 
