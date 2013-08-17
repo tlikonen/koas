@@ -654,7 +654,7 @@
 
 (defun tulosta-muokattavat (&rest kentät)
   (when *muokattavat*
-    (viesti "~&~[~;Muokattava tietue: 1~:;Muokattavat tietueet: 1-~:*~A~]. ~
+    (viesti "~&~[~;Tietue: 1~:;Tietueet: 1-~:*~A~]. ~
                         ~:[Kenttä: ~;Kentät: /~]~{~A~^/~}~%"
             (length *muokattavat*)
             (> (length kentät) 1)
@@ -1606,7 +1606,7 @@ Hakutoiminnot (h:lla alkavat komennot) tulostavat tietokannassa olevia
 tietoja. Hakutoiminnon tulosteessa voi olla numeroituja tietueita.
 Lisäksi tulosteen lopussa on esimerkiksi seuraavanlainen rivi:
 
-    Muokattavat tietueet: 1-22. Kentät: /arvosana/lisätiedot
+    Tietueet: 1-22. Kentät: /arvosana/lisätiedot
 
 Se tarkoittaa, että mainittuja tietueita (1-22) ja kenttiä (arvosana,
 lisätiedot) on mahdollista muokata tai poistaa. Tietueita poistetaan
