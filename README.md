@@ -7,13 +7,12 @@ Esittely
 
 _Kouluarvosanatietokanta_ _(Koas)_ on tietokantaohjelma koulun tai
 oppilaitoksen opettajalle. Tietokantaan voi syöttää oppilaita,
-koulusuorituksia kuten kokeita sekä arvosanoja ja mahdollisia
-lisätietoja. Tietokannasta voi hakea tietoja esimerkiksi seuraavilla
-tavoilla:
+koulusuorituksia sekä arvosanoja ja mahdollisia lisätietoja.
+Tietokannasta voi hakea tietoja esimerkiksi seuraavilla tavoilla:
 
   * tietyn oppilaan kaikki suoritukset ja arvosanat
   * tietyn suorituksen arvosanat koko opetusryhmältä
-  * opetusryhmän kaikki arvosanat koottuna
+  * opetusryhmän kaikki arvosanat koottuna.
 
 Ohjelma myös laskee suoritusten keskiarvot automaattisesti ja hyödyntää
 laskemisessa käyttäjän määrittämiä painokertoimia.
@@ -33,9 +32,10 @@ _Kouluarvosanatietokanta_ toimii GNU/Linux-käyttöjärjestelmissä ja
 luultavasti myös Mac OS X -käyttöjärjestelmissä. Ohjelman kääntäminen
 lähdekoodista vaatii [SBCL][]-nimisen Common Lisp -toteutuksen. Lisäksi
 asennettuna täytyy olla [Readline][]-kirjaston sekä
-[SQLite3][]-kirjaston kehittäjäversio. Esimerkiksi [Debian][] GNU/Linux
--käyttöjärjestelmässä edellä mainitut ovat asennuspaketeissa nimeltä
-`sbcl`, `libreadline6-dev` ja `libsqlite3-dev`.
+[SQLite3][]-kirjaston kehittäjäversio. Esimerkiksi
+[Debian GNU/Linux][Debian] -käyttöjärjestelmässä edellä mainitut ovat
+asennuspaketeissa nimeltä `sbcl`, `libreadline6-dev` ja
+`libsqlite3-dev`.
 
 Ensimmäisellä kerralla kääntämisen yhteydessä käytetään `wget`-ohjelmaa,
 jolla haetaan internetistä [Quicklisp][QL], jos sitä ei ole jo valmiiksi
@@ -92,6 +92,9 @@ lupausta, että se sopii johonkin tiettyyn käyttötarkoitukseen.
 
 [GPL]: http://www.gnu.org/licenses/gpl-3.0.html
 
+
+Copyright and Licence
+---------------------
 
 Copyright (C) 2013 Teemu Likonen <<tlikonen@iki.fi>>
 
