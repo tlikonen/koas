@@ -1780,11 +1780,9 @@ muokkauskomennoista:
       (if (rest argv)
           (let ((*vuorovaikutteinen* nil))
             (käsittele-komentorivi (format nil "~{~A~^ ~}" (rest argv))))
-          (let ((*vuorovaikutteinen* t)
-                (kehote (format nil "~:@(~A~)> "
-                                (pathname-name (or (first argv) "koas")))))
+          (let ((*vuorovaikutteinen* t))
             (handler-case
-                (loop (käsittele-komentorivi (lue-rivi kehote t)))
+                (loop (käsittele-komentorivi (lue-rivi "KOAS> " t)))
               (poistu-ohjelmasta () nil)
               (sb-sys:interactive-interrupt ()
                 (viesti "~%"))))))))
