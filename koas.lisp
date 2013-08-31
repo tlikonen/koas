@@ -1574,7 +1574,7 @@
       "Lisää ryhmälle suoritus.")
      :viiva
      ("m" "numerot /.../.../.../..." "Muokkaa valittuja tietueita ja kenttiä.")
-     ("ms" "numerot kenttä /.../.../..." "Muokkaa samaa kenttää sarjana.")
+     ("ms" "numerot kenttä /.../.../..." "Muokkaa tietueista samaa kenttää.")
      ("poista" "numerot" "Poista valitut tietueet.")
      :viiva
      ("?" "" "Ohjeet.")
