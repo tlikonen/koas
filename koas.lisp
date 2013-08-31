@@ -32,7 +32,7 @@
 (defvar *tulostusmuoto* nil)
 (defvar *suppea* nil)
 (defvar *poistoraja* 10)
-(defvar *muokkaukset-kunnes-eheytys* 1000)
+(defvar *muokkaukset-kunnes-eheytys* 5000)
 
 
 (defun alusta-tiedostopolku ()
