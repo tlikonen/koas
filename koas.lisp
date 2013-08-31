@@ -1690,7 +1690,6 @@ Tässä esimerkissä käytetään vivoviivaa (/):
     lo /Meikäläinen/Matti/2013:7a
     lo /Oppilas/Oona/2013:7a
     lo /Koululainen/Kalle/2013:7a/lukivaikeus
-    ...
 
 Kannattaa nimetä ryhmät lukuvuoden aloitusvuoden ja ryhmätunnuksen
 avulla, esimerkiksi \"2013:7a\". Näin ryhmät voi yksilöidä usean
@@ -1711,7 +1710,6 @@ laskennassa. Alla on esimerkkejä suoritusten lisäämisestä.
     ls 2013:7a /Sanaluokkakoe/san/2
     ls 2013:7a /Kirjoitelma romaanista/rom/3
     ls 2013:7a /Välitodistus/vto
-    ...
 
 Tiedot ryhmän suorituksista tulostetaan komennolla \"hs 2013:7a\".
 Arvosanoja voi muokata siten, että ensin haetaan arvosanoista tiedot
