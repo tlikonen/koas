@@ -476,7 +476,7 @@
   (let ((oppilaat
          (query "select oid,sukunimi,etunimi,ryhmat,lisatiedot from oppilaat ~
                 where sukunimi like ~A and etunimi like ~A and ~
-                ryhmat like ~A and lisatiedot like ~A group by ~
+                ryhmat like ~A and lisatiedot like ~A order by ~
                 sukunimi,etunimi,ryhmat,oid"
                 (sql-like-suoja sukunimi "%" "%")
                 (sql-like-suoja etunimi "%" "%")
@@ -524,7 +524,7 @@
 
 (defun hae-suoritusryhmät ()
   (let ((ryhmät (mapcar #'first (query "select ryhma from ryhmat ~
-                                        group by ryhma"))))
+                                        order by ryhma"))))
     (when ryhmät
       (make-instance
        'suoritusryhmät
@@ -548,7 +548,7 @@
                         suoritus_~A.arvosana,suoritus_~A.lisatiedot ~
                         from oppilaat left join suoritus_~A ~
                         on oppilaat.oid = suoritus_~A.oid ~
-                        where oppilaat.ryhmat like ~A group by ~
+                        where oppilaat.ryhmat like ~A order by ~
                         oppilaat.sukunimi,oppilaat.etunimi"
                                  (sid suoritus) (sid suoritus)
                                  (sid suoritus)
@@ -642,7 +642,7 @@
               (query "select oppilaat.sukunimi,oppilaat.etunimi,~
                 ~{~A~^,~} from oppilaat ~{~A~^ ~} ~
                 where oppilaat.ryhmat like ~A ~
-                group by oppilaat.sukunimi,oppilaat.etunimi"
+                order by oppilaat.sukunimi,oppilaat.etunimi"
                      taulut joinit (sql-like-suoja ryhmä "%" "%")))
 
         (when taulukko
