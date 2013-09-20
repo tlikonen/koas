@@ -27,6 +27,7 @@
 (defvar *tiedosto* nil)
 (defvar *readline* nil)
 (defvar *tietokanta* nil)
+(defvar *tietokannan-versio* 2)
 (defvar *muokattavat* nil)
 (defvar *vuorovaikutteinen* t)
 (defvar *tulostusmuoto* nil)
@@ -118,7 +119,6 @@
     (format ulos "~A' escape '\\'" loppu)))
 
 
-(defun päivitä-versiosta-1 ()
 (defun lue-numero (objekti)
   (cond
     ((numberp objekti) objekti)
@@ -153,6 +153,7 @@
           (* (or merkki 1) (decimals:parse-decimal-number objekti))))))))
 
 
+(defun päivitä-versiosta-1 ()
   (with-transaction
     (loop :for (sid . nil) :in (query "select sid from suoritukset")
           :do
@@ -164,7 +165,8 @@
                            sid oid (sql-mj arv) (sql-mj lis)))
           (ignore-errors (query "drop table suoritus_~A" sid)))
     (query "update hallinto set arvo='0' where avain='muokkauslaskuri'")
-    (query "insert into hallinto (avain, arvo) values ('versio', '2')"))
+    (query "insert into hallinto (avain, arvo) values ('versio', ~A)"
+           (sql-mj *tietokannan-versio*)))
   (query "vacuum"))
 
 
@@ -207,10 +209,15 @@
 
       (query "pragma case_sensitive_like = 0")
 
-      (let ((versio (caar (query "select arvo from hallinto ~
-                        where avain = 'versio'"))))
-        (unless versio
-          (päivitä-versiosta-1))))))
+      (let ((versio (lue-numero
+                     (caar (query "select arvo from hallinto ~
+                        where avain = 'versio'")))))
+        (cond ((not versio)
+               (päivitä-versiosta-1))
+              ((> versio *tietokannan-versio*)
+               (viesti "VAROITUS! Tietokannan versio on ~A mutta ohjelma ~
+                osaa vain version ~A.~%Päivitä ohjelma!~%"
+                       versio *tietokannan-versio*)))))))
 
 
 (defun arvottu-järjestys (lista)
