@@ -119,6 +119,40 @@
 
 
 (defun päivitä-versiosta-1 ()
+(defun lue-numero (objekti)
+  (cond
+    ((numberp objekti) objekti)
+    ((plusp (length objekti))
+     (let* ((merkki)
+            (lisa)
+            (alku 0)
+            (loppu (length objekti)))
+
+       (let ((eka (elt objekti 0)))
+         (cond ((find eka "-–") (setf merkki -1 alku 1))
+               ((char= #\+ eka) (setf merkki 1 alku 1))))
+
+       (let ((vika (elt objekti (1- loppu))))
+         (cond ((char= #\+ vika) (setf lisa 1/4 loppu (max alku (1- loppu))))
+               ((find vika "-–") (setf lisa -1/4 loppu (max alku (1- loppu))))
+               ((char= #\½ vika) (setf lisa 1/2 loppu (max alku (1- loppu))))))
+
+       (setf objekti (subseq objekti alku loppu))
+       (setf objekti (substitute #\. #\, objekti))
+       (if (string= objekti "") (setf objekti "0"))
+
+       (cond
+         ((and lisa (not merkki) (every #'digit-char-p objekti))
+          (+ (parse-integer objekti) lisa))
+         ((and (not lisa)
+               (every (lambda (c)
+                        (or (digit-char-p c) (char= #\. c)))
+                      objekti)
+               (some #'digit-char-p objekti)
+               (<= 0 (count #\. objekti) 1))
+          (* (or merkki 1) (decimals:parse-decimal-number objekti))))))))
+
+
   (with-transaction
     (loop :for (sid . nil) :in (query "select sid from suoritukset")
           :do
@@ -394,40 +428,6 @@
    (oppilaslista :accessor oppilaslista :initarg :oppilaslista)
    (suorituslista :reader suorituslista :initarg :suorituslista)
    (taulukko :reader taulukko :initarg :taulukko)))
-
-
-(defun lue-numero (objekti)
-  (cond
-    ((numberp objekti) objekti)
-    ((plusp (length objekti))
-     (let* ((merkki)
-            (lisa)
-            (alku 0)
-            (loppu (length objekti)))
-
-       (let ((eka (elt objekti 0)))
-         (cond ((find eka "-–") (setf merkki -1 alku 1))
-               ((char= #\+ eka) (setf merkki 1 alku 1))))
-
-       (let ((vika (elt objekti (1- loppu))))
-         (cond ((char= #\+ vika) (setf lisa 1/4 loppu (max alku (1- loppu))))
-               ((find vika "-–") (setf lisa -1/4 loppu (max alku (1- loppu))))
-               ((char= #\½ vika) (setf lisa 1/2 loppu (max alku (1- loppu))))))
-
-       (setf objekti (subseq objekti alku loppu))
-       (setf objekti (substitute #\. #\, objekti))
-       (if (string= objekti "") (setf objekti "0"))
-
-       (cond
-         ((and lisa (not merkki) (every #'digit-char-p objekti))
-          (+ (parse-integer objekti) lisa))
-         ((and (not lisa)
-               (every (lambda (c)
-                        (or (digit-char-p c) (char= #\. c)))
-                      objekti)
-               (some #'digit-char-p objekti)
-               (<= 0 (count #\. objekti) 1))
-          (* (or merkki 1) (decimals:parse-decimal-number objekti))))))))
 
 
 (defun muuta-arvosanaksi (luku)
