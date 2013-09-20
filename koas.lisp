@@ -391,6 +391,7 @@
 
 (defclass arvosanat-koonti ()
   ((ryhmä :reader ryhmä :initarg :ryhmä)
+   (oppilaslista :accessor oppilaslista :initarg :oppilaslista)
    (suorituslista :reader suorituslista :initarg :suorituslista)
    (taulukko :reader taulukko :initarg :taulukko)))
 
@@ -568,15 +569,15 @@
                      (search lyhenne (lyhenne suoritus) :test #'char-equal))
 
             :do
-            (let ((kysely (query "select oppilaat.oid,oppilaat.sukunimi,~
+            (let ((kysely (query "select ~
+                        oppilaat.oid,oppilaat.sukunimi,~
                         oppilaat.etunimi,oppilaat.ryhmat,oppilaat.lisatiedot,~
-                        suoritus_~A.arvosana,suoritus_~A.lisatiedot ~
-                        from oppilaat left join suoritus_~A ~
-                        on oppilaat.oid = suoritus_~A.oid ~
-                        where oppilaat.ryhmat like ~A order by ~
-                        oppilaat.sukunimi,oppilaat.etunimi"
-                                 (sid suoritus) (sid suoritus)
-                                 (sid suoritus)
+                        arvosanat.arvosana,arvosanat.lisatiedot ~
+                        from oppilaat left join arvosanat ~
+                        on oppilaat.oid = arvosanat.oid ~
+                        and arvosanat.sid = ~A ~
+                        where oppilaat.ryhmat like ~A ~
+                        order by oppilaat.sukunimi,oppilaat.etunimi"
                                  (sid suoritus)
                                  (sql-like-suoja ryhmä "%" "%"))))
 
@@ -627,7 +628,8 @@
                                    :for (as lt)
                                    := (first
                                        (query "select arvosana,lisatiedot ~
-                                        from suoritus_~A where oid = ~A"
+                                        from arvosanat ~
+                                        where sid = ~A and oid = ~A"
                                               (sid suoritus) (oid oppilas)))
                                    :collect
                                    (make-instance 'arvosana
@@ -647,34 +649,37 @@
 
 
 (defun hae-arvosanat-koonti (ryhmä)
-  (let ((suorituslista (let ((suoritukset (hae-suoritukset ryhmä)))
-                         (when suoritukset
-                           (suorituslista suoritukset)))))
+  (let* ((suorituslista (let ((suoritukset (hae-suoritukset ryhmä)))
+                          (when suoritukset
+                            (suorituslista suoritukset))))
+         (oppilaslista (let ((oppilaat (hae-oppilaat "" "" ryhmä)))
+                         (when oppilaat
+                           (oppilaslista oppilaat))))
+         (taulukko (make-array (list (length oppilaslista)
+                                     (length suorituslista)))))
 
     (when suorituslista
-      (let (taulut joinit taulukko)
-        (loop :repeat 64 ;SQLiten suurin joinien määrä
-              :for s :in suorituslista
-              :collect (format nil "suoritus_~A.arvosana" (sid s))
-              :into tau
-              :collect (format nil "left join suoritus_~A on oppilaat.oid = ~
-                        suoritus_~A.oid"
-                               (sid s) (sid s))
-              :into joi
-              :finally (setf taulut tau joinit joi))
+      (loop :for suo :from 0 :below (array-dimension taulukko 1)
+            :for suoritus :in suorituslista
+            :for arvosanat
+            := (mapcar #'first (query "select arvosanat.arvosana ~
+                                        from oppilaat ~
+                                        left join arvosanat ~
+                                        on oppilaat.oid = arvosanat.oid ~
+                                        and arvosanat.sid = ~A ~
+                                        where oppilaat.ryhmat like ~A ~
+                                        order by sukunimi,etunimi"
+                                      (sid suoritus)
+                                      (sql-like-suoja ryhmä "%" "%")))
+            :do (loop :for opp :from 0 :below (array-dimension taulukko 0)
+                      :for arv :in arvosanat
+                      :do (setf (aref taulukko opp suo) arv)))
 
-        (setf taulukko
-              (query "select oppilaat.sukunimi,oppilaat.etunimi,~
-                ~{~A~^,~} from oppilaat ~{~A~^ ~} ~
-                where oppilaat.ryhmat like ~A ~
-                order by oppilaat.sukunimi,oppilaat.etunimi"
-                     taulut joinit (sql-like-suoja ryhmä "%" "%")))
-
-        (when taulukko
-          (make-instance 'arvosanat-koonti
-                         :ryhmä ryhmä
-                         :suorituslista suorituslista
-                         :taulukko taulukko))))))
+      (make-instance 'arvosanat-koonti
+                     :ryhmä ryhmä
+                     :oppilaslista oppilaslista
+                     :suorituslista suorituslista
+                     :taulukko taulukko))))
 
 
 (defun tulosta-muokattavat (&rest kentät)
@@ -879,31 +884,34 @@
   (setf *muokattavat* nil)
   (let* ((kertoimet)
          (lyhenteet)
-         (taulu (make-array (list (+ 2 (length (suorituslista koonti)))
-                                  (length (taulukko koonti)))
-                            :initial-element nil))
-         (ka (make-array (array-dimension taulu 0) :initial-element nil)))
+         (nimet (loop :for oppilas :in (oppilaslista koonti)
+                      :collect (format nil "~A, ~A"
+                                       (sukunimi oppilas)
+                                       (etunimi oppilas))))
+         (ka-oppilas (make-array (array-dimension (taulukko koonti) 0)
+                                 :initial-element nil))
+         (ka-suoritus (make-array (array-dimension (taulukko koonti) 1)
+                                  :initial-element nil)))
 
-    (loop :for s :in (suorituslista koonti)
-          :collect (lyhenne s) :into lyh
-          :collect (painokerroin s) :into ker
+    (loop :for suoritus :in (suorituslista koonti)
+          :collect (lyhenne suoritus) :into lyh
+          :collect (painokerroin suoritus) :into ker
           :finally (setf lyhenteet lyh kertoimet ker))
 
-    (loop :for (suku etu . loput) :in (taulukko koonti)
-          :for y :upfrom 0
-          :do (loop :initially (setf (aref taulu 0 y)
-                                     (format nil "~A, ~A" suku etu))
-                    :for as :in loput
-                    :for x :upfrom 1
-                    :collect as :into luvut
-                    :do (setf (aref taulu x y) as)
-                    :finally (setf (aref taulu (1+ x) y)
+    (loop :for opp :from 0
+          :below (array-dimension (taulukko koonti) 0)
+          :do (loop :for suo :from 0
+                    :below (array-dimension (taulukko koonti) 1)
+                    :collect (aref (taulukko koonti) opp suo) :into luvut
+                    :finally (setf (aref ka-oppilas opp)
                                    (keskiarvo luvut kertoimet 2))))
 
-    (loop :for x :from 1 :below (array-dimension taulu 0)
-          :do (loop :for y :from 0 :below (array-dimension taulu 1)
-                    :collect (aref taulu x y) :into luvut
-                    :finally (setf (aref ka x) (keskiarvo luvut))))
+    (loop :for suo :from 0
+          :below (array-dimension (taulukko koonti) 1)
+          :do (loop :for opp :from 0
+                    :below (array-dimension (taulukko koonti) 0)
+                    :collect (aref (taulukko koonti) opp suo) :into luvut
+                    :finally (setf (aref ka-suoritus suo) (keskiarvo luvut))))
 
     (tulosta-taulu
      (append (if (muoto :org nil) (list :viiva))
@@ -912,21 +920,30 @@
     (viesti "~%")
 
     (tulosta-taulu
-     (append (if (muoto :org nil) (list :viiva))
-             (list (append (list (otsikko "Suoritus"))
-                           (mapcar #'otsikko lyhenteet)
-                           (list (otsikko "ka"))))
-             (list (append (list (otsikko "Painokerroin"))
-                           (mapcar #'otsikko kertoimet)
-                           (list (otsikko ""))))
-             (if (muoto :org nil) (list :viiva))
-             (loop :for y :from 0 :below (array-dimension taulu 1)
-                   :collect
-                   (loop :for x :from 0 :below (array-dimension taulu 0)
-                         :collect (aref taulu x y)))
-             (if (muoto :wilma) (list nil) (list :viiva))
-             (list (cons "Keskiarvo" (rest (coerce ka 'list))))
-             (if (muoto :org nil) (list :viiva))))
+     (append
+      (if (muoto :org nil) (list :viiva))
+      (list (append (list (otsikko "Suoritus"))
+                    (mapcar #'otsikko lyhenteet)
+                    (list (otsikko "ka"))))
+      (list (append (list (otsikko "Painokerroin"))
+                    (mapcar #'otsikko kertoimet)
+                    (list (otsikko ""))))
+      (if (muoto :org nil) (list :viiva))
+      (loop :for nimi :in nimet
+            :for oppilas :from 0 :below (array-dimension (taulukko koonti) 0)
+            :collect (loop :for suoritus :from 0
+                           :below (array-dimension (taulukko koonti) 1)
+                           :collect (aref (taulukko koonti) oppilas suoritus)
+                           :into rivi
+                           :finally (return (append (list nimi)
+                                                    rivi
+                                                    (list (aref ka-oppilas
+                                                                oppilas))))))
+      (if (muoto :wilma) (list nil) (list :viiva))
+      (list (append (list "Keskiarvo")
+                    (coerce ka-suoritus 'list)
+                    (list (keskiarvo (coerce ka-oppilas 'list)))))
+      (if (muoto :org nil) (list :viiva))))
 
     (unless *suppea*
       (viesti "~%")
@@ -1007,9 +1024,6 @@
 
   (let ((sid (query-last-insert-rowid)))
     (when sid
-      (ignore-errors
-        (query "create table suoritus_~A (oid integer, arvosana text, ~
-                lisatiedot text)" sid))
       (setf (sid suo) sid)
 
       (let ((ryhmän-suoritukset
@@ -1077,14 +1091,14 @@
                       (if (or (not lisä) (equal lisä ""))
                           "NULL"
                           (sql-mj lisä)))))
-    (if (query "select oid from suoritus_~A where oid=~A" (sid arv) oid)
-        (query "update suoritus_~A set arvosana=~A,lisatiedot=~A ~
-                where oid=~A"
-               (sid arv) (sql-mj (arvosana arv)) lisätiedot oid)
-        (query "insert into suoritus_~A (oid,arvosana,lisatiedot) ~
-                values (~A,~A,~A)"
-               (sid arv) oid (sql-mj (arvosana arv))
-               lisätiedot))
+    (if (query "select oid from arvosanat where sid=~A and oid=~A"
+               (sid arv) oid)
+        (query "update arvosanat set arvosana=~A,lisatiedot=~A ~
+                where sid=~A and oid=~A"
+               (sql-mj (arvosana arv)) lisätiedot (sid arv) oid)
+        (query "insert into arvosanat (sid,oid,arvosana,lisatiedot) ~
+                values (~A,~A,~A,~A)"
+               (sid arv) oid (sql-mj (arvosana arv)) lisätiedot))
     arv))
 
 
@@ -1120,15 +1134,14 @@
                  (sql-mj ryhmän-suoritukset)
                  (sql-like-suoja (ryhmä suo))))))
 
-  (query "delete from suoritukset where sid=~A" (sid suo))
-  (ignore-errors (query "drop table suoritus_~A" (sid suo))))
+  (query "delete from suoritukset where sid=~A" (sid suo)))
 
 
 (defmethod poista ((arv arvosana))
   (let ((oid (oid (oppilas arv)))
         (sid (sid arv)))
     (ignore-errors
-      (query "delete from suoritus_~A where oid=~A" sid oid))))
+      (query "delete from arvosanat where sid=~A and oid=~A" sid oid))))
 
 
 (defun erota-ensimmäinen-sana (mj)
