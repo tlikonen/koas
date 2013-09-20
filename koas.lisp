@@ -67,42 +67,6 @@
       (virhe "Ei yhteyttä tietokantaan.")))
 
 
-(defun alusta-tietokanta ()
-  (let ((kaikki (mapcar #'first (query "select name from sqlite_master ~
-                                        where type='table'")))
-        (valmistellaan t))
-    (flet ((löytyy (asia)
-             (member asia kaikki :test #'string-equal))
-           (teksti ()
-             (when valmistellaan
-               (viesti "~&Valmistellaan tietokanta (~A).~%~
-        Ota tietokantatiedostosta varmuuskopio riittävän usein.~%~
-        Ohjelman käyttöön saa apua ?-komennolla.~%"
-                       (sb-ext:native-pathname *tiedosto*))
-               (setf valmistellaan nil))))
-      (unless (löytyy "oppilaat")
-        (teksti)
-        (query "create table oppilaat ~
-                (oid integer unique primary key, ~
-                sukunimi text, etunimi text, ~
-                ryhmat text, lisatiedot text default '')"))
-      (unless (löytyy "ryhmat")
-        (teksti)
-        (query "create table ryhmat ~
-                (ryhma text unique, suoritukset text default '')"))
-      (unless (löytyy "suoritukset")
-        (teksti)
-        (query "create table suoritukset ~
-                (sid integer unique primary key, ~
-                nimi text default '', ~
-                lyhenne text default '', ~
-                painokerroin integer)"))
-      (unless (löytyy "hallinto")
-        (query "create table hallinto (avain text unique, arvo text)"))
-
-      (query "pragma case_sensitive_like = 0"))))
-
-
 (defun connect ()
   (unless (typep *tietokanta* 'sqlite:sqlite-handle)
     (alusta-tiedostopolku)
@@ -125,19 +89,6 @@
 
 (defmacro with-transaction (&body body)
   `(sqlite:with-transaction *tietokanta* ,@body))
-
-
-(defun arvottu-järjestys (lista)
-  (flet ((poista-osa (n sequence)
-           (delete-if (constantly t) sequence :start n :count 1)))
-    (loop :with rs := (make-random-state t)
-          :with lista := (copy-seq lista)
-          :for i :from (length lista) :downto 1
-          :for satunnainen := (random i rs)
-          :collect (prog1 (elt lista satunnainen)
-                     (setf lista (poista-osa satunnainen lista)))
-          :into uusi-lista
-          :finally (return (nconc lista uusi-lista)))))
 
 
 (defun sql-mj (asia)
@@ -165,6 +116,80 @@
                            (t merkki))
                      ulos))
     (format ulos "~A' escape '\\'" loppu)))
+
+
+(defun päivitä-versiosta-1 ()
+  (with-transaction
+    (loop :for (sid . nil) :in (query "select sid from suoritukset")
+          :do
+          (loop :for (oid arv lis)
+                :in (query "select * from suoritus_~A" sid)
+                :do (query "insert into arvosanat ~
+                                (sid, oid, arvosana, lisatiedot)
+                                values (~A, ~A, ~A, ~A)"
+                           sid oid (sql-mj arv) (sql-mj lis)))
+          (ignore-errors (query "drop table suoritus_~A" sid)))
+    (query "update hallinto set arvo='0' where avain='muokkauslaskuri'")
+    (query "insert into hallinto (avain, arvo) values ('versio', '2')"))
+  (query "vacuum"))
+
+
+(defun alusta-tietokanta ()
+  (let ((kaikki (mapcar #'first (query "select name from sqlite_master ~
+                                        where type='table'")))
+        (alustus t))
+    (flet ((löytyy (asia)
+             (member asia kaikki :test #'string-equal))
+           (alustusviesti ()
+             (when alustus
+               (viesti "~&Valmistellaan tietokanta (~A).~%~
+        Ota tietokantatiedostosta varmuuskopio riittävän usein.~%"
+                       (sb-ext:native-pathname *tiedosto*))
+               (setf alustus nil))))
+      (unless (löytyy "oppilaat")
+        (alustusviesti)
+        (query "create table oppilaat ~
+                (oid integer unique primary key, ~
+                sukunimi text, etunimi text, ~
+                ryhmat text, lisatiedot text default '')"))
+      (unless (löytyy "ryhmat")
+        (alustusviesti)
+        (query "create table ryhmat ~
+                (ryhma text unique, suoritukset text default '')"))
+      (unless (löytyy "suoritukset")
+        (alustusviesti)
+        (query "create table suoritukset ~
+                (sid integer unique primary key, ~
+                nimi text default '', ~
+                lyhenne text default '', ~
+                painokerroin integer)"))
+      (unless (löytyy "arvosanat")
+        (alustusviesti)
+        (query "create table arvosanat ~
+                (sid integer, oid integer, arvosana text, lisatiedot text)"))
+      (unless (löytyy "hallinto")
+        (alustusviesti)
+        (query "create table hallinto (avain text unique, arvo text)"))
+
+      (query "pragma case_sensitive_like = 0")
+
+      (let ((versio (caar (query "select arvo from hallinto ~
+                        where avain = 'versio'"))))
+        (unless versio
+          (päivitä-versiosta-1))))))
+
+
+(defun arvottu-järjestys (lista)
+  (flet ((poista-osa (n sequence)
+           (delete-if (constantly t) sequence :start n :count 1)))
+    (loop :with rs := (make-random-state t)
+          :with lista := (copy-seq lista)
+          :for i :from (length lista) :downto 1
+          :for satunnainen := (random i rs)
+          :collect (prog1 (elt lista satunnainen)
+                     (setf lista (poista-osa satunnainen lista)))
+          :into uusi-lista
+          :finally (return (nconc lista uusi-lista)))))
 
 
 (defun lue-rivi (kehote &optional muistiin)
