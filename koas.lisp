@@ -27,13 +27,13 @@
 (defvar *tiedosto* nil)
 (defvar *readline* nil)
 (defvar *tietokanta* nil)
-(defvar *tietokannan-versio* 2)
 (defvar *muokattavat* nil)
 (defvar *vuorovaikutteinen* t)
 (defvar *tulostusmuoto* nil)
 (defvar *suppea* nil)
 (defvar *poistoraja* 10)
 (defvar *muokkaukset-kunnes-eheytys* 5000)
+(defparameter *tietokannan-versio* 2)
 
 
 (defun alusta-tiedostopolku ()
