@@ -18,9 +18,9 @@ Ohjelma myös laskee suoritusten keskiarvot automaattisesti ja hyödyntää
 laskemisessa käyttäjän määrittämiä painokertoimia.
 
 Ohjelmassa on tekstipohjainen käyttöliittymä ja myös tulosteet ovat
-lähinnä tekstimuotoisia taulukoita. Tulosteet saa myös [Wilman][Wilma]
-viestiin sopivassa taulukkomuodossa, ja näin tulosteen voi kopioida
-suoraan Wilma-viestiin.
+tekstimuotoisia taulukoita. Tulosteet saa myös [Wilman][Wilma] viestiin
+sopivassa taulukkomuodossa, ja näin tulosteen voi kopioida suoraan
+Wilma-viestiin.
 
 [Wilma]: http://www.starsoft.fi/public/?q=fi/node/54
 
