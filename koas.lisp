@@ -155,24 +155,24 @@
 
 (defun päivitä-versiosta-1 ()
   (with-transaction
-    (loop :for (sid . nil) :in (query "select sid from suoritukset")
+    (loop :for (sid . nil) :in (query "SELECT sid FROM suoritukset")
           :do
           (loop :for (oid arv lis)
-                :in (query "select * from suoritus_~A" sid)
-                :do (query "insert into arvosanat ~
+                :in (query "SELECT * FROM suoritus_~A" sid)
+                :do (query "INSERT INTO arvosanat ~
                                 (sid, oid, arvosana, lisatiedot)
-                                values (~A, ~A, ~A, ~A)"
+                                VALUES (~A, ~A, ~A, ~A)"
                            sid oid (sql-mj arv) (sql-mj lis)))
-          (ignore-errors (query "drop table suoritus_~A" sid)))
-    (query "update hallinto set arvo='0' where avain='muokkauslaskuri'")
-    (query "insert into hallinto (avain, arvo) values ('versio', ~A)"
+          (ignore-errors (query "DROP TABLE suoritus_~A" sid)))
+    (query "UPDATE hallinto SET arvo='0' WHERE avain='muokkauslaskuri'")
+    (query "INSERT INTO hallinto (avain, arvo) VALUES ('versio', ~A)"
            (sql-mj *tietokannan-versio*)))
-  (query "vacuum"))
+  (query "VACUUM"))
 
 
 (defun alusta-tietokanta ()
-  (let ((kaikki (mapcar #'first (query "select name from sqlite_master ~
-                                        where type='table'")))
+  (let ((kaikki (mapcar #'first (query "SELECT name FROM sqlite_master ~
+                                        WHERE type='table'")))
         (alustus t))
     (flet ((löytyy (asia)
              (member asia kaikki :test #'string-equal))
@@ -184,34 +184,34 @@
                (setf alustus nil))))
       (unless (löytyy "oppilaat")
         (alustusviesti)
-        (query "create table oppilaat ~
-                (oid integer unique primary key, ~
-                sukunimi text, etunimi text, ~
-                ryhmat text, lisatiedot text default '')"))
+        (query "CREATE TABLE oppilaat ~
+                (oid INTEGER UNIQUE PRIMARY KEY, ~
+                sukunimi TEXT, etunimi TEXT, ~
+                ryhmat TEXT, lisatiedot TEXT DEFAULT '')"))
       (unless (löytyy "ryhmat")
         (alustusviesti)
-        (query "create table ryhmat ~
-                (ryhma text unique, suoritukset text default '')"))
+        (query "CREATE TABLE ryhmat ~
+                (ryhma TEXT UNIQUE, suoritukset TEXT DEFAULT '')"))
       (unless (löytyy "suoritukset")
         (alustusviesti)
-        (query "create table suoritukset ~
-                (sid integer unique primary key, ~
-                nimi text default '', ~
-                lyhenne text default '', ~
-                painokerroin integer)"))
+        (query "CREATE TABLE suoritukset ~
+                (sid INTEGER UNIQUE PRIMARY KEY, ~
+                nimi TEXT DEFAULT '', ~
+                lyhenne TEXT DEFAULT '', ~
+                painokerroin INTEGER)"))
       (unless (löytyy "arvosanat")
         (alustusviesti)
-        (query "create table arvosanat ~
-                (sid integer, oid integer, arvosana text, lisatiedot text)"))
+        (query "CREATE TABLE arvosanat ~
+                (sid INTEGER, oid INTEGER, arvosana TEXT, lisatiedot TEXT)"))
       (unless (löytyy "hallinto")
         (alustusviesti)
-        (query "create table hallinto (avain text unique, arvo text)"))
+        (query "CREATE TABLE hallinto (avain TEXT UNIQUE, arvo TEXT)"))
 
-      (query "pragma case_sensitive_like = 0")
+      (query "PRAGMA case_sensitive_like=0")
 
       (let ((versio (lue-numero
-                     (caar (query "select arvo from hallinto ~
-                        where avain = 'versio'")))))
+                     (caar (query "SELECT arvo FROM hallinto ~
+                        WHERE avain='versio'")))))
         (cond ((not versio)
                (päivitä-versiosta-1))
               ((> versio *tietokannan-versio*)
@@ -482,25 +482,25 @@
 
 
 (defun muokkauslaskuri (muokkaukset)
-  (let ((laskuri (query "select arvo from hallinto ~
-                where avain='muokkauslaskuri'")))
+  (let ((laskuri (query "SELECT arvo FROM hallinto ~
+                WHERE avain='muokkauslaskuri'")))
     (unless laskuri
-      (query "insert into hallinto (avain, arvo) ~
-                                values ('muokkauslaskuri', '0')"))
+      (query "INSERT INTO hallinto (avain, arvo) ~
+                                VALUES ('muokkauslaskuri', '0')"))
     (setf laskuri (+ muokkaukset (or (lue-numero (first (first laskuri))) 0)))
-    (query "update hallinto set arvo=~A where avain='muokkauslaskuri'"
+    (query "UPDATE hallinto SET arvo=~A WHERE avain='muokkauslaskuri'"
            (sql-mj laskuri))
     laskuri))
 
 
 (defun ehkä-eheytys ()
-  (let ((laskuri (query "select arvo from hallinto ~
-                                where avain='muokkauslaskuri'")))
+  (let ((laskuri (query "SELECT arvo FROM hallinto ~
+                                WHERE avain='muokkauslaskuri'")))
     (setf laskuri (or (lue-numero (first (first laskuri))) 0))
     (if (>= laskuri *muokkaukset-kunnes-eheytys*)
         (ignore-errors
-          (query "vacuum")
-          (query "update hallinto set arvo='0' where avain='muokkauslaskuri'")
+          (query "VACUUM")
+          (query "UPDATE hallinto SET arvo='0' WHERE avain='muokkauslaskuri'")
           t)
         nil)))
 
@@ -508,10 +508,11 @@
 (defun hae-oppilaat (sukunimi &optional (etunimi "") (ryhmät "")
                                 (lisätiedot ""))
   (let ((oppilaat
-         (query "select oid,sukunimi,etunimi,ryhmat,lisatiedot from oppilaat ~
-                where sukunimi like ~A and etunimi like ~A and ~
-                ryhmat like ~A and lisatiedot like ~A order by ~
-                sukunimi,etunimi,ryhmat,oid"
+         (query "SELECT oid,sukunimi,etunimi,ryhmat,lisatiedot ~
+                FROM oppilaat ~
+                WHERE sukunimi LIKE ~A AND etunimi LIKE ~A ~
+                AND ryhmat LIKE ~A AND lisatiedot LIKE ~A ~
+                ORDER BY sukunimi,etunimi,ryhmat,oid"
                 (sql-like-suoja sukunimi "%" "%")
                 (sql-like-suoja etunimi "%" "%")
                 (sql-like-suoja ryhmät "%" "%")
@@ -531,7 +532,7 @@
 
 (defun hae-suoritukset (ryhmä)
   (let ((ryhmä-suoritukset
-         (first (query "select * from ryhmat where ryhma like ~A"
+         (first (query "SELECT * FROM ryhmat WHERE ryhma LIKE ~A"
                        (sql-like-suoja ryhmä)))))
 
     (when ryhmä-suoritukset
@@ -540,8 +541,8 @@
                                 #\space (second ryhmä-suoritukset)
                                 :remove-empty-subseqs t)
                    :for (sid nimi lyh kerroin)
-                   := (first (query "select sid,nimi,lyhenne,painokerroin ~
-                                      from suoritukset where sid = ~A"
+                   := (first (query "SELECT sid,nimi,lyhenne,painokerroin ~
+                                      FROM suoritukset WHERE sid=~A"
                                     id))
                    :collect (make-instance 'suoritus
                                            :ryhmä ryhmä
@@ -557,8 +558,8 @@
 
 
 (defun hae-suoritusryhmät ()
-  (let ((ryhmät (mapcar #'first (query "select ryhma from ryhmat ~
-                                        order by ryhma"))))
+  (let ((ryhmät (mapcar #'first (query "SELECT ryhma FROM ryhmat ~
+                                        ORDER BY ryhma"))))
     (when ryhmät
       (make-instance
        'suoritusryhmät
@@ -577,15 +578,15 @@
                      (search lyhenne (lyhenne suoritus) :test #'char-equal))
 
             :do
-            (let ((kysely (query "select ~
+            (let ((kysely (query "SELECT ~
                         oppilaat.oid,oppilaat.sukunimi,~
                         oppilaat.etunimi,oppilaat.ryhmat,oppilaat.lisatiedot,~
                         arvosanat.arvosana,arvosanat.lisatiedot ~
-                        from oppilaat left join arvosanat ~
-                        on oppilaat.oid = arvosanat.oid ~
-                        and arvosanat.sid = ~A ~
-                        where oppilaat.ryhmat like ~A ~
-                        order by oppilaat.sukunimi,oppilaat.etunimi"
+                        FROM oppilaat LEFT JOIN arvosanat ~
+                        ON oppilaat.oid=arvosanat.oid ~
+                        AND arvosanat.sid=~A ~
+                        WHERE oppilaat.ryhmat LIKE ~A ~
+                        ORDER BY oppilaat.sukunimi,oppilaat.etunimi"
                                  (sid suoritus)
                                  (sql-like-suoja ryhmä "%" "%"))))
 
@@ -636,9 +637,9 @@
                              (loop :for suoritus :in (suorituslista suor)
                                    :for (as lt)
                                    := (first
-                                       (query "select arvosana,lisatiedot ~
-                                        from arvosanat ~
-                                        where sid = ~A and oid = ~A"
+                                       (query "SELECT arvosana,lisatiedot ~
+                                        FROM arvosanat ~
+                                        WHERE sid=~A AND oid=~A"
                                               (sid suoritus) (oid oppilas)))
                                    :collect
                                    (make-instance 'arvosana
@@ -668,11 +669,11 @@
                                      (length suorituslista)))))
 
     (when suorituslista
-      (let ((kysely (query "select ~{~A.arvosana~*~^,~}~:* from oppilaat as o ~
-                                ~{left join arvosanat as ~A~:* ~
-                                on o.oid=~A.oid~:* and ~A.sid=~A ~} ~
-                                where o.ryhmat like ~A ~
-                                order by o.sukunimi,o.etunimi"
+      (let ((kysely (query "SELECT ~{~A.arvosana~*~^,~}~:* FROM oppilaat AS o ~
+                                ~{LEFT JOIN arvosanat AS ~A~:* ~
+                                ON o.oid=~A.oid~:* AND ~A.sid=~A ~} ~
+                                WHERE o.ryhmat LIKE ~A ~
+                                ORDER BY o.sukunimi,o.etunimi"
                            (loop :for suoritus :in suorituslista
                                  ;; SQLiten suurin taulukkomäärä joinissa 64.
                                  :for i :from 1 :below 64
@@ -1013,8 +1014,8 @@
 
 
 (defmethod lisää ((opp oppilas) &key)
-  (query "insert into oppilaat (sukunimi,etunimi,ryhmat,lisatiedot) ~
-        values (~A,~A,~A,~A)"
+  (query "INSERT INTO oppilaat (sukunimi,etunimi,ryhmat,lisatiedot) ~
+        VALUES (~A,~A,~A,~A)"
          (sql-mj (sukunimi opp)) (sql-mj (etunimi opp))
          (sql-mj (lista-mj-listaksi (ryhmälista opp)))
          (sql-mj (lisätiedot opp)))
@@ -1024,8 +1025,8 @@
 
 
 (defmethod lisää ((suo suoritus) &key sija)
-  (query "insert into suoritukset (nimi,lyhenne,painokerroin) ~
-        values (~A,~A,~A)"
+  (query "INSERT INTO suoritukset (nimi,lyhenne,painokerroin) ~
+        VALUES (~A,~A,~A)"
          (sql-mj (nimi suo)) (sql-mj (lyhenne suo))
          (or (painokerroin suo) "NULL"))
 
@@ -1034,8 +1035,8 @@
       (setf (sid suo) sid)
 
       (let ((ryhmän-suoritukset
-             (first (first (query "select suoritukset from ryhmat where ~
-                                ryhma like ~A"
+             (first (first (query "SELECT suoritukset FROM ryhmat ~
+                                WHERE ryhma LIKE ~A"
                                   (sql-like-suoja (ryhmä suo)))))))
 
         (if ryhmän-suoritukset
@@ -1043,9 +1044,9 @@
               (setf ryhmän-suoritukset
                     (lisää-mj-listaan (princ-to-string sid)
                                       ryhmän-suoritukset sija))
-              (query "update ryhmat set suoritukset=~A where ryhma like ~A"
+              (query "UPDATE ryhmat SET suoritukset=~A WHERE ryhma LIKE ~A"
                      (sql-mj ryhmän-suoritukset) (sql-like-suoja (ryhmä suo))))
-            (query "insert into ryhmat (ryhma,suoritukset) values (~A,~A)"
+            (query "INSERT INTO ryhmat (ryhma,suoritukset) VALUES (~A,~A)"
                    (sql-mj (ryhmä suo)) (sql-mj sid))))))
   suo)
 
@@ -1054,8 +1055,8 @@
 
 
 (defmethod muokkaa ((opp oppilas) &key)
-  (query "update oppilaat set sukunimi=~A,etunimi=~A,ryhmat=~A,lisatiedot=~A ~
-        where oid=~A"
+  (query "UPDATE oppilaat SET sukunimi=~A,etunimi=~A,ryhmat=~A,lisatiedot=~A ~
+        WHERE oid=~A"
          (sql-mj (sukunimi opp)) (sql-mj (etunimi opp))
          (sql-mj (lista-mj-listaksi (ryhmälista opp)))
          (sql-mj (lisätiedot opp)) (oid opp))
@@ -1063,8 +1064,8 @@
 
 
 (defmethod muokkaa ((suo suoritus) &key sija)
-  (query "update suoritukset set nimi=~A,lyhenne=~A,painokerroin=~A ~
-                where sid=~A"
+  (query "UPDATE suoritukset SET nimi=~A,lyhenne=~A,painokerroin=~A ~
+                WHERE sid=~A"
          (sql-mj (nimi suo)) (sql-mj (lyhenne suo))
          (if (painokerroin suo) (painokerroin suo) "NULL")
          (sid suo))
@@ -1072,22 +1073,22 @@
   (when sija
     (let ((sid-mj (princ-to-string (sid suo)))
           (ryhmän-suoritukset
-           (first (first (query "select suoritukset from ryhmat ~
-                                where ryhma like ~A"
+           (first (first (query "SELECT suoritukset FROM ryhmat ~
+                                WHERE ryhma LIKE ~A"
                                 (sql-like-suoja (ryhmä suo)))))))
 
       (if ryhmän-suoritukset
           (progn
             (setf ryhmän-suoritukset
                   (siirrä-mj-listassa sid-mj ryhmän-suoritukset sija))
-            (query "update ryhmat set suoritukset=~A where ryhma like ~A"
+            (query "UPDATE ryhmat SET suoritukset=~A WHERE ryhma LIKE ~A"
                    (sql-mj ryhmän-suoritukset) (sql-like-suoja (ryhmä suo))))
-          (query "insert into ryhmat (ryhma,suoritukset) values (~A,~A)"
+          (query "INSERT INTO ryhmat (ryhma,suoritukset) VALUES (~A,~A)"
                  (sql-mj (ryhmä suo)) (sql-mj sid-mj))))))
 
 
 (defmethod muokkaa ((ryh ryhmä) &key)
-  (query "update ryhmat set ryhma=~A where ryhma=~A"
+  (query "UPDATE ryhmat SET ryhma=~A WHERE ryhma=~A"
          (sql-mj (ryhmä ryh))
          (sql-mj (vanha-ryhmä ryh))))
 
@@ -1098,13 +1099,13 @@
                       (if (or (not lisä) (equal lisä ""))
                           "NULL"
                           (sql-mj lisä)))))
-    (if (query "select oid from arvosanat where sid=~A and oid=~A"
+    (if (query "SELECT oid FROM arvosanat WHERE sid=~A AND oid=~A"
                (sid arv) oid)
-        (query "update arvosanat set arvosana=~A,lisatiedot=~A ~
-                where sid=~A and oid=~A"
+        (query "UPDATE arvosanat SET arvosana=~A,lisatiedot=~A ~
+                WHERE sid=~A AND oid=~A"
                (sql-mj (arvosana arv)) lisätiedot (sid arv) oid)
-        (query "insert into arvosanat (sid,oid,arvosana,lisatiedot) ~
-                values (~A,~A,~A,~A)"
+        (query "INSERT INTO arvosanat (sid,oid,arvosana,lisatiedot) ~
+                VALUES (~A,~A,~A,~A)"
                (sid arv) oid (sql-mj (arvosana arv)) lisätiedot))
     arv))
 
@@ -1113,14 +1114,14 @@
 
 
 (defmethod poista ((opp oppilas))
-  (ignore-errors (query "delete from arvosanat where oid=~A" (oid opp)))
-  (ignore-errors (query "delete from oppilaat where oid=~A" (oid opp))))
+  (ignore-errors (query "DELETE FROM arvosanat WHERE oid=~A" (oid opp)))
+  (ignore-errors (query "DELETE FROM oppilaat WHERE oid=~A" (oid opp))))
 
 
 (defmethod poista ((suo suoritus))
   (let ((ryhmän-suoritukset
-         (first (first (query "select suoritukset from ryhmat ~
-                                where ryhma like ~A"
+         (first (first (query "SELECT suoritukset FROM ryhmat ~
+                                WHERE ryhma LIKE ~A"
                               (sql-like-suoja (ryhmä suo)))))))
 
     (when ryhmän-suoritukset
@@ -1128,20 +1129,20 @@
             (poista-mj-listasta (princ-to-string (sid suo))
                                 ryhmän-suoritukset))
       (if (string= "" ryhmän-suoritukset)
-          (query "delete from ryhmat where ryhma like ~A"
+          (query "DELETE FROM ryhmat WHERE ryhma LIKE ~A"
                  (sql-like-suoja (ryhmä suo)))
-          (query "update ryhmat set suoritukset=~A where ryhma like ~A"
+          (query "UPDATE ryhmat SET suoritukset=~A WHERE ryhma LIKE ~A"
                  (sql-mj ryhmän-suoritukset)
                  (sql-like-suoja (ryhmä suo))))))
 
-  (query "delete from suoritukset where sid=~A" (sid suo)))
+  (query "DELETE FROM suoritukset WHERE sid=~A" (sid suo)))
 
 
 (defmethod poista ((arv arvosana))
   (let ((oid (oid (oppilas arv)))
         (sid (sid arv)))
     (ignore-errors
-      (query "delete from arvosanat where sid=~A and oid=~A" sid oid))))
+      (query "DELETE FROM arvosanat WHERE sid=~A AND oid=~A" sid oid))))
 
 
 (defun erota-ensimmäinen-sana (mj)
@@ -1477,7 +1478,7 @@
 
 (defun komento-muokkaa-ryhmä (uusi-ryhmä ryhmäolio)
   (setf uusi-ryhmä (first uusi-ryhmä))
-  (when (query "select * from ryhmat where ryhma like ~A"
+  (when (query "SELECT * FROM ryhmat WHERE ryhma LIKE ~A"
                (sql-like-suoja uusi-ryhmä))
     (virhe "Ryhmä nimeltä ~A on jo olemassa." uusi-ryhmä))
   (setf (vanha-ryhmä ryhmäolio) (ryhmä ryhmäolio)
