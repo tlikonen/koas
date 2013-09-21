@@ -674,7 +674,8 @@
                                 where o.ryhmat like ~A ~
                                 order by o.sukunimi,o.etunimi"
                            (loop :for suoritus :in suorituslista
-                                 :for i :upfrom 1
+                                 ;; SQLiten suurin taulukkomäärä joinissa 64.
+                                 :for i :from 1 :below 64
                                  :collect (format nil "a~A" i)
                                  :collect (sid suoritus))
                            (sql-like-suoja ryhmä "%" "%"))))
