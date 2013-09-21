@@ -1135,7 +1135,8 @@
                  (sql-mj ryhmän-suoritukset)
                  (sql-like-suoja (ryhmä suo))))))
 
-  (query "DELETE FROM suoritukset WHERE sid=~A" (sid suo)))
+  (query "DELETE FROM suoritukset WHERE sid=~A" (sid suo))
+  (query "DELETE FROM arvosanat WHERE sid=~A" (sid suo)))
 
 
 (defmethod poista ((arv arvosana))
