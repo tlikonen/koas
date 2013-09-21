@@ -1113,15 +1113,8 @@
 
 
 (defmethod poista ((opp oppilas))
-  (let ((taulut
-         (mapcar #'first
-                 (query "select name from sqlite_master where type='table' ~
-                        and name like 'suoritus\\_%' escape '\\'"))))
-    (loop :for taulu :in taulut
-          :do (ignore-errors
-                (query "delete from ~A where oid=~A" taulu (oid opp))))
-    (ignore-errors
-      (query "delete from oppilaat where oid=~A" (oid opp)))))
+  (ignore-errors (query "delete from arvosanat where oid=~A" (oid opp)))
+  (ignore-errors (query "delete from oppilaat where oid=~A" (oid opp))))
 
 
 (defmethod poista ((suo suoritus))
