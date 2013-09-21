@@ -668,21 +668,22 @@
                                      (length suorituslista)))))
 
     (when suorituslista
-      (loop :for suo :from 0 :below (array-dimension taulukko 1)
-            :for suoritus :in suorituslista
-            :for arvosanat
-            := (mapcar #'first (query "select arvosanat.arvosana ~
-                                        from oppilaat ~
-                                        left join arvosanat ~
-                                        on oppilaat.oid = arvosanat.oid ~
-                                        and arvosanat.sid = ~A ~
-                                        where oppilaat.ryhmat like ~A ~
-                                        order by sukunimi,etunimi"
-                                      (sid suoritus)
-                                      (sql-like-suoja ryhmä "%" "%")))
-            :do (loop :for opp :from 0 :below (array-dimension taulukko 0)
-                      :for arv :in arvosanat
-                      :do (setf (aref taulukko opp suo) arv)))
+      (let ((kysely (query "select ~{~A.arvosana~*~^,~}~:* from oppilaat as o ~
+                                ~{left join arvosanat as ~A~:* ~
+                                on o.oid=~A.oid~:* and ~A.sid=~A ~} ~
+                                where o.ryhmat like ~A ~
+                                order by o.sukunimi,o.etunimi"
+                           (loop :for suoritus :in suorituslista
+                                 :for i :upfrom 1
+                                 :collect (format nil "a~A" i)
+                                 :collect (sid suoritus))
+                           (sql-like-suoja ryhmä "%" "%"))))
+
+        (loop :for oppilas :in kysely
+              :for opp :upfrom 0
+              :do (loop :for arvosana :in oppilas
+                        :for arv :upfrom 0
+                        :do (setf (aref taulukko opp arv) arvosana))))
 
       (make-instance 'arvosanat-koonti
                      :ryhmä ryhmä
