@@ -415,6 +415,7 @@
 
 (defclass arvosanat-suoritus ()
   ((sid :reader sid :initarg :sid)
+   (nimi :accessor nimi :initarg :nimi)
    (ryhmä :reader ryhmä :initarg :ryhmä)
    (arvosanalista :reader arvosanalista :initarg :arvosanalista)))
 
@@ -607,6 +608,7 @@
                       :finally (push (make-instance 'arvosanat-suoritus
                                                     :ryhmä ryhmä
                                                     :sid (sid suoritus)
+                                                    :nimi (nimi suoritus)
                                                     :arvosanalista arvosanat)
                                      kaikki))))
             :finally
@@ -784,16 +786,12 @@
                                              (list (arvosana arvosana))
                                              (unless *suppea*
                                                (list (lisätiedot arvosana))))
-                            :do (push (arvosana arvosana) arvot)))
-               (suoritus
-                (first (first (query "select nimi from suoritukset ~
-                                        where sid = ~A"
-                                     (sid arv-suo))))))
+                            :do (push (arvosana arvosana) arvot))))
 
           (tulosta-taulu
            (append (if (muoto :org nil) (list :viiva))
                    (list (list (otsikko "Ryhmä:") (ryhmä arv-suo)))
-                   (list (list (otsikko "Suoritus:") suoritus))
+                   (list (list (otsikko "Suoritus:") (nimi arv-suo)))
                    (if (muoto :org nil) (list :viiva))))
           (viesti "~%")
 
