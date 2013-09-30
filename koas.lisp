@@ -33,7 +33,7 @@
 (defvar *suppea* nil)
 (defvar *poistoraja* 10)
 (defvar *muokkaukset-kunnes-eheytys* 5000)
-(defparameter *tietokannan-versio* 2)
+(defparameter *tietokannan-versio* 3)
 
 
 (defun alusta-tiedostopolku ()
@@ -66,30 +66,12 @@
       (sqlite:execute-to-list *tietokanta*
                               (apply #'format nil format-string parameters))
       (virhe "Ei yhteyttä tietokantaan.")))
-
-
-(defun connect ()
-  (unless (typep *tietokanta* 'sqlite:sqlite-handle)
-    (alusta-tiedostopolku)
-    (setf *tietokanta* (sqlite:connect *tiedosto*))
-    (alusta-tietokanta)
-    *tietokanta*))
-
-
-(defun disconnect ()
-  (when (typep *tietokanta* 'sqlite:sqlite-handle)
-    (prog1 (sqlite:disconnect *tietokanta*)
-      (setf *tietokanta* nil))))
-
-
-(defmacro tietokanta-käytössä (&body body)
-  `(let ((*tietokanta* nil))
-     (unwind-protect (progn (connect) ,@body)
-       (disconnect))))
-
-
 (defmacro with-transaction (&body body)
   `(sqlite:with-transaction *tietokanta* ,@body))
+
+
+(defun query-last-insert-rowid ()
+  (sqlite:last-insert-rowid *tietokanta*))
 
 
 (defun sql-mj (asia)
@@ -117,6 +99,44 @@
                            (t merkki))
                      ulos))
     (format ulos "~A' escape '\\'" loppu)))
+
+
+(defun mj-lista-listaksi (mj-lista)
+  (split-sequence #\space mj-lista :remove-empty-subseqs t))
+
+
+(defun lista-mj-listaksi (lista)
+  (format nil "~{~A~^ ~}" lista))
+
+
+(defun lisää-mj-listaan (uusi mj-lista &optional ennen)
+  (let ((lista (mj-lista-listaksi mj-lista)))
+    (setf ennen (if ennen
+                    (min (max 0 ennen) (length lista))
+                    (length lista)))
+    (loop :for el :in lista
+          :for i :upfrom 0
+          :if (= i ennen) :collect uusi :into uusi-lista
+          :collect el :into uusi-lista
+          :finally (setf lista (if (= ennen (length lista))
+                                   (nconc uusi-lista (list uusi))
+                                   uusi-lista)))
+    (lista-mj-listaksi lista)))
+
+
+(defun poista-mj-listasta (osa mj-lista)
+  (let ((lista (split-sequence #\space mj-lista
+                               :remove-empty-subseqs t)))
+    (setf lista (remove osa lista :test #'string-equal))
+    (lista-mj-listaksi lista)))
+
+
+(defun siirrä-mj-listassa (osa mj-lista uusi-kohta)
+  (let ((lista (split-sequence #\space mj-lista
+                               :remove-empty-subseqs t)))
+    (lisää-mj-listaan
+     osa (lista-mj-listaksi (remove osa lista :test #'string-equal))
+     uusi-kohta)))
 
 
 (defun lue-numero (objekti)
@@ -153,8 +173,35 @@
           (* (or merkki 1) (decimals:parse-decimal-number objekti))))))))
 
 
-(defun päivitä-versiosta-1 ()
+(defun aseta-muokkauslaskuri (arvo)
+  (query "UPDATE hallinto SET arvo=~A WHERE avain='muokkauslaskuri'"
+         (sql-mj arvo))
+  arvo)
+
+
+(defun hae-muokkauslaskuri ()
+  (lue-numero (caar (query "SELECT arvo FROM hallinto ~
+                                WHERE avain='muokkauslaskuri'"))))
+
+
+(defun lisää-muokkauslaskuriin (muokkaukset)
+  (aseta-muokkauslaskuri (+ (or (hae-muokkauslaskuri) 0) muokkaukset)))
+
+
+(defun ehkä-eheytys (&optional nyt)
+  (let ((laskuri (or (hae-muokkauslaskuri) 0)))
+    (if (or nyt (>= laskuri *muokkaukset-kunnes-eheytys*))
+        (ignore-errors
+          (query "VACUUM")
+          (aseta-muokkauslaskuri 0)
+          t)
+        nil)))
+
+
+(defun päivitä-versiosta-1-versioon-2 ()
   (with-transaction
+    (query "CREATE TABLE arvosanat ~
+                (sid INTEGER, oid INTEGER, arvosana TEXT, lisatiedot TEXT)")
     (loop :for (sid . nil) :in (query "SELECT sid FROM suoritukset")
           :do
           (loop :for (oid arv lis)
@@ -164,60 +211,203 @@
                                 VALUES (~A, ~A, ~A, ~A)"
                            sid oid (sql-mj arv) (sql-mj lis)))
           (ignore-errors (query "DROP TABLE suoritus_~A" sid)))
-    (query "UPDATE hallinto SET arvo='0' WHERE avain='muokkauslaskuri'")
-    (query "INSERT INTO hallinto (avain, arvo) VALUES ('versio', ~A)"
-           (sql-mj *tietokannan-versio*)))
-  (query "VACUUM"))
+    (query "INSERT INTO hallinto (avain, arvo) VALUES ('versio', '2')")))
+
+
+(defun päivitä-versiosta-2-versioon-3 ()
+  (with-transaction
+    (unless (hae-muokkauslaskuri)
+      (query "INSERT INTO hallinto (avain, arvo) ~
+                VALUES ('muokkauslaskuri', '0')"))
+
+    (query "CREATE TABLE oppilaat_v3 ~
+                (oid INTEGER PRIMARY KEY, ~
+                sukunimi TEXT, etunimi TEXT, ~
+                lisatiedot TEXT DEFAULT '')")
+    (query "CREATE TABLE ryhmat_v3 ~
+                (rid INTEGER PRIMARY KEY, nimi TEXT,
+                lisatiedot TEXT DEFAULT '')")
+    (query "CREATE TABLE suoritukset_v3 ~
+                (sid INTEGER PRIMARY KEY, ~
+                rid INTEGER, ~
+                sija INTEGER, ~
+                nimi TEXT DEFAULT '', ~
+                lyhenne TEXT DEFAULT '', ~
+                painokerroin INTEGER)")
+    (query "CREATE TABLE oppilaat_ryhmat ~
+                (oid INTEGER, rid INTEGER)")
+
+    (loop :for (ryhmä . nil) :in (query "SELECT ryhma FROM ryhmat")
+          :do (query "INSERT INTO ryhmat_v3 ~
+                (nimi, lisatiedot) VALUES (~A,'')"
+                     (sql-mj ryhmä)))
+
+    (loop :for (oid sukunimi etunimi ryhmä-mj lisätiedot)
+          :in (query "SELECT * FROM oppilaat")
+          :for ryhmät := (or (mj-lista-listaksi ryhmä-mj) (list "ryhmätön"))
+          :do
+          (query "INSERT INTO oppilaat_v3 ~
+                (oid, sukunimi, etunimi, lisatiedot)
+                VALUES (~A,~A,~A,~A)"
+                 oid (sql-mj sukunimi) (sql-mj etunimi) (sql-mj lisätiedot))
+          (loop :for ryhmä :in ryhmät
+                :do
+                (let ((rid (caar (query "SELECT rid FROM ryhmat_v3 ~
+                        WHERE nimi=~A" (sql-mj ryhmä)))))
+                  (unless rid
+                    (query "INSERT INTO ryhmat_v3 ~
+                        (nimi, lisatiedot) VALUES (~A,'')"
+                           (sql-mj ryhmä))
+                    (setf rid (query-last-insert-rowid)))
+                  (query "INSERT INTO oppilaat_ryhmat ~
+                        (oid, rid) VALUES (~A,~A)" oid rid))))
+
+    (loop :for (ryhmä suoritukset-mj) :in (query "SELECT * FROM ryhmat")
+          :for suoritukset := (mapcar #'lue-numero
+                                      (mj-lista-listaksi suoritukset-mj))
+          :do
+          (loop :for sid :in suoritukset
+                :for sija :upfrom 1
+                :for rid := (caar (query "SELECT rid FROM ryhmat_v3 ~
+                                WHERE nimi=~A" (sql-mj ryhmä)))
+                :for (nimi lyhenne painokerroin)
+                := (first (query "SELECT nimi,lyhenne,painokerroin ~
+                                FROM suoritukset WHERE sid=~A" sid))
+                :do
+                (query "INSERT INTO suoritukset_v3 ~
+                        (sid, rid, sija, nimi, lyhenne, painokerroin) ~
+                        VALUES (~A,~A,~A,~A,~A,~A)"
+                       sid rid sija (sql-mj nimi) (sql-mj lyhenne)
+                       (or painokerroin "NULL"))))
+
+    (query "DROP TABLE oppilaat")
+    (query "DROP TABLE ryhmat")
+    (query "DROP TABLE suoritukset")
+
+    (query "CREATE TABLE oppilaat ~
+                (oid INTEGER PRIMARY KEY, ~
+                sukunimi TEXT, etunimi TEXT, ~
+                lisatiedot TEXT DEFAULT '')")
+    (query "CREATE TABLE ryhmat ~
+                (rid INTEGER PRIMARY KEY, nimi TEXT,
+                lisatiedot TEXT DEFAULT '')")
+    (query "CREATE TABLE suoritukset ~
+                (sid INTEGER PRIMARY KEY, ~
+                rid INTEGER, ~
+                sija INTEGER, ~
+                nimi TEXT DEFAULT '', ~
+                lyhenne TEXT DEFAULT '', ~
+                painokerroin INTEGER)")
+
+    (loop :for (oid sukunimi etunimi lisätiedot)
+          :in (query "SELECT * FROM oppilaat_v3")
+          :do (query "INSERT INTO oppilaat ~
+                (oid,sukunimi,etunimi,lisatiedot) ~
+                VALUES (~A,~A,~A,~A)"
+                     oid (sql-mj sukunimi) (sql-mj etunimi)
+                     (sql-mj lisätiedot)))
+
+    (loop :for (rid nimi lisätiedot) :in (query "SELECT * FROM ryhmat_v3")
+          :do (query "INSERT INTO ryhmat ~
+                (rid, nimi, lisatiedot) ~
+                VALUES (~A,~A,~A)" rid (sql-mj nimi) (sql-mj lisätiedot)))
+
+    (loop :for (sid rid sija nimi lyhenne painokerroin)
+          :in (query "SELECT * FROM suoritukset_v3")
+          :do (query "INSERT INTO suoritukset ~
+                (sid, rid, sija, nimi, lyhenne, painokerroin) ~
+                VALUES (~A,~A,~A,~A,~A,~A)"
+                     sid rid sija (sql-mj nimi)
+                     (sql-mj lyhenne) (or painokerroin "NULL")))
+
+    (query "DROP TABLE oppilaat_v3")
+    (query "DROP TABLE ryhmat_v3")
+    (query "DROP TABLE suoritukset_v3")
+
+    (query "UPDATE hallinto SET arvo='3' WHERE avain='versio'")))
+
+
+(defun tietokannan-versio ()
+  (let ((kysely (caar (query "SELECT arvo FROM hallinto ~
+                                WHERE avain='versio'"))))
+    (if kysely (lue-numero kysely) 1)))
 
 
 (defun alusta-tietokanta ()
   (let ((kaikki (mapcar #'first (query "SELECT name FROM sqlite_master ~
-                                        WHERE type='table'")))
-        (alustus t))
+                                        WHERE type='table'"))))
     (flet ((löytyy (asia)
-             (member asia kaikki :test #'string-equal))
-           (alustusviesti ()
-             (when alustus
-               (viesti "~&Valmistellaan tietokanta (~A).~%~
-        Ota tietokantatiedostosta varmuuskopio riittävän usein.~%"
-                       (sb-ext:native-pathname *tiedosto*))
-               (setf alustus nil))))
-      (unless (löytyy "oppilaat")
-        (alustusviesti)
-        (query "CREATE TABLE oppilaat ~
-                (oid INTEGER UNIQUE PRIMARY KEY, ~
+             (member asia kaikki :test #'string-equal)))
+
+      (if (löytyy "hallinto")
+          (let ((versio (tietokannan-versio)))
+            (cond ((= versio 1)
+                   (viesti "Päivitetään tietokanta: v1 > v3.~%")
+                   (päivitä-versiosta-1-versioon-2)
+                   (päivitä-versiosta-2-versioon-3)
+                   (ehkä-eheytys t))
+                  ((= versio 2)
+                   (viesti "Päivitetään tietokanta: v2 > v3.~%")
+                   (päivitä-versiosta-2-versioon-3)
+                   (ehkä-eheytys t))
+                  ((> versio *tietokannan-versio*)
+                   (viesti "VAROITUS! Tietokannan versio on ~A mutta ohjelma ~
+                osaa vain version ~A.~%Päivitä ohjelma!~%"
+                           versio *tietokannan-versio*)
+                   (error 'poistu-ohjelmasta))))
+
+          ;; Tietokanta puuttuu
+          (with-transaction
+            (viesti "~&Valmistellaan tietokanta (~A).~%~
+                Ota tietokantatiedostosta varmuuskopio riittävän usein.~%"
+                    (sb-ext:native-pathname *tiedosto*))
+
+            (query "CREATE TABLE hallinto (avain TEXT UNIQUE, arvo TEXT)")
+            (query "INSERT INTO hallinto (avain, arvo) VALUES ('versio',~A)"
+                   (sql-mj *tietokannan-versio*))
+            (query "INSERT INTO hallinto (avain, arvo) ~
+                VALUES ('muokkauslaskuri', '0')")
+
+            (query "CREATE TABLE oppilaat ~
+                (oid INTEGER PRIMARY KEY, ~
                 sukunimi TEXT, etunimi TEXT, ~
-                ryhmat TEXT, lisatiedot TEXT DEFAULT '')"))
-      (unless (löytyy "ryhmat")
-        (alustusviesti)
-        (query "CREATE TABLE ryhmat ~
-                (ryhma TEXT UNIQUE, suoritukset TEXT DEFAULT '')"))
-      (unless (löytyy "suoritukset")
-        (alustusviesti)
-        (query "CREATE TABLE suoritukset ~
-                (sid INTEGER UNIQUE PRIMARY KEY, ~
+                lisatiedot TEXT DEFAULT '')")
+            (query "CREATE TABLE ryhmat ~
+                (rid INTEGER PRIMARY KEY, nimi TEXT, ~
+                lisatiedot TEXT DEFAULT '')")
+            (query "CREATE TABLE oppilaat_ryhmat ~
+                (oid INTEGER, rid INTEGER)")
+            (query "CREATE TABLE suoritukset ~
+                (sid INTEGER PRIMARY KEY, ~
+                rid INTEGER, ~
+                sija INTEGER, ~
                 nimi TEXT DEFAULT '', ~
                 lyhenne TEXT DEFAULT '', ~
-                painokerroin INTEGER)"))
-      (unless (löytyy "arvosanat")
-        (alustusviesti)
-        (query "CREATE TABLE arvosanat ~
-                (sid INTEGER, oid INTEGER, arvosana TEXT, lisatiedot TEXT)"))
-      (unless (löytyy "hallinto")
-        (alustusviesti)
-        (query "CREATE TABLE hallinto (avain TEXT UNIQUE, arvo TEXT)"))
+                painokerroin INTEGER)")
+            (query "CREATE TABLE arvosanat ~
+                (sid INTEGER, oid INTEGER, arvosana TEXT, lisatiedot TEXT)")))
 
-      (query "PRAGMA case_sensitive_like=0")
+      (query "PRAGMA case_sensitive_like=0"))))
 
-      (let ((versio (lue-numero
-                     (caar (query "SELECT arvo FROM hallinto ~
-                        WHERE avain='versio'")))))
-        (cond ((not versio)
-               (päivitä-versiosta-1))
-              ((> versio *tietokannan-versio*)
-               (viesti "VAROITUS! Tietokannan versio on ~A mutta ohjelma ~
-                osaa vain version ~A.~%Päivitä ohjelma!~%"
-                       versio *tietokannan-versio*)))))))
+
+(defun connect ()
+  (unless (typep *tietokanta* 'sqlite:sqlite-handle)
+    (alusta-tiedostopolku)
+    (setf *tietokanta* (sqlite:connect *tiedosto*))
+    (alusta-tietokanta)
+    *tietokanta*))
+
+
+(defun disconnect ()
+  (when (typep *tietokanta* 'sqlite:sqlite-handle)
+    (prog1 (sqlite:disconnect *tietokanta*)
+      (setf *tietokanta* nil))))
+
+
+(defmacro tietokanta-käytössä (&body body)
+  `(let ((*tietokanta* nil))
+     (unwind-protect (progn (connect) ,@body)
+       (disconnect))))
 
 
 (defun arvottu-järjestys (lista)
@@ -284,44 +474,6 @@
     (loop :for i :upfrom 1
           :for rivi :in taulu
           :collect (cons (format nil "~V@A" suurin-leveys i) rivi))))
-
-
-(defun mj-lista-listaksi (mj-lista)
-  (split-sequence #\space mj-lista :remove-empty-subseqs t))
-
-
-(defun lista-mj-listaksi (lista)
-  (format nil "~{~A~^ ~}" lista))
-
-
-(defun lisää-mj-listaan (uusi mj-lista &optional ennen)
-  (let ((lista (mj-lista-listaksi mj-lista)))
-    (setf ennen (if ennen
-                    (min (max 0 ennen) (length lista))
-                    (length lista)))
-    (loop :for el :in lista
-          :for i :upfrom 0
-          :if (= i ennen) :collect uusi :into uusi-lista
-          :collect el :into uusi-lista
-          :finally (setf lista (if (= ennen (length lista))
-                                   (nconc uusi-lista (list uusi))
-                                   uusi-lista)))
-    (lista-mj-listaksi lista)))
-
-
-(defun poista-mj-listasta (osa mj-lista)
-  (let ((lista (split-sequence #\space mj-lista
-                               :remove-empty-subseqs t)))
-    (setf lista (remove osa lista :test #'string-equal))
-    (lista-mj-listaksi lista)))
-
-
-(defun siirrä-mj-listassa (osa mj-lista uusi-kohta)
-  (let ((lista (split-sequence #\space mj-lista
-                               :remove-empty-subseqs t)))
-    (lisää-mj-listaan
-     osa (lista-mj-listaksi (remove osa lista :test #'string-equal))
-     uusi-kohta)))
 
 
 (defun tulosta-taulu (taulu &key (virta *standard-output*))
@@ -391,6 +543,7 @@
 
 (defclass suoritus ()
   ((ryhmä :reader ryhmä :initarg :ryhmä)
+   (rid :accessor rid :initarg :rid)
    (sid :accessor sid :initarg :sid)
    (nimi :accessor nimi :initarg :nimi)
    (lyhenne :accessor lyhenne :initarg :lyhenne)
@@ -401,34 +554,42 @@
    (suorituslista :reader suorituslista :initarg :suorituslista)))
 
 (defclass ryhmä ()
-  ((ryhmä :accessor ryhmä :initarg :ryhmä)
-   (vanha-ryhmä :accessor vanha-ryhmä :initarg :vanha-ryhmä)))
+  ((rid :accessor rid :initarg :rid)
+   (nimi :accessor nimi :initarg :nimi)
+   (lisätiedot :accessor lisätiedot :initarg :lisätiedot :initform nil)))
 
-(defclass suoritusryhmät ()
+(defclass ryhmät ()
   ((ryhmälista :reader ryhmälista :initarg :ryhmälista)))
 
 (defclass arvosana ()
-  ((oppilas :reader oppilas :initarg :oppilas)
+  ((oid :reader oid :initarg :oid)
+   (sukunimi :accessor sukunimi :initarg :sukunimi)
+   (etunimi :accessor etunimi :initarg :etunimi)
    (sid :reader sid :initarg :sid)
+   (nimi :accessor nimi :initarg :nimi); suorituksen nimi
+   (lyhenne :accessor lyhenne :initarg :lyhenne)
+   (painokerroin :accessor painokerroin :initarg :painokerroin :initform nil)
    (arvosana :accessor arvosana :initarg :arvosana :initform "")
    (lisätiedot :accessor lisätiedot :initarg :lisätiedot :initform nil)))
 
-(defclass arvosanat-suoritus ()
-  ((sid :reader sid :initarg :sid)
-   (nimi :accessor nimi :initarg :nimi)
+(defclass arvosanat-suorituksesta ()
+  ((nimi :accessor nimi :initarg :nimi)
    (ryhmä :reader ryhmä :initarg :ryhmä)
    (arvosanalista :reader arvosanalista :initarg :arvosanalista)))
 
-(defclass arvosanat-suoritukset ()
+(defclass arvosanat-suorituksista ()
   ((lista :reader lista :initarg :lista)))
 
-(defclass arvosanat-oppilas ()
-  ((oppilas :reader oppilas :initarg :oppilas)
+(defclass arvosanat-oppilaalta ()
+  ((oid :reader oid :initarg :oid)
+   (sukunimi :accessor sukunimi :initarg :sukunimi)
+   (etunimi :accessor etunimi :initarg :etunimi)
+   (lisätiedot :reader lisätiedot :initarg :lisätiedot)
+   (rid :accessor rid :initarg :rid)
    (ryhmä :reader ryhmä :initarg :ryhmä)
-   (suorituslista :reader suorituslista :initarg :suorituslista)
    (arvosanalista :reader arvosanalista :initarg :arvosanalista)))
 
-(defclass arvosanat-oppilaat ()
+(defclass arvosanat-oppilailta ()
   ((lista :reader lista :initarg :lista)))
 
 (defclass arvosanat-koonti ()
@@ -481,217 +642,254 @@
             (tulosta-luku (/ summa painotussumma) desimaalit)))))
 
 
-(defun muokkauslaskuri (muokkaukset)
-  (let ((laskuri (query "SELECT arvo FROM hallinto ~
-                WHERE avain='muokkauslaskuri'")))
-    (unless laskuri
-      (query "INSERT INTO hallinto (avain, arvo) ~
-                                VALUES ('muokkauslaskuri', '0')"))
-    (setf laskuri (+ muokkaukset (or (lue-numero (first (first laskuri))) 0)))
-    (query "UPDATE hallinto SET arvo=~A WHERE avain='muokkauslaskuri'"
-           (sql-mj laskuri))
-    laskuri))
-
-
-(defun ehkä-eheytys ()
-  (let ((laskuri (query "SELECT arvo FROM hallinto ~
-                                WHERE avain='muokkauslaskuri'")))
-    (setf laskuri (or (lue-numero (first (first laskuri))) 0))
-    (if (>= laskuri *muokkaukset-kunnes-eheytys*)
-        (ignore-errors
-          (query "VACUUM")
-          (query "UPDATE hallinto SET arvo='0' WHERE avain='muokkauslaskuri'")
-          t)
-        nil)))
-
-
-(defun hae-oppilaat (sukunimi &optional (etunimi "") (ryhmät "")
+(defun hae-oppilaat (sukunimi &optional (etunimi "") (ryhmä "")
                                 (lisätiedot ""))
-  (let ((oppilaat
-         (query "SELECT oid,sukunimi,etunimi,ryhmat,lisatiedot ~
-                FROM oppilaat ~
-                WHERE sukunimi LIKE ~A AND etunimi LIKE ~A ~
-                AND ryhmat LIKE ~A AND lisatiedot LIKE ~A ~
-                ORDER BY sukunimi,etunimi,ryhmat,oid"
+  (let ((kysely ;Ei karsita vielä ryhmän perusteella.
+         (query "SELECT o.oid,o.sukunimi,o.etunimi,r.nimi,o.lisatiedot ~
+                FROM oppilaat AS o ~
+                LEFT JOIN oppilaat_ryhmat AS j ON j.oid=o.oid AND j.rid=r.rid ~
+                LEFT JOIN ryhmat AS r ON r.rid=j.rid ~
+                WHERE o.sukunimi LIKE ~A ~
+                AND o.etunimi LIKE ~A ~
+                AND o.lisatiedot LIKE ~A ~
+                ORDER BY o.sukunimi,o.etunimi,o.oid,r.nimi DESC"
                 (sql-like-suoja sukunimi "%" "%")
                 (sql-like-suoja etunimi "%" "%")
-                (sql-like-suoja ryhmät "%" "%")
                 (sql-like-suoja lisätiedot "%" "%"))))
-    (when oppilaat
-      (make-instance
-       'oppilaat
-       :oppilaslista (loop :for (o s e r l) in oppilaat
-                           :collect (make-instance 'oppilas
-                                                   :oid o
-                                                   :sukunimi s
-                                                   :etunimi e
-                                                   :ryhmälista
-                                                   (mj-lista-listaksi r)
-                                                   :lisätiedot l))))))
+
+    (loop :with oppilaat := nil
+          :with ryhmät := nil
+          :for (rivi . loput) :on kysely
+          :for (oid sukunimi etunimi r-nimi lisätiedot) := rivi
+          :for seuraava-oid := (caar loput)
+          :do
+
+          (push (or r-nimi "") ryhmät)
+          (unless (eql oid seuraava-oid)
+            (when (some (lambda (r) ;karsinta ryhmän perustella
+                          (search ryhmä r :test #'equalp))
+                        ryhmät)
+              (push (make-instance 'oppilas
+                                   :oid oid
+                                   :sukunimi sukunimi
+                                   :etunimi etunimi
+                                   :ryhmälista
+                                   (delete-if #'zerop ryhmät :key #'length)
+                                   :lisätiedot lisätiedot)
+                    oppilaat))
+            (setf ryhmät nil))
+
+          :finally
+          (return (when oppilaat
+                    (make-instance 'oppilaat :oppilaslista
+                                   (nreverse oppilaat)))))))
 
 
 (defun hae-suoritukset (ryhmä)
-  (let ((ryhmä-suoritukset
-         (first (query "SELECT * FROM ryhmat WHERE ryhma LIKE ~A"
-                       (sql-like-suoja ryhmä)))))
+  (let ((suoritukset
+         (query "SELECT s.sid,r.rid,s.nimi,s.lyhenne,s.painokerroin ~
+                FROM suoritukset AS s ~
+                JOIN ryhmat as r ON r.rid=s.rid ~
+                WHERE r.nimi LIKE ~A ~
+                ORDER BY s.sija"
+                (sql-like-suoja ryhmä))))
 
-    (when ryhmä-suoritukset
-      (let ((suoritukset
-             (loop :for id :in (split-sequence
-                                #\space (second ryhmä-suoritukset)
-                                :remove-empty-subseqs t)
-                   :for (sid nimi lyh kerroin)
-                   := (first (query "SELECT sid,nimi,lyhenne,painokerroin ~
-                                      FROM suoritukset WHERE sid=~A"
-                                    id))
-                   :collect (make-instance 'suoritus
-                                           :ryhmä ryhmä
-                                           :sid sid
-                                           :nimi nimi
-                                           :lyhenne lyh
-                                           :painokerroin kerroin))))
-
-        (when suoritukset
-          (make-instance 'suoritukset
-                         :ryhmä ryhmä
-                         :suorituslista suoritukset))))))
+    (when suoritukset
+      (make-instance
+       'suoritukset
+       :ryhmä ryhmä
+       :suorituslista
+       (loop :for (sid rid nimi lyhenne painokerroin) :in suoritukset
+             :collect (make-instance 'suoritus
+                                     :ryhmä ryhmä
+                                     :rid rid
+                                     :sid sid
+                                     :nimi nimi
+                                     :lyhenne lyhenne
+                                     :painokerroin painokerroin))))))
 
 
-(defun hae-suoritusryhmät ()
-  (let ((ryhmät (mapcar #'first (query "SELECT ryhma FROM ryhmat ~
-                                        ORDER BY ryhma"))))
+(defun hae-ryhmät (&optional (ryhmä "") (lisätiedot ""))
+  (let ((ryhmät (query "SELECT rid,nimi,lisatiedot FROM ryhmat ~
+                WHERE nimi LIKE ~A AND lisatiedot LIKE ~A ~
+                ORDER BY nimi,rid"
+                       (sql-like-suoja ryhmä "%" "%")
+                       (sql-like-suoja lisätiedot "%" "%"))))
     (when ryhmät
       (make-instance
-       'suoritusryhmät
-       :ryhmälista (loop :for ryhmä :in ryhmät
+       'ryhmät
+       :ryhmälista (loop :for (rid nimi lisätiedot) :in ryhmät
                          :collect
-                         (make-instance 'ryhmä :ryhmä ryhmä))))))
+                         (make-instance 'ryhmä
+                                        :rid rid
+                                        :nimi nimi
+                                        :lisätiedot lisätiedot))))))
 
 
-(defun hae-arvosanat-suoritukset (ryhmä &optional (nimi "") (lyhenne ""))
-  (let ((suor (hae-suoritukset ryhmä))
-        (kaikki))
-    (when suor
-      (loop :named valmis
-            :for suoritus :in (suorituslista suor)
-            :if (and (search nimi (nimi suoritus) :test #'char-equal)
-                     (search lyhenne (lyhenne suoritus) :test #'char-equal))
+(defun hae-arvosanat-suorituksista (ryhmä &optional (nimi "") (lyhenne ""))
+  (let ((kysely
+         (query "SELECT r.nimi,~
+                s.sid,s.nimi,s.lyhenne,s.painokerroin,~
+                o.oid,o.sukunimi,o.etunimi,a.arvosana,a.lisatiedot ~
+                FROM suoritukset AS s ~
+                LEFT JOIN ryhmat AS r ON s.rid=r.rid ~
+                LEFT JOIN oppilaat_ryhmat AS j ON s.rid=j.rid ~
+                LEFT JOIN oppilaat AS o ON o.oid=j.oid ~
+                LEFT JOIN arvosanat AS a ON a.oid=o.oid AND a.sid=s.sid ~
+                WHERE r.nimi LIKE ~A ~
+                AND s.nimi LIKE ~A ~
+                AND s.lyhenne LIKE ~A ~
+                ORDER BY r.nimi,r.rid,s.sija,s.sid,o.sukunimi,o.etunimi,o.oid"
+                (sql-like-suoja ryhmä)
+                (sql-like-suoja nimi "%" "%")
+                (sql-like-suoja lyhenne "%" "%"))))
 
-            :do
-            (let ((kysely (query "SELECT ~
-                        oppilaat.oid,oppilaat.sukunimi,~
-                        oppilaat.etunimi,oppilaat.ryhmat,oppilaat.lisatiedot,~
-                        arvosanat.arvosana,arvosanat.lisatiedot ~
-                        FROM oppilaat LEFT JOIN arvosanat ~
-                        ON oppilaat.oid=arvosanat.oid ~
-                        AND arvosanat.sid=~A ~
-                        WHERE oppilaat.ryhmat LIKE ~A ~
-                        ORDER BY oppilaat.sukunimi,oppilaat.etunimi"
-                                 (sid suoritus)
-                                 (sql-like-suoja ryhmä "%" "%"))))
+    (loop :with suoritukset := nil
+          :with arvosanat := nil
+          :for (rivi . loput) :on kysely
+          :for (r-nimi sid s-nimi lyhenne painokerroin
+                       oid sukunimi etunimi arvosana a-lisätiedot) := rivi
+          :for seuraava-sid := (nth 1 (first loput))
+          :do
 
-              (when kysely
-                (loop :for i :upfrom 1
-                      :for (oid suku etu ryh ol arv al) :in kysely
-                      :for oppilas := (make-instance 'oppilas
-                                                     :oid oid
-                                                     :sukunimi suku
-                                                     :etunimi etu
-                                                     :ryhmälista
-                                                     (mj-lista-listaksi ryh)
-                                                     :lisätiedot ol)
-                      :for arvosana := (make-instance 'arvosana
-                                                      :oppilas oppilas
-                                                      :sid (sid suoritus)
-                                                      :arvosana arv
-                                                      :lisätiedot al)
-                      :collect arvosana :into arvosanat
-                      :finally (push (make-instance 'arvosanat-suoritus
-                                                    :ryhmä ryhmä
-                                                    :sid (sid suoritus)
-                                                    :nimi (nimi suoritus)
-                                                    :arvosanalista arvosanat)
-                                     kaikki))))
-            :finally
-            (return-from valmis
-              (when kaikki
-                (make-instance 'arvosanat-suoritukset
-                               :lista (nreverse kaikki))))))))
+          (push (make-instance 'arvosana
+                               :oid oid
+                               :sukunimi sukunimi
+                               :etunimi etunimi
+                               :sid sid
+                               :nimi s-nimi
+                               :lyhenne lyhenne
+                               :painokerroin painokerroin
+                               :arvosana arvosana
+                               :lisätiedot a-lisätiedot)
+                arvosanat)
+
+          (unless (eql sid seuraava-sid)
+            (push (make-instance 'arvosanat-suorituksesta
+                                 :nimi s-nimi
+                                 :ryhmä r-nimi
+                                 :arvosanalista (nreverse arvosanat))
+                  suoritukset)
+            (setf arvosanat nil))
+
+          :finally
+          (return (when suoritukset
+                    (make-instance 'arvosanat-suorituksista
+                                   :lista (nreverse suoritukset)))))))
 
 
-(defun hae-arvosanat-oppilaat (sukunimi &optional (etunimi "") (ryhmät "")
-                                          (lisätiedot ""))
-  (let ((opp (hae-oppilaat sukunimi etunimi ryhmät lisätiedot))
-        (kaikki))
-    (when opp
-      (loop :for oppilas :in (oppilaslista opp)
-            :do
-            (loop :with rl := (sort (copy-seq (ryhmälista oppilas))
-                                    #'string-lessp)
-                  :for ryhmä :in rl
-                  :if (search ryhmät ryhmä :test #'char-equal)
-                  :do
-                  (let ((suor (hae-suoritukset ryhmä)))
-                    (when suor
-                      (let ((arvosanat
-                             (loop :for suoritus :in (suorituslista suor)
-                                   :for (as lt)
-                                   := (first
-                                       (query "SELECT arvosana,lisatiedot ~
-                                        FROM arvosanat ~
-                                        WHERE sid=~A AND oid=~A"
-                                              (sid suoritus) (oid oppilas)))
-                                   :collect
-                                   (make-instance 'arvosana
-                                                  :oppilas oppilas
-                                                  :sid (sid suoritus)
-                                                  :arvosana as
-                                                  :lisätiedot lt))))
-                        (push (make-instance 'arvosanat-oppilas
-                                             :oppilas oppilas
-                                             :ryhmä ryhmä
-                                             :suorituslista (suorituslista suor)
-                                             :arvosanalista arvosanat)
-                              kaikki))))))
-      (when kaikki
-        (make-instance 'arvosanat-oppilaat
-                       :lista (nreverse kaikki))))))
+(defun hae-arvosanat-oppilailta (sukunimi &optional (etunimi "") (ryhmä "")
+                                            (lisätiedot ""))
+  (let ((kysely
+         (query "SELECT o.oid,o.sukunimi,o.etunimi,o.lisatiedot,~
+                r.rid,r.nimi,~
+                s.sid,s.nimi,s.lyhenne,s.painokerroin,~
+                a.arvosana,a.lisatiedot ~
+                FROM oppilaat_ryhmat AS j ~
+                JOIN oppilaat AS o ON o.oid=j.oid ~
+                JOIN ryhmat AS r ON r.rid=j.rid ~
+                LEFT JOIN suoritukset AS s ON r.rid=s.rid ~
+                LEFT JOIN arvosanat AS a ON o.oid=a.oid AND s.sid=a.sid ~
+                WHERE o.sukunimi LIKE ~A ~
+                AND o.etunimi LIKE ~A ~
+                AND r.nimi LIKE ~A ~
+                AND o.lisatiedot LIKE ~A ~
+                ORDER BY o.sukunimi,o.etunimi,o.oid,r.nimi,r.rid,s.sija"
+                (sql-like-suoja sukunimi "%" "%")
+                (sql-like-suoja etunimi "%" "%")
+                (sql-like-suoja ryhmä "%" "%")
+                (sql-like-suoja lisätiedot "%" "%"))))
+
+    (loop :with oppilas-ryhmät := nil
+          :with arvosanat := nil
+          :for (rivi . loput) :on kysely
+          :for (oid sukunimi etunimi o-lisätiedot rid r-nimi
+                    sid s-nimi lyhenne painokerroin arvosana a-lisätiedot)
+          := rivi
+          :for seuraava-oid := (caar loput)
+          :for seuraava-rid := (nth 4 (first loput))
+          :do
+
+          (push (make-instance 'arvosana
+                               :oid oid
+                               :sukunimi sukunimi
+                               :etunimi etunimi
+                               :sid sid
+                               :nimi s-nimi
+                               :lyhenne lyhenne
+                               :painokerroin painokerroin
+                               :arvosana arvosana
+                               :lisätiedot a-lisätiedot)
+                arvosanat)
+
+          (when (or (not (eql oid seuraava-oid))
+                    (not (eql rid seuraava-rid)))
+            (when (some (lambda (as)
+                          (or (arvosana as)
+                              (lisätiedot as)))
+                        arvosanat)
+              (push (make-instance 'arvosanat-oppilaalta
+                                   :oid oid
+                                   :sukunimi sukunimi
+                                   :etunimi etunimi
+                                   :lisätiedot o-lisätiedot
+                                   :rid rid
+                                   :ryhmä r-nimi
+                                   :arvosanalista (nreverse arvosanat))
+                    oppilas-ryhmät))
+            (setf arvosanat nil))
+
+          :finally
+          (return (when oppilas-ryhmät
+                    (make-instance 'arvosanat-oppilailta
+                                   :lista (nreverse oppilas-ryhmät)))))))
 
 
 (defun hae-arvosanat-koonti (ryhmä)
-  (let* ((suorituslista (let ((suoritukset (hae-suoritukset ryhmä)))
-                          (when suoritukset
-                            (suorituslista suoritukset))))
-         (oppilaslista (let ((oppilaat (hae-oppilaat "" "" ryhmä)))
-                         (when oppilaat
-                           (oppilaslista oppilaat))))
-         (taulukko (make-array (list (length oppilaslista)
-                                     (length suorituslista)))))
+  (let* ((suorituslista
+          (query "SELECT r.nimi,s.sid,s.nimi,s.lyhenne,s.painokerroin ~
+                FROM ryhmat AS r ~
+                JOIN suoritukset AS s ON r.rid=s.rid ~
+                WHERE r.nimi LIKE ~A ~
+                ORDER BY r.nimi,r.rid,s.sija"
+                 (sql-like-suoja ryhmä))))
 
     (when suorituslista
-      (let ((kysely (query "SELECT ~{~A.arvosana~*~^,~}~:* FROM oppilaat AS o ~
-                                ~{LEFT JOIN arvosanat AS ~A~:* ~
-                                ON o.oid=~A.oid~:* AND ~A.sid=~A ~} ~
-                                WHERE o.ryhmat LIKE ~A ~
-                                ORDER BY o.sukunimi,o.etunimi"
-                           (loop :for suoritus :in suorituslista
-                                 ;; SQLiten suurin taulukkomäärä joinissa 64.
-                                 :for i :from 1 :below 64
-                                 :collect (format nil "a~A" i)
-                                 :collect (sid suoritus))
-                           (sql-like-suoja ryhmä "%" "%"))))
+      (let* ((kysely
+              (query "SELECT o.sukunimi,o.etunimi,~
+                        ~{~A.arvosana~*~^,~}~:* ~
+                        FROM oppilaat_ryhmat AS j ~
+                        LEFT JOIN oppilaat AS o ON j.oid=o.oid ~
+                        LEFT JOIN ryhmat AS r on j.rid=r.rid ~
+                        ~{LEFT JOIN arvosanat AS ~A~:* ~
+                        ON o.oid=~A.oid~:* AND ~A.sid=~A ~} ~
+                        WHERE r.nimi LIKE ~A ~
+                        ORDER BY o.sukunimi,o.etunimi,o.oid"
+                     (loop :for suoritus :in suorituslista
+                           ;; SQLiten suurin taulukkomäärä joinissa 64.
+                           :for i :from 1 :below 64
+                           :collect (format nil "a~A" i)
+                           :collect (nth 1 suoritus))
+                     (sql-like-suoja ryhmä))))
 
-        (loop :for oppilas :in kysely
-              :for opp :upfrom 0
-              :do (loop :for arvosana :in oppilas
+        (when kysely
+          (let ((taulukko (make-array (list (length kysely)
+                                            (length suorituslista))))
+                (oppilaslista nil))
+
+            (loop :for (sukunimi etunimi . arvosanat) :in kysely
+                  :for opp :upfrom 0
+                  :do
+                  (push (format nil "~A, ~A" sukunimi etunimi) oppilaslista)
+                  (loop :for arvosana :in arvosanat
                         :for arv :upfrom 0
-                        :do (setf (aref taulukko opp arv) arvosana))))
+                        :do (setf (aref taulukko opp arv) arvosana)))
 
-      (make-instance 'arvosanat-koonti
-                     :ryhmä ryhmä
-                     :oppilaslista oppilaslista
-                     :suorituslista suorituslista
-                     :taulukko taulukko))))
+            (make-instance 'arvosanat-koonti
+                           :ryhmä (caar suorituslista)
+                           :oppilaslista (nreverse oppilaslista)
+                           :suorituslista suorituslista
+                           :taulukko taulukko)))))))
 
 
 (defun tulosta-muokattavat (&rest kentät)
@@ -771,7 +969,29 @@
       (tulosta-taulu (list (list (otsikko "K") "= painokerroin"))))))
 
 
-(defmethod tulosta ((arv arvosanat-suoritukset))
+(defmethod tulosta ((lista ryhmät))
+  (setf *muokattavat* (when (and *vuorovaikutteinen*
+                                 (not *tulostusmuoto*)
+                                 (not *suppea*))
+                        (coerce (ryhmälista lista) 'vector)))
+
+
+
+  (let ((taulu (loop :for ryhmä :in (ryhmälista lista)
+                     :collect (list (nimi ryhmä)
+                                    (lisätiedot ryhmä)))))
+    (tulosta-taulu
+     (append (if (muoto :org nil) (list :viiva))
+             (list (append (if *muokattavat* (list nil))
+                           (list (otsikko "Nimi"))
+                           (list (otsikko "Lisätiedot"))))
+             (if (muoto :org nil) (list :viiva))
+             (if *muokattavat* (numeroi taulu) taulu)
+             (if (muoto :org nil) (list :viiva)))))
+  (tulosta-muokattavat "nimi" "lisätiedot"))
+
+
+(defmethod tulosta ((arv arvosanat-suorituksista))
   (setf *muokattavat* (when (and *vuorovaikutteinen*
                                  (not *tulostusmuoto*)
                                  (not *suppea*)
@@ -780,16 +1000,16 @@
 
   (loop :for (arv-suo . lisää) :on (lista arv)
         :do
-        (let* ((arvot)
+        (let* ((luvut)
                (taulu (loop :for arvosana :in (arvosanalista arv-suo)
-                            :for suku := (sukunimi (oppilas arvosana))
-                            :for etu := (etunimi (oppilas arvosana))
+                            :for suku := (sukunimi arvosana)
+                            :for etu := (etunimi arvosana)
                             :collect (append (list (format nil "~A, ~A"
                                                            suku etu))
                                              (list (arvosana arvosana))
                                              (unless *suppea*
                                                (list (lisätiedot arvosana))))
-                            :do (push (arvosana arvosana) arvot))))
+                            :do (push (arvosana arvosana) luvut))))
 
           (tulosta-taulu
            (append (if (muoto :org nil) (list :viiva))
@@ -809,7 +1029,7 @@
                    (if *muokattavat* (numeroi taulu) taulu)
                    (list :viiva)
                    (list (append (if *muokattavat* (list nil))
-                                 (list "Keskiarvo" (keskiarvo arvot))))
+                                 (list "Keskiarvo" (keskiarvo luvut))))
                    (if (muoto :org nil) (list :viiva))))
 
           (unless (muoto nil)
@@ -821,38 +1041,35 @@
   (tulosta-muokattavat "arvosana" "lisätiedot"))
 
 
-(defmethod tulosta ((arv arvosanat-oppilaat))
+(defmethod tulosta ((arv arvosanat-oppilailta))
   (setf *muokattavat* (when (and *vuorovaikutteinen*
                                  (not *tulostusmuoto*)
                                  (not *suppea*)
                                  (= (length (lista arv)) 1))
                         (coerce (arvosanalista (first (lista arv))) 'vector)))
 
-  (loop :with enintään := 30
-        :for n :from 1 :upto enintään
-        :for (arv-opp . lisää) :on (lista arv)
+  (loop :for (arv-opp . lisää) :on (lista arv)
         :do
         (let* ((arvot)
                (kertoimet)
-               (taulu (loop :for suoritus :in (suorituslista arv-opp)
-                            :for arvosana :in (arvosanalista arv-opp)
-                            :collect (append (list (nimi suoritus))
+               (taulu (loop :for arvosana :in (arvosanalista arv-opp)
+                            :collect (append (list (nimi arvosana))
                                              (list (arvosana arvosana))
-                                             (list (painokerroin suoritus))
+                                             (list (painokerroin arvosana))
                                              (unless *suppea*
                                                (list (lisätiedot arvosana))))
                             :do
                             (push (arvosana arvosana) arvot)
-                            (push (painokerroin suoritus) kertoimet))))
+                            (push (painokerroin arvosana) kertoimet))))
 
           (tulosta-taulu
            (append (if (muoto :org nil) (list :viiva))
                    (list (list (otsikko "Oppilas:")
                                (format nil "~A, ~A"
-                                       (sukunimi (oppilas arv-opp))
-                                       (etunimi (oppilas arv-opp)))))
+                                       (sukunimi arv-opp)
+                                       (etunimi arv-opp))))
                    (list (list (otsikko "Ryhmä:") (ryhmä arv-opp)))
-                   (let ((lis (lisätiedot (oppilas arv-opp))))
+                   (let ((lis (lisätiedot arv-opp)))
                      (if (or (not lis) (equal lis "") *suppea*)
                          nil
                          (list (list (otsikko "Lisätiedot:") lis))))
@@ -881,29 +1098,23 @@
              (list (list (otsikko "As") "= arvosana"
                          (otsikko "K") "= painokerroin")))))
 
-        :if (and lisää (< n enintään)) :do (viesti "~%~%")
-        :finally (when (> n enintään)
-                   (viesti "~%Enimmäismäärä ~A kpl tuli täyteen.~%" enintään)))
+        :if lisää :do (viesti "~%~%"))
 
   (tulosta-muokattavat "arvosana" "lisätiedot"))
 
 
 (defmethod tulosta ((koonti arvosanat-koonti))
   (setf *muokattavat* nil)
-  (let* ((kertoimet)
-         (lyhenteet)
-         (nimet (loop :for oppilas :in (oppilaslista koonti)
-                      :collect (format nil "~A, ~A"
-                                       (sukunimi oppilas)
-                                       (etunimi oppilas))))
-         (ka-oppilas (make-array (array-dimension (taulukko koonti) 0)
-                                 :initial-element nil))
-         (ka-suoritus (make-array (array-dimension (taulukko koonti) 1)
-                                  :initial-element nil)))
+  (let ((kertoimet)
+        (lyhenteet)
+        (ka-oppilas (make-array (array-dimension (taulukko koonti) 0)
+                                :initial-element nil))
+        (ka-suoritus (make-array (array-dimension (taulukko koonti) 1)
+                                 :initial-element nil)))
 
-    (loop :for suoritus :in (suorituslista koonti)
-          :collect (lyhenne suoritus) :into lyh
-          :collect (painokerroin suoritus) :into ker
+    (loop :for (nil nil nil lyhenne painokerroin) :in (suorituslista koonti)
+          :collect lyhenne :into lyh
+          :collect painokerroin :into ker
           :finally (setf lyhenteet lyh kertoimet ker))
 
     (loop :for opp :from 0
@@ -937,7 +1148,7 @@
                     (mapcar #'otsikko kertoimet)
                     (list (otsikko ""))))
       (if (muoto :org nil) (list :viiva))
-      (loop :for nimi :in nimet
+      (loop :for nimi :in (oppilaslista koonti)
             :for oppilas :from 0 :below (array-dimension (taulukko koonti) 0)
             :collect (loop :for suoritus :from 0
                            :below (array-dimension (taulukko koonti) 1)
@@ -959,46 +1170,10 @@
        (append (if (muoto :org nil) (list :viiva))
                (list (list (otsikko "Lyh") (otsikko "Suoritus")))
                (if (muoto :org nil) (list :viiva))
-               (loop :for suoritus :in (suorituslista koonti)
-                     :collect (list (lyhenne suoritus) (nimi suoritus)))
+               (loop :for (nil nil nimi lyhenne nil) :in (suorituslista koonti)
+                     :collect (list lyhenne nimi))
                '(("ka" "Keskiarvo"))
                (if (muoto :org nil) (list :viiva)))))))
-
-
-(defmethod tulosta ((lista suoritusryhmät))
-  (setf *muokattavat* (when (and *vuorovaikutteinen*
-                                 (not *tulostusmuoto*)
-                                 (not *suppea*))
-                        (coerce (ryhmälista lista) 'vector)))
-
-  (let* ((ryhmät (map 'vector #'ryhmä (ryhmälista lista)))
-         (sarakkeita (min 7 (1+ (truncate (1- (length ryhmät)) 10))))
-         (rivejä (multiple-value-bind (koko jäännös)
-                     (truncate (length ryhmät) sarakkeita)
-                   (if (plusp jäännös) (1+ koko) koko)))
-         (taulukko (make-array (list sarakkeita rivejä) :initial-element "")))
-
-    (loop :with i := 0
-          :for x :from 0 :below sarakkeita
-          :for numeron-leveys := (olion-mj-pituus
-                                  (min (* (1+ x) rivejä) (length ryhmät)))
-          :do (loop :for y :from 0 :below rivejä
-                    :while (< i (length ryhmät))
-                    :do
-                    (setf (aref taulukko x y)
-                          (if *muokattavat*
-                              (format nil "~V@A. ~A" numeron-leveys (1+ i)
-                                      (aref ryhmät i))
-                              (aref ryhmät i)))
-                    (incf i)))
-
-    (tulosta-taulu
-     (append (if (muoto :org nil) (list :viiva))
-             (loop :for y :from 0 :below rivejä
-                   :collect (loop :for x :from 0 :below sarakkeita
-                                  :collect (aref taulukko x y)))
-             (if (muoto :org nil) (list :viiva))))
-    (tulosta-muokattavat "ryhmä")))
 
 
 (defmethod tulosta ((object t))
@@ -1006,144 +1181,196 @@
   (format *error-output* "~&Ei löytynyt.~%"))
 
 
-(defun query-last-insert-rowid ()
-  (sqlite:last-insert-rowid *tietokanta*))
-
-
 (defgeneric lisää (asia &key &allow-other-keys))
 
 
-(defmethod lisää ((opp oppilas) &key)
-  (query "INSERT INTO oppilaat (sukunimi,etunimi,ryhmat,lisatiedot) ~
-        VALUES (~A,~A,~A,~A)"
-         (sql-mj (sukunimi opp)) (sql-mj (etunimi opp))
-         (sql-mj (lista-mj-listaksi (ryhmälista opp)))
-         (sql-mj (lisätiedot opp)))
-  (let ((oid (query-last-insert-rowid)))
-    (setf (oid opp) oid)
-    opp))
-
-
-(defmethod lisää ((suo suoritus) &key sija)
-  (query "INSERT INTO suoritukset (nimi,lyhenne,painokerroin) ~
+(defmethod lisää ((oppilas oppilas) &key)
+  (query "INSERT INTO oppilaat (sukunimi,etunimi,lisatiedot) ~
         VALUES (~A,~A,~A)"
-         (sql-mj (nimi suo)) (sql-mj (lyhenne suo))
-         (or (painokerroin suo) "NULL"))
+         (sql-mj (sukunimi oppilas))
+         (sql-mj (etunimi oppilas))
+         (sql-mj (lisätiedot oppilas)))
+  (let ((oid (query-last-insert-rowid)))
+    (loop :for ryhmä :in (ryhmälista oppilas)
+          :for rid := (caar (query "SELECT rid FROM ryhmat ~
+                                        WHERE nimi LIKE ~A"
+                                   (sql-like-suoja ryhmä)))
 
-  (let ((sid (query-last-insert-rowid)))
-    (when sid
-      (setf (sid suo) sid)
+          :unless rid :do
+          (query "INSERT INTO ryhmat (nimi,lisatiedot) VALUES (~A,'')"
+                 (sql-mj ryhmä))
+          (setf rid (query-last-insert-rowid))
 
-      (let ((ryhmän-suoritukset
-             (first (first (query "SELECT suoritukset FROM ryhmat ~
-                                WHERE ryhma LIKE ~A"
-                                  (sql-like-suoja (ryhmä suo)))))))
+          :do
+          (query "INSERT INTO oppilaat_ryhmat (oid, rid) VALUES (~A,~A)"
+                 oid rid))
+    oid))
 
-        (if ryhmän-suoritukset
-            (progn
-              (setf ryhmän-suoritukset
-                    (lisää-mj-listaan (princ-to-string sid)
-                                      ryhmän-suoritukset sija))
-              (query "UPDATE ryhmat SET suoritukset=~A WHERE ryhma LIKE ~A"
-                     (sql-mj ryhmän-suoritukset) (sql-like-suoja (ryhmä suo))))
-            (query "INSERT INTO ryhmat (ryhma,suoritukset) VALUES (~A,~A)"
-                   (sql-mj (ryhmä suo)) (sql-mj sid))))))
-  suo)
+
+(defmethod lisää ((suoritus suoritus) &key sija)
+  (let ((rid (caar (query "SELECT rid FROM ryhmat WHERE nimi LIKE ~A"
+                          (sql-like-suoja (ryhmä suoritus))))))
+    (unless rid
+      (query "INSERT INTO ryhmat (nimi) VALUES (~A)" (sql-mj (ryhmä suoritus)))
+      (setf rid (query-last-insert-rowid)))
+
+    (setf (rid suoritus) rid)
+
+    (query "INSERT INTO suoritukset (rid,nimi,lyhenne,painokerroin) ~
+                VALUES (~A,~A,~A,~A)"
+           rid (sql-mj (nimi suoritus)) (sql-mj (lyhenne suoritus))
+           (or (painokerroin suoritus) "NULL"))
+
+    (let* ((uusi-sid (query-last-insert-rowid))
+           (sid-lista
+            (mapcar #'first (query "SELECT sid FROM suoritukset ~
+                                        WHERE rid=~A ~
+                                        AND NOT sid=~A ~
+                                        ORDER BY sija,sid"
+                                   rid uusi-sid))))
+      (setf (sid suoritus) uusi-sid)
+      (cond ((not sija) (setf sija (1+ (length sid-lista))))
+            ((< sija 1) (setf sija 1)))
+      (query "UPDATE suoritukset SET sija=~A WHERE sid=~A" sija uusi-sid)
+      (loop :with i := 0
+            :for sid :in sid-lista
+            :do (incf i)
+            :if (= i sija) :do (incf i)
+            :do (query "UPDATE suoritukset SET sija=~A WHERE sid=~A" i sid)))))
+
+
+(defun poista-tyhjät-ryhmät (&optional rid-lista)
+  (unless rid-lista
+    (setf rid-lista (mapcar #'first (query "select rid from ryhmat"))))
+  (loop :for rid :in rid-lista
+        :if (and (not (query "SELECT rid FROM oppilaat_ryhmat WHERE rid=~A"
+                             rid))
+                 (not (query "SELECT rid FROM suoritukset WHERE rid=~A" rid)))
+        :do (query "DELETE FROM ryhmat WHERE rid=~A" rid)
+        :and :collect rid))
 
 
 (defgeneric muokkaa (asia &key &allow-other-keys))
 
 
-(defmethod muokkaa ((opp oppilas) &key)
-  (query "UPDATE oppilaat SET sukunimi=~A,etunimi=~A,ryhmat=~A,lisatiedot=~A ~
-        WHERE oid=~A"
-         (sql-mj (sukunimi opp)) (sql-mj (etunimi opp))
-         (sql-mj (lista-mj-listaksi (ryhmälista opp)))
-         (sql-mj (lisätiedot opp)) (oid opp))
-  opp)
+(defmethod muokkaa ((oppilas oppilas) &key)
+  (let ((vanha-rid-lista
+         (mapcar #'first (query "select rid from oppilaat_ryhmat where oid=~A"
+                                (oid oppilas))))
+        (uusi-rid-lista nil))
+
+    (query "UPDATE oppilaat SET sukunimi=~A,etunimi=~A,lisatiedot=~A ~
+                WHERE oid=~A"
+           (sql-mj (sukunimi oppilas))
+           (sql-mj (etunimi oppilas))
+           (sql-mj (lisätiedot oppilas))
+           (oid oppilas))
+
+    (loop :for ryhmä :in (ryhmälista oppilas)
+          :for rid := (caar (query "SELECT rid FROM ryhmat ~
+                                        WHERE nimi LIKE ~A"
+                                   (sql-like-suoja ryhmä)))
+
+          :unless rid :do
+          (query "INSERT INTO ryhmat (nimi) VALUES (~A)" (sql-mj ryhmä))
+          (setf rid (query-last-insert-rowid))
+
+          :unless (member rid vanha-rid-lista) :do
+          (query "INSERT INTO oppilaat_ryhmat (oid, rid) VALUES (~A,~A)"
+                 (oid oppilas) rid)
+
+          :collect rid :into rid-lista
+          :finally (setf uusi-rid-lista rid-lista))
+
+    (let ((ero (set-difference vanha-rid-lista uusi-rid-lista)))
+      (when ero
+        (query "DELETE FROM oppilaat_ryhmat ~
+                WHERE oid=~A AND (~{rid=~A~^ OR ~})"
+               (oid oppilas) ero)
+        (poista-tyhjät-ryhmät ero)))
+
+    oppilas))
 
 
-(defmethod muokkaa ((suo suoritus) &key sija)
+(defmethod muokkaa ((suoritus suoritus) &key sija)
   (query "UPDATE suoritukset SET nimi=~A,lyhenne=~A,painokerroin=~A ~
                 WHERE sid=~A"
-         (sql-mj (nimi suo)) (sql-mj (lyhenne suo))
-         (if (painokerroin suo) (painokerroin suo) "NULL")
-         (sid suo))
+         (sql-mj (nimi suoritus)) (sql-mj (lyhenne suoritus))
+         (or (painokerroin suoritus) "NULL")
+         (sid suoritus))
 
   (when sija
-    (let ((sid-mj (princ-to-string (sid suo)))
-          (ryhmän-suoritukset
-           (first (first (query "SELECT suoritukset FROM ryhmat ~
-                                WHERE ryhma LIKE ~A"
-                                (sql-like-suoja (ryhmä suo)))))))
+    (let ((sid-lista
+           (mapcar #'first (query "SELECT sid FROM suoritukset ~
+                                        WHERE rid=~A ~
+                                        AND NOT sid=~A ~
+                                        ORDER BY sija,sid"
+                                  (rid suoritus) (sid suoritus)))))
 
-      (if ryhmän-suoritukset
-          (progn
-            (setf ryhmän-suoritukset
-                  (siirrä-mj-listassa sid-mj ryhmän-suoritukset sija))
-            (query "UPDATE ryhmat SET suoritukset=~A WHERE ryhma LIKE ~A"
-                   (sql-mj ryhmän-suoritukset) (sql-like-suoja (ryhmä suo))))
-          (query "INSERT INTO ryhmat (ryhma,suoritukset) VALUES (~A,~A)"
-                 (sql-mj (ryhmä suo)) (sql-mj sid-mj))))))
-
-
-(defmethod muokkaa ((ryh ryhmä) &key)
-  (query "UPDATE ryhmat SET ryhma=~A WHERE ryhma=~A"
-         (sql-mj (ryhmä ryh))
-         (sql-mj (vanha-ryhmä ryh))))
+      (query "UPDATE suoritukset SET sija=~A WHERE sid=~A" sija (sid suoritus))
+      (loop :with i := 0
+            :for sid :in sid-lista
+            :do (incf i)
+            :if (= i sija) :do (incf i)
+            :do (query "UPDATE suoritukset SET sija=~A WHERE sid=~A" i sid)))))
 
 
-(defmethod muokkaa ((arv arvosana) &key)
-  (let ((oid (oid (oppilas arv)))
-        (lisätiedot (let ((lisä (lisätiedot arv)))
+(defmethod muokkaa ((ryhmä ryhmä) &key)
+  (query "UPDATE ryhmat SET nimi=~A,lisatiedot=~A WHERE rid=~A"
+         (sql-mj (nimi ryhmä))
+         (sql-mj (lisätiedot ryhmä))
+         (rid ryhmä)))
+
+
+(defmethod muokkaa ((arvosana arvosana) &key)
+  (let ((lisätiedot (let ((lisä (lisätiedot arvosana)))
                       (if (or (not lisä) (equal lisä ""))
                           "NULL"
                           (sql-mj lisä)))))
     (if (query "SELECT oid FROM arvosanat WHERE sid=~A AND oid=~A"
-               (sid arv) oid)
+               (sid arvosana) (oid arvosana))
         (query "UPDATE arvosanat SET arvosana=~A,lisatiedot=~A ~
                 WHERE sid=~A AND oid=~A"
-               (sql-mj (arvosana arv)) lisätiedot (sid arv) oid)
+               (sql-mj (arvosana arvosana)) lisätiedot (sid arvosana)
+               (oid arvosana))
         (query "INSERT INTO arvosanat (sid,oid,arvosana,lisatiedot) ~
                 VALUES (~A,~A,~A,~A)"
-               (sid arv) oid (sql-mj (arvosana arv)) lisätiedot))
-    arv))
+               (sid arvosana) (oid arvosana) (sql-mj (arvosana arvosana))
+               lisätiedot))))
 
 
 (defgeneric poista (asia))
 
 
-(defmethod poista ((opp oppilas))
-  (ignore-errors (query "DELETE FROM arvosanat WHERE oid=~A" (oid opp)))
-  (ignore-errors (query "DELETE FROM oppilaat WHERE oid=~A" (oid opp))))
+(defmethod poista ((oppilas oppilas))
+  (let ((rid-lista
+         (mapcar #'first (query "SELECT rid FROM oppilaat_ryhmat WHERE oid=~A"
+                                (oid oppilas)))))
+
+    (query "DELETE FROM oppilaat_ryhmat WHERE oid=~A" (oid oppilas))
+    (query "DELETE FROM arvosanat WHERE oid=~A" (oid oppilas))
+    (query "DELETE FROM oppilaat WHERE oid=~A" (oid oppilas))
+    (when rid-lista
+      (poista-tyhjät-ryhmät rid-lista))))
 
 
-(defmethod poista ((suo suoritus))
-  (let ((ryhmän-suoritukset
-         (first (first (query "SELECT suoritukset FROM ryhmat ~
-                                WHERE ryhma LIKE ~A"
-                              (sql-like-suoja (ryhmä suo)))))))
-
-    (when ryhmän-suoritukset
-      (setf ryhmän-suoritukset
-            (poista-mj-listasta (princ-to-string (sid suo))
-                                ryhmän-suoritukset))
-      (if (string= "" ryhmän-suoritukset)
-          (query "DELETE FROM ryhmat WHERE ryhma LIKE ~A"
-                 (sql-like-suoja (ryhmä suo)))
-          (query "UPDATE ryhmat SET suoritukset=~A WHERE ryhma LIKE ~A"
-                 (sql-mj ryhmän-suoritukset)
-                 (sql-like-suoja (ryhmä suo))))))
-
-  (query "DELETE FROM suoritukset WHERE sid=~A" (sid suo))
-  (query "DELETE FROM arvosanat WHERE sid=~A" (sid suo)))
+(defmethod poista ((suoritus suoritus))
+  (query "DELETE FROM suoritukset WHERE sid=~A" (sid suoritus))
+  (query "DELETE FROM arvosanat WHERE sid=~A" (sid suoritus))
+  (poista-tyhjät-ryhmät (list (rid suoritus)))
+  (let ((sid-lista
+         (mapcar #'first (query "SELECT sid FROM suoritukset ~
+                                        WHERE rid=~A ~
+                                        ORDER BY sija,sid"
+                                (rid suoritus)))))
+    (loop :for i :upfrom 1
+          :for sid :in sid-lista
+          :do (query "UPDATE suoritukset SET sija=~A WHERE sid=~A" i sid))))
 
 
-(defmethod poista ((arv arvosana))
-  (let ((oid (oid (oppilas arv)))
-        (sid (sid arv)))
-    (ignore-errors
-      (query "DELETE FROM arvosanat WHERE sid=~A AND oid=~A" sid oid))))
+(defmethod poista ((arvosana arvosana))
+  (query "DELETE FROM arvosanat WHERE sid=~A AND oid=~A"
+         (sid arvosana) (oid arvosana)))
 
 
 (defun erota-ensimmäinen-sana (mj)
@@ -1189,62 +1416,75 @@
 (defun komento-hae-suoritukset (arg)
   ;; ryhmä
   (when (zerop (length arg))
-    (virhe "Anna ryhmän tunnus. Ohjeita saa ?:llä."))
+    (virhe "Anna ryhmän tunnus."))
   (tulosta (hae-suoritukset (erota-ensimmäinen-sana arg))))
 
 
-(defun komento-hae-suoritusryhmät (&optional arg)
-  (declare (ignore arg))
-  (tulosta (hae-suoritusryhmät)))
+(defun komento-hae-ryhmät (&optional arg)
+  ;; /ryhmä/lisätiedot
+  (when (zerop (length arg))
+    (setf arg "/"))
+  (let ((jaettu (pilko-erottimella arg)))
+    (tulosta (hae-ryhmät (nth 0 jaettu)
+                         (nth 1 jaettu)))))
 
 
-(defun komento-hae-arvosanat-suoritukset (arg)
+(defun komento-hae-arvosanat-suorituksista (arg)
   ;; ryhmä /suoritus/lyhenne
   (multiple-value-bind (ryhmä loput)
       (erota-ensimmäinen-sana arg)
     (when (zerop (length ryhmä))
-      (virhe "Anna ryhmän tunnus. Ohjeita saa ?:llä."))
+      (virhe "Anna ryhmän tunnus."))
     (when (zerop (length loput))
       (setf loput "/"))
     (let ((jaettu (pilko-erottimella loput)))
-      (tulosta (hae-arvosanat-suoritukset ryhmä (nth 0 jaettu)
-                                          (nth 1 jaettu))))))
+      (tulosta (hae-arvosanat-suorituksista ryhmä (nth 0 jaettu)
+                                            (nth 1 jaettu))))))
 
 
-(defun komento-hae-arvosanat-oppilaat (arg)
+(defun komento-hae-arvosanat-oppilailta (arg)
   ;; /sukunimi/etunimi/ryhmät/lisätiedot
   (when (zerop (length arg))
     (setf arg "/"))
   (let ((jaettu (pilko-erottimella arg)))
-    (tulosta (hae-arvosanat-oppilaat (nth 0 jaettu)
-                                     (nth 1 jaettu)
-                                     (nth 2 jaettu)
-                                     (nth 3 jaettu)))))
+    (tulosta (hae-arvosanat-oppilailta (nth 0 jaettu)
+                                       (nth 1 jaettu)
+                                       (nth 2 jaettu)
+                                       (nth 3 jaettu)))))
 
 
 (defun komento-hae-arvosanat-koonti (arg)
   ;; ryhmä
   (when(zerop (length arg))
-    (virhe "Anna ryhmän tunnus. Ohjeita saa ?:llä."))
+    (virhe "Anna ryhmän tunnus."))
   (tulosta (hae-arvosanat-koonti (erota-ensimmäinen-sana arg))))
 
 
 (defun komento-lisää-oppilas (arg)
   ;; /sukunimi/etunimi/ryhmät/lisätiedot
   (when (zerop (length arg))
-    (virhe "Anna lisättävän oppilaan tiedot. Ohjeita saa ?:llä."))
+    (virhe "Anna lisättävän oppilaan tiedot."))
   (let ((jaettu (pilko-erottimella arg)))
     (when (or (zerop (length (normalisoi-mj (nth 0 jaettu))))
-              (zerop (length (normalisoi-mj (nth 1 jaettu)))))
-      (virhe "Pitää antaa vähintään sukunimi ja etunimi. Ohjeita saa ?:llä."))
+              (zerop (length (normalisoi-mj (nth 1 jaettu))))
+              (zerop (length (normalisoi-mj (nth 2 jaettu)))))
+      (virhe "Pitää antaa vähintään sukunimi, etunimi ja ryhmä."))
     (with-transaction
       (lisää (make-instance 'oppilas
                             :sukunimi (normalisoi-mj (nth 0 jaettu))
                             :etunimi (normalisoi-mj (nth 1 jaettu))
                             :ryhmälista (normalisoi-ryhmät (nth 2 jaettu))
                             :lisätiedot (normalisoi-mj (nth 3 jaettu))))
-      (muokkauslaskuri 1))
+      (lisää-muokkauslaskuriin 1))
     (ehkä-eheytys)))
+
+
+(defun on-sisältöä-p (mj)
+  (notevery (lambda (el)
+              (and (characterp el)
+                   (or (not (graphic-char-p el))
+                       (char= #\Space el))))
+            mj))
 
 
 (defun komento-lisää-suoritus (arg)
@@ -1273,7 +1513,7 @@
       (if (and sija (on-sisältöä-p sija))
           (let ((num (lue-numero sija)))
             (if (and (integerp num) (plusp num))
-                (setf sija (1- num))
+                (setf sija num)
                 (virhe "Sijainnin täytyy olla positiivinen kokonaisluku ~
                         (tai jättää pois).")))
           (setf sija nil))
@@ -1285,7 +1525,7 @@
                               :lyhenne lyh
                               :painokerroin paino)
                :sija sija)
-        (muokkauslaskuri 1))
+        (lisää-muokkauslaskuriin 1))
       (ehkä-eheytys))))
 
 
@@ -1339,27 +1579,21 @@
       (loop :for i :in numeroluettelo
             :for kohde := (elt *muokattavat* (1- i))
             :do (cond ((typep kohde 'ryhmä)
-                       (virhe "Ryhmä poistetaan siten, että poistetaan siltä ~
-                                kaikki suoritukset."))
+                       (virhe "Ryhmää ei voi poistaa näin. Ryhmä poistuu ~
+                                itsestään,~%kun siltä poistaa kaikki ~
+                                oppilaat ja suoritukset."))
                       ((and kohde (not (typep kohde 'arvosana)))
                        (poista kohde)
                        (setf (elt *muokattavat* (1- i)) nil))
                       ((and kohde (typep kohde 'arvosana))
                        (poista kohde))
                       (t (viesti "~&Tietue ~A on jo poistettu.~%" i))))
-      (muokkauslaskuri (length numeroluettelo)))
+      (lisää-muokkauslaskuriin (length numeroluettelo)))
     (ehkä-eheytys)))
 
 
-(defun on-sisältöä-p (mj)
-  (notevery (lambda (el)
-              (and (characterp el)
-                   (or (not (graphic-char-p el))
-                       (char= #\Space el))))
-            mj))
-
-
 (defun komento-muokkaa-oppilas (kentät kohde)
+  ;; /sukunimi/etunimi/ryhmät/lisätiedot
   (let ((suku (nth 0 kentät))
         (etu (nth 1 kentät))
         (ryhmä (nth 2 kentät))
@@ -1379,7 +1613,7 @@
       (cond ((on-sisältöä-p ryhmä)
              (setf uusi-ryhmä ryhmä))
             ((and (plusp (length ryhmä)) (not (on-sisältöä-p ryhmä)))
-             (setf uusi-ryhmä nil))))
+             (virhe "Oppilaan täytyy kuulua johonkin ryhmään."))))
 
     (when lisä
       (cond ((on-sisältöä-p lisä)
@@ -1399,6 +1633,7 @@
 
 
 (defun komento-muokkaa-suoritus (kentät kohde)
+  ;; /nimi/lyhenne/painokerroin/sija
   (let ((nimi (nth 0 kentät))
         (lyhenne (nth 1 kentät))
         (painokerroin (nth 2 kentät))
@@ -1435,7 +1670,7 @@
         (cond
           ((and (integerp num)
                 (<= 1 num suurin))
-           (setf uusi-sija (1- num)))
+           (setf uusi-sija num))
           ((and (integerp num)
                 (not (<= 1 num suurin)))
            (virhe "Sopivia sijoja ovat seuraavat: ~A."
@@ -1454,6 +1689,7 @@
 
 
 (defun komento-muokkaa-arvosana (kentät kohde)
+  ;; /arvosana/lisätiedot
   (let ((arvosana (nth 0 kentät))
         (lisätiedot (nth 1 kentät))
         (uusi-arvosana :tyhjä)
@@ -1477,14 +1713,32 @@
     (muokkaa kohde)))
 
 
-(defun komento-muokkaa-ryhmä (uusi-ryhmä ryhmäolio)
-  (setf uusi-ryhmä (first uusi-ryhmä))
-  (when (query "SELECT * FROM ryhmat WHERE ryhma LIKE ~A"
-               (sql-like-suoja uusi-ryhmä))
-    (virhe "Ryhmä nimeltä ~A on jo olemassa." uusi-ryhmä))
-  (setf (vanha-ryhmä ryhmäolio) (ryhmä ryhmäolio)
-        (ryhmä ryhmäolio) uusi-ryhmä)
-  (muokkaa ryhmäolio))
+(defun komento-muokkaa-ryhmä (kentät kohde)
+  ;; /nimi/lisätiedot
+  (let ((nimi (nth 0 kentät))
+        (lisätiedot (nth 1 kentät))
+        (uusi-nimi :tyhjä)
+        (uusi-lisätiedot :tyhjä))
+    (when (and nimi (on-sisältöä-p nimi))
+      (multiple-value-bind (ryhmä loput)
+          (erota-ensimmäinen-sana nimi)
+        (when (plusp (length loput))
+          (virhe "Ryhmätunnuksen täytyy olla yksi sana."))
+        (when (query "SELECT nimi FROM ryhmat WHERE nimi LIKE ~A"
+                     (sql-like-suoja ryhmä))
+          (virhe "Ryhmä nimeltä ~A on jo olemassa." ryhmä))
+        (setf uusi-nimi ryhmä)))
+    (when lisätiedot
+      (cond ((on-sisältöä-p lisätiedot)
+             (setf uusi-lisätiedot lisätiedot))
+            ((and (plusp (length lisätiedot))
+                  (not (on-sisältöä-p lisätiedot)))
+             (setf uusi-lisätiedot nil))))
+    (unless (eql uusi-nimi :tyhjä)
+      (setf (nimi kohde) (normalisoi-mj uusi-nimi)))
+    (unless (eql uusi-lisätiedot :tyhjä)
+      (setf (lisätiedot kohde) (normalisoi-mj uusi-lisätiedot)))
+    (muokkaa kohde)))
 
 
 (defun komento-muokkaa-sarjana (arg)
@@ -1533,7 +1787,8 @@
                       (arvosana (komento-muokkaa-arvosana kentät kohde))
                       (ryhmä (komento-muokkaa-ryhmä kentät kohde))
                       (t (virhe "Tietue ~A on poistettu." i))))
-          (muokkauslaskuri (min (length numeroluettelo) (length arvot)))))
+          (lisää-muokkauslaskuriin (min (length numeroluettelo)
+                                        (length arvot)))))
       (ehkä-eheytys))))
 
 
@@ -1586,40 +1841,39 @@
                    (komento-muokkaa-arvosana kentät kohde))
 
                   (ryhmä
-                   (komento-muokkaa-ryhmä
-                    (list (erota-ensimmäinen-sana loput)) kohde))
+                   (komento-muokkaa-ryhmä kentät kohde))
 
                   (t (virhe "Tietue ~A on poistettu." i))))
 
-      (muokkauslaskuri (length numeroluettelo)))
+      (lisää-muokkauslaskuriin (length numeroluettelo)))
     (ehkä-eheytys)))
 
 
 (defun ohjeet (&optional komento)
   (tulosta-taulu
    '(:viiva
-     ("Komento" "Lisätiedot" "Tarkoitus")
+     ("Komento" "Tarkoitus")
      :viiva
-     ("ho" "/sukunimi/etunimi/ryhmät/lisätiedot" "Hae oppilaita.")
-     ("hoa" "/sukunimi/etunimi/ryhmät/lisätiedot"
+     ("ho /sukunimi/etunimi/ryhmät/lisätiedot" "Hae oppilaita.")
+     ("hoa /sukunimi/etunimi/ryhmät/lisätiedot"
       "Hae oppilaita arvotussa järjestyksessä.")
-     ("hs" "ryhmä" "Hae suoritukset ryhmältä.")
-     ("hr" "" "Hae ryhmät, joilla on suorituksia.")
-     ("hao" "/sukunimi/etunimi/ryhmät/lisätiedot" "Hae arvosanat oppilaalta.")
-     ("has" "ryhmä /suoritus/lyhenne" "Hae arvosanat suorituksesta.")
-     ("hak" "ryhmä" "Hae arvosanojen koonti.")
+     ("hr /ryhmä/lisätiedot" "Hae ryhmiä.")
+     ("hs ryhmä" "Hae suoritukset ryhmältä.")
+     ("hao /sukunimi/etunimi/ryhmät/lisätiedot" "Hae arvosanat oppilailta.")
+     ("has ryhmä /suoritus/lyhenne" "Hae arvosanat suorituksista.")
+     ("hak ryhmä" "Hae arvosanojen koonti.")
      :viiva
-     ("lo" "/sukunimi/etunimi/ryhmät/lisätiedot" "Lisää oppilas.")
-     ("ls" "ryhmä /suoritus/lyhenne/painokerroin/sija"
+     ("lo /sukunimi/etunimi/ryhmät/lisätiedot" "Lisää oppilas.")
+     ("ls ryhmä /suoritus/lyhenne/painokerroin/sija"
       "Lisää ryhmälle suoritus.")
      :viiva
-     ("m" "numerot /.../.../.../..." "Muokkaa valittuja tietueita ja kenttiä.")
-     ("ms" "numerot kenttä /.../.../..." "Muokkaa tietueista samaa kenttää.")
-     ("poista" "numerot" "Poista valitut tietueet.")
+     ("m numerot /.../.../.../..." "Muokkaa valittuja tietueita ja kenttiä.")
+     ("ms numerot kenttä /.../.../..." "Muokkaa tietueista samaa kenttää.")
+     ("poista numerot" "Poista tietueet.")
      :viiva
-     ("?" "" "Ohjeet.")
-     ("??" "" "Tarkemmat ohjeet.")
-     ("???" "" "Aloitusvinkkejä.")
+     ("?" "Ohjeet.")
+     ("??" "Tarkemmat ohjeet.")
+     ("???" "Aloitusvinkkejä.")
      :viiva))
 
   (cond ((equal komento "?")
@@ -1627,7 +1881,7 @@
         ((equal komento "??")
          (viesti "~%~
 
-Lisätiedot-sarakkeessa vinoviiva (/) tarkoittaa kenttien
+Komento-sarakkeessa vinoviiva (/) tarkoittaa kenttien
 erotinmerkkiä (/.../...). Ensimmäisenä oleva merkki määrittää komennossa
 käytettävän erotinmerkin, joka voi olla mikä tahansa. Esimerkiksi alla
 olevat komennot toimivat samalla tavalla. Niillä haetaan oppilaita (ho)
@@ -1638,7 +1892,7 @@ erotinmerkeillä.
     ho ,Meikäl,Mat
     ho 3Meikäl3Mat
 
-Komentojen \"m\", \"ms\" ja \"poista\" kohdalla lisätieto \"numerot\"
+Komentojen \"m\", \"ms\" ja \"poista\" kohdalla argumentti \"numerot\"
 tarkoittaa kokonaislukujen luetteloa, esimerkiksi \"1,4\" tai \"2-5,9\".
 Niiden avulla valitaan, mitä tietueita muokataan tai mitkä poistetaan.
 
@@ -1679,9 +1933,9 @@ Kenttä tyhjennetään laittamalla kenttään pelkkä välilyönti:
     m 1 / / /
 
 Toinen muokkauskomento on \"ms\". Myös sille annetaan ensimmäiseksi
-lisätiedoksi luettelo muokattavista tietueista. Toiseksi lisätiedoksi
+argumentiksi luettelo muokattavista tietueista. Toiseksi argumentiksi
 annetaan muokattavan kentän numero: ensimmäinen kenttä vasemmalta on 1,
-toinen vasemmalta on 2 jne. Kolmantena lisätietona luetellaan
+toinen vasemmalta on 2 jne. Kolmantena argumenttina luetellaan
 erotinmerkin avulla kyseiseen kenttään tulevat tiedot eri tietueissa.
 
 Esimerkiksi jos halutaan kirjata arvosana usealle oppilaalle, haetaan
@@ -1792,9 +2046,9 @@ muokkauskomennoista:
             ((testaa "ho") (komento-hae-oppilaat arg))
             ((testaa "hoa") (komento-hae-oppilaat-arvottu arg))
             ((testaa "hs") (komento-hae-suoritukset arg))
-            ((testaa "hr") (komento-hae-suoritusryhmät arg))
-            ((testaa "has") (komento-hae-arvosanat-suoritukset arg))
-            ((testaa "hao") (komento-hae-arvosanat-oppilaat arg))
+            ((testaa "hr") (komento-hae-ryhmät arg))
+            ((testaa "has") (komento-hae-arvosanat-suorituksista arg))
+            ((testaa "hao") (komento-hae-arvosanat-oppilailta arg))
             ((testaa "hak") (komento-hae-arvosanat-koonti arg))
             ((testaa "lo") (komento-lisää-oppilas arg))
             ((testaa "ls") (komento-lisää-suoritus arg))
@@ -1814,16 +2068,16 @@ muokkauskomennoista:
 
 (defun main (&optional argv)
   (script:with-pp-errors
-    (tietokanta-käytössä
-      (if (rest argv)
-          (let ((*vuorovaikutteinen* nil))
-            (käsittele-komentorivi (format nil "~{~A~^ ~}" (rest argv))))
-          (let ((*vuorovaikutteinen* t))
-            (handler-case
-                (loop (käsittele-komentorivi (lue-rivi "KOAS> " t)))
-              (poistu-ohjelmasta () nil)
-              (sb-sys:interactive-interrupt ()
-                (viesti "~%"))))))))
+    (handler-case
+        (tietokanta-käytössä
+          (if (rest argv)
+              (let ((*vuorovaikutteinen* nil))
+                (käsittele-komentorivi (format nil "~{~A~^ ~}" (rest argv))))
+              (let ((*vuorovaikutteinen* t))
+                (loop (käsittele-komentorivi (lue-rivi "KOAS> " t))))))
+      (poistu-ohjelmasta () nil)
+      (sb-sys:interactive-interrupt ()
+        (viesti "~%")))))
 
 
 #+script
