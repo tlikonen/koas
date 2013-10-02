@@ -109,36 +109,6 @@
   (format nil "~{~A~^ ~}" lista))
 
 
-(defun lisää-mj-listaan (uusi mj-lista &optional ennen)
-  (let ((lista (mj-lista-listaksi mj-lista)))
-    (setf ennen (if ennen
-                    (min (max 0 ennen) (length lista))
-                    (length lista)))
-    (loop :for el :in lista
-          :for i :upfrom 0
-          :if (= i ennen) :collect uusi :into uusi-lista
-          :collect el :into uusi-lista
-          :finally (setf lista (if (= ennen (length lista))
-                                   (nconc uusi-lista (list uusi))
-                                   uusi-lista)))
-    (lista-mj-listaksi lista)))
-
-
-(defun poista-mj-listasta (osa mj-lista)
-  (let ((lista (split-sequence #\space mj-lista
-                               :remove-empty-subseqs t)))
-    (setf lista (remove osa lista :test #'string-equal))
-    (lista-mj-listaksi lista)))
-
-
-(defun siirrä-mj-listassa (osa mj-lista uusi-kohta)
-  (let ((lista (split-sequence #\space mj-lista
-                               :remove-empty-subseqs t)))
-    (lisää-mj-listaan
-     osa (lista-mj-listaksi (remove osa lista :test #'string-equal))
-     uusi-kohta)))
-
-
 (defun lue-numero (objekti)
   (cond
     ((numberp objekti) objekti)
