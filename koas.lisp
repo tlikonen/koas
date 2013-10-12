@@ -1552,8 +1552,7 @@
   (when (zerop (length arg))
     (setf arg "|"))
   (loop :for haku-mj :in (pilko-erottimella arg)
-        :for haku := (pilko-erottimella
-                      (if (zerop (length haku-mj)) "/" haku-mj))
+        :for haku := (pilko-erottimella haku-mj)
         :collect (list (nth 0 haku)
                        (nth 1 haku)
                        (nth 2 haku)
