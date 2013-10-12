@@ -1226,7 +1226,7 @@
                    (setf as-suurin (max as-suurin (lue-numero k))))
                (setf suurin-arvo (max suurin-arvo v)))
              (hajautustaulu jakauma))
-    (loop :with n-leveys := (olion-mj-pituus suurin-arvo)
+    (loop :with n-leveys := (max 3 (olion-mj-pituus suurin-arvo))
           :for i :from (floor as-pienin) :upto (ceiling as-suurin) :by 1/4
           :for as := (tulosta-luku i)
           :for määrä := (gethash as (hajautustaulu jakauma) 0)
