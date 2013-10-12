@@ -1242,7 +1242,13 @@
                    (list (list (otsikko "As") (otsikko "Lkm") (otsikko "")))
                    (if (muoto :org nil) (list :viiva))
                    taulu
-                   (if (muoto :org nil) (list :viiva)))))))
+                   (if (muoto :org nil) (list :viiva))))
+
+          (when (not (muoto nil))
+            (viesti "~%")
+            (tulosta-taulu
+             (list (list (otsikko "As") "= arvosana"
+                         (otsikko "Lkm") "= lukumäärä")))))))
 
 
 (defmethod tulosta ((koonti tilasto-koonti))
