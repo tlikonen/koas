@@ -568,6 +568,9 @@
    (suorituslista :reader suorituslista :initarg :suorituslista)
    (taulukko :reader taulukko :initarg :taulukko)))
 
+(defclass tilasto-jakauma ()
+  ((hajautustaulu :reader hajautustaulu :initarg :hajautustaulu)))
+
 
 (defun muuta-arvosanaksi (luku)
   (let ((neliporras (* 1/4 (decimals:round-half-away-from-zero
@@ -862,6 +865,50 @@
                            :taulukko taulukko)))))))
 
 
+(defun tilasto-jakauma-1 (hajautustaulu &optional (sukunimi "") (etunimi "")
+                                          (ryhmä "") (lisätiedot "")
+                                          (suoritus "") (lyhenne "")
+                                          painokerroin)
+  (let ((kysely
+         (mapcar #'first (query "SELECT a.arvosana ~
+                FROM oppilaat_ryhmat AS j ~
+                JOIN oppilaat AS o ON o.oid=j.oid ~
+                JOIN ryhmat AS r ON r.rid=j.rid ~
+                JOIN suoritukset AS s ON r.rid=s.rid ~
+                JOIN arvosanat AS a ON a.oid=o.oid AND s.sid=a.sid ~
+                WHERE o.sukunimi LIKE ~A ~
+                AND o.etunimi LIKE ~A ~
+                AND r.nimi LIKE ~A ~
+                AND o.lisatiedot LIKE ~A ~
+                AND s.nimi LIKE ~A ~
+                AND s.lyhenne LIKE ~A ~A"
+                                (sql-like-suoja sukunimi "%" "%")
+                                (sql-like-suoja etunimi "%" "%")
+                                (sql-like-suoja ryhmä "%" "%")
+                                (sql-like-suoja lisätiedot "%" "%")
+                                (sql-like-suoja suoritus "%" "%")
+                                (sql-like-suoja lyhenne "%" "%")
+                                (if painokerroin
+                                    "AND s.painokerroin>=1"
+                                    "")))))
+    (loop :for mj :in kysely
+          :for as := (lue-numero mj)
+          :if (numberp as)
+          :do (incf (gethash (tulosta-luku as) hajautustaulu 0)))))
+
+
+(defun tilasto-jakauma (hakulista &optional painokerroin)
+  (loop :with taulu := (make-hash-table :test #'equalp)
+        :for (sukunimi etunimi ryhmä lisätiedot suoritus lyhenne)
+        :in hakulista
+        :do (tilasto-jakauma-1 taulu sukunimi etunimi ryhmä lisätiedot
+                               suoritus lyhenne painokerroin)
+        :finally
+        (when (loop :for n :being :each :hash-value :in taulu
+                    :thereis (plusp n))
+          (return (make-instance 'tilasto-jakauma :hajautustaulu taulu)))))
+
+
 (defun tulosta-muokattavat (&rest kentät)
   (when *muokattavat*
     (viesti "~&~[~;Tietue: 1~:;Tietueet: 1-~:*~A~]. ~
@@ -1146,6 +1193,40 @@
                (if (muoto :org nil) (list :viiva)))))))
 
 
+(defmethod tulosta ((jakauma tilasto-jakauma))
+  (setf *muokattavat* nil)
+  (let ((as-pienin)
+        (as-suurin)
+        (suurin-arvo 1)
+        (leveys 40))
+    (maphash (lambda (k v)
+               (if (not as-pienin)
+                   (setf as-pienin (lue-numero k))
+                   (setf as-pienin (min as-pienin (lue-numero k))))
+               (if (not as-suurin)
+                   (setf as-suurin (lue-numero k))
+                   (setf as-suurin (max as-suurin (lue-numero k))))
+               (setf suurin-arvo (max suurin-arvo v)))
+             (hajautustaulu jakauma))
+    (loop :with n-leveys := (olion-mj-pituus suurin-arvo)
+          :for i :from (floor as-pienin) :upto (ceiling as-suurin) :by 1/4
+          :for as := (tulosta-luku i)
+          :for määrä := (gethash as (hajautustaulu jakauma) 0)
+          :collect (list as (format nil "~V@A" n-leveys määrä)
+                         (let* ((suhde (/ määrä suurin-arvo))
+                                (pituus (decimals:round-half-away-from-zero
+                                         (* suhde leveys))))
+                           (make-string pituus :initial-element #\#)))
+          :into taulu
+          :finally
+          (tulosta-taulu
+           (append (if (muoto :org nil) (list :viiva))
+                   (list (list (otsikko "As") (otsikko "Lkm") (otsikko "")))
+                   (if (muoto :org nil) (list :viiva))
+                   taulu
+                   (if (muoto :org nil) (list :viiva)))))))
+
+
 (defmethod tulosta ((object t))
   (setf *muokattavat* nil)
   (format *error-output* "~&Ei löytynyt.~%"))
@@ -1428,6 +1509,24 @@
   (when(zerop (length arg))
     (virhe "Anna ryhmän tunnus."))
   (tulosta (hae-arvosanat-koonti (erota-ensimmäinen-sana arg))))
+
+
+(defun komento-tilasto-jakauma (arg &optional painokerroin)
+  ;; |/sukunimi/etunimi/ryhmä/lisätiedot/suoritus/lyhenne|/...
+  (when (zerop (length arg))
+    (setf arg "|"))
+  (loop :for haku-mj :in (pilko-erottimella arg)
+        :for haku := (pilko-erottimella
+                      (if (zerop (length haku-mj)) "/" haku-mj))
+        :collect (list (nth 0 haku)
+                       (nth 1 haku)
+                       (nth 2 haku)
+                       (nth 3 haku)
+                       (nth 4 haku)
+                       (nth 5 haku))
+        :into haut
+        :finally
+        (tulosta (tilasto-jakauma haut painokerroin))))
 
 
 (defun komento-lisää-oppilas (arg)
@@ -1833,6 +1932,10 @@
      ("has ryhmä /suoritus/lyhenne" "Hae arvosanat suorituksista.")
      ("hak ryhmä" "Hae arvosanojen koonti.")
      :viiva
+     ("tj  |/suku/etu/ryh/lisät/suor/lyh|/..." "Tulosta jakauma.")
+     ("tjp |/suku/etu/ryh/lisät/suor/lyh|/..."
+      "Tulosta jakauma (vain painokertoimelliset).")
+     :viiva
      ("lo /sukunimi/etunimi/ryhmät/lisätiedot" "Lisää oppilas.")
      ("ls ryhmä /suoritus/lyhenne/painokerroin/sija"
       "Lisää ryhmälle suoritus.")
@@ -1861,6 +1964,20 @@ erotinmerkeillä.
     ho /Meikäl/Mat
     ho ,Meikäl,Mat
     ho 3Meikäl3Mat
+
+Tilastokomennoissa (\"tj\" ja \"tjp\") oleva pystyviiva (|) tarkoittaa
+myös erotinmerkkiä. Näissä komennoissa on kaksitasoinen kenttien erotus,
+joten nille voi määritellä useita hakulausekkeita. Ensin argumentit
+jaetaan |-merkin avulla ryhmiin erillisiksi hakulausekkeiksi ja sitten
+kukin ryhmä jaetaan hakukentiksi /-merkin avulla. Erotinmerkit voi
+valita vapaasti. Kumpikin seuraavista komennoista toimii samalla
+tavalla:
+
+    tj |///2012:8a|///2013:8b
+    tj @,,,2012:8a@...2013:8b
+
+Komento \"tjp\" on muuten samanlainen kuin \"tj\" mutta se huomioi vain
+sellaiset suoritukset, joille on määritelty painokerroin.
 
 Komentojen \"m\", \"ms\" ja \"poista\" kohdalla argumentti \"numerot\"
 tarkoittaa kokonaislukujen luetteloa, esimerkiksi \"1,4\" tai \"2-5,9\".
@@ -2022,6 +2139,8 @@ muokkauskomennoista:
             ((testaa "hak") (komento-hae-arvosanat-koonti arg))
             ((testaa "lo") (komento-lisää-oppilas arg))
             ((testaa "ls") (komento-lisää-suoritus arg))
+            ((testaa "tj") (komento-tilasto-jakauma arg))
+            ((testaa "tjp") (komento-tilasto-jakauma arg t))
             ((or (testaa "?") (testaa "??") (testaa "???")) (ohjeet komento))
             (*vuorovaikutteinen*
              (cond
