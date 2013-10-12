@@ -571,6 +571,12 @@
 (defclass tilasto-jakauma ()
   ((hajautustaulu :reader hajautustaulu :initarg :hajautustaulu)))
 
+(defclass tilasto-koonti ()
+  ((oppilaita :reader oppilaita :initarg :oppilaita)
+   (ryhmiä :reader ryhmiä :initarg :ryhmiä)
+   (suorituksia :reader suorituksia :initarg :suorituksia)
+   (arvosanoja :reader arvosanoja :initarg :arvosanoja)))
+
 
 (defun muuta-arvosanaksi (luku)
   (let ((neliporras (* 1/4 (decimals:round-half-away-from-zero
@@ -909,6 +915,18 @@
           (return (make-instance 'tilasto-jakauma :hajautustaulu taulu)))))
 
 
+(defun tilasto-koonti ()
+  (let ((oppilaita (caar (query "SELECT count(*) FROM oppilaat")))
+        (ryhmiä (caar (query "SELECT count(*) FROM ryhmat")))
+        (suorituksia (caar (query "SELECT count(*) FROM suoritukset")))
+        (arvosanoja (caar (query "SELECT count(*) FROM arvosanat"))))
+    (make-instance 'tilasto-koonti
+                   :oppilaita oppilaita
+                   :ryhmiä ryhmiä
+                   :suorituksia suorituksia
+                   :arvosanoja arvosanoja)))
+
+
 (defun tulosta-muokattavat (&rest kentät)
   (when *muokattavat*
     (viesti "~&~[~;Tietue: 1~:;Tietueet: 1-~:*~A~]. ~
@@ -1227,6 +1245,24 @@
                    (if (muoto :org nil) (list :viiva)))))))
 
 
+(defmethod tulosta ((koonti tilasto-koonti))
+  (setf *muokattavat* nil)
+  (let ((suurin (reduce #'max (list (oppilaita koonti)
+                                    (ryhmiä koonti)
+                                    (suorituksia koonti)
+                                    (arvosanoja koonti))
+                        :key #'olion-mj-pituus)))
+    (flet ((rivi (otsikko olio)
+             (list (otsikko otsikko) (format nil "~V@A" suurin olio))))
+      (tulosta-taulu
+       (append (if (muoto :org nil) (list :viiva))
+               (list (rivi "Oppilaita:" (oppilaita koonti)))
+               (list (rivi "Ryhmiä:" (ryhmiä koonti)))
+               (list (rivi "Suorituksia:" (suorituksia koonti)))
+               (list (rivi "Arvosanoja:" (arvosanoja koonti)))
+               (if (muoto :org nil) (list :viiva)))))))
+
+
 (defmethod tulosta ((object t))
   (setf *muokattavat* nil)
   (format *error-output* "~&Ei löytynyt.~%"))
@@ -1527,6 +1563,10 @@
         :into haut
         :finally
         (tulosta (tilasto-jakauma haut painokerroin))))
+
+
+(defun komento-tilasto-koonti ()
+  (tulosta (tilasto-koonti)))
 
 
 (defun komento-lisää-oppilas (arg)
@@ -1935,6 +1975,7 @@
      ("tj  |/suku/etu/ryh/lisät/suor/lyh|/..." "Tulosta jakauma.")
      ("tjp |/suku/etu/ryh/lisät/suor/lyh|/..."
       "Tulosta jakauma (vain painokertoimelliset).")
+     ("tk" "Tulosta tietokannasta koonti.")
      :viiva
      ("lo /sukunimi/etunimi/ryhmät/lisätiedot" "Lisää oppilas.")
      ("ls ryhmä /suoritus/lyhenne/painokerroin/sija"
@@ -2141,6 +2182,7 @@ muokkauskomennoista:
             ((testaa "ls") (komento-lisää-suoritus arg))
             ((testaa "tj") (komento-tilasto-jakauma arg))
             ((testaa "tjp") (komento-tilasto-jakauma arg t))
+            ((testaa "tk") (komento-tilasto-koonti))
             ((or (testaa "?") (testaa "??") (testaa "???")) (ohjeet komento))
             (*vuorovaikutteinen*
              (cond
