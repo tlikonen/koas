@@ -143,6 +143,17 @@
           (* (or merkki 1) (decimals:parse-decimal-number objekti))))))))
 
 
+(defun poista-tyhjät-ryhmät (&optional rid-lista)
+  (unless rid-lista
+    (setf rid-lista (mapcar #'first (query "SELECT rid FROM ryhmat"))))
+  (loop :for rid :in rid-lista
+        :if (and (not (query "SELECT rid FROM oppilaat_ryhmat WHERE rid=~A"
+                             rid))
+                 (not (query "SELECT rid FROM suoritukset WHERE rid=~A" rid)))
+        :do (query "DELETE FROM ryhmat WHERE rid=~A" rid)
+        :and :collect rid))
+
+
 (defun aseta-muokkauslaskuri (arvo)
   (query "UPDATE hallinto SET arvo=~A WHERE avain='muokkauslaskuri'"
          (sql-mj arvo))
@@ -1330,17 +1341,6 @@
             :do (incf i)
             :if (= i sija) :do (incf i)
             :do (query "UPDATE suoritukset SET sija=~A WHERE sid=~A" i sid)))))
-
-
-(defun poista-tyhjät-ryhmät (&optional rid-lista)
-  (unless rid-lista
-    (setf rid-lista (mapcar #'first (query "select rid from ryhmat"))))
-  (loop :for rid :in rid-lista
-        :if (and (not (query "SELECT rid FROM oppilaat_ryhmat WHERE rid=~A"
-                             rid))
-                 (not (query "SELECT rid FROM suoritukset WHERE rid=~A" rid)))
-        :do (query "DELETE FROM ryhmat WHERE rid=~A" rid)
-        :and :collect rid))
 
 
 (defgeneric muokkaa (asia &key &allow-other-keys))
