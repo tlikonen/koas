@@ -173,6 +173,11 @@
   (let ((laskuri (or (hae-muokkauslaskuri) 0)))
     (if (or nyt (>= laskuri *muokkaukset-kunnes-eheytys*))
         (ignore-errors
+          (with-transaction
+            (poista-tyhjät-ryhmät)
+            (query "DELETE FROM arvosanat ~
+                        WHERE (arvosana='' OR arvosana IS NULL) ~
+                        AND (lisatiedot='' OR lisatiedot IS NULL)"))
           (query "VACUUM")
           (aseta-muokkauslaskuri 0)
           t)
