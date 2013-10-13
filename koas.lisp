@@ -670,7 +670,7 @@
                 FROM suoritukset AS s ~
                 JOIN ryhmat as r ON r.rid=s.rid ~
                 WHERE r.nimi LIKE ~A ~
-                ORDER BY s.sija"
+                ORDER BY s.sija,s.sid"
                 (sql-like-suoja ryhmä))))
 
     (when suoritukset
@@ -773,7 +773,7 @@
                 AND o.etunimi LIKE ~A ~
                 AND r.nimi LIKE ~A ~
                 AND o.lisatiedot LIKE ~A ~
-                ORDER BY o.sukunimi,o.etunimi,o.oid,r.nimi,r.rid,s.sija"
+                ORDER BY o.sukunimi,o.etunimi,o.oid,r.nimi,r.rid,s.sija,s.sid"
                 (sql-like-suoja sukunimi "%" "%")
                 (sql-like-suoja etunimi "%" "%")
                 (sql-like-suoja ryhmä "%" "%")
@@ -830,7 +830,7 @@
                 FROM ryhmat AS r ~
                 JOIN suoritukset AS s ON r.rid=s.rid ~
                 WHERE r.nimi LIKE ~A ~
-                ORDER BY r.nimi,r.rid,s.sija"
+                ORDER BY r.nimi,r.rid,s.sija,s.sid"
                  (sql-like-suoja ryhmä))))
 
     (when suorituslista
