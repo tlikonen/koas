@@ -1439,7 +1439,6 @@
   (let ((rid-lista
          (mapcar #'first (query "SELECT rid FROM oppilaat_ryhmat WHERE oid=~A"
                                 (oid oppilas)))))
-
     (query "DELETE FROM oppilaat_ryhmat WHERE oid=~A" (oid oppilas))
     (query "DELETE FROM arvosanat WHERE oid=~A" (oid oppilas))
     (query "DELETE FROM oppilaat WHERE oid=~A" (oid oppilas))
@@ -1453,8 +1452,7 @@
   (poista-tyhjät-ryhmät (list (rid suoritus)))
   (let ((sid-lista
          (mapcar #'first (query "SELECT sid FROM suoritukset ~
-                                        WHERE rid=~A ~
-                                        ORDER BY sija,sid"
+                                WHERE rid=~A ORDER BY sija,sid"
                                 (rid suoritus)))))
     (loop :for i :upfrom 1
           :for sid :in sid-lista
