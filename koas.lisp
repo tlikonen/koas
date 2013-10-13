@@ -169,7 +169,7 @@
   (aseta-muokkauslaskuri (+ (or (hae-muokkauslaskuri) 0) muokkaukset)))
 
 
-(defun ehkä-eheytys (&optional nyt)
+(defun eheytys (&optional nyt)
   (let ((laskuri (or (hae-muokkauslaskuri) 0)))
     (if (or nyt (>= laskuri *muokkaukset-kunnes-eheytys*))
         (ignore-errors
@@ -331,11 +331,11 @@
                    (viesti "Päivitetään tietokanta: v1 > v3.~%")
                    (päivitä-versiosta-1-versioon-2)
                    (päivitä-versiosta-2-versioon-3)
-                   (ehkä-eheytys t))
+                   (eheytys t))
                   ((= versio 2)
                    (viesti "Päivitetään tietokanta: v2 > v3.~%")
                    (päivitä-versiosta-2-versioon-3)
-                   (ehkä-eheytys t))
+                   (eheytys t))
                   ((> versio *tietokannan-versio*)
                    (viesti "VAROITUS! Tietokannan versio on ~A mutta ohjelma ~
                 osaa vain version ~A.~%Päivitä ohjelma!~%"
@@ -1593,7 +1593,7 @@
                             :ryhmälista (normalisoi-ryhmät (nth 2 jaettu))
                             :lisätiedot (normalisoi-mj (nth 3 jaettu))))
       (lisää-muokkauslaskuriin 1))
-    (ehkä-eheytys)))
+    (eheytys)))
 
 
 (defun on-sisältöä-p (mj)
@@ -1643,7 +1643,7 @@
                               :painokerroin paino)
                :sija sija)
         (lisää-muokkauslaskuriin 1))
-      (ehkä-eheytys))))
+      (eheytys))))
 
 
 (defun jäsennä-numeroluettelo (mj)
@@ -1706,7 +1706,7 @@
                        (poista kohde))
                       (t (viesti "~&Tietue ~A on jo poistettu.~%" i))))
       (lisää-muokkauslaskuriin (length numeroluettelo)))
-    (ehkä-eheytys)))
+    (eheytys)))
 
 
 (defun komento-muokkaa-oppilas (kentät kohde)
@@ -1911,7 +1911,7 @@
                       (t (virhe "Tietue ~A on poistettu." i))))
           (lisää-muokkauslaskuriin (min (length numeroluettelo)
                                         (length arvot)))))
-      (ehkä-eheytys))))
+      (eheytys))))
 
 
 (defun komento-muokkaa (arg)
@@ -1968,7 +1968,7 @@
                   (t (virhe "Tietue ~A on poistettu." i))))
 
       (lisää-muokkauslaskuriin (length numeroluettelo)))
-    (ehkä-eheytys)))
+    (eheytys)))
 
 
 (defun ohjeet (&optional komento)
