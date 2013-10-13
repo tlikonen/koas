@@ -1824,7 +1824,12 @@
       (setf (arvosana kohde) (normalisoi-mj uusi-arvosana)))
     (unless (eql uusi-lisätiedot :tyhjä)
       (setf (lisätiedot kohde) (normalisoi-mj uusi-lisätiedot)))
-    (muokkaa kohde)))
+    (if (and (or (not (arvosana kohde))
+                 (equal (arvosana kohde) ""))
+             (or (not (lisätiedot kohde))
+                 (equal (lisätiedot kohde) "")))
+        (poista kohde)
+        (muokkaa kohde))))
 
 
 (defun komento-muokkaa-ryhmä (kentät kohde)
