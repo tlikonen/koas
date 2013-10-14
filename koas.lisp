@@ -528,12 +528,11 @@
                       ((and (muoto :wilma) (viivap osa))
                        (format virta " ~V<~> |" leveys))
                       ((and (muoto :latex) (not (viivap osa)))
-                       (format virta "{~A}"
-                               (with-output-to-string (s)
-                                 (loop :for m :across (string-trim " " osa)
-                                       :if (find m "%&{}")
-                                       :do (princ #\\ s)
-                                       :do (princ m s)))))
+                       (loop :initially (princ #\{ virta)
+                             :for m :across (string-trim " " osa)
+                             :if (find m "%&{}") :do (princ #\\ virta)
+                             :do (princ m virta)
+                             :finally (princ #\} virta)))
                       (t (format virta " ~VA |" leveys osa))))
               (format virta "~%"))))))
 
