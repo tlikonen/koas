@@ -473,29 +473,27 @@
              (leveimmät-sarakkeet (make-list sarakkeiden-lkm
                                              :initial-element 0)))
 
-        (setf taulu
-              (loop :for rivi :in taulu
-                    :collect
-                    (if (viivap rivi)
-                        rivi
-                        (let ((lisättävät (- sarakkeiden-lkm (length rivi)))
-                              (rivi-mj
-                               (mapcar (lambda (osa)
-                                         (cond ((null osa) "")
-                                               ((stringp osa) osa)
-                                               (t (princ-to-string osa))))
-                                       rivi)))
+        (loop :for rivi :in taulu
+              :if (viivap rivi) :collect rivi :into uusi-taulu
+              :else :collect
+              (let ((lisättävät (- sarakkeiden-lkm (length rivi)))
+                    (rivi-mj (mapcar (lambda (osa)
+                                       (cond ((null osa) "")
+                                             ((stringp osa) osa)
+                                             (t (princ-to-string osa))))
+                                     rivi)))
 
-                          (when (plusp lisättävät)
-                            (setf rivi-mj
-                                  (nconc rivi-mj
-                                         (make-list lisättävät
-                                                    :initial-element ""))))
-                          (setf leveimmät-sarakkeet
-                                (mapcar #'max (mapcar #'length rivi-mj)
-                                        leveimmät-sarakkeet))
+                (when (plusp lisättävät)
+                  (setf rivi-mj (nconc rivi-mj
+                                       (make-list lisättävät
+                                                  :initial-element ""))))
+                (setf leveimmät-sarakkeet
+                      (mapcar #'max (mapcar #'length rivi-mj)
+                              leveimmät-sarakkeet))
 
-                          rivi-mj))))
+                rivi-mj)
+              :into uusi-taulu
+              :finally (setf taulu uusi-taulu))
 
         (format virta "~&")
         (loop :for rivi :in taulu
