@@ -442,7 +442,7 @@
 (defun otsikko (mj)
   (setf mj (or mj ""))
   (case *tulostusmuoto*
-    (:wilma (format nil "**~A**" (if (equal "" mj) " " mj)))
+    (:wilma (format nil "**~A**" (if (equal "" mj) "" mj)))
     (:org (if (equal "" mj) "" (format nil "*~A*" mj)))
     (t mj)))
 
@@ -464,7 +464,8 @@
 
 (defun tulosta-taulu (taulu &key (virta *standard-output*))
   (when taulu
-    (flet ((viivap (ob) (eql ob :viiva)))
+    (flet ((viivap (ob)
+             (find ob '(:viiva :viiva-alku :viiva-loppu :viiva-otsikko))))
       (let* ((sarakkeiden-lkm (reduce #'max taulu :key (lambda (osa)
                                                          (if (viivap osa)
                                                              0
@@ -502,17 +503,37 @@
                                (make-list sarakkeiden-lkm
                                           :initial-element :viiva)
                                rivi)
+
+              :if (and (muoto :latex)
+                       (find rivi '(:viiva-otsikko :viiva)))
+              :do (format virta "~%")
+
+              :else :if (or (muoto nil :org)
+                            (and (muoto :wilma)
+                                 (not (member rivi '(:viiva-alku :viiva-otsikko
+                                                     :viiva-loppu))))
+                            (and (muoto :latex)
+                                 (not (viivap rivi))))
               :do
-              (format virta "~:[|~;+~]" (and (viivap rivi) (muoto nil)))
+              (if (muoto :latex)
+                  (format virta "\\rivi")
+                  (format virta "~:[|~;+~]" (and (viivap rivi) (muoto nil))))
               (loop :for (osa . loput) :on uusi
                     :for leveys :in leveimmät-sarakkeet
                     :do
                     (cond
-                      ((and (viivap osa) (or (muoto :org) (muoto nil)))
+                      ((and (muoto :org nil) (viivap osa))
                        (format virta "--~V,,,'-<~>~:[|~;+~]" leveys
                                (or loput (and (not loput) (muoto nil)))))
-                      ((and (viivap osa) (muoto :wilma))
+                      ((and (muoto :wilma) (viivap osa))
                        (format virta " ~V<~> |" leveys))
+                      ((and (muoto :latex) (not (viivap osa)))
+                       (format virta "{~A}"
+                               (with-output-to-string (s)
+                                 (loop :for m :across (string-trim " " osa)
+                                       :if (find m "%&{}")
+                                       :do (princ #\\ s)
+                                       :do (princ m s)))))
                       (t (format virta " ~VA |" leveys osa))))
               (format virta "~%"))))))
 
@@ -970,16 +991,16 @@
                                  (list (lisätiedot oppilas)))))))
 
     (tulosta-taulu
-     (append (if (muoto :org nil) (list :viiva))
+     (append (list :viiva-alku)
              (list (append (if *muokattavat* (list nil))
                            (list (otsikko "Sukunimi"))
                            (list (otsikko "Etunimi"))
                            (list (otsikko "Ryhmät"))
                            (unless *suppea*
                              (list (otsikko "Lisätiedot")))))
-             (if (muoto :org nil) (list :viiva))
+             (list :viiva-otsikko)
              (if *muokattavat* (numeroi taulu) taulu)
-             (if (muoto :org nil) (list :viiva))))
+             (list :viiva-loppu)))
 
     (tulosta-muokattavat "sukunimi" "etunimi" "ryhmät" "lisätiedot")))
 
@@ -996,26 +1017,26 @@
                                     (painokerroin suoritus)))))
 
     (tulosta-taulu
-     (append (if (muoto :org nil) (list :viiva))
+     (append (list :viiva-alku)
              (list (list (otsikko "Ryhmä:") (ryhmä suo)))
-             (if (muoto :org nil) (list :viiva))))
+             (list :viiva-loppu)))
     (viesti "~%")
 
     (tulosta-taulu
-     (append (if (muoto :org nil) (list :viiva))
+     (append (list :viiva-alku)
              (list (append (if *muokattavat* (list nil))
                            (list (otsikko "Suoritus"))
                            (list (otsikko "Lyh"))
                            (list (otsikko "K"))))
-             (if (muoto :org nil) (list :viiva))
+             (list :viiva-otsikko)
              (if *muokattavat* (numeroi taulu) taulu)
-             (if (muoto :org nil) (list :viiva))))
+             (list :viiva-loppu)))
 
     (tulosta-muokattavat "suoritus" "lyhenne" "painokerroin"
                          (format nil "sija(1~[~;~:;-~:*~A~])"
                                  (length *muokattavat*)))
 
-    (unless (muoto nil)
+    (unless (muoto nil :latex)
       (viesti "~%")
       (tulosta-taulu (list (list (otsikko "K") "= painokerroin"))))))
 
@@ -1032,13 +1053,13 @@
                      :collect (list (nimi ryhmä)
                                     (lisätiedot ryhmä)))))
     (tulosta-taulu
-     (append (if (muoto :org nil) (list :viiva))
+     (append (list :viiva-alku)
              (list (append (if *muokattavat* (list nil))
                            (list (otsikko "Nimi"))
                            (list (otsikko "Lisätiedot"))))
-             (if (muoto :org nil) (list :viiva))
+             (list :viiva-otsikko)
              (if *muokattavat* (numeroi taulu) taulu)
-             (if (muoto :org nil) (list :viiva)))))
+             (list :viiva-loppu))))
   (tulosta-muokattavat "nimi" "lisätiedot"))
 
 
@@ -1063,27 +1084,27 @@
                             :do (push (arvosana arvosana) luvut))))
 
           (tulosta-taulu
-           (append (if (muoto :org nil) (list :viiva))
+           (append (list :viiva-alku)
                    (list (list (otsikko "Ryhmä:") (ryhmä arv-suo)))
                    (list (list (otsikko "Suoritus:") (nimi arv-suo)))
-                   (if (muoto :org nil) (list :viiva))))
+                   (list :viiva-loppu)))
           (viesti "~%")
 
           (tulosta-taulu
-           (append (if (muoto :org nil) (list :viiva))
+           (append (list :viiva-alku)
                    (list (append (if *muokattavat* (list nil))
                                  (list (otsikko "Oppilas"))
                                  (list (otsikko "As"))
                                  (unless *suppea*
                                    (list (otsikko "Lisätiedot")))))
-                   (if (muoto :org nil) (list :viiva))
+                   (list :viiva-otsikko)
                    (if *muokattavat* (numeroi taulu) taulu)
                    (list :viiva)
                    (list (append (if *muokattavat* (list nil))
                                  (list "Keskiarvo" (keskiarvo luvut))))
-                   (if (muoto :org nil) (list :viiva))))
+                   (list :viiva-loppu)))
 
-          (unless (muoto nil)
+          (unless (muoto nil :latex)
             (viesti "~%")
             (tulosta-taulu (list (list (otsikko "As") "= arvosana")))))
 
@@ -1114,7 +1135,7 @@
                             (push (painokerroin arvosana) kertoimet))))
 
           (tulosta-taulu
-           (append (if (muoto :org nil) (list :viiva))
+           (append (list :viiva-alku)
                    (list (list (otsikko "Oppilas:")
                                (format nil "~A, ~A"
                                        (sukunimi arv-opp)
@@ -1124,26 +1145,26 @@
                      (if (or (not lis) (equal lis "") *suppea*)
                          nil
                          (list (list (otsikko "Lisätiedot:") lis))))
-                   (if (muoto :org nil) (list :viiva))))
+                   (list :viiva-loppu)))
           (viesti "~%")
 
           (tulosta-taulu
-           (append (if (muoto :org nil) (list :viiva))
+           (append (list :viiva-alku)
                    (list (append (if *muokattavat* (list nil))
                                  (list (otsikko "Suoritus"))
                                  (list (otsikko "As"))
                                  (list (otsikko "K"))
                                  (unless *suppea*
                                    (list (otsikko "Lisätiedot")))))
-                   (if (muoto :org nil) (list :viiva))
+                   (list :viiva-otsikko)
                    (if *muokattavat* (numeroi taulu) taulu)
                    (list :viiva)
                    (list (append (if *muokattavat* (list nil))
                                  (list "Keskiarvo"
                                        (keskiarvo arvot kertoimet 2))))
-                   (if (muoto :org nil) (list :viiva))))
+                   (list :viiva-loppu)))
 
-          (when (not (muoto nil))
+          (unless (muoto nil :latex)
             (viesti "~%")
             (tulosta-taulu
              (list (list (otsikko "As") "= arvosana"
@@ -1184,21 +1205,21 @@
                     :finally (setf (aref ka-suoritus suo) (keskiarvo luvut))))
 
     (tulosta-taulu
-     (append (if (muoto :org nil) (list :viiva))
+     (append (list :viiva-alku)
              (list (append (list (otsikko "Ryhmä:")) (list (ryhmä koonti))))
-             (if (muoto :org nil) (list :viiva))))
+             (list :viiva-loppu)))
     (viesti "~%")
 
     (tulosta-taulu
      (append
-      (if (muoto :org nil) (list :viiva))
+      (list :viiva-alku)
       (list (append (list (otsikko "Suoritus"))
                     (mapcar #'otsikko lyhenteet)
                     (list (otsikko "ka"))))
       (list (append (list (otsikko "Painokerroin"))
                     (mapcar #'otsikko kertoimet)
                     (list (otsikko ""))))
-      (if (muoto :org nil) (list :viiva))
+      (list :viiva-otsikko)
       (loop :for nimi :in (oppilaslista koonti)
             :for oppilas :from 0 :below (array-dimension (taulukko koonti) 0)
             :collect (loop :for suoritus :from 0
@@ -1209,22 +1230,22 @@
                                                     rivi
                                                     (list (aref ka-oppilas
                                                                 oppilas))))))
-      (if (muoto :wilma) (list nil) (list :viiva))
+      (list :viiva)
       (list (append (list "Keskiarvo")
                     (coerce ka-suoritus 'list)
                     (list (keskiarvo (coerce ka-oppilas 'list)))))
-      (if (muoto :org nil) (list :viiva))))
+      (list :viiva-loppu)))
 
     (unless *suppea*
       (viesti "~%")
       (tulosta-taulu
-       (append (if (muoto :org nil) (list :viiva))
+       (append (list :viiva-alku)
                (list (list (otsikko "Lyh") (otsikko "Suoritus")))
-               (if (muoto :org nil) (list :viiva))
+               (list :viiva-otsikko)
                (loop :for (nil nil nimi lyhenne nil) :in (suorituslista koonti)
                      :collect (list lyhenne nimi))
                '(("ka" "Keskiarvo"))
-               (if (muoto :org nil) (list :viiva)))))))
+               (list :viiva-loppu))))))
 
 
 (defmethod tulosta ((jakauma tilasto-jakauma))
@@ -1254,13 +1275,13 @@
           :into taulu
           :finally
           (tulosta-taulu
-           (append (if (muoto :org nil) (list :viiva))
+           (append (list :viiva-alku)
                    (list (list (otsikko "As") (otsikko "Lkm") (otsikko "")))
-                   (if (muoto :org nil) (list :viiva))
+                   (list :viiva-otsikko)
                    taulu
-                   (if (muoto :org nil) (list :viiva))))
+                   (list :viiva-loppu)))
 
-          (when (not (muoto nil))
+          (unless (muoto nil :latex)
             (viesti "~%")
             (tulosta-taulu
              (list (list (otsikko "As") "= arvosana"
@@ -1277,12 +1298,12 @@
     (flet ((rivi (otsikko olio)
              (list (otsikko otsikko) (format nil "~V@A" suurin olio))))
       (tulosta-taulu
-       (append (if (muoto :org nil) (list :viiva))
+       (append (list :viiva-alku)
                (list (rivi "Oppilaita:" (oppilaita koonti)))
                (list (rivi "Ryhmiä:" (ryhmiä koonti)))
                (list (rivi "Suorituksia:" (suorituksia koonti)))
                (list (rivi "Arvosanoja:" (arvosanoja koonti)))
-               (if (muoto :org nil) (list :viiva)))))))
+               (list :viiva-loppu))))))
 
 
 (defmethod tulosta ((object t))
@@ -1973,35 +1994,36 @@
 
 (defun ohjeet (&optional komento)
   (tulosta-taulu
-   '(:viiva
-     ("Komento" "Tarkoitus")
-     :viiva
-     ("ho /sukunimi/etunimi/ryhmät/lisätiedot" "Hae oppilaita.")
-     ("hoa /sukunimi/etunimi/ryhmät/lisätiedot"
+   (list
+    :viiva-alku
+    (list (otsikko "Komento") (otsikko "Tarkoitus"))
+    :viiva-otsikko
+    '("ho /sukunimi/etunimi/ryhmät/lisätiedot" "Hae oppilaita.")
+    '("hoa /sukunimi/etunimi/ryhmät/lisätiedot"
       "Hae oppilaita arvotussa järjestyksessä.")
-     ("hr /ryhmä/lisätiedot" "Hae ryhmiä.")
-     ("hs ryhmä" "Hae suoritukset ryhmältä.")
-     ("hao /sukunimi/etunimi/ryhmät/lisätiedot" "Hae arvosanat oppilailta.")
-     ("has ryhmä /suoritus/lyhenne" "Hae arvosanat suorituksista.")
-     ("hak ryhmä" "Hae arvosanojen koonti.")
-     :viiva
-     ("tj  |/suku/etu/ryh/lisät/suor/lyh|/..." "Tulosta jakauma.")
-     ("tjp |/suku/etu/ryh/lisät/suor/lyh|/..."
+    '("hr /ryhmä/lisätiedot" "Hae ryhmiä.")
+    '("hs ryhmä" "Hae suoritukset ryhmältä.")
+    '("hao /sukunimi/etunimi/ryhmät/lisätiedot" "Hae arvosanat oppilailta.")
+    '("has ryhmä /suoritus/lyhenne" "Hae arvosanat suorituksista.")
+    '("hak ryhmä" "Hae arvosanojen koonti.")
+    :viiva
+    '("tj  |/suku/etu/ryh/lisät/suor/lyh|/..." "Tulosta jakauma.")
+    '("tjp |/suku/etu/ryh/lisät/suor/lyh|/..."
       "Tulosta jakauma (vain painokertoimelliset).")
-     ("tk" "Tulosta tietokannasta koonti.")
-     :viiva
-     ("lo /sukunimi/etunimi/ryhmät/lisätiedot" "Lisää oppilas.")
-     ("ls ryhmä /suoritus/lyhenne/painokerroin/sija"
+    '("tk" "Tulosta tietokannasta koonti.")
+    :viiva
+    '("lo /sukunimi/etunimi/ryhmät/lisätiedot" "Lisää oppilas.")
+    '("ls ryhmä /suoritus/lyhenne/painokerroin/sija"
       "Lisää ryhmälle suoritus.")
-     :viiva
-     ("m numerot /.../.../.../..." "Muokkaa valittuja tietueita ja kenttiä.")
-     ("ms numerot kenttä /.../.../..." "Muokkaa tietueista samaa kenttää.")
-     ("poista numerot" "Poista tietueet.")
-     :viiva
-     ("?" "Ohjeet.")
-     ("??" "Tarkemmat ohjeet.")
-     ("???" "Aloitusvinkkejä.")
-     :viiva))
+    :viiva
+    '("m numerot /.../.../.../..." "Muokkaa valittuja tietueita ja kenttiä.")
+    '("ms numerot kenttä /.../.../..." "Muokkaa tietueista samaa kenttää.")
+    '("poista numerot" "Poista tietueet.")
+    :viiva
+    '("?" "Ohjeet.")
+    '("??" "Tarkemmat ohjeet.")
+    '("???" "Aloitusvinkkejä.")
+    :viiva-loppu))
 
   (cond ((equal komento "?")
          (return-from ohjeet))
@@ -2096,13 +2118,15 @@ niitä.
 
 ")
          (tulosta-taulu
-          '(:viiva
-            ("Sana" "Selitys")
-            :viiva
-            ("wilma" "Wilma-viestiin sopiva taulukkomalli.")
-            ("org" "Emacsin Org-tilaan sopiva taulukkomalli.")
-            ("suppea" "Karsitaan tulostuksesta Lisätiedot-kentät yms.")
-            :viiva))
+          (list
+           :viiva-alku
+           (list (otsikko "Sana") (otsikko "Selitys"))
+           :viiva-otsikko
+           '("wilma" "Wilma-viestiin sopiva taulukkomalli.")
+           '("org" "Emacsin Org-tilaan sopiva taulukkomalli.")
+           '("latex" "Tulosteet LaTeX-komentoina.")
+           '("suppea" "Karsitaan tulostuksesta Lisätiedot-kentät yms.")
+           :viiva-loppu))
 
          (viesti "~%~
 
@@ -2182,6 +2206,8 @@ muokkauskomennoista:
                                 (käsittele-komentorivi arg)))
             ((testaa "org") (let ((*tulostusmuoto* :org))
                               (käsittele-komentorivi arg)))
+            ((testaa "latex") (let ((*tulostusmuoto* :latex))
+                                (käsittele-komentorivi arg)))
             ((testaa "suppea") (let ((*suppea* t))
                                  (käsittele-komentorivi arg)))
             ((testaa "ho") (komento-hae-oppilaat arg))
