@@ -2043,17 +2043,17 @@ erotinmerkeillä.
 
 Tilastokomennoissa (\"tj\" ja \"tjp\") oleva pystyviiva (|) tarkoittaa
 myös erotinmerkkiä. Näissä komennoissa on kaksitasoinen kenttien erotus,
-joten nille voi määritellä useita hakulausekkeita. Ensin argumentit
-jaetaan |-merkin avulla ryhmiin erillisiksi hakulausekkeiksi ja sitten
-kukin ryhmä jaetaan hakukentiksi /-merkin avulla. Erotinmerkit voi
-valita vapaasti. Kumpikin seuraavista komennoista toimii samalla
+joten niille voi määritellä useita hakulausekkeita. Ensin argumentit
+jaetaan |-merkin avulla ryhmiin erillisiksi hakulausekeryhmiksi ja
+sitten kukin ryhmä jaetaan hakukentiksi /-merkin avulla. Erotinmerkit
+voi valita vapaasti. Kumpikin seuraavista komennoista toimii samalla
 tavalla:
 
     tj |///2012:8a|///2013:8b
     tj @,,,2012:8a@...2013:8b
 
-Komento \"tjp\" on muuten samanlainen kuin \"tj\" mutta se huomioi vain
-sellaiset suoritukset, joille on määritelty painokerroin.
+Komento \"tjp\" on muutoin samanlainen kuin \"tj\", mutta se huomioi
+vain sellaiset suoritukset, joille on määritelty painokerroin.
 
 Komentojen \"m\", \"ms\" ja \"poista\" kohdalla argumentti \"numerot\"
 tarkoittaa kokonaislukujen luetteloa, esimerkiksi \"1,4\" tai \"2-5,9\".
@@ -2142,9 +2142,9 @@ Esimerkiksi
 
 Tietokantaohjelman käyttö kannattaa aloittaa lisäämällä oppilaita.
 Lisäystoiminnossa (lo) syötettävät kentät ovat vasemmalta oikealle
-sukunimi, etunimi, ryhmät ja lisätiedot. Ainakin sukunimi ja etunimi
-täytyy syöttää. Kentät erotetaan toisistaan jollakin erotinmerkillä.
-Tässä esimerkissä käytetään vivoviivaa (/):
+sukunimi, etunimi, ryhmät ja lisätiedot. Ainakin sukunimi, etunimi ja
+yksi ryhmä täytyy syöttää. Kentät erotetaan toisistaan jollakin
+erotinmerkillä. Tässä esimerkissä käytetään vivoviivaa (/):
 
     lo /Meikäläinen/Matti/2013:7a
     lo /Oppilas/Oona/2013:7a
@@ -2169,23 +2169,6 @@ laskennassa. Alla on esimerkkejä suoritusten lisäämisestä.
     ls 2013:7a /Sanaluokkakoe/san/2
     ls 2013:7a /Kirjoitelma romaanista/rom/3
     ls 2013:7a /Välitodistus/vto
-
-Tiedot ryhmän suorituksista tulostetaan komennolla \"hs 2013:7a\".
-Arvosanoja voi muokata siten, että ensin haetaan arvosanoista tiedot
-esimerkiksi seuraavilla komennoilla:
-
-    hao /Meikäl/Mai
-    has 2013:7a /Sanaluokk
-
-Sitten käytetään m-komentoa muokkaamiseen. Arvosanatiedoissa on
-muokattavana kaksi kenttää: arvosana ja lisätiedot. Alla on esimerkkejä
-muokkauskomennoista:
-
-    m 1 /8½
-    m 3 /6+
-    m 4 /8-/Kirjoitelma palautettu myöhässä.
-    m 6,14-15 /7½
-    m 16 //Koe toistaiseksi tekemättä.
 
 "))))
 
