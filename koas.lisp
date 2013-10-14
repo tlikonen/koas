@@ -2007,7 +2007,7 @@
     '("has ryhmä /suoritus/lyhenne" "Hae arvosanat suorituksista.")
     '("hak ryhmä" "Hae arvosanojen koonti.")
     :viiva
-    '("tj  |/suku/etu/ryh/lisät/suor/lyh|/..." "Tulosta jakauma.")
+    '("tj  |/suku/etu/ryh/lisät/suor/lyh|/..." "Tulosta jakauma arvosanoista.")
     '("tjp |/suku/etu/ryh/lisät/suor/lyh|/..."
       "Tulosta jakauma (vain painokertoimelliset).")
     '("tk" "Tulosta tietokannasta koonti.")
