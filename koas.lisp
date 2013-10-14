@@ -1668,7 +1668,7 @@
 
 
 (defun jäsennä-numeroluettelo (mj)
-  ;; Luettolo on muotoa 1,2,3,5-7,9-12
+  ;; Luettelo on muotoa 1,2,3,5-7,9-12
   (loop :with valmis := nil
         :for i :in (split-sequence #\, mj :remove-empty-subseqs t)
         :do
