@@ -66,6 +66,8 @@
       (sqlite:execute-to-list *tietokanta*
                               (apply #'format nil format-string parameters))
       (virhe "Ei yhteyttä tietokantaan.")))
+
+
 (defmacro with-transaction (&body body)
   `(sqlite:with-transaction *tietokanta* ,@body))
 
@@ -432,9 +434,9 @@
 
 
 (defun normalisoi-painokerroin (asia)
-  (cond
-    ((integerp asia) asia)
-    ((stringp asia)
+  (typecase asia
+    (integer asia)
+    (string
      (let ((luku (lue-numero asia)))
        (if (integerp luku) luku)))))
 
@@ -618,10 +620,11 @@
         (merkki (if (minusp luku) "-" "")))
     (multiple-value-bind (koko murto)
         (truncate neliporras)
-      (let ((lisä (cond ((= murto 1/4) "+")
-                        ((= murto 1/2) "½")
-                        ((= murto 3/4) (incf koko) "-")
-                        (t ""))))
+      (let ((lisä (case murto
+                    (1/4 "+")
+                    (1/2 "½")
+                    (3/4 (incf koko) "-")
+                    (t ""))))
         (format nil "~A~A~A" merkki koko lisä)))))
 
 
