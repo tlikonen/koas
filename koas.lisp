@@ -558,7 +558,7 @@
    (suorituslista :reader suorituslista :initarg :suorituslista)))
 
 (defclass ryhmä ()
-  ((rid :accessor rid :initarg :rid)
+  ((rid :reader rid :initarg :rid)
    (nimi :accessor nimi :initarg :nimi)
    (lisätiedot :accessor lisätiedot :initarg :lisätiedot :initform nil)))
 
@@ -567,17 +567,17 @@
 
 (defclass arvosana ()
   ((oid :reader oid :initarg :oid)
-   (sukunimi :accessor sukunimi :initarg :sukunimi)
-   (etunimi :accessor etunimi :initarg :etunimi)
+   (sukunimi :reader sukunimi :initarg :sukunimi)
+   (etunimi :reader etunimi :initarg :etunimi)
    (sid :reader sid :initarg :sid)
-   (nimi :accessor nimi :initarg :nimi); suorituksen nimi
-   (lyhenne :accessor lyhenne :initarg :lyhenne)
-   (painokerroin :accessor painokerroin :initarg :painokerroin :initform nil)
+   (nimi :reader nimi :initarg :nimi); suorituksen nimi
+   (lyhenne :reader lyhenne :initarg :lyhenne)
+   (painokerroin :reader painokerroin :initarg :painokerroin :initform nil)
    (arvosana :accessor arvosana :initarg :arvosana :initform "")
    (lisätiedot :accessor lisätiedot :initarg :lisätiedot :initform nil)))
 
 (defclass arvosanat-suorituksesta ()
-  ((nimi :accessor nimi :initarg :nimi)
+  ((nimi :reader nimi :initarg :nimi); suorituksen nimi
    (ryhmä :reader ryhmä :initarg :ryhmä)
    (arvosanalista :reader arvosanalista :initarg :arvosanalista)))
 
@@ -586,10 +586,10 @@
 
 (defclass arvosanat-oppilaalta ()
   ((oid :reader oid :initarg :oid)
-   (sukunimi :accessor sukunimi :initarg :sukunimi)
-   (etunimi :accessor etunimi :initarg :etunimi)
+   (sukunimi :reader sukunimi :initarg :sukunimi)
+   (etunimi :reader etunimi :initarg :etunimi)
    (lisätiedot :reader lisätiedot :initarg :lisätiedot)
-   (rid :accessor rid :initarg :rid)
+   (rid :reader rid :initarg :rid)
    (ryhmä :reader ryhmä :initarg :ryhmä)
    (arvosanalista :reader arvosanalista :initarg :arvosanalista)))
 
@@ -598,7 +598,7 @@
 
 (defclass arvosanat-koonti ()
   ((ryhmä :reader ryhmä :initarg :ryhmä)
-   (oppilaslista :accessor oppilaslista :initarg :oppilaslista)
+   (oppilaslista :reader oppilaslista :initarg :oppilaslista)
    (suorituslista :reader suorituslista :initarg :suorituslista)
    (taulukko :reader taulukko :initarg :taulukko)))
 
