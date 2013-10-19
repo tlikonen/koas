@@ -1021,10 +1021,10 @@
 
       (when rivit
         (flet ((rivi> (r1 r2)
-                 (let ((a1 (nth 2 r1))
-                       (a2 (nth 2 r2)))
-                   (or (> a1 a2)
-                       (and (= a1 a2)
+                 (let ((ka1 (nth 2 r1))
+                       (ka2 (nth 2 r2)))
+                   (or (> ka1 ka2)
+                       (and (= ka1 ka2)
                             (string-lessp (nth 0 r1) (nth 0 r2)))))))
 
           (setf rivit (sort rivit #'rivi>))
