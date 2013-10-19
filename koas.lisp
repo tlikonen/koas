@@ -1688,9 +1688,9 @@
 
 
 (defun komento-tilasto-jakauma (arg &optional painokerroin)
-  ;; |/sukunimi/etunimi/ryhmä/lisätiedot/suoritus/lyhenne|/...
+  ;; @/sukunimi/etunimi/ryhmä/lisätiedot/suoritus/lyhenne@/...
   (when (zerop (length arg))
-    (setf arg "|"))
+    (setf arg "@"))
   (loop :for haku-mj :in (pilko-erottimella arg)
         :for haku := (pilko-erottimella haku-mj)
         :collect (list (nth 0 haku)
@@ -1705,9 +1705,9 @@
 
 
 (defun komento-tilasto-paremmuus (arg &optional painokerroin)
-  ;; |/sukunimi/etunimi/ryhmä/lisätiedot/suoritus/lyhenne|/...
+  ;; @/sukunimi/etunimi/ryhmä/lisätiedot/suoritus/lyhenne@/...
   (when (zerop (length arg))
-    (setf arg "|"))
+    (setf arg "@"))
   (loop :for haku-mj :in (pilko-erottimella arg)
         :for haku := (pilko-erottimella haku-mj)
         :collect (list (nth 0 haku)
@@ -2134,12 +2134,12 @@
     '("has ryhmä /suoritus/lyhenne" "Hae arvosanat suorituksista.")
     '("hak ryhmä" "Hae arvosanojen koonti.")
     :viiva
-    '("tj  |/suku/etu/ryh/lisät/suor/lyh|/..." "Tulosta jakauma arvosanoista.")
-    '("tjp |/suku/etu/ryh/lisät/suor/lyh|/..."
+    '("tj  @/suku/etu/ryh/lisät/suor/lyh@/..." "Tulosta jakauma arvosanoista.")
+    '("tjp @/suku/etu/ryh/lisät/suor/lyh@/..."
       "Kuten tj mutta vain painokertoimelliset.")
-    '("tp  |/suku/etu/ryh/lisät/suor/lyh|/..."
+    '("tp  @/suku/etu/ryh/lisät/suor/lyh@/..."
       "Tulosta oppilaat paremmuusjärjestyksessä.")
-    '("tpp |/suku/etu/ryh/lisät/suor/lyh|/..."
+    '("tpp @/suku/etu/ryh/lisät/suor/lyh@/..."
       "Kuten tp mutta vain painokertoimelliset.")
     '("tk" "Tulosta tietokannasta koonti.")
     :viiva
@@ -2172,16 +2172,16 @@ erotinmerkeillä.
     ho ,Meikäl,Mat
     ho 3Meikäl3Mat
 
-Tilastokomennoissa (tj, tjp, tp ja tpp) oleva pystyviiva (|) tarkoittaa
-myös erotinmerkkiä. Näissä komennoissa on kaksitasoinen kenttien erotus,
+Tilastokomennoissa (tj, tjp, tp ja tpp) oleva @-merkki tarkoittaa myös
+erotinmerkkiä. Näissä komennoissa on kaksitasoinen kenttien erotus,
 joten niille voi määritellä useita hakulausekkeita. Ensin argumentit
-jaetaan |-merkin avulla ryhmiin erillisiksi hakulausekeryhmiksi ja
+jaetaan @-merkin avulla ryhmiin erillisiksi hakulausekeryhmiksi ja
 sitten kukin ryhmä jaetaan hakukentiksi /-merkin avulla. Erotinmerkit
 voi valita vapaasti. Kumpikin seuraavista komennoista toimii samalla
 tavalla:
 
-    tj |///2012:8a|///2013:8b
-    tj @,,,2012:8a@...2013:8b
+    tj @///2012:8a@///2013:8b
+    tj %,,,2012:8a%...2013:8b
 
 Komennot \"tjp\" ja \"tpp\" ovat muutoin samanlaisia kuin \"tj\" ja
 \"tp\", mutta ne huomioivat vain sellaiset suoritukset, joille on
