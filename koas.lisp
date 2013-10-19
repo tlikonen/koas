@@ -614,7 +614,8 @@
    (arvosanoja :reader arvosanoja :initarg :arvosanoja)))
 
 (defclass tilasto-paremmuus ()
-  ((lista :reader lista :initarg :lista)))
+  ((lista :reader lista :initarg :lista)
+   (kokonaiskeskiarvo :reader kokonaiskeskiarvo :initarg :kokonaiskeskiarvo)))
 
 
 (defun pyöristä (luku &optional (tarkkuus 1))
@@ -997,7 +998,8 @@
 
 (defun tilasto-paremmuus (hakulista &optional painokerroin)
   (let ((hajautustaulu (make-hash-table))
-        (rivit nil))
+        (rivit nil)
+        (summa 0))
 
     (loop :for hakutermit :in hakulista
           :do (apply #'tilasto-paremmuus-1 hajautustaulu painokerroin
@@ -1005,17 +1007,20 @@
 
     (when (plusp (hash-table-count hajautustaulu))
 
-      (loop :for oppilas :being :each :hash-value :in hajautustaulu
+      (loop :with ka := nil
+            :for oppilas :being :each :hash-value :in hajautustaulu
             :for suoritusmäärä := (getf oppilas :suoritusmäärä)
             :if (plusp suoritusmäärä)
-            :collect (list (getf oppilas :nimi)
-                           (lista-mj-listaksi
-                            (sort (getf oppilas :ryhmät) #'string-lessp))
-                           (pyöristä
-                            (/ (reduce #'+ (getf oppilas :arvosanat))
-                               (length (getf oppilas :arvosanat)))
-                            1/100)
-                           suoritusmäärä)
+            :do
+            (setf ka (/ (reduce #'+ (getf oppilas :arvosanat))
+                        (length (getf oppilas :arvosanat))))
+            (incf summa ka)
+            :and :collect
+            (list (getf oppilas :nimi)
+                  (lista-mj-listaksi (sort (getf oppilas :ryhmät)
+                                           #'string-lessp))
+                  (pyöristä ka 1/100)
+                  suoritusmäärä)
             :into lista
             :finally (setf rivit lista))
 
@@ -1030,7 +1035,10 @@
           (setf rivit (sort rivit #'rivi>))
           (loop :for rivi :in rivit
                 :do (setf (nth 2 rivi) (tulosta-luku (nth 2 rivi) 2)))
-          (make-instance 'tilasto-paremmuus :lista rivit))))))
+          (make-instance 'tilasto-paremmuus
+                         :lista rivit
+                         :kokonaiskeskiarvo
+                         (tulosta-luku (/ summa (length rivit)) 2)))))))
 
 
 (defun tilasto-koonti ()
@@ -1370,17 +1378,25 @@
 
 (defmethod tulosta ((paremmuus tilasto-paremmuus))
   (setf *muokattavat* nil)
-  (let ((leveys (olion-mj-pituus (length (lista paremmuus))))
-        (rivit nil))
-    (loop :with edellinen-as := nil
-          :for rivi :in (lista paremmuus)
-          :for as := (nth 2 rivi)
+  (let ((sija-leveys)
+        (lkm-leveys)
+        (rivit))
+
+    (loop :for (nil nil nil lkm) :in (lista paremmuus)
+          :for i :upfrom 1
+          :maximize lkm :into suurin-lkm
+          :finally (setf sija-leveys (olion-mj-pituus i)
+                         lkm-leveys (max 3 (olion-mj-pituus lkm))))
+
+    (loop :with edellinen-ka := nil
+          :for (nimi ryhmät ka lkm) :in (lista paremmuus)
           :for sija :upfrom 1
-          :collect (cons (format nil "~V@A" leveys
-                                 (if (equal edellinen-as as) "" sija))
-                         rivi)
+          :collect (list (format nil "~V@A" sija-leveys
+                                 (if (equal edellinen-ka ka) "" sija))
+                         nimi ryhmät ka
+                         (format nil "~V@A" lkm-leveys lkm))
           :into valmis
-          :do (setf edellinen-as as)
+          :do (setf edellinen-ka ka)
           :finally (setf rivit valmis))
 
     (tulosta-taulu
@@ -1389,6 +1405,8 @@
                          (otsikko "Ka") (otsikko "Lkm")))
              (list :viiva-otsikko)
              rivit
+             (list :viiva)
+             (list (list nil "Keskiarvo" nil (kokonaiskeskiarvo paremmuus)))
              (list :viiva-loppu)))
 
     (unless (muoto nil :latex)
