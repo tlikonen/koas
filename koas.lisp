@@ -908,10 +908,9 @@
                            :taulukko taulukko)))))))
 
 
-(defun tilasto-jakauma-1 (hajautustaulu &optional (sukunimi "") (etunimi "")
-                                          (ryhmä "") (lisätiedot "")
-                                          (suoritus "") (lyhenne "")
-                                          painokerroin)
+(defun tilasto-jakauma-1 (hajautustaulu painokerroin
+                          &optional (sukunimi "") (etunimi "") (ryhmä "")
+                            (lisätiedot "") (suoritus "") (lyhenne ""))
   (let ((kysely
          (mapcar #'first (query "SELECT a.arvosana ~
                 FROM oppilaat_ryhmat AS j ~
@@ -942,10 +941,8 @@
 
 (defun tilasto-jakauma (hakulista &optional painokerroin)
   (loop :with taulu := (make-hash-table :test #'equalp)
-        :for (sukunimi etunimi ryhmä lisätiedot suoritus lyhenne)
-        :in hakulista
-        :do (tilasto-jakauma-1 taulu sukunimi etunimi ryhmä lisätiedot
-                               suoritus lyhenne painokerroin)
+        :for hakutermit :in hakulista
+        :do (apply #'tilasto-jakauma-1 taulu painokerroin hakutermit)
         :finally
         (when (loop :for n :being :each :hash-value :in taulu
                     :thereis (plusp n))
