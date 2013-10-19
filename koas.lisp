@@ -614,9 +614,12 @@
    (arvosanoja :reader arvosanoja :initarg :arvosanoja)))
 
 
+(defun pyöristä (luku &optional (tarkkuus 1))
+  (* tarkkuus (decimals:round-half-away-from-zero luku tarkkuus)))
+
+
 (defun muuta-arvosanaksi (luku)
-  (let ((neliporras (* 1/4 (decimals:round-half-away-from-zero
-                            (abs luku) 1/4)))
+  (let ((neliporras (pyöristä (abs luku) 1/4))
         (merkki (if (minusp luku) "-" "")))
     (multiple-value-bind (koko murto)
         (truncate neliporras)
@@ -1266,8 +1269,7 @@
           :for määrä := (gethash as (hajautustaulu jakauma) 0)
           :collect (list as (format nil "~V@A" lkm-leveys määrä)
                          (let* ((suhde (/ määrä suurin-arvo))
-                                (pituus (decimals:round-half-away-from-zero
-                                         (* suhde leveys))))
+                                (pituus (pyöristä (* suhde leveys))))
                            (make-string pituus :initial-element #\#)))
           :into taulu
           :finally
