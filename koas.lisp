@@ -613,6 +613,9 @@
    (suorituksia :reader suorituksia :initarg :suorituksia)
    (arvosanoja :reader arvosanoja :initarg :arvosanoja)))
 
+(defclass tilasto-paremmuus ()
+  ((lista :reader lista :initarg :lista)))
+
 
 (defun pyöristä (luku &optional (tarkkuus 1))
   (* tarkkuus (decimals:round-half-away-from-zero luku tarkkuus)))
@@ -952,6 +955,84 @@
           (return (make-instance 'tilasto-jakauma :hajautustaulu taulu)))))
 
 
+(defun tilasto-paremmuus-1 (hajautustaulu painokerroin
+                            &optional (sukunimi "") (etunimi "") (ryhmä "")
+                              (lisätiedot "") (suoritus "") (lyhenne ""))
+  (let ((kysely
+         (query "SELECT o.oid,o.sukunimi,o.etunimi,r.nimi,~
+                a.arvosana,s.painokerroin ~
+                FROM oppilaat_ryhmat AS j ~
+                JOIN oppilaat AS o ON o.oid=j.oid ~
+                JOIN ryhmat AS r ON r.rid=j.rid ~
+                JOIN suoritukset AS s ON r.rid=s.rid ~
+                JOIN arvosanat AS a ON a.oid=o.oid AND s.sid=a.sid ~
+                WHERE o.sukunimi LIKE ~A ~
+                AND o.etunimi LIKE ~A ~
+                AND r.nimi LIKE ~A ~
+                AND o.lisatiedot LIKE ~A ~
+                AND s.nimi LIKE ~A ~
+                AND s.lyhenne LIKE ~A ~A ~
+                ORDER BY o.oid"
+                (sql-like-suoja sukunimi "%" "%")
+                (sql-like-suoja etunimi "%" "%")
+                (sql-like-suoja ryhmä "%" "%")
+                (sql-like-suoja lisätiedot "%" "%")
+                (sql-like-suoja suoritus "%" "%")
+                (sql-like-suoja lyhenne "%" "%")
+                (if painokerroin "AND s.painokerroin>=1" ""))))
+
+    (loop :for rivi :in kysely
+          :for (oid sukunimi etunimi ryhmä arvosana painokerroin) := rivi
+          :for as := (lue-numero arvosana)
+          :if (numberp as) :do
+          (setf (getf (gethash oid hajautustaulu) :nimi)
+                (concatenate 'string sukunimi ", " etunimi))
+          (pushnew ryhmä (getf (gethash oid hajautustaulu) :ryhmät)
+                   :test #'equalp)
+          (loop :repeat (or painokerroin 1)
+                :do (push as (getf (gethash oid hajautustaulu) :arvosanat))
+                :finally (incf (getf (gethash oid hajautustaulu)
+                                     :suoritusmäärä 0))))))
+
+
+(defun tilasto-paremmuus (hakulista &optional painokerroin)
+  (let ((hajautustaulu (make-hash-table))
+        (rivit nil))
+
+    (loop :for hakutermit :in hakulista
+          :do (apply #'tilasto-paremmuus-1 hajautustaulu painokerroin
+                     hakutermit))
+
+    (when (plusp (hash-table-count hajautustaulu))
+
+      (loop :for oppilas :being :each :hash-value :in hajautustaulu
+            :for suoritusmäärä := (getf oppilas :suoritusmäärä)
+            :if (plusp suoritusmäärä)
+            :collect (list (getf oppilas :nimi)
+                           (lista-mj-listaksi
+                            (sort (getf oppilas :ryhmät) #'string-lessp))
+                           (pyöristä
+                            (/ (reduce #'+ (getf oppilas :arvosanat))
+                               (length (getf oppilas :arvosanat)))
+                            1/100)
+                           suoritusmäärä)
+            :into lista
+            :finally (setf rivit lista))
+
+      (when rivit
+        (flet ((rivi> (r1 r2)
+                 (let ((a1 (nth 2 r1))
+                       (a2 (nth 2 r2)))
+                   (or (> a1 a2)
+                       (and (= a1 a2)
+                            (string-lessp (nth 0 r1) (nth 0 r2)))))))
+
+          (setf rivit (sort rivit #'rivi>))
+          (loop :for rivi :in rivit
+                :do (setf (nth 2 rivi) (tulosta-luku (nth 2 rivi) 2)))
+          (make-instance 'tilasto-paremmuus :lista rivit))))))
+
+
 (defun tilasto-koonti ()
   (let ((oppilaita (caar (query "SELECT count(*) FROM oppilaat")))
         (ryhmiä (caar (query "SELECT count(*) FROM ryhmat")))
@@ -1287,6 +1368,36 @@
                          (otsikko "Lkm") "= lukumäärä")))))))
 
 
+(defmethod tulosta ((paremmuus tilasto-paremmuus))
+  (setf *muokattavat* nil)
+  (let ((leveys (olion-mj-pituus (length (lista paremmuus))))
+        (rivit nil))
+    (loop :with edellinen-as := nil
+          :for rivi :in (lista paremmuus)
+          :for as := (nth 2 rivi)
+          :for sija :upfrom 1
+          :collect (cons (format nil "~V@A" leveys
+                                 (if (equal edellinen-as as) "" sija))
+                         rivi)
+          :into valmis
+          :do (setf edellinen-as as)
+          :finally (setf rivit valmis))
+
+    (tulosta-taulu
+     (append (list :viiva-alku)
+             (list (list (otsikko "") (otsikko "Oppilas") (otsikko "Ryhmät")
+                         (otsikko "Ka") (otsikko "Lkm")))
+             (list :viiva-otsikko)
+             rivit
+             (list :viiva-loppu)))
+
+    (unless (muoto nil :latex)
+      (viesti "~%")
+      (tulosta-taulu
+       (list (list (otsikko "Ka") "= keskiarvo"
+                   (otsikko "Lkm") "= suoritusten lukumäärä"))))))
+
+
 (defmethod tulosta ((koonti tilasto-koonti))
   (setf *muokattavat* nil)
   (let ((suurin (reduce #'max (list (oppilaita koonti)
@@ -1591,6 +1702,23 @@
         :into haut
         :finally
         (tulosta (tilasto-jakauma haut painokerroin))))
+
+
+(defun komento-tilasto-paremmuus (arg &optional painokerroin)
+  ;; |/sukunimi/etunimi/ryhmä/lisätiedot/suoritus/lyhenne|/...
+  (when (zerop (length arg))
+    (setf arg "|"))
+  (loop :for haku-mj :in (pilko-erottimella arg)
+        :for haku := (pilko-erottimella haku-mj)
+        :collect (list (nth 0 haku)
+                       (nth 1 haku)
+                       (nth 2 haku)
+                       (nth 3 haku)
+                       (nth 4 haku)
+                       (nth 5 haku))
+        :into haut
+        :finally
+        (tulosta (tilasto-paremmuus haut painokerroin))))
 
 
 (defun komento-tilasto-koonti ()
@@ -2008,7 +2136,11 @@
     :viiva
     '("tj  |/suku/etu/ryh/lisät/suor/lyh|/..." "Tulosta jakauma arvosanoista.")
     '("tjp |/suku/etu/ryh/lisät/suor/lyh|/..."
-      "Tulosta jakauma (vain painokertoimelliset).")
+      "Kuten tj mutta vain painokertoimelliset.")
+    '("tp  |/suku/etu/ryh/lisät/suor/lyh|/..."
+      "Tulosta oppilaat paremmuusjärjestyksessä.")
+    '("tpp |/suku/etu/ryh/lisät/suor/lyh|/..."
+      "Kuten tp mutta vain painokertoimelliset.")
     '("tk" "Tulosta tietokannasta koonti.")
     :viiva
     '("lo /sukunimi/etunimi/ryhmät/lisätiedot" "Lisää oppilas.")
@@ -2040,7 +2172,7 @@ erotinmerkeillä.
     ho ,Meikäl,Mat
     ho 3Meikäl3Mat
 
-Tilastokomennoissa (\"tj\" ja \"tjp\") oleva pystyviiva (|) tarkoittaa
+Tilastokomennoissa (tj, tjp, tp ja tpp) oleva pystyviiva (|) tarkoittaa
 myös erotinmerkkiä. Näissä komennoissa on kaksitasoinen kenttien erotus,
 joten niille voi määritellä useita hakulausekkeita. Ensin argumentit
 jaetaan |-merkin avulla ryhmiin erillisiksi hakulausekeryhmiksi ja
@@ -2051,8 +2183,9 @@ tavalla:
     tj |///2012:8a|///2013:8b
     tj @,,,2012:8a@...2013:8b
 
-Komento \"tjp\" on muutoin samanlainen kuin \"tj\", mutta se huomioi
-vain sellaiset suoritukset, joille on määritelty painokerroin.
+Komennot \"tjp\" ja \"tpp\" ovat muutoin samanlaisia kuin \"tj\" ja
+\"tp\", mutta ne huomioivat vain sellaiset suoritukset, joille on
+määritelty painokerroin.
 
 Komentojen \"m\", \"ms\" ja \"poista\" kohdalla argumentti \"numerot\"
 tarkoittaa kokonaislukujen luetteloa, esimerkiksi \"1,4\" tai \"2-5,9\".
@@ -2203,6 +2336,8 @@ laskennassa. Alla on esimerkkejä suoritusten lisäämisestä.
             ((testaa "ls") (komento-lisää-suoritus arg))
             ((testaa "tj") (komento-tilasto-jakauma arg))
             ((testaa "tjp") (komento-tilasto-jakauma arg t))
+            ((testaa "tp") (komento-tilasto-paremmuus arg))
+            ((testaa "tpp") (komento-tilasto-paremmuus arg t))
             ((testaa "tk") (komento-tilasto-koonti))
             ((or (testaa "?") (testaa "??") (testaa "???")) (ohjeet komento))
             (*vuorovaikutteinen*
