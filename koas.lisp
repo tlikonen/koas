@@ -916,8 +916,8 @@
 
 
 (defun tilasto-jakauma-1 (hajautustaulu painokerroin
-                          &optional (sukunimi "") (etunimi "") (ryhmä "")
-                            (lisätiedot "") (suoritus "") (lyhenne ""))
+                          &optional (ryhmä "") (suoritus "") (lyhenne "")
+                            (sukunimi "") (etunimi "") (lisätiedot ""))
   (let ((kysely
          (mapcar #'first (query "SELECT a.arvosana ~
                 FROM oppilaat_ryhmat AS j ~
@@ -957,8 +957,8 @@
 
 
 (defun tilasto-paremmuus-1 (hajautustaulu painokerroin
-                            &optional (sukunimi "") (etunimi "") (ryhmä "")
-                              (lisätiedot "") (suoritus "") (lyhenne ""))
+                            &optional (ryhmä "") (suoritus "") (lyhenne "")
+                              (sukunimi "") (etunimi "") (lisätiedot ""))
   (let ((kysely
          (query "SELECT o.oid,o.sukunimi,o.etunimi,r.nimi,~
                 a.arvosana,s.painokerroin ~
@@ -1706,7 +1706,7 @@
 
 
 (defun komento-tilasto-jakauma (arg &optional painokerroin)
-  ;; @/sukunimi/etunimi/ryhmä/lisätiedot/suoritus/lyhenne@/...
+  ;; @/ryhmä/suoritus/lyhenne/sukunimi/etunimi/lisätiedot@/...
   (when (zerop (length arg))
     (setf arg "@"))
   (loop :for haku-mj :in (pilko-erottimella arg)
@@ -1723,7 +1723,7 @@
 
 
 (defun komento-tilasto-paremmuus (arg &optional painokerroin)
-  ;; @/sukunimi/etunimi/ryhmä/lisätiedot/suoritus/lyhenne@/...
+  ;; @/ryhmä/suoritus/lyhenne/sukunimi/etunimi/lisätiedot@/...
   (when (zerop (length arg))
     (setf arg "@"))
   (loop :for haku-mj :in (pilko-erottimella arg)
@@ -2152,12 +2152,12 @@
     '("has ryhmä /suoritus/lyhenne" "Hae arvosanat suorituksista.")
     '("hak ryhmä" "Hae arvosanojen koonti.")
     :viiva
-    '("tj  @/suku/etu/ryh/lisät/suor/lyh@/..." "Tulosta jakauma arvosanoista.")
-    '("tjp @/suku/etu/ryh/lisät/suor/lyh@/..."
+    '("tj  @/ryh/suor/lyh/suku/etu/lisät@/..." "Tulosta jakauma arvosanoista.")
+    '("tjp @/ryh/suor/lyh/suku/etu/lisät@/..."
       "Kuten tj mutta vain painokertoimelliset.")
-    '("tp  @/suku/etu/ryh/lisät/suor/lyh@/..."
+    '("tp  @/ryh/suor/lyh/suku/etu/lisät@/..."
       "Tulosta oppilaat paremmuusjärjestyksessä.")
-    '("tpp @/suku/etu/ryh/lisät/suor/lyh@/..."
+    '("tpp @/ryh/suor/lyh/suku/etu/lisät@/..."
       "Kuten tp mutta vain painokertoimelliset.")
     '("tk" "Tulosta tietokannasta koonti.")
     :viiva
