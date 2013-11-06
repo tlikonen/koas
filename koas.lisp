@@ -2198,8 +2198,8 @@ sitten kukin ryhmä jaetaan hakukentiksi /-merkin avulla. Erotinmerkit
 voi valita vapaasti. Kumpikin seuraavista komennoista toimii samalla
 tavalla:
 
-    tj @///2012:8a@///2013:8b
-    tj %,,,2012:8a%...2013:8b
+    tj @/2012:8a/sanaluokat@/2013:8b/sanaluokat
+    tj %,2012:8a,sanaluokat%.2013:8b.sanaluokat
 
 Komennot \"tjp\" ja \"tpp\" ovat muutoin samanlaisia kuin \"tj\" ja
 \"tp\", mutta ne huomioivat vain sellaiset suoritukset, joille on
