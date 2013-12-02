@@ -817,6 +817,7 @@
                 AND o.etunimi LIKE ~A ~
                 AND r.nimi LIKE ~A ~
                 AND o.lisatiedot LIKE ~A ~
+                AND s.sid IS NOT NULL ~
                 ORDER BY o.sukunimi,o.etunimi,o.oid,r.nimi,r.rid,s.sija,s.sid"
                 (sql-like-suoja sukunimi "%" "%")
                 (sql-like-suoja etunimi "%" "%")
@@ -847,19 +848,15 @@
 
           (when (or (not (eql oid seuraava-oid))
                     (not (eql rid seuraava-rid)))
-            (when (some (lambda (as)
-                          (or (arvosana as)
-                              (lisätiedot as)))
-                        arvosanat)
-              (push (make-instance 'arvosanat-oppilaalta
-                                   :oid oid
-                                   :sukunimi sukunimi
-                                   :etunimi etunimi
-                                   :lisätiedot o-lisätiedot
-                                   :rid rid
-                                   :ryhmä r-nimi
-                                   :arvosanalista (nreverse arvosanat))
-                    oppilas-ryhmät))
+            (push (make-instance 'arvosanat-oppilaalta
+                                 :oid oid
+                                 :sukunimi sukunimi
+                                 :etunimi etunimi
+                                 :lisätiedot o-lisätiedot
+                                 :rid rid
+                                 :ryhmä r-nimi
+                                 :arvosanalista (nreverse arvosanat))
+                  oppilas-ryhmät)
             (setf arvosanat nil))
 
           :finally
