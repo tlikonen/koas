@@ -213,7 +213,7 @@
                 sukunimi TEXT, etunimi TEXT, ~
                 lisatiedot TEXT DEFAULT '')")
     (query "CREATE TABLE ryhmat_v3 ~
-                (rid INTEGER PRIMARY KEY, nimi TEXT,
+                (rid INTEGER PRIMARY KEY, nimi TEXT, ~
                 lisatiedot TEXT DEFAULT '')")
     (query "CREATE TABLE suoritukset_v3 ~
                 (sid INTEGER PRIMARY KEY, ~
@@ -277,7 +277,7 @@
                 sukunimi TEXT, etunimi TEXT, ~
                 lisatiedot TEXT DEFAULT '')")
     (query "CREATE TABLE ryhmat ~
-                (rid INTEGER PRIMARY KEY, nimi TEXT,
+                (rid INTEGER PRIMARY KEY, nimi TEXT, ~
                 lisatiedot TEXT DEFAULT '')")
     (query "CREATE TABLE suoritukset ~
                 (sid INTEGER PRIMARY KEY, ~
