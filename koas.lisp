@@ -665,6 +665,10 @@
             (tulosta-luku (/ summa painotussumma) desimaalit)))))
 
 
+(defun oppilas-mj (sukunimi etunimi)
+  (concatenate 'string sukunimi ", " etunimi))
+
+
 (defun hae-oppilaat (sukunimi &optional (etunimi "") (ryhmä "")
                                 (lisätiedot ""))
   (let ((kysely ;Ei karsita vielä ryhmän perusteella.
@@ -900,7 +904,7 @@
             (loop :for (sukunimi etunimi . arvosanat) :in kysely
                   :for opp :upfrom 0
                   :do
-                  (push (format nil "~A, ~A" sukunimi etunimi) oppilaslista)
+                  (push (oppilas-mj sukunimi etunimi) oppilaslista)
                   (loop :for arvosana :in arvosanat
                         :for arv :upfrom 0
                         :do (setf (aref taulukko opp arv) arvosana)))
@@ -984,7 +988,7 @@
           :for as := (lue-numero arvosana)
           :if (numberp as) :do
           (setf (getf (gethash oid hajautustaulu) :nimi)
-                (concatenate 'string sukunimi ", " etunimi))
+                (oppilas-mj sukunimi etunimi))
           (pushnew ryhmä (getf (gethash oid hajautustaulu) :ryhmät)
                    :test #'equalp)
           (loop :repeat (or painokerroin 1)
@@ -1162,8 +1166,7 @@
                (taulu (loop :for arvosana :in (arvosanalista arv-suo)
                             :for suku := (sukunimi arvosana)
                             :for etu := (etunimi arvosana)
-                            :collect (append (list (format nil "~A, ~A"
-                                                           suku etu))
+                            :collect (append (list (oppilas-mj suku etu))
                                              (list (arvosana arvosana))
                                              (unless *suppea*
                                                (list (lisätiedot arvosana))))
@@ -1223,9 +1226,8 @@
           (tulosta-taulu
            (append (list :viiva-alku)
                    (list (list (otsikko "Oppilas:")
-                               (format nil "~A, ~A"
-                                       (sukunimi arv-opp)
-                                       (etunimi arv-opp))))
+                               (oppilas-mj (sukunimi arv-opp)
+                                           (etunimi arv-opp))))
                    (list (list (otsikko "Ryhmä:") (ryhmä arv-opp)))
                    (let ((lis (lisätiedot arv-opp)))
                      (if (or (not lis) (equal lis "") *suppea*)
