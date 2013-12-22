@@ -783,6 +783,7 @@
                 WHERE r.nimi LIKE ~A ~
                 AND s.nimi LIKE ~A ~
                 AND s.lyhenne LIKE ~A ~
+                AND o.oid IS NOT NULL ~
                 ORDER BY r.nimi,r.rid,s.sija,s.sid,o.sukunimi,o.etunimi,o.oid"
                 (sql-like-suoja ryhmä)
                 (sql-like-suoja nimi "%" "%")
