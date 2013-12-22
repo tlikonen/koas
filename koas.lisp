@@ -542,7 +542,8 @@
    (sukunimi :accessor sukunimi :initarg :sukunimi)
    (etunimi :accessor etunimi :initarg :etunimi)
    (ryhmälista :accessor ryhmälista :initarg :ryhmälista)
-   (lisätiedot :accessor lisätiedot :initarg :lisätiedot)))
+   (oppilas-lisätiedot :accessor oppilas-lisätiedot
+                       :initarg :oppilas-lisätiedot)))
 
 (defclass oppilaat ()
   ((oppilaslista :accessor oppilaslista :initarg :oppilaslista)))
@@ -563,7 +564,8 @@
 (defclass ryhmä ()
   ((rid :reader rid :initarg :rid)
    (nimi :accessor nimi :initarg :nimi)
-   (lisätiedot :accessor lisätiedot :initarg :lisätiedot :initform nil)))
+   (ryhmä-lisätiedot :accessor ryhmä-lisätiedot :initarg :ryhmä-lisätiedot
+                     :initform nil)))
 
 (defclass ryhmät ()
   ((ryhmälista :reader ryhmälista :initarg :ryhmälista)))
@@ -577,7 +579,8 @@
    (lyhenne :reader lyhenne :initarg :lyhenne)
    (painokerroin :reader painokerroin :initarg :painokerroin :initform nil)
    (arvosana :accessor arvosana :initarg :arvosana :initform "")
-   (lisätiedot :accessor lisätiedot :initarg :lisätiedot :initform nil)))
+   (arvosana-lisätiedot :accessor arvosana-lisätiedot
+                        :initarg :arvosana-lisätiedot :initform nil)))
 
 (defclass arvosanat-suorituksesta ()
   ((nimi :reader nimi :initarg :nimi); suorituksen nimi
@@ -592,7 +595,7 @@
   ((oid :reader oid :initarg :oid)
    (sukunimi :reader sukunimi :initarg :sukunimi)
    (etunimi :reader etunimi :initarg :etunimi)
-   (lisätiedot :reader lisätiedot :initarg :lisätiedot)
+   (oppilas-lisätiedot :reader oppilas-lisätiedot :initarg :oppilas-lisätiedot)
    (rid :reader rid :initarg :rid)
    (ryhmä :reader ryhmä :initarg :ryhmä)
    (ryhmä-lisätiedot :reader ryhmä-lisätiedot :initarg :ryhmä-lisätiedot)
@@ -713,7 +716,7 @@
                                    :etunimi etunimi
                                    :ryhmälista
                                    (delete-if #'zerop ryhmät :key #'length)
-                                   :lisätiedot lisätiedot)
+                                   :oppilas-lisätiedot lisätiedot)
                     oppilaat))
             (setf ryhmät nil))
 
@@ -764,7 +767,7 @@
                          (make-instance 'ryhmä
                                         :rid rid
                                         :nimi nimi
-                                        :lisätiedot lisätiedot))))))
+                                        :ryhmä-lisätiedot lisätiedot))))))
 
 
 (defun hae-arvosanat-suorituksista (ryhmä &optional (nimi "") (lyhenne ""))
@@ -802,7 +805,7 @@
                                :lyhenne lyhenne
                                :painokerroin painokerroin
                                :arvosana arvosana
-                               :lisätiedot a-lisätiedot)
+                               :arvosana-lisätiedot a-lisätiedot)
                 arvosanat)
 
           (unless (eql sid seuraava-sid)
@@ -862,7 +865,7 @@
                                :lyhenne lyhenne
                                :painokerroin painokerroin
                                :arvosana arvosana
-                               :lisätiedot a-lisätiedot)
+                               :arvosana-lisätiedot a-lisätiedot)
                 arvosanat)
 
           (when (or (not (eql oid seuraava-oid))
@@ -871,7 +874,7 @@
                                  :oid oid
                                  :sukunimi sukunimi
                                  :etunimi etunimi
-                                 :lisätiedot o-lisätiedot
+                                 :oppilas-lisätiedot o-lisätiedot
                                  :rid rid
                                  :ryhmä r-nimi
                                  :ryhmä-lisätiedot r-lisätiedot
@@ -1096,7 +1099,7 @@
                                (list (lista-mj-listaksi
                                       (ryhmälista oppilas)))
                                (unless *suppea*
-                                 (list (lisätiedot oppilas)))))))
+                                 (list (oppilas-lisätiedot oppilas)))))))
 
     (tulosta-taulu
      (append (list :viiva-alku)
@@ -1158,7 +1161,7 @@
 
   (let ((taulu (loop :for ryhmä :in (ryhmälista lista)
                      :collect (list (nimi ryhmä)
-                                    (lisätiedot ryhmä)))))
+                                    (ryhmä-lisätiedot ryhmä)))))
     (tulosta-taulu
      (append (list :viiva-alku)
              (list (append (if *muokattavat* (list nil))
@@ -1183,10 +1186,11 @@
                (taulu (loop :for arvosana :in (arvosanalista arv-suo)
                             :for suku := (sukunimi arvosana)
                             :for etu := (etunimi arvosana)
-                            :collect (append (list (oppilas-mj suku etu))
-                                             (list (arvosana arvosana))
-                                             (unless *suppea*
-                                               (list (lisätiedot arvosana))))
+                            :collect
+                            (append (list (oppilas-mj suku etu))
+                                    (list (arvosana arvosana))
+                                    (unless *suppea*
+                                      (list (arvosana-lisätiedot arvosana))))
                             :do (push (arvosana arvosana) luvut))))
 
           (tulosta-taulu
@@ -1233,11 +1237,12 @@
         (let* ((arvot)
                (kertoimet)
                (taulu (loop :for arvosana :in (arvosanalista arv-opp)
-                            :collect (append (list (nimi arvosana))
-                                             (list (arvosana arvosana))
-                                             (list (painokerroin arvosana))
-                                             (unless *suppea*
-                                               (list (lisätiedot arvosana))))
+                            :collect
+                            (append (list (nimi arvosana))
+                                    (list (arvosana arvosana))
+                                    (list (painokerroin arvosana))
+                                    (unless *suppea*
+                                      (list (arvosana-lisätiedot arvosana))))
                             :do
                             (push (arvosana arvosana) arvot)
                             (push (painokerroin arvosana) kertoimet))))
@@ -1250,7 +1255,7 @@
                    (list (list (otsikko "Ryhmä:")
                                (ryhmä-mj (ryhmä arv-opp)
                                          (ryhmä-lisätiedot arv-opp))))
-                   (let ((lis (lisätiedot arv-opp)))
+                   (let ((lis (oppilas-lisätiedot arv-opp)))
                      (if (or (not lis) (equal lis "") *suppea*)
                          nil
                          (list (list (otsikko "Lisätiedot:") lis))))
@@ -1471,7 +1476,7 @@
         VALUES (~A,~A,~A)"
          (sql-mj (sukunimi oppilas))
          (sql-mj (etunimi oppilas))
-         (sql-mj (lisätiedot oppilas)))
+         (sql-mj (oppilas-lisätiedot oppilas)))
   (let ((oid (query-last-insert-rowid)))
     (loop :for ryhmä :in (ryhmälista oppilas)
           :for rid := (caar (query "SELECT rid FROM ryhmat ~
@@ -1534,7 +1539,7 @@
                 WHERE oid=~A"
            (sql-mj (sukunimi oppilas))
            (sql-mj (etunimi oppilas))
-           (sql-mj (lisätiedot oppilas))
+           (sql-mj (oppilas-lisätiedot oppilas))
            (oid oppilas))
 
     (loop :for ryhmä :in (ryhmälista oppilas)
@@ -1589,12 +1594,12 @@
 (defmethod muokkaa ((ryhmä ryhmä) &key)
   (query "UPDATE ryhmat SET nimi=~A,lisatiedot=~A WHERE rid=~A"
          (sql-mj (nimi ryhmä))
-         (sql-mj (lisätiedot ryhmä))
+         (sql-mj (ryhmä-lisätiedot ryhmä))
          (rid ryhmä)))
 
 
 (defmethod muokkaa ((arvosana arvosana) &key)
-  (let ((lisätiedot (let ((lisä (lisätiedot arvosana)))
+  (let ((lisätiedot (let ((lisä (arvosana-lisätiedot arvosana)))
                       (if (or (not lisä) (equal lisä ""))
                           "NULL"
                           (sql-mj lisä)))))
@@ -1781,7 +1786,7 @@
                             :sukunimi (normalisoi-mj (nth 0 jaettu))
                             :etunimi (normalisoi-mj (nth 1 jaettu))
                             :ryhmälista (normalisoi-ryhmät (nth 2 jaettu))
-                            :lisätiedot (normalisoi-mj (nth 3 jaettu))))
+                            :oppilas-lisätiedot (normalisoi-mj (nth 3 jaettu))))
       (lisää-muokkauslaskuriin 1))
     (eheytys)))
 
@@ -1935,7 +1940,7 @@
     (unless (eql uusi-ryhmä :tyhjä)
       (setf (ryhmälista kohde) (normalisoi-ryhmät uusi-ryhmä)))
     (unless (eql uusi-lisä :tyhjä)
-      (setf (lisätiedot kohde) (normalisoi-mj uusi-lisä)))
+      (setf (oppilas-lisätiedot kohde) (normalisoi-mj uusi-lisä)))
     (muokkaa kohde)))
 
 
@@ -2016,11 +2021,11 @@
     (unless (eql uusi-arvosana :tyhjä)
       (setf (arvosana kohde) (normalisoi-mj uusi-arvosana)))
     (unless (eql uusi-lisätiedot :tyhjä)
-      (setf (lisätiedot kohde) (normalisoi-mj uusi-lisätiedot)))
+      (setf (arvosana-lisätiedot kohde) (normalisoi-mj uusi-lisätiedot)))
     (if (and (or (not (arvosana kohde))
                  (equal (arvosana kohde) ""))
-             (or (not (lisätiedot kohde))
-                 (equal (lisätiedot kohde) "")))
+             (or (not (arvosana-lisätiedot kohde))
+                 (equal (arvosana-lisätiedot kohde) "")))
         (poista kohde)
         (muokkaa kohde))))
 
@@ -2049,7 +2054,7 @@
     (unless (eql uusi-nimi :tyhjä)
       (setf (nimi kohde) (normalisoi-mj uusi-nimi)))
     (unless (eql uusi-lisätiedot :tyhjä)
-      (setf (lisätiedot kohde) (normalisoi-mj uusi-lisätiedot)))
+      (setf (ryhmä-lisätiedot kohde) (normalisoi-mj uusi-lisätiedot)))
     (muokkaa kohde)))
 
 
