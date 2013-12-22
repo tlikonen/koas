@@ -557,6 +557,7 @@
 
 (defclass suoritukset ()
   ((ryhmä :reader ryhmä :initarg :ryhmä)
+   (ryhmä-lisätiedot :reader ryhmä-lisätiedot :initarg :ryhmä-lisätiedot)
    (suorituslista :reader suorituslista :initarg :suorituslista)))
 
 (defclass ryhmä ()
@@ -581,6 +582,7 @@
 (defclass arvosanat-suorituksesta ()
   ((nimi :reader nimi :initarg :nimi); suorituksen nimi
    (ryhmä :reader ryhmä :initarg :ryhmä)
+   (ryhmä-lisätiedot :reader ryhmä-lisätiedot :initarg :ryhmä-lisätiedot)
    (arvosanalista :reader arvosanalista :initarg :arvosanalista)))
 
 (defclass arvosanat-suorituksista ()
@@ -593,6 +595,7 @@
    (lisätiedot :reader lisätiedot :initarg :lisätiedot)
    (rid :reader rid :initarg :rid)
    (ryhmä :reader ryhmä :initarg :ryhmä)
+   (ryhmä-lisätiedot :reader ryhmä-lisätiedot :initarg :ryhmä-lisätiedot)
    (arvosanalista :reader arvosanalista :initarg :arvosanalista)))
 
 (defclass arvosanat-oppilailta ()
@@ -600,6 +603,7 @@
 
 (defclass arvosanat-koonti ()
   ((ryhmä :reader ryhmä :initarg :ryhmä)
+   (ryhmä-lisätiedot :reader ryhmä-lisätiedot :initarg :ryhmä-lisätiedot)
    (oppilaslista :reader oppilaslista :initarg :oppilaslista)
    (suorituslista :reader suorituslista :initarg :suorituslista)
    (taulukko :reader taulukko :initarg :taulukko)))
@@ -665,6 +669,13 @@
             (tulosta-luku (/ summa painotussumma) desimaalit)))))
 
 
+(defun ryhmä-mj (ryhmä lisätiedot)
+  (if (and (stringp lisätiedot)
+           (plusp (length lisätiedot)))
+      (concatenate 'string ryhmä " (" lisätiedot ")")
+      ryhmä))
+
+
 (defun oppilas-mj (sukunimi etunimi)
   (concatenate 'string sukunimi ", " etunimi))
 
@@ -714,7 +725,8 @@
 
 (defun hae-suoritukset (ryhmä)
   (let ((suoritukset
-         (query "SELECT s.sid,r.rid,s.nimi,s.lyhenne,s.painokerroin ~
+         (query "SELECT r.rid,r.nimi,r.lisatiedot,~
+                s.sid,s.nimi,s.lyhenne,s.painokerroin ~
                 FROM suoritukset AS s ~
                 JOIN ryhmat as r ON r.rid=s.rid ~
                 WHERE r.nimi LIKE ~A ~
@@ -724,14 +736,16 @@
     (when suoritukset
       (make-instance
        'suoritukset
-       :ryhmä ryhmä
+       :ryhmä (nth 1 (first suoritukset))
+       :ryhmä-lisätiedot (nth 2 (first suoritukset))
        :suorituslista
-       (loop :for (sid rid nimi lyhenne painokerroin) :in suoritukset
+       (loop :for (rid r-nimi r-lisätiedot sid s-nimi lyhenne painokerroin)
+             :in suoritukset
              :collect (make-instance 'suoritus
-                                     :ryhmä ryhmä
+                                     :ryhmä r-nimi
                                      :rid rid
                                      :sid sid
-                                     :nimi nimi
+                                     :nimi s-nimi
                                      :lyhenne lyhenne
                                      :painokerroin painokerroin))))))
 
@@ -755,7 +769,7 @@
 
 (defun hae-arvosanat-suorituksista (ryhmä &optional (nimi "") (lyhenne ""))
   (let ((kysely
-         (query "SELECT r.nimi,~
+         (query "SELECT r.nimi,r.lisatiedot,~
                 s.sid,s.nimi,s.lyhenne,s.painokerroin,~
                 o.oid,o.sukunimi,o.etunimi,a.arvosana,a.lisatiedot ~
                 FROM suoritukset AS s ~
@@ -774,9 +788,9 @@
     (loop :with suoritukset := nil
           :with arvosanat := nil
           :for (rivi . loput) :on kysely
-          :for (r-nimi sid s-nimi lyhenne painokerroin
+          :for (r-nimi r-lisätiedot sid s-nimi lyhenne painokerroin
                        oid sukunimi etunimi arvosana a-lisätiedot) := rivi
-          :for seuraava-sid := (nth 1 (first loput))
+          :for seuraava-sid := (nth 2 (first loput)) ;s.sid
           :do
 
           (push (make-instance 'arvosana
@@ -795,6 +809,7 @@
             (push (make-instance 'arvosanat-suorituksesta
                                  :nimi s-nimi
                                  :ryhmä r-nimi
+                                 :ryhmä-lisätiedot r-lisätiedot
                                  :arvosanalista (nreverse arvosanat))
                   suoritukset)
             (setf arvosanat nil))
@@ -809,7 +824,7 @@
                                             (lisätiedot ""))
   (let ((kysely
          (query "SELECT o.oid,o.sukunimi,o.etunimi,o.lisatiedot,~
-                r.rid,r.nimi,~
+                r.rid,r.nimi,r.lisatiedot,~
                 s.sid,s.nimi,s.lyhenne,s.painokerroin,~
                 a.arvosana,a.lisatiedot ~
                 FROM oppilaat_ryhmat AS j ~
@@ -831,11 +846,11 @@
     (loop :with oppilas-ryhmät := nil
           :with arvosanat := nil
           :for (rivi . loput) :on kysely
-          :for (oid sukunimi etunimi o-lisätiedot rid r-nimi
+          :for (oid sukunimi etunimi o-lisätiedot rid r-nimi r-lisätiedot
                     sid s-nimi lyhenne painokerroin arvosana a-lisätiedot)
           := rivi
           :for seuraava-oid := (caar loput)
-          :for seuraava-rid := (nth 4 (first loput))
+          :for seuraava-rid := (nth 4 (first loput)) ;r.rid
           :do
 
           (push (make-instance 'arvosana
@@ -859,6 +874,7 @@
                                  :lisätiedot o-lisätiedot
                                  :rid rid
                                  :ryhmä r-nimi
+                                 :ryhmä-lisätiedot r-lisätiedot
                                  :arvosanalista (nreverse arvosanat))
                   oppilas-ryhmät)
             (setf arvosanat nil))
@@ -871,7 +887,8 @@
 
 (defun hae-arvosanat-koonti (ryhmä)
   (let* ((suorituslista
-          (query "SELECT r.nimi,s.sid,s.nimi,s.lyhenne,s.painokerroin ~
+          (query "SELECT r.nimi,r.lisatiedot,~
+                s.sid,s.nimi,s.lyhenne,s.painokerroin ~
                 FROM ryhmat AS r ~
                 JOIN suoritukset AS s ON r.rid=s.rid ~
                 WHERE r.nimi LIKE ~A ~
@@ -893,7 +910,7 @@
                            ;; SQLiten suurin taulukkomäärä joinissa 64.
                            :for i :from 1 :below 64
                            :collect (format nil "a~A" i)
-                           :collect (nth 1 suoritus))
+                           :collect (nth 2 suoritus)) ;s.sid
                      (sql-like-suoja ryhmä))))
 
         (when kysely
@@ -910,7 +927,8 @@
                         :do (setf (aref taulukko opp arv) arvosana)))
 
             (make-instance 'arvosanat-koonti
-                           :ryhmä (caar suorituslista)
+                           :ryhmä (nth 0 (first suorituslista))
+                           :ryhmä-lisätiedot (nth 1 (first suorituslista))
                            :oppilaslista (nreverse oppilaslista)
                            :suorituslista suorituslista
                            :taulukko taulukko)))))))
@@ -1108,7 +1126,8 @@
 
     (tulosta-taulu
      (append (list :viiva-alku)
-             (list (list (otsikko "Ryhmä:") (ryhmä suo)))
+             (list (list (otsikko "Ryhmä:")
+                         (ryhmä-mj (ryhmä suo) (ryhmä-lisätiedot suo))))
              (list :viiva-loppu)))
     (viesti "~%")
 
@@ -1136,8 +1155,6 @@
                                  (not *tulostusmuoto*)
                                  (not *suppea*))
                         (coerce (ryhmälista lista) 'vector)))
-
-
 
   (let ((taulu (loop :for ryhmä :in (ryhmälista lista)
                      :collect (list (nimi ryhmä)
@@ -1174,7 +1191,9 @@
 
           (tulosta-taulu
            (append (list :viiva-alku)
-                   (list (list (otsikko "Ryhmä:") (ryhmä arv-suo)))
+                   (list (list (otsikko "Ryhmä:")
+                               (ryhmä-mj (ryhmä arv-suo)
+                                         (ryhmä-lisätiedot arv-suo))))
                    (list (list (otsikko "Suoritus:") (nimi arv-suo)))
                    (list :viiva-loppu)))
           (viesti "~%")
@@ -1228,7 +1247,9 @@
                    (list (list (otsikko "Oppilas:")
                                (oppilas-mj (sukunimi arv-opp)
                                            (etunimi arv-opp))))
-                   (list (list (otsikko "Ryhmä:") (ryhmä arv-opp)))
+                   (list (list (otsikko "Ryhmä:")
+                               (ryhmä-mj (ryhmä arv-opp)
+                                         (ryhmä-lisätiedot arv-opp))))
                    (let ((lis (lisätiedot arv-opp)))
                      (if (or (not lis) (equal lis "") *suppea*)
                          nil
@@ -1272,7 +1293,8 @@
         (ka-suoritus (make-array (array-dimension (taulukko koonti) 1)
                                  :initial-element nil)))
 
-    (loop :for (nil nil nil lyhenne painokerroin) :in (suorituslista koonti)
+    (loop :for (nil nil nil nil lyhenne painokerroin)
+          :in (suorituslista koonti)
           :collect lyhenne :into lyh
           :collect painokerroin :into ker
           :finally (setf lyhenteet lyh kertoimet ker))
@@ -1294,7 +1316,9 @@
 
     (tulosta-taulu
      (append (list :viiva-alku)
-             (list (append (list (otsikko "Ryhmä:")) (list (ryhmä koonti))))
+             (list (append (list (otsikko "Ryhmä:"))
+                           (list (ryhmä-mj (ryhmä koonti)
+                                           (ryhmä-lisätiedot koonti)))))
              (list :viiva-loppu)))
     (viesti "~%")
 
@@ -1330,7 +1354,8 @@
        (append (list :viiva-alku)
                (list (list (otsikko "Lyh") (otsikko "Suoritus")))
                (list :viiva-otsikko)
-               (loop :for (nil nil nimi lyhenne nil) :in (suorituslista koonti)
+               (loop :for (nil nil nil nimi lyhenne nil)
+                     :in (suorituslista koonti)
                      :collect (list lyhenne nimi))
                '(("ka" "Keskiarvo"))
                (list :viiva-loppu))))))
