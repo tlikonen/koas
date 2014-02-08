@@ -444,7 +444,7 @@
 (defun otsikko (mj)
   (setf mj (or mj ""))
   (case *tulostusmuoto*
-    (:wilma (format nil "**~A**" (if (equal "" mj) "" mj)))
+    (:wilma (if (equal "" mj) "" (format nil "~:@(~A~)" mj)))
     (:org (if (equal "" mj) "" (format nil "*~A*" mj)))
     (t mj)))
 
@@ -510,7 +510,7 @@
 
               :else :if (or (muoto nil :org)
                             (and (muoto :wilma)
-                                 (not (member rivi '(:viiva-alku :viiva-otsikko
+                                 (not (member rivi '(:viiva-alku
                                                      :viiva-loppu))))
                             (and (muoto :latex)
                                  (not (viivap rivi))))
@@ -1085,6 +1085,14 @@
             kentät)))
 
 
+(defun taulukkoväli (&optional iso)
+  (if iso
+      (cond ((muoto :wilma) (viesti "~%----------~%~%"))
+            (t (viesti "~%~%")))
+      (cond ((muoto :wilma) (viesti ".~%"))
+            (t (viesti "~%")))))
+
+
 (defgeneric tulosta (object))
 
 
@@ -1150,7 +1158,7 @@
                                  (length *muokattavat*)))
 
     (unless (muoto nil :latex)
-      (viesti "~%")
+      (taulukkoväli)
       (tulosta-taulu (list (list (otsikko "K") "= painokerroin"))))))
 
 
@@ -1201,7 +1209,8 @@
                                          (ryhmä-lisätiedot arv-suo))))
                    (list (list (otsikko "Suoritus:") (nimi arv-suo)))
                    (list :viiva-loppu)))
-          (viesti "~%")
+
+          (taulukkoväli)
 
           (tulosta-taulu
            (append (list :viiva-alku)
@@ -1218,10 +1227,10 @@
                    (list :viiva-loppu)))
 
           (unless (muoto nil :latex)
-            (viesti "~%")
+            (taulukkoväli)
             (tulosta-taulu (list (list (otsikko "As") "= arvosana")))))
 
-        :if lisää :do (viesti "~%~%"))
+        :if lisää :do (taulukkoväli t))
 
   (tulosta-muokattavat "arvosana" "lisätiedot"))
 
@@ -1261,7 +1270,8 @@
                          nil
                          (list (list (otsikko "Lisätiedot:") lis))))
                    (list :viiva-loppu)))
-          (viesti "~%")
+
+          (taulukkoväli)
 
           (tulosta-taulu
            (append (list :viiva-alku)
@@ -1280,12 +1290,12 @@
                    (list :viiva-loppu)))
 
           (unless (muoto nil :latex)
-            (viesti "~%")
+            (taulukkoväli)
             (tulosta-taulu
              (list (list (otsikko "As") "= arvosana"
                          (otsikko "K") "= painokerroin")))))
 
-        :if lisää :do (viesti "~%~%"))
+        :if lisää :do (taulukkoväli t))
 
   (tulosta-muokattavat "arvosana" "lisätiedot"))
 
@@ -1326,7 +1336,8 @@
                            (list (ryhmä-mj (ryhmä koonti)
                                            (ryhmä-lisätiedot koonti)))))
              (list :viiva-loppu)))
-    (viesti "~%")
+
+    (taulukkoväli)
 
     (tulosta-taulu
      (append
@@ -1355,7 +1366,7 @@
       (list :viiva-loppu)))
 
     (unless *suppea*
-      (viesti "~%")
+      (taulukkoväli)
       (tulosta-taulu
        (append (list :viiva-alku)
                (list (list (otsikko "Lyh") (otsikko "Suoritus")))
@@ -1400,7 +1411,7 @@
                    (list :viiva-loppu)))
 
           (unless (muoto nil :latex)
-            (viesti "~%")
+            (taulukkoväli)
             (tulosta-taulu
              (list (list (otsikko "As") "= arvosana"
                          (otsikko "Lkm") "= lukumäärä")))))))
@@ -1440,7 +1451,7 @@
              (list :viiva-loppu)))
 
     (unless (muoto nil :latex)
-      (viesti "~%")
+      (taulukkoväli)
       (tulosta-taulu
        (list (list (otsikko "Ka") "= keskiarvo"
                    (otsikko "Lkm") "= suoritusten lukumäärä"))))))
