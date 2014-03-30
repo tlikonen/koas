@@ -1087,10 +1087,12 @@
 
 (defun taulukkoväli (&optional iso)
   (if iso
-      (cond ((muoto :wilma) (viesti "~%----------~%~%"))
-            (t (viesti "~%~%")))
-      (cond ((muoto :wilma) (viesti ".~%"))
-            (t (viesti "~%")))))
+      (cond ((muoto :wilma) (viesti "~&~%----------~%~%"))
+            ((muoto :org) (viesti "~& ~%-----~% ~%"))
+            (t (viesti "~&~%~%")))
+      (cond ((muoto :wilma) (viesti "~&.~%"))
+            ((muoto :org) (viesti "~& ~%"))
+            (t (viesti "~&~%")))))
 
 
 (defgeneric tulosta (object))
