@@ -2195,13 +2195,14 @@
     '("has ryhmä /suoritus/lyhenne" "Hae arvosanat suorituksista.")
     '("hak ryhmä" "Hae arvosanojen koonti.")
     :viiva
-    '("tj  @/ryh/suor/lyh/suku/etu/lisät@/..." "Tulosta jakauma arvosanoista.")
-    '("tjp @/ryh/suor/lyh/suku/etu/lisät@/..."
-      "Kuten tj mutta vain painokertoimelliset.")
+    '("tj  @/ryh/suor/lyh/suku/etu/lisät@/..."
+      "Jakauma arvosanoista (painokertoimelliset).")
+    '("tjk @/ryh/suor/lyh/suku/etu/lisät@/..."
+      "Jakauma arvosanoista (kaikki).")
     '("tp  @/ryh/suor/lyh/suku/etu/lisät@/..."
-      "Tulosta oppilaat paremmuusjärjestyksessä.")
-    '("tpp @/ryh/suor/lyh/suku/etu/lisät@/..."
-      "Kuten tp mutta vain painokertoimelliset.")
+      "Oppilaat paremmuusjärjestyksessä (painokert.).")
+    '("tpk @/ryh/suor/lyh/suku/etu/lisät@/..."
+      "Oppilaat paremmuusjärjestyksessä (kaikki).")
     '("tk" "Tulosta tietokannasta koonti.")
     :viiva
     '("lo /sukunimi/etunimi/ryhmät/lisätiedot" "Lisää oppilas.")
@@ -2233,7 +2234,7 @@ erotinmerkeillä.
     ho ,Meikäl,Mat
     ho 3Meikäl3Mat
 
-Tilastokomennoissa (tj, tjp, tp ja tpp) oleva @-merkki tarkoittaa myös
+Tilastokomennoissa (tj, tjk, tp ja tpk) oleva @-merkki tarkoittaa myös
 erotinmerkkiä. Näissä komennoissa on kaksitasoinen kenttien erotus,
 joten niille voi määritellä useita hakulausekkeita. Ensin argumentit
 jaetaan @-merkin avulla ryhmiin erillisiksi hakulausekeryhmiksi ja
@@ -2244,9 +2245,10 @@ tavalla:
     tj @/2012:7a/sanaluokat@/2013:7c/sanaluokat
     tj %,2012:7a,sanaluokat%.2013:7c.sanaluokat
 
-Komennot \"tjp\" ja \"tpp\" ovat muutoin samanlaisia kuin \"tj\" ja
-\"tp\", mutta ne huomioivat vain sellaiset suoritukset, joille on
-määritelty painokerroin.
+Komennot \"tj\" ja \"tp\" huomioivat vain sellaiset suoritukset, joille
+on määritetty painokerroin. Komennot \"tjk\" ja \"tpk\" huomioivat
+kaikki suoritukset: jos painokerrointa ei ole määritetty, sen arvoksi
+oletetaan 1.
 
 Komentojen \"m\", \"ms\" ja \"poista\" kohdalla argumentti \"numerot\"
 tarkoittaa kokonaislukujen luetteloa, esimerkiksi \"1,4\" tai \"2-5,9\".
@@ -2395,10 +2397,10 @@ laskennassa. Alla on esimerkkejä suoritusten lisäämisestä.
             ((testaa "hak") (komento-hae-arvosanat-koonti arg))
             ((testaa "lo") (komento-lisää-oppilas arg))
             ((testaa "ls") (komento-lisää-suoritus arg))
-            ((testaa "tj") (komento-tilasto-jakauma arg))
-            ((testaa "tjp") (komento-tilasto-jakauma arg t))
-            ((testaa "tp") (komento-tilasto-paremmuus arg))
-            ((testaa "tpp") (komento-tilasto-paremmuus arg t))
+            ((testaa "tj") (komento-tilasto-jakauma arg t))
+            ((testaa "tjk") (komento-tilasto-jakauma arg))
+            ((testaa "tp") (komento-tilasto-paremmuus arg t))
+            ((testaa "tpk") (komento-tilasto-paremmuus arg))
             ((testaa "tk") (komento-tilasto-koonti))
             ((or (testaa "?") (testaa "??") (testaa "???")) (ohjeet komento))
             (*vuorovaikutteinen*
