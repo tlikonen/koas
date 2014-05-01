@@ -1545,7 +1545,7 @@
 
 (defmethod muokkaa ((oppilas oppilas) &key)
   (let ((vanha-rid-lista
-         (mapcar #'first (query "select rid from oppilaat_ryhmat where oid=~A"
+         (mapcar #'first (query "SELECT rid FROM oppilaat_ryhmat WHERE oid=~A"
                                 (oid oppilas))))
         (uusi-rid-lista nil))
 
