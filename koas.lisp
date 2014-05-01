@@ -1935,11 +1935,22 @@
     (when (and etu (on-sisältöä-p etu))
       (setf uusi-etu etu))
 
-    (when ryhmä
-      (cond ((on-sisältöä-p ryhmä)
-             (setf uusi-ryhmä ryhmä))
-            ((and (plusp (length ryhmä)) (not (on-sisältöä-p ryhmä)))
-             (virhe "Oppilaan täytyy kuulua johonkin ryhmään."))))
+    (when (and ryhmä (on-sisältöä-p ryhmä))
+      (setf ryhmä (string-trim " " ryhmä))
+      (cond
+        ((char= #\+ (aref ryhmä 0))
+         (setf uusi-ryhmä (normalisoi-ryhmät
+                           (nconc (split-sequence #\space :start 1
+                                                  :remove-empty-subseqs t)
+                                  (ryhmälista kohde)))))
+        ((char= #\- (aref ryhmä 0))
+         (setf uusi-ryhmä (normalisoi-ryhmät (ryhmälista kohde)))
+         (loop :for r :in (normalisoi-ryhmät (subseq ryhmä 1))
+               :do (setf uusi-ryhmä (remove r uusi-ryhmä :test #'equalp))))
+        (t (setf uusi-ryhmä (normalisoi-ryhmät ryhmä))))
+
+      (unless (plusp (length uusi-ryhmä))
+        (virhe "Oppilaan täytyy kuulua johonkin ryhmään.")))
 
     (when lisä
       (cond ((on-sisältöä-p lisä)
@@ -1952,7 +1963,7 @@
     (unless (eql uusi-etu :tyhjä)
       (setf (etunimi kohde) (normalisoi-mj uusi-etu)))
     (unless (eql uusi-ryhmä :tyhjä)
-      (setf (ryhmälista kohde) (normalisoi-ryhmät uusi-ryhmä)))
+      (setf (ryhmälista kohde) uusi-ryhmä)) ;Normalisoidaan jo aiemmin.
     (unless (eql uusi-lisä :tyhjä)
       (setf (oppilas-lisätiedot kohde) (normalisoi-mj uusi-lisä)))
     (muokkaa kohde)))
@@ -2242,8 +2253,8 @@ sitten kukin ryhmä jaetaan hakukentiksi /-merkin avulla. Erotinmerkit
 voi valita vapaasti. Kumpikin seuraavista komennoista toimii samalla
 tavalla:
 
-    tj @/2012:7a/sanaluokat@/2013:7c/sanaluokat
-    tj %,2012:7a,sanaluokat%.2013:7c.sanaluokat
+    tj @/2012:äi:7a/sanaluokat@/2013:äi:7c/sanaluokat
+    tj %,2012:äi:7a,sanaluokat%.2013:äi:7c.sanaluokat
 
 Komennot \"tj\" ja \"tp\" huomioivat vain sellaiset suoritukset, joille
 on määritetty painokerroin. Komennot \"tjk\" ja \"tpk\" huomioivat
@@ -2284,7 +2295,11 @@ on esimerkki viiden oppilaan (tietueet 1-5) ryhmät-kentän (3.
 vasemmalta) samanaikaisesta muokkaamisesta. Ryhmätunnukset erotetaan
 toisistaan välilyönnillä.
 
-    m 1-5 ///2013:7a 2014:8a
+    m 1-5 ///2013:äi:7a 2014:äi:8a
+
+Kun oppilashaun jälkeen muokkaa oppilaan ryhmät-kenttää, voi kentän
+aloittaa myös plusmerkillä (+) tai miinusmerkillä (-). Tällöin oppilas
+lisätään kentässä lueteltuihin ryhmiin tai poistetaan niistä.
 
 Kenttä tyhjennetään laittamalla kenttään pelkkä välilyönti:
 
@@ -2327,8 +2342,8 @@ niitä.
 
 Esimerkiksi
 
-    wilma suppea hao /Meikäl/Mat/2013:7a
-    org hak 2013:7a
+    wilma suppea hao /Meikäl/Mat/2013:äi:7a
+    org hak 2013:äi:7a
 
 "))
 
@@ -2341,16 +2356,16 @@ sukunimi, etunimi, ryhmät ja lisätiedot. Ainakin sukunimi, etunimi ja
 yksi ryhmä täytyy syöttää. Kentät erotetaan toisistaan jollakin
 erotinmerkillä. Tässä esimerkissä käytetään vivoviivaa (/):
 
-    lo /Meikäläinen/Matti/2013:7a
-    lo /Oppilas/Oona/2013:7a
-    lo /Koululainen/Kalle/2013:7a/lukivaikeus
+    lo /Meikäläinen/Matti/2013:äi:7a
+    lo /Oppilas/Oona/2013:äi:7a
+    lo /Koululainen/Kalle/2013:äi:7a/lukivaikeus
 
-Kannattaa nimetä ryhmät lukuvuoden aloitusvuoden ja ryhmätunnuksen
-avulla, esimerkiksi \"2013:7a\". Näin ryhmät voi yksilöidä usean
-lukuvuoden aikana. Oppilaan tiedoissa eri ryhmät erotetaan toisistaan
-välilyönnein:
+Kannattaa nimetä ryhmät lukuvuoden aloitusvuoden, aine- ja
+ryhmätunnuksen avulla, esimerkiksi \"2013:äi:7a\". Näin ryhmät voi
+yksilöidä usean lukuvuoden aikana. Oppilaan tiedoissa eri ryhmät
+erotetaan toisistaan välilyönnein:
 
-    lo /Meikäläinen/Maija/2013:7a 2014:8a 2015:9a
+    lo /Meikäläinen/Maija/2013:äi:7a 2014:äi:8a 2015:äi:9a
 
 Sitten voi luoda ryhmälle suorituksia. Suoritustiedoissa kentät ovat
 seuraavat: suorituksen nimi, lyhenne, painokerroin ja sija eli
@@ -2360,10 +2375,10 @@ laskennassa. Sen täytyy olla positiivinen kokonaisluku. Jos
 painokerrointa ei ole, kyseistä suoritusta ei huomioida keskiarvon
 laskennassa. Alla on esimerkkejä suoritusten lisäämisestä.
 
-    ls 2013:7a /Kirje opettajalle/kir
-    ls 2013:7a /Sanaluokkakoe/san/2
-    ls 2013:7a /Kirjoitelma romaanista/rom/3
-    ls 2013:7a /Välitodistus/vto
+    ls 2013:äi:7a /Kirje opettajalle/kir
+    ls 2013:äi:7a /Sanaluokkakoe/san/2
+    ls 2013:äi:7a /Kirjoitelma romaanista/rom/3
+    ls 2013:äi:7a /Välitodistus/vto
 
 "))))
 
