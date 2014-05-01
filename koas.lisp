@@ -2319,7 +2319,7 @@ niitä.
            :viiva-otsikko
            '("wilma" "Wilma-viestiin sopiva taulukkomalli.")
            '("org" "Emacsin Org-tilaan sopiva taulukkomalli.")
-           '("latex" "Tulosteet LaTeX-komentoina.")
+           '("latex" "Tulosteet Latex-komentoina.")
            '("suppea" "Karsitaan tulostuksesta Lisätiedot-kentät yms.")
            :viiva-loppu))
 
