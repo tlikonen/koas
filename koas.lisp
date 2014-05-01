@@ -429,7 +429,7 @@
   (when (stringp asia)
     (setf asia (mj-lista-listaksi asia)))
   (setf asia (mapcar #'normalisoi-mj asia))
-  (setf asia (remove-duplicates asia :test #'equalp))
+  (setf asia (delete-duplicates asia :test #'equalp))
   (sort asia #'string-lessp))
 
 
