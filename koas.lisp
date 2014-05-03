@@ -1940,7 +1940,7 @@
       (cond
         ((char= #\+ (aref ryhmä 0))
          (setf uusi-ryhmä (normalisoi-ryhmät
-                           (nconc (split-sequence #\space :start 1
+                           (nconc (split-sequence #\space ryhmä :start 1
                                                   :remove-empty-subseqs t)
                                   (ryhmälista kohde)))))
         ((char= #\- (aref ryhmä 0))
