@@ -2234,97 +2234,54 @@
         ((equal komento "??")
          (viesti "~%~
 
-Komento-sarakkeessa vinoviiva (/) tarkoittaa kenttien
-erotinmerkkiä (/.../...). Ensimmäisenä oleva merkki määrittää komennossa
-käytettävän erotinmerkin, joka voi olla mikä tahansa. Esimerkiksi alla
-olevat komennot toimivat samalla tavalla. Niillä haetaan oppilaita (ho)
-sukunimen ja etunimen perusteella. Kentät on erotettu toisistaan eri
-erotinmerkeillä.
+Komennon argumenteissa oleva vinoviiva (/.../...) tarkoittaa kenttien
+erotinmerkkiä. Merkki voi ola mikä tahansa, ja ensimmäisenä oleva merkki
+määrittää erottimen.
 
-    ho /Meikäl/Mat
-    ho ,Meikäl,Mat
-    ho 3Meikäl3Mat
-
-Tilastokomennoissa (tj, tjk, tp ja tpk) oleva @-merkki tarkoittaa myös
-erotinmerkkiä. Näissä komennoissa on kaksitasoinen kenttien erotus,
-joten niille voi määritellä useita hakulausekkeita. Ensin argumentit
-jaetaan @-merkin avulla ryhmiin erillisiksi hakulausekeryhmiksi ja
-sitten kukin ryhmä jaetaan hakukentiksi /-merkin avulla. Erotinmerkit
-voi valita vapaasti. Kumpikin seuraavista komennoista toimii samalla
-tavalla:
-
-    tj @/2012:äi:7a/sanaluokat@/2013:äi:7c/sanaluokat
-    tj %,2012:äi:7a,sanaluokat%.2013:äi:7c.sanaluokat
-
-Komennot \"tj\" ja \"tp\" huomioivat vain sellaiset suoritukset, joille
-on määritetty painokerroin. Komennot \"tjk\" ja \"tpk\" huomioivat
-kaikki suoritukset: jos painokerrointa ei ole määritetty, sen arvoksi
-oletetaan 1.
+Joissakin komennoissa oleva @-merkki tarkoittaa myös erotinmerkkiä,
+jonka voi valita vapaasti. Näissä komennoissa on kaksitasoinen kenttien
+erotus: ensin yhden erottimen (@) avulla erotetaan kenttäryhmät
+toisistaan ja sitten ryhmien sisällä toisen erottimen (/) avulla kentät
+toisistaan.
 
 Komentojen \"m\", \"ms\" ja \"poista\" kohdalla argumentti \"numerot\"
 tarkoittaa kokonaislukujen luetteloa, esimerkiksi \"1,4\" tai \"2-5,9\".
 Niiden avulla valitaan, mitä tietueita muokataan tai mitkä poistetaan.
 
-Hakutoiminnot (h:lla alkavat komennot) tulostavat tietokannassa olevia
-tietoja. Hakutoiminnon tulosteessa voi olla numeroituja tietueita.
-Lisäksi tulosteen lopussa on esimerkiksi seuraavanlainen rivi:
+Hakukomentojen tulosteessa voi olla numeroituja tietueita. Lisäksi
+tulosteen lopussa on esimerkiksi seuraavanlainen rivi:
 
     Tietueet: 1-22. Kentät: /arvosana/lisätiedot
 
-Se tarkoittaa, että mainittuja tietueita (1-22) ja kenttiä (arvosana,
-lisätiedot) on mahdollista muokata tai poistaa. Tietueita poistetaan
-esimerkiksi seuraavilla komennoilla:
-
-    poista 1
-    poista 4,7,9
-    poista 2-6,10,14-19
-
-Tietueita muokataan m- tai ms-komennolla. Esimerkiksi arvosanahaun (hao-
-ja has-komennot) jälkeen voidaan muokata jokaisesta tietueesta arvosana-
-ja lisätiedot-kenttää. Eri kentät erotetaan toisistaan jollakin
-erotinmerkillä. Tässä esimerkissä käytetään vinoviivaa (/):
+Mainittuja tietueita (1-22) ja kenttiä (arvosana, lisätiedot) voi
+muokata tai poistaa. Esimerkkejä:
 
     m 1 /8+/Eri koe kuin muilla
     m 3,9,14 /7½
+    ms 10-12 1 /7½/8+/9-
+    poista 3,15
 
-Kaikkia kenttiä ei tarvitse asettaa. Esimerkiksi oppilashaun (ho- ja
-hoa-komennot) jälkeen on mahdollista muokata neljää kenttää: sukunimi,
-etunimi, ryhmät ja lisätiedot. Ne kentät, joita ei haluta muuttaa,
-voidaan jättää tyhjiksi, eli erotinmerkkien välissä ei ole mitään. Alla
-on esimerkki viiden oppilaan (tietueet 1-5) ryhmät-kentän (3.
-vasemmalta) samanaikaisesta muokkaamisesta. Ryhmätunnukset erotetaan
-toisistaan välilyönnillä.
+Komento \"m\" muokkaa yksittäisiä tietueita, ja kaikille tietueille
+asetetaan sama sisältö. Komento \"ms\" muokkaa kaikista tietueista vain
+yhtä kenttää, ja kaikille tietueille voi määrittää kenttään eri arvon.
+Komennon \"ms\" toisena argumenttina annetaan muokattavan kentän numero.
+Ensimmäinen kenttä vasemmalta on 1, toinen vasemmalta on 2 jne.
+
+Muokkauskomennoissa kentän voi jättää tyhjäksi, jos sitä ei halua
+muokata. Jos kenttään laittaa pelkän välilyönnin, kentän sisältö
+poistetaan.
+
+Oppilashaun jälkeen on muokattavissa neljä kenttää: sukunimi, etunimi,
+ryhmät ja lisätiedot. Ryhmät-kentässä oppilaan eri ryhmät erotetaan
+toisistaan välilyönnillä. Kentän voi aloittaa plusmerkillä (+) tai
+miinusmerkillä (-). Tällöin oppilas lisätään kentässä lueteltuihin
+ryhmiin tai poistetaan niistä.
 
     m 1-5 ///2013:äi:7a 2014:äi:8a
-
-Kun oppilashaun jälkeen muokkaa oppilaan ryhmät-kenttää, voi kentän
-aloittaa myös plusmerkillä (+) tai miinusmerkillä (-). Tällöin oppilas
-lisätään kentässä lueteltuihin ryhmiin tai poistetaan niistä.
-
-Kenttä tyhjennetään laittamalla kenttään pelkkä välilyönti:
-
-    m 1 / / /
-
-Toinen muokkauskomento on \"ms\". Myös sille annetaan ensimmäiseksi
-argumentiksi luettelo muokattavista tietueista. Toiseksi argumentiksi
-annetaan muokattavan kentän numero: ensimmäinen kenttä vasemmalta on 1,
-toinen vasemmalta on 2 jne. Kolmantena argumenttina luetellaan
-erotinmerkin avulla kyseiseen kenttään tulevat tiedot eri tietueissa.
-
-Esimerkiksi jos halutaan kirjata arvosana usealle oppilaalle, haetaan
-ensin halutut suoritustiedot has-komennolla ja annetaan sitten
-seuraavanlainen muokkauskomento:
-
-    ms 1-9,11 1 /8-/6½/8+/7-/7½/7-/7/6½/9-/8+
-
-Yllä oleva komento muokkaa tietueita 1-9 ja 11. Kaikista tietueista
-muokataan kenttää numero 1 (arvosana-kenttä). Kenttiin tulevat arvosanat
-on lueteltu erotinmerkin \"/\" avulla samassa järjestyksessä kuin
-tietueetkin on annettu (1-9,11).
+    m 6 ///+2014:äi:8a
 
 Hakutoimintojen tulostusasua voi muuttaa kirjoittamalla komentorivin
-alkuun tietyn avainsanan. Alla oleva taulukko ja esimerkki selventää
-niitä.
+alkuun avainsanan. Alla oleva taulukko ja esimerkki selventää niitä.
 
 ")
          (tulosta-taulu
