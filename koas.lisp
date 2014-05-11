@@ -129,8 +129,7 @@
                ((find vika "-–") (setf lisa -1/4 loppu (max alku (1- loppu))))
                ((char= #\½ vika) (setf lisa 1/2 loppu (max alku (1- loppu))))))
 
-       (setf objekti (subseq objekti alku loppu))
-       (setf objekti (substitute #\. #\, objekti))
+       (setf objekti (nsubstitute #\. #\, (subseq objekti alku loppu)))
        (if (string= objekti "") (setf objekti "0"))
 
        (cond
