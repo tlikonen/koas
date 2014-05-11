@@ -1104,7 +1104,7 @@
                                  (not *suppea*))
                         (coerce (oppilaslista opp) 'vector)))
   (let ((taulu (loop :for oppilas :in (oppilaslista opp)
-                     :collect (append
+                     :collect (nconc
                                (list (sukunimi oppilas))
                                (list (etunimi oppilas))
                                (list (lista-mj-listaksi
@@ -1113,16 +1113,16 @@
                                  (list (oppilas-lisätiedot oppilas)))))))
 
     (tulosta-taulu
-     (append (list :viiva-alku)
-             (list (append (if *muokattavat* (list nil))
-                           (list (otsikko "Sukunimi"))
-                           (list (otsikko "Etunimi"))
-                           (list (otsikko "Ryhmät"))
-                           (unless *suppea*
-                             (list (otsikko "Lisätiedot")))))
-             (list :viiva-otsikko)
-             (if *muokattavat* (numeroi taulu) taulu)
-             (list :viiva-loppu)))
+     (nconc (list :viiva-alku)
+            (list (nconc (if *muokattavat* (list nil))
+                         (list (otsikko "Sukunimi"))
+                         (list (otsikko "Etunimi"))
+                         (list (otsikko "Ryhmät"))
+                         (unless *suppea*
+                           (list (otsikko "Lisätiedot")))))
+            (list :viiva-otsikko)
+            (if *muokattavat* (numeroi taulu) taulu)
+            (list :viiva-loppu)))
 
     (tulosta-muokattavat "sukunimi" "etunimi" "ryhmät" "lisätiedot")))
 
@@ -1139,21 +1139,21 @@
                                     (painokerroin suoritus)))))
 
     (tulosta-taulu
-     (append (list :viiva-alku)
-             (list (list (otsikko "Ryhmä:")
-                         (ryhmä-mj (ryhmä suo) (ryhmä-lisätiedot suo))))
-             (list :viiva-loppu)))
+     (nconc (list :viiva-alku)
+            (list (list (otsikko "Ryhmä:")
+                        (ryhmä-mj (ryhmä suo) (ryhmä-lisätiedot suo))))
+            (list :viiva-loppu)))
     (viesti "~%")
 
     (tulosta-taulu
-     (append (list :viiva-alku)
-             (list (append (if *muokattavat* (list nil))
-                           (list (otsikko "Suoritus"))
-                           (list (otsikko "Lyh"))
-                           (list (otsikko "K"))))
-             (list :viiva-otsikko)
-             (if *muokattavat* (numeroi taulu) taulu)
-             (list :viiva-loppu)))
+     (nconc (list :viiva-alku)
+            (list (nconc (if *muokattavat* (list nil))
+                         (list (otsikko "Suoritus"))
+                         (list (otsikko "Lyh"))
+                         (list (otsikko "K"))))
+            (list :viiva-otsikko)
+            (if *muokattavat* (numeroi taulu) taulu)
+            (list :viiva-loppu)))
 
     (tulosta-muokattavat "suoritus" "lyhenne" "painokerroin"
                          (format nil "sija(1~[~;~:;-~:*~A~])"
@@ -1174,13 +1174,13 @@
                      :collect (list (nimi ryhmä)
                                     (ryhmä-lisätiedot ryhmä)))))
     (tulosta-taulu
-     (append (list :viiva-alku)
-             (list (append (if *muokattavat* (list nil))
-                           (list (otsikko "Nimi"))
-                           (list (otsikko "Lisätiedot"))))
-             (list :viiva-otsikko)
-             (if *muokattavat* (numeroi taulu) taulu)
-             (list :viiva-loppu))))
+     (nconc (list :viiva-alku)
+            (list (nconc (if *muokattavat* (list nil))
+                         (list (otsikko "Nimi"))
+                         (list (otsikko "Lisätiedot"))))
+            (list :viiva-otsikko)
+            (if *muokattavat* (numeroi taulu) taulu)
+            (list :viiva-loppu))))
   (tulosta-muokattavat "nimi" "lisätiedot"))
 
 
@@ -1198,35 +1198,35 @@
                             :for suku := (sukunimi arvosana)
                             :for etu := (etunimi arvosana)
                             :collect
-                            (append (list (oppilas-mj suku etu))
-                                    (list (arvosana arvosana))
-                                    (unless *suppea*
-                                      (list (arvosana-lisätiedot arvosana))))
+                            (nconc (list (oppilas-mj suku etu))
+                                   (list (arvosana arvosana))
+                                   (unless *suppea*
+                                     (list (arvosana-lisätiedot arvosana))))
                             :do (push (arvosana arvosana) luvut))))
 
           (tulosta-taulu
-           (append (list :viiva-alku)
-                   (list (list (otsikko "Ryhmä:")
-                               (ryhmä-mj (ryhmä arv-suo)
-                                         (ryhmä-lisätiedot arv-suo))))
-                   (list (list (otsikko "Suoritus:") (nimi arv-suo)))
-                   (list :viiva-loppu)))
+           (nconc (list :viiva-alku)
+                  (list (list (otsikko "Ryhmä:")
+                              (ryhmä-mj (ryhmä arv-suo)
+                                        (ryhmä-lisätiedot arv-suo))))
+                  (list (list (otsikko "Suoritus:") (nimi arv-suo)))
+                  (list :viiva-loppu)))
 
           (taulukkoväli)
 
           (tulosta-taulu
-           (append (list :viiva-alku)
-                   (list (append (if *muokattavat* (list nil))
-                                 (list (otsikko "Oppilas"))
-                                 (list (otsikko "As"))
-                                 (unless *suppea*
-                                   (list (otsikko "Lisätiedot")))))
-                   (list :viiva-otsikko)
-                   (if *muokattavat* (numeroi taulu) taulu)
-                   (list :viiva)
-                   (list (append (if *muokattavat* (list nil))
-                                 (list "Keskiarvo" (keskiarvo luvut))))
-                   (list :viiva-loppu)))
+           (nconc (list :viiva-alku)
+                  (list (nconc (if *muokattavat* (list nil))
+                               (list (otsikko "Oppilas"))
+                               (list (otsikko "As"))
+                               (unless *suppea*
+                                 (list (otsikko "Lisätiedot")))))
+                  (list :viiva-otsikko)
+                  (if *muokattavat* (numeroi taulu) taulu)
+                  (list :viiva)
+                  (list (nconc (if *muokattavat* (list nil))
+                               (list "Keskiarvo" (keskiarvo luvut))))
+                  (list :viiva-loppu)))
 
           (unless (muoto nil :latex)
             (taulukkoväli)
@@ -1250,46 +1250,46 @@
                (kertoimet)
                (taulu (loop :for arvosana :in (arvosanalista arv-opp)
                             :collect
-                            (append (list (nimi arvosana))
-                                    (list (arvosana arvosana))
-                                    (list (painokerroin arvosana))
-                                    (unless *suppea*
-                                      (list (arvosana-lisätiedot arvosana))))
+                            (nconc (list (nimi arvosana))
+                                   (list (arvosana arvosana))
+                                   (list (painokerroin arvosana))
+                                   (unless *suppea*
+                                     (list (arvosana-lisätiedot arvosana))))
                             :do
                             (push (arvosana arvosana) arvot)
                             (push (painokerroin arvosana) kertoimet))))
 
           (tulosta-taulu
-           (append (list :viiva-alku)
-                   (list (list (otsikko "Oppilas:")
-                               (oppilas-mj (sukunimi arv-opp)
-                                           (etunimi arv-opp))))
-                   (list (list (otsikko "Ryhmä:")
-                               (ryhmä-mj (ryhmä arv-opp)
-                                         (ryhmä-lisätiedot arv-opp))))
-                   (let ((lis (oppilas-lisätiedot arv-opp)))
-                     (if (or (not lis) (equal lis "") *suppea*)
-                         nil
-                         (list (list (otsikko "Lisätiedot:") lis))))
-                   (list :viiva-loppu)))
+           (nconc (list :viiva-alku)
+                  (list (list (otsikko "Oppilas:")
+                              (oppilas-mj (sukunimi arv-opp)
+                                          (etunimi arv-opp))))
+                  (list (list (otsikko "Ryhmä:")
+                              (ryhmä-mj (ryhmä arv-opp)
+                                        (ryhmä-lisätiedot arv-opp))))
+                  (let ((lis (oppilas-lisätiedot arv-opp)))
+                    (if (or (not lis) (equal lis "") *suppea*)
+                        nil
+                        (list (list (otsikko "Lisätiedot:") lis))))
+                  (list :viiva-loppu)))
 
           (taulukkoväli)
 
           (tulosta-taulu
-           (append (list :viiva-alku)
-                   (list (append (if *muokattavat* (list nil))
-                                 (list (otsikko "Suoritus"))
-                                 (list (otsikko "As"))
-                                 (list (otsikko "K"))
-                                 (unless *suppea*
-                                   (list (otsikko "Lisätiedot")))))
-                   (list :viiva-otsikko)
-                   (if *muokattavat* (numeroi taulu) taulu)
-                   (list :viiva)
-                   (list (append (if *muokattavat* (list nil))
-                                 (list "Keskiarvo"
-                                       (keskiarvo arvot kertoimet 2))))
-                   (list :viiva-loppu)))
+           (nconc (list :viiva-alku)
+                  (list (nconc (if *muokattavat* (list nil))
+                               (list (otsikko "Suoritus"))
+                               (list (otsikko "As"))
+                               (list (otsikko "K"))
+                               (unless *suppea*
+                                 (list (otsikko "Lisätiedot")))))
+                  (list :viiva-otsikko)
+                  (if *muokattavat* (numeroi taulu) taulu)
+                  (list :viiva)
+                  (list (nconc (if *muokattavat* (list nil))
+                               (list "Keskiarvo"
+                                     (keskiarvo arvot kertoimet 2))))
+                  (list :viiva-loppu)))
 
           (unless (muoto nil :latex)
             (taulukkoväli)
@@ -1333,23 +1333,23 @@
                     :finally (setf (aref ka-suoritus suo) (keskiarvo luvut))))
 
     (tulosta-taulu
-     (append (list :viiva-alku)
-             (list (append (list (otsikko "Ryhmä:"))
-                           (list (ryhmä-mj (ryhmä koonti)
-                                           (ryhmä-lisätiedot koonti)))))
-             (list :viiva-loppu)))
+     (nconc (list :viiva-alku)
+            (list (nconc (list (otsikko "Ryhmä:"))
+                         (list (ryhmä-mj (ryhmä koonti)
+                                         (ryhmä-lisätiedot koonti)))))
+            (list :viiva-loppu)))
 
     (taulukkoväli)
 
     (tulosta-taulu
-     (append
+     (nconc
       (list :viiva-alku)
-      (list (append (list (otsikko "Suoritus"))
-                    (mapcar #'otsikko lyhenteet)
-                    (list (otsikko "ka"))))
-      (list (append (list (otsikko "Painokerroin"))
-                    (mapcar #'otsikko kertoimet)
-                    (list (otsikko ""))))
+      (list (nconc (list (otsikko "Suoritus"))
+                   (mapcar #'otsikko lyhenteet)
+                   (list (otsikko "ka"))))
+      (list (nconc (list (otsikko "Painokerroin"))
+                   (mapcar #'otsikko kertoimet)
+                   (list (otsikko ""))))
       (list :viiva-otsikko)
       (loop :for nimi :in (oppilaslista koonti)
             :for oppilas :from 0 :below (array-dimension (taulukko koonti) 0)
@@ -1357,27 +1357,27 @@
                            :below (array-dimension (taulukko koonti) 1)
                            :collect (aref (taulukko koonti) oppilas suoritus)
                            :into rivi
-                           :finally (return (append (list nimi)
-                                                    rivi
-                                                    (list (aref ka-oppilas
-                                                                oppilas))))))
+                           :finally (return (nconc (list nimi)
+                                                   rivi
+                                                   (list (aref ka-oppilas
+                                                               oppilas))))))
       (list :viiva)
-      (list (append (list "Keskiarvo")
-                    (coerce ka-suoritus 'list)
-                    (list (keskiarvo (coerce ka-oppilas 'list)))))
+      (list (nconc (list "Keskiarvo")
+                   (coerce ka-suoritus 'list)
+                   (list (keskiarvo (coerce ka-oppilas 'list)))))
       (list :viiva-loppu)))
 
     (unless *suppea*
       (taulukkoväli)
       (tulosta-taulu
-       (append (list :viiva-alku)
-               (list (list (otsikko "Lyh") (otsikko "Suoritus")))
-               (list :viiva-otsikko)
-               (loop :for (nil nil nil nimi lyhenne nil)
-                     :in (suorituslista koonti)
-                     :collect (list lyhenne nimi))
-               '(("ka" "Keskiarvo"))
-               (list :viiva-loppu))))))
+       (nconc (list :viiva-alku)
+              (list (list (otsikko "Lyh") (otsikko "Suoritus")))
+              (list :viiva-otsikko)
+              (loop :for (nil nil nil nimi lyhenne nil)
+                    :in (suorituslista koonti)
+                    :collect (list lyhenne nimi))
+              (list '("ka" "Keskiarvo"))
+              (list :viiva-loppu))))))
 
 
 (defmethod tulosta ((jakauma tilasto-jakauma))
@@ -1406,11 +1406,11 @@
           :into taulu
           :finally
           (tulosta-taulu
-           (append (list :viiva-alku)
-                   (list (list (otsikko "As") (otsikko "Lkm") (otsikko "")))
-                   (list :viiva-otsikko)
-                   taulu
-                   (list :viiva-loppu)))
+           (nconc (list :viiva-alku)
+                  (list (list (otsikko "As") (otsikko "Lkm") (otsikko "")))
+                  (list :viiva-otsikko)
+                  taulu
+                  (list :viiva-loppu)))
 
           (unless (muoto nil :latex)
             (taulukkoväli)
@@ -1443,14 +1443,14 @@
           :finally (setf rivit valmis))
 
     (tulosta-taulu
-     (append (list :viiva-alku)
-             (list (list (otsikko "") (otsikko "Oppilas") (otsikko "Ryhmät")
-                         (otsikko "Ka") (otsikko "Lkm")))
-             (list :viiva-otsikko)
-             rivit
-             (list :viiva)
-             (list (list nil "Keskiarvo" nil (kokonaiskeskiarvo paremmuus)))
-             (list :viiva-loppu)))
+     (nconc (list :viiva-alku)
+            (list (list (otsikko "") (otsikko "Oppilas") (otsikko "Ryhmät")
+                        (otsikko "Ka") (otsikko "Lkm")))
+            (list :viiva-otsikko)
+            rivit
+            (list :viiva)
+            (list (list nil "Keskiarvo" nil (kokonaiskeskiarvo paremmuus)))
+            (list :viiva-loppu)))
 
     (unless (muoto nil :latex)
       (taulukkoväli)
@@ -1469,12 +1469,12 @@
     (flet ((rivi (otsikko olio)
              (list (otsikko otsikko) (format nil "~V@A" suurin olio))))
       (tulosta-taulu
-       (append (list :viiva-alku)
-               (list (rivi "Oppilaita:" (oppilaita koonti)))
-               (list (rivi "Ryhmiä:" (ryhmiä koonti)))
-               (list (rivi "Suorituksia:" (suorituksia koonti)))
-               (list (rivi "Arvosanoja:" (arvosanoja koonti)))
-               (list :viiva-loppu))))))
+       (nconc (list :viiva-alku)
+              (list (rivi "Oppilaita:" (oppilaita koonti)))
+              (list (rivi "Ryhmiä:" (ryhmiä koonti)))
+              (list (rivi "Suorituksia:" (suorituksia koonti)))
+              (list (rivi "Arvosanoja:" (arvosanoja koonti)))
+              (list :viiva-loppu))))))
 
 
 (defmethod tulosta ((object t))
@@ -1946,7 +1946,7 @@
         ((char= #\- (aref ryhmä 0))
          (setf uusi-ryhmä (normalisoi-ryhmät (ryhmälista kohde)))
          (loop :for r :in (normalisoi-ryhmät (subseq ryhmä 1))
-               :do (setf uusi-ryhmä (remove r uusi-ryhmä :test #'equalp))))
+               :do (setf uusi-ryhmä (delete r uusi-ryhmä :test #'equalp))))
         (t (setf uusi-ryhmä (normalisoi-ryhmät ryhmä))))
 
       (unless (plusp (length uusi-ryhmä))
@@ -2118,9 +2118,9 @@
       (let ((arvot (pilko-erottimella loput)))
         (with-transaction
           (loop :for arvo :in arvot
-                :for kentät := (append (make-list (1- kentän-numero)
-                                                  :initial-element "")
-                                       (list arvo))
+                :for kentät := (nconc (make-list (1- kentän-numero)
+                                                 :initial-element "")
+                                      (list arvo))
                 :for i :in numeroluettelo
                 :for kohde := (elt *muokattavat* (1- i))
                 :do (typecase kohde
