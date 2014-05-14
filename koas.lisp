@@ -2398,16 +2398,19 @@ laskennassa. Alla on esimerkkejä suoritusten lisäämisestä.
   (script:with-pp-errors
     (handler-case
         (tietokanta-käytössä
-          (if (rest argv)
-              (let ((*vuorovaikutteinen* nil))
-                (if (and (equal (nth 1 argv) "-")
-                         (not (nth 2 argv)))
-                    (loop :for rivi := (read-line *standard-input* nil)
-                          :while rivi :do (käsittele-komentorivi rivi))
-                    (käsittele-komentorivi
-                     (format nil "~{~A~^ ~}" (rest argv)))))
-              (let ((*vuorovaikutteinen* t))
-                (loop (käsittele-komentorivi (lue-rivi "KOAS> " t))))))
+          (cond ((and (not (rest argv))
+                      (not (listen *standard-input*)))
+                 (let ((*vuorovaikutteinen* t))
+                   (loop (käsittele-komentorivi (lue-rivi "KOAS> " t)))))
+                ((and (equal (nth 1 argv) "-")
+                      (not (nth 2 argv)))
+                 (let ((*vuorovaikutteinen* nil))
+                   (loop :for rivi := (read-line *standard-input* nil)
+                         :while rivi :do (käsittele-komentorivi rivi))))
+                ((rest argv)
+                 (let ((*vuorovaikutteinen* nil))
+                   (käsittele-komentorivi
+                    (format nil "~{~A~^ ~}" (rest argv)))))))
       (poistu-ohjelmasta () nil)
       (sb-sys:interactive-interrupt ()
         (viesti "~%")))))
