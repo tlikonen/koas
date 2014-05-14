@@ -2301,6 +2301,13 @@ Esimerkiksi
     wilma suppea hao /Meikäl/Mat/2013:äi:7a
     org hak 2013:äi:7a
 
+Kun ohjelman käynnistää ilman komentoriviargumentteja, se käynnistyy
+vuorovaikutteiseen tilaan. Jos ohjelmalle antaa argumentiksi \"-\",
+luetaan komennot rivi kerrallaan standardisyötteestä. Muussa tapauksessa
+komentoriviargumentit tulkitaan ohjelman komennoiksi. Komento
+suoritetaan ja ohjelma sulkeutuu. Muokkaus- ja poistokomennot toimivat
+vain vuorovaikutteisessa tilassa.
+
 "))
 
         ((equal komento "???")
@@ -2393,7 +2400,12 @@ laskennassa. Alla on esimerkkejä suoritusten lisäämisestä.
         (tietokanta-käytössä
           (if (rest argv)
               (let ((*vuorovaikutteinen* nil))
-                (käsittele-komentorivi (format nil "~{~A~^ ~}" (rest argv))))
+                (if (and (equal (nth 1 argv) "-")
+                         (not (nth 2 argv)))
+                    (loop :for rivi := (read-line *standard-input* nil)
+                          :while rivi :do (käsittele-komentorivi rivi))
+                    (käsittele-komentorivi
+                     (format nil "~{~A~^ ~}" (rest argv)))))
               (let ((*vuorovaikutteinen* t))
                 (loop (käsittele-komentorivi (lue-rivi "KOAS> " t))))))
       (poistu-ohjelmasta () nil)
