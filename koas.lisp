@@ -1529,7 +1529,9 @@
                                         ORDER BY sija,sid"
                                    rid uusi-sid))))
       (setf (sid suoritus) uusi-sid)
-      (cond ((not sija) (setf sija (1+ (length sid-lista))))
+      (cond ((or (not sija)
+                 (> sija (1+ (length sid-lista))))
+             (setf sija (1+ (length sid-lista))))
             ((< sija 1) (setf sija 1)))
       (query "UPDATE suoritukset SET sija=~A WHERE sid=~A" sija uusi-sid)
       (loop :with i := 0
@@ -1596,6 +1598,8 @@
                                         ORDER BY sija,sid"
                                   (rid suoritus) (sid suoritus)))))
 
+      (setf sija (min sija (length sid-lista))
+            sija (max sija 1))
       (query "UPDATE suoritukset SET sija=~A WHERE sid=~A" sija (sid suoritus))
       (loop :with i := 0
             :for sid :in sid-lista
