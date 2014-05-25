@@ -1438,7 +1438,7 @@
           :for i :upfrom 1
           :maximize lkm :into suurin-lkm
           :finally (setf sija-leveys (olion-mj-pituus i)
-                         lkm-leveys (max 3 (olion-mj-pituus lkm))))
+                         lkm-leveys (max 3 (olion-mj-pituus suurin-lkm))))
 
     (loop :with edellinen-ka := nil
           :for (nimi ryhmät ka lkm) :in (lista paremmuus)
