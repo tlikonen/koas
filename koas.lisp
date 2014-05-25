@@ -440,10 +440,18 @@
        (if (integerp luku) luku)))))
 
 
-(defun otsikko (mj)
+(defun otsikko-sarake (mj)
   (setf mj (or mj ""))
   (case *tulostusmuoto*
-    (:wilma (if (equal "" mj) "" (format nil "~:@(~A~)" mj)))
+    (:wilma (if (equal "" mj) "" (format nil "~A" mj)))
+    (:org (if (equal "" mj) "" (format nil "*~A*" mj)))
+    (t mj)))
+
+
+(defun otsikko-rivi (mj)
+  (setf mj (or mj ""))
+  (case *tulostusmuoto*
+    (:wilma (if (equal "" mj) "" (format nil "~A" mj)))
     (:org (if (equal "" mj) "" (format nil "*~A*" mj)))
     (t mj)))
 
@@ -1114,11 +1122,11 @@
     (tulosta-taulu
      (nconc (list :viiva-alku)
             (list (nconc (if *muokattavat* (list nil))
-                         (list (otsikko "Sukunimi"))
-                         (list (otsikko "Etunimi"))
-                         (list (otsikko "Ryhmät"))
+                         (list (otsikko-sarake "Sukunimi"))
+                         (list (otsikko-sarake "Etunimi"))
+                         (list (otsikko-sarake "Ryhmät"))
                          (unless *suppea*
-                           (list (otsikko "Lisätiedot")))))
+                           (list (otsikko-sarake "Lisätiedot")))))
             (list :viiva-otsikko)
             (if *muokattavat* (numeroi taulu) taulu)
             (list :viiva-loppu)))
@@ -1139,7 +1147,7 @@
 
     (tulosta-taulu
      (nconc (list :viiva-alku)
-            (list (list (otsikko "Ryhmä:")
+            (list (list (otsikko-rivi "Ryhmä:")
                         (ryhmä-mj (ryhmä suo) (ryhmä-lisätiedot suo))))
             (list :viiva-loppu)))
     (viesti "~%")
@@ -1147,9 +1155,9 @@
     (tulosta-taulu
      (nconc (list :viiva-alku)
             (list (nconc (if *muokattavat* (list nil))
-                         (list (otsikko "Suoritus"))
-                         (list (otsikko "Lyh"))
-                         (list (otsikko "K"))))
+                         (list (otsikko-sarake "Suoritus"))
+                         (list (otsikko-sarake "Lyh"))
+                         (list (otsikko-sarake "K"))))
             (list :viiva-otsikko)
             (if *muokattavat* (numeroi taulu) taulu)
             (list :viiva-loppu)))
@@ -1160,7 +1168,7 @@
 
     (unless (muoto nil :latex)
       (taulukkoväli)
-      (tulosta-taulu (list (list (otsikko "K") "= painokerroin"))))))
+      (tulosta-taulu (list (list (otsikko-rivi "K") "= painokerroin"))))))
 
 
 (defmethod tulosta ((lista ryhmät))
@@ -1175,8 +1183,8 @@
     (tulosta-taulu
      (nconc (list :viiva-alku)
             (list (nconc (if *muokattavat* (list nil))
-                         (list (otsikko "Nimi"))
-                         (list (otsikko "Lisätiedot"))))
+                         (list (otsikko-sarake "Nimi"))
+                         (list (otsikko-sarake "Lisätiedot"))))
             (list :viiva-otsikko)
             (if *muokattavat* (numeroi taulu) taulu)
             (list :viiva-loppu))))
@@ -1205,10 +1213,10 @@
 
           (tulosta-taulu
            (nconc (list :viiva-alku)
-                  (list (list (otsikko "Ryhmä:")
+                  (list (list (otsikko-rivi "Ryhmä:")
                               (ryhmä-mj (ryhmä arv-suo)
                                         (ryhmä-lisätiedot arv-suo))))
-                  (list (list (otsikko "Suoritus:") (nimi arv-suo)))
+                  (list (list (otsikko-rivi "Suoritus:") (nimi arv-suo)))
                   (list :viiva-loppu)))
 
           (taulukkoväli)
@@ -1216,10 +1224,10 @@
           (tulosta-taulu
            (nconc (list :viiva-alku)
                   (list (nconc (if *muokattavat* (list nil))
-                               (list (otsikko "Oppilas"))
-                               (list (otsikko "As"))
+                               (list (otsikko-sarake "Oppilas"))
+                               (list (otsikko-sarake "As"))
                                (unless *suppea*
-                                 (list (otsikko "Lisätiedot")))))
+                                 (list (otsikko-sarake "Lisätiedot")))))
                   (list :viiva-otsikko)
                   (if *muokattavat* (numeroi taulu) taulu)
                   (list :viiva)
@@ -1229,7 +1237,7 @@
 
           (unless (muoto nil :latex)
             (taulukkoväli)
-            (tulosta-taulu (list (list (otsikko "As") "= arvosana")))))
+            (tulosta-taulu (list (list (otsikko-rivi "As") "= arvosana")))))
 
         :if lisää :do (taulukkoväli t))
 
@@ -1260,16 +1268,16 @@
 
           (tulosta-taulu
            (nconc (list :viiva-alku)
-                  (list (list (otsikko "Oppilas:")
+                  (list (list (otsikko-rivi "Oppilas:")
                               (oppilas-mj (sukunimi arv-opp)
                                           (etunimi arv-opp))))
-                  (list (list (otsikko "Ryhmä:")
+                  (list (list (otsikko-rivi "Ryhmä:")
                               (ryhmä-mj (ryhmä arv-opp)
                                         (ryhmä-lisätiedot arv-opp))))
                   (let ((lis (oppilas-lisätiedot arv-opp)))
                     (if (or (not lis) (equal lis "") *suppea*)
                         nil
-                        (list (list (otsikko "Lisätiedot:") lis))))
+                        (list (list (otsikko-rivi "Lisätiedot:") lis))))
                   (list :viiva-loppu)))
 
           (taulukkoväli)
@@ -1277,11 +1285,11 @@
           (tulosta-taulu
            (nconc (list :viiva-alku)
                   (list (nconc (if *muokattavat* (list nil))
-                               (list (otsikko "Suoritus"))
-                               (list (otsikko "As"))
-                               (list (otsikko "K"))
+                               (list (otsikko-sarake "Suoritus"))
+                               (list (otsikko-sarake "As"))
+                               (list (otsikko-sarake "K"))
                                (unless *suppea*
-                                 (list (otsikko "Lisätiedot")))))
+                                 (list (otsikko-sarake "Lisätiedot")))))
                   (list :viiva-otsikko)
                   (if *muokattavat* (numeroi taulu) taulu)
                   (list :viiva)
@@ -1293,8 +1301,8 @@
           (unless (muoto nil :latex)
             (taulukkoväli)
             (tulosta-taulu
-             (list (list (otsikko "As") "= arvosana"
-                         (otsikko "K") "= painokerroin")))))
+             (list (list (otsikko-rivi "As") "= arvosana"
+                         (otsikko-rivi "K") "= painokerroin")))))
 
         :if lisää :do (taulukkoväli t))
 
@@ -1333,7 +1341,7 @@
 
     (tulosta-taulu
      (nconc (list :viiva-alku)
-            (list (nconc (list (otsikko "Ryhmä:"))
+            (list (nconc (list (otsikko-rivi "Ryhmä:"))
                          (list (ryhmä-mj (ryhmä koonti)
                                          (ryhmä-lisätiedot koonti)))))
             (list :viiva-loppu)))
@@ -1343,12 +1351,12 @@
     (tulosta-taulu
      (nconc
       (list :viiva-alku)
-      (list (nconc (list (otsikko "Suoritus"))
-                   (mapcar #'otsikko lyhenteet)
-                   (list (otsikko "ka"))))
-      (list (nconc (list (otsikko "Painokerroin"))
-                   (mapcar #'otsikko kertoimet)
-                   (list (otsikko ""))))
+      (list (nconc (list (otsikko-rivi "Suoritus"))
+                   (mapcar #'otsikko-sarake lyhenteet)
+                   (list (otsikko-sarake "ka"))))
+      (list (nconc (list (otsikko-rivi "Painokerroin"))
+                   (mapcar #'otsikko-sarake kertoimet)
+                   (list (otsikko-sarake ""))))
       (list :viiva-otsikko)
       (loop :for nimi :in (oppilaslista koonti)
             :for oppilas :from 0 :below (array-dimension (taulukko koonti) 0)
@@ -1370,7 +1378,7 @@
       (taulukkoväli)
       (tulosta-taulu
        (nconc (list :viiva-alku)
-              (list (list (otsikko "Lyh") (otsikko "Suoritus")))
+              (list (list (otsikko-sarake "Lyh") (otsikko-sarake "Suoritus")))
               (list :viiva-otsikko)
               (loop :for (nil nil nil nimi lyhenne nil)
                     :in (suorituslista koonti)
@@ -1406,7 +1414,9 @@
           :finally
           (tulosta-taulu
            (nconc (list :viiva-alku)
-                  (list (list (otsikko "As") (otsikko "Lkm") (otsikko "")))
+                  (list (list (otsikko-sarake "As")
+                              (otsikko-sarake "Lkm")
+                              (otsikko-sarake "")))
                   (list :viiva-otsikko)
                   taulu
                   (list :viiva-loppu)))
@@ -1414,8 +1424,8 @@
           (unless (muoto nil :latex)
             (taulukkoväli)
             (tulosta-taulu
-             (list (list (otsikko "As") "= arvosana"
-                         (otsikko "Lkm") "= lukumäärä")))))))
+             (list (list (otsikko-rivi "As") "= arvosana"
+                         (otsikko-rivi "Lkm") "= lukumäärä")))))))
 
 
 (defmethod tulosta ((paremmuus tilasto-paremmuus))
@@ -1443,8 +1453,11 @@
 
     (tulosta-taulu
      (nconc (list :viiva-alku)
-            (list (list (otsikko "") (otsikko "Oppilas") (otsikko "Ryhmät")
-                        (otsikko "Ka") (otsikko "Lkm")))
+            (list (list (otsikko-sarake "")
+                        (otsikko-sarake "Oppilas")
+                        (otsikko-sarake "Ryhmät")
+                        (otsikko-sarake "Ka")
+                        (otsikko-sarake "Lkm")))
             (list :viiva-otsikko)
             rivit
             (list :viiva)
@@ -1454,8 +1467,8 @@
     (unless (muoto nil :latex)
       (taulukkoväli)
       (tulosta-taulu
-       (list (list (otsikko "Ka") "= keskiarvo"
-                   (otsikko "Lkm") "= suoritusten lukumäärä"))))))
+       (list (list (otsikko-rivi "Ka") "= keskiarvo"
+                   (otsikko-rivi "Lkm") "= suoritusten lukumäärä"))))))
 
 
 (defmethod tulosta ((koonti tilasto-koonti))
@@ -1466,7 +1479,7 @@
                                     (arvosanoja koonti))
                         :key #'olion-mj-pituus)))
     (flet ((rivi (otsikko olio)
-             (list (otsikko otsikko) (format nil "~V@A" suurin olio))))
+             (list (otsikko-rivi otsikko) (format nil "~V@A" suurin olio))))
       (tulosta-taulu
        (nconc (list :viiva-alku)
               (list (rivi "Oppilaita:" (oppilaita koonti)))
@@ -2198,7 +2211,7 @@
   (tulosta-taulu
    (list
     :viiva-alku
-    (list (otsikko "Komento") (otsikko "Tarkoitus"))
+    (list (otsikko-sarake "Komento") (otsikko-sarake "Tarkoitus"))
     :viiva-otsikko
     '("ho /sukunimi/etunimi/ryhmät/lisätiedot" "Hae oppilaita.")
     '("hoa /sukunimi/etunimi/ryhmät/lisätiedot"
@@ -2290,7 +2303,7 @@ alkuun avainsanan. Alla oleva taulukko ja esimerkki selventää niitä.
          (tulosta-taulu
           (list
            :viiva-alku
-           (list (otsikko "Sana") (otsikko "Selitys"))
+           (list (otsikko-sarake "Sana") (otsikko-sarake "Selitys"))
            :viiva-otsikko
            '("wilma" "Wilma-viestiin sopiva taulukkomalli.")
            '("org" "Emacsin Org-tilaan sopiva taulukkomalli.")
