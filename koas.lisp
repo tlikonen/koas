@@ -1611,7 +1611,7 @@
                                         ORDER BY sija,sid"
                                   (rid suoritus) (sid suoritus)))))
 
-      (setf sija (min sija (length sid-lista))
+      (setf sija (min sija (1+ (length sid-lista)))
             sija (max sija 1))
       (query "UPDATE suoritukset SET sija=~A WHERE sid=~A" sija (sid suoritus))
       (loop :with i := 0
