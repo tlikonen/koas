@@ -88,9 +88,9 @@
     (princ #\' ulos)))
 
 
-(defun sql-like-suoja (mj &optional (alku "") (loppu ""))
+(defun sql-like-suoja (mj &optional jokerit)
   (with-output-to-string (ulos)
-    (format ulos "'~A" alku)
+    (format ulos "'~A" (if jokerit "%" ""))
     (loop :for merkki :across (typecase mj
                                 (string mj)
                                 (character (string mj))
@@ -100,7 +100,7 @@
                            ((find merkki "_%\\") (format nil "\\~A" merkki))
                            (t merkki))
                      ulos))
-    (format ulos "~A' escape '\\'" loppu)))
+    (format ulos "~A' ESCAPE '\\'" (if jokerit "%" ""))))
 
 
 (defun mj-lista-listaksi (mj-lista)
@@ -701,9 +701,9 @@
                 AND o.etunimi LIKE ~A ~
                 AND o.lisatiedot LIKE ~A ~
                 ORDER BY o.sukunimi,o.etunimi,o.oid,r.nimi DESC"
-                (sql-like-suoja sukunimi "%" "%")
-                (sql-like-suoja etunimi "%" "%")
-                (sql-like-suoja lisätiedot "%" "%"))))
+                (sql-like-suoja sukunimi t)
+                (sql-like-suoja etunimi t)
+                (sql-like-suoja lisätiedot t))))
 
     (loop :with oppilaat := nil
           :with ryhmät := nil
@@ -764,8 +764,8 @@
   (let ((ryhmät (query "SELECT rid,nimi,lisatiedot FROM ryhmat ~
                 WHERE nimi LIKE ~A AND lisatiedot LIKE ~A ~
                 ORDER BY nimi,rid"
-                       (sql-like-suoja ryhmä "%" "%")
-                       (sql-like-suoja lisätiedot "%" "%"))))
+                       (sql-like-suoja ryhmä t)
+                       (sql-like-suoja lisätiedot t))))
     (when ryhmät
       (make-instance
        'ryhmät
@@ -793,8 +793,8 @@
                 AND o.oid IS NOT NULL ~
                 ORDER BY r.nimi,r.rid,s.sija,s.sid,o.sukunimi,o.etunimi,o.oid"
                 (sql-like-suoja ryhmä)
-                (sql-like-suoja nimi "%" "%")
-                (sql-like-suoja lyhenne "%" "%"))))
+                (sql-like-suoja nimi t)
+                (sql-like-suoja lyhenne t))))
 
     (loop :with suoritukset := nil
           :with arvosanat := nil
@@ -849,10 +849,10 @@
                 AND o.lisatiedot LIKE ~A ~
                 AND s.sid IS NOT NULL ~
                 ORDER BY o.sukunimi,o.etunimi,o.oid,r.nimi,r.rid,s.sija,s.sid"
-                (sql-like-suoja sukunimi "%" "%")
-                (sql-like-suoja etunimi "%" "%")
-                (sql-like-suoja ryhmä "%" "%")
-                (sql-like-suoja lisätiedot "%" "%"))))
+                (sql-like-suoja sukunimi t)
+                (sql-like-suoja etunimi t)
+                (sql-like-suoja ryhmä t)
+                (sql-like-suoja lisätiedot t))))
 
     (loop :with oppilas-ryhmät := nil
           :with arvosanat := nil
@@ -961,14 +961,14 @@
                 AND o.lisatiedot LIKE ~A ~
                 AND s.nimi LIKE ~A ~
                 AND s.lyhenne LIKE ~A ~A"
-                                (sql-like-suoja sukunimi "%" "%")
-                                (sql-like-suoja etunimi "%" "%")
-                                (sql-like-suoja ryhmä "%" "%")
-                                (sql-like-suoja lisätiedot "%" "%")
-                                (sql-like-suoja suoritus "%" "%")
-                                (sql-like-suoja lyhenne "%" "%")
+                                (sql-like-suoja sukunimi t)
+                                (sql-like-suoja etunimi t)
+                                (sql-like-suoja ryhmä t)
+                                (sql-like-suoja lisätiedot t)
+                                (sql-like-suoja suoritus t)
+                                (sql-like-suoja lyhenne t)
                                 (if painokerroin
-                                    "AND s.painokerroin>=1"
+                                    "AND s.painokerroin >= 1"
                                     "")))))
     (loop :for mj :in kysely
           :for as := (lue-numero mj)
@@ -1004,13 +1004,13 @@
                 AND s.nimi LIKE ~A ~
                 AND s.lyhenne LIKE ~A ~A ~
                 ORDER BY o.oid"
-                (sql-like-suoja sukunimi "%" "%")
-                (sql-like-suoja etunimi "%" "%")
-                (sql-like-suoja ryhmä "%" "%")
-                (sql-like-suoja lisätiedot "%" "%")
-                (sql-like-suoja suoritus "%" "%")
-                (sql-like-suoja lyhenne "%" "%")
-                (if painokerroin "AND s.painokerroin>=1" ""))))
+                (sql-like-suoja sukunimi t)
+                (sql-like-suoja etunimi t)
+                (sql-like-suoja ryhmä t)
+                (sql-like-suoja lisätiedot t)
+                (sql-like-suoja suoritus t)
+                (sql-like-suoja lyhenne t)
+                (if painokerroin "AND s.painokerroin >= 1" ""))))
 
     (loop :for rivi :in kysely
           :for (oid sukunimi etunimi ryhmä arvosana painokerroin) := rivi
