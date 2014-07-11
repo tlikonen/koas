@@ -324,7 +324,7 @@
   (let ((kaikki (mapcar #'first (query "SELECT name FROM sqlite_master ~
                                         WHERE type='table'"))))
     (flet ((löytyy (asia)
-             (member asia kaikki :test #'string-equal)))
+             (member asia kaikki :test #'equal)))
 
       (if (löytyy "hallinto")
           (let ((versio (tietokannan-versio)))
@@ -374,7 +374,7 @@
             (query "CREATE TABLE arvosanat ~
                 (sid INTEGER, oid INTEGER, arvosana TEXT, lisatiedot TEXT)")))
 
-      (query "PRAGMA case_sensitive_like=0"))))
+      (query "PRAGMA case_sensitive_like=1"))))
 
 
 (defun connect ()
@@ -428,7 +428,7 @@
   (when (stringp asia)
     (setf asia (mj-lista-listaksi asia)))
   (setf asia (mapcar #'normalisoi-mj asia))
-  (setf asia (delete-duplicates asia :test #'equalp))
+  (setf asia (delete-duplicates asia :test #'equal))
   (sort asia #'string-lessp))
 
 
@@ -715,14 +715,14 @@
           (push (or r-nimi "") ryhmät)
           (unless (eql oid seuraava-oid)
             (when (some (lambda (r) ;karsinta ryhmän perustella
-                          (search ryhmä r :test #'equalp))
+                          (search ryhmä r :test #'equal))
                         ryhmät)
               (push (make-instance 'oppilas
                                    :oid oid
                                    :sukunimi sukunimi
                                    :etunimi etunimi
                                    :ryhmälista
-                                   (delete-if #'zerop ryhmät :key #'length)
+                                   (delete "" ryhmät :test #'equal)
                                    :oppilas-lisätiedot lisätiedot)
                     oppilaat))
             (setf ryhmät nil))
@@ -977,7 +977,7 @@
 
 
 (defun tilasto-jakauma (hakulista &optional painokerroin)
-  (loop :with taulu := (make-hash-table :test #'equalp)
+  (loop :with taulu := (make-hash-table :test #'equal)
         :for hakutermit :in hakulista
         :do (apply #'tilasto-jakauma-1 taulu painokerroin hakutermit)
         :finally
@@ -1019,7 +1019,7 @@
           (setf (getf (gethash oid hajautustaulu) :nimi)
                 (oppilas-mj sukunimi etunimi))
           (pushnew ryhmä (getf (gethash oid hajautustaulu) :ryhmät)
-                   :test #'equalp)
+                   :test #'equal)
           (loop :repeat (or painokerroin 1)
                 :do (push as (getf (gethash oid hajautustaulu) :arvosanat))
                 :finally (incf (getf (gethash oid hajautustaulu)
@@ -1962,7 +1962,7 @@
         ((char= #\- (aref ryhmä 0))
          (setf uusi-ryhmä (normalisoi-ryhmät (ryhmälista kohde)))
          (loop :for r :in (normalisoi-ryhmät (subseq ryhmä 1))
-               :do (setf uusi-ryhmä (delete r uusi-ryhmä :test #'equalp))))
+               :do (setf uusi-ryhmä (delete r uusi-ryhmä :test #'equal))))
         (t (setf uusi-ryhmä (normalisoi-ryhmät ryhmä))))
 
       (unless (plusp (length uusi-ryhmä))
