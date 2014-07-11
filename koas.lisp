@@ -111,6 +111,13 @@
   (format nil "~{~A~^ ~}" lista))
 
 
+(defun moni-sort (sarja &rest key-testit)
+  (sort sarja (lambda (a b)
+                (loop :for (key . test) :in key-testit
+                      :unless (equalp (funcall key a) (funcall key b))
+                      :return (funcall test (funcall key a) (funcall key b))))))
+
+
 (defun lue-numero (objekti)
   (cond
     ((numberp objekti) objekti)
@@ -722,15 +729,20 @@
                                    :sukunimi sukunimi
                                    :etunimi etunimi
                                    :ryhmälista
-                                   (delete "" ryhmät :test #'equal)
+                                   (sort (delete "" ryhmät :test #'equal)
+                                         #'string-lessp)
                                    :oppilas-lisätiedot lisätiedot)
                     oppilaat))
             (setf ryhmät nil))
 
           :finally
           (return (when oppilaat
-                    (make-instance 'oppilaat :oppilaslista
-                                   (nreverse oppilaat)))))))
+                    (make-instance 'oppilaat
+                                   :oppilaslista
+                                   (moni-sort (nreverse oppilaat)
+                                              (cons #'sukunimi #'string-lessp)
+                                              (cons #'etunimi #'string-lessp)
+                                              (cons #'oid #'<))))))))
 
 
 (defun hae-suoritukset (ryhmä)
@@ -762,11 +774,15 @@
 
 (defun hae-ryhmät (&optional (ryhmä "") (lisätiedot ""))
   (let ((ryhmät (query "SELECT rid,nimi,lisatiedot FROM ryhmat ~
-                WHERE nimi LIKE ~A AND lisatiedot LIKE ~A ~
-                ORDER BY nimi,rid"
+                WHERE nimi LIKE ~A AND lisatiedot LIKE ~A"
                        (sql-like-suoja ryhmä t)
                        (sql-like-suoja lisätiedot t))))
     (when ryhmät
+      (setf ryhmät (moni-sort ryhmät
+                              (cons (lambda (x) (nth 1 x)) #'string-lessp)
+                              (cons (lambda (x) (nth 2 x)) #'string-lessp)
+                              (cons (lambda (x) (nth 0 x)) #'<)))
+
       (make-instance
        'ryhmät
        :ryhmälista (loop :for (rid nimi lisätiedot) :in ryhmät
@@ -779,8 +795,8 @@
 
 (defun hae-arvosanat-suorituksista (ryhmä &optional (nimi "") (lyhenne ""))
   (let ((kysely
-         (query "SELECT r.nimi,r.lisatiedot,~
-                s.sid,s.nimi,s.lyhenne,s.painokerroin,~
+         (query "SELECT r.nimi,r.rid,r.lisatiedot,~
+                s.sija,s.sid,s.nimi,s.lyhenne,s.painokerroin,~
                 o.oid,o.sukunimi,o.etunimi,a.arvosana,a.lisatiedot ~
                 FROM suoritukset AS s ~
                 LEFT JOIN ryhmat AS r ON s.rid=r.rid ~
@@ -796,39 +812,50 @@
                 (sql-like-suoja nimi t)
                 (sql-like-suoja lyhenne t))))
 
-    (loop :with suoritukset := nil
-          :with arvosanat := nil
-          :for (rivi . loput) :on kysely
-          :for (r-nimi r-lisätiedot sid s-nimi lyhenne painokerroin
-                       oid sukunimi etunimi arvosana a-lisätiedot) := rivi
-          :for seuraava-sid := (nth 2 (first loput)) ;s.sid
-          :do
+    (when kysely
+      (setf kysely (moni-sort kysely
+                              (cons (lambda (x) (nth 0 x)) #'string-lessp)
+                              (cons (lambda (x) (nth 2 x)) #'<)
+                              (cons (lambda (x) (nth 1 x)) #'<)
+                              (cons (lambda (x) (nth 3 x)) #'<)
+                              (cons (lambda (x) (nth 4 x)) #'<)
+                              (cons (lambda (x) (nth 9 x)) #'string-lessp)
+                              (cons (lambda (x) (nth 10 x)) #'string-lessp)
+                              (cons (lambda (x) (nth 8 x)) #'<)))
 
-          (push (make-instance 'arvosana
-                               :oid oid
-                               :sukunimi sukunimi
-                               :etunimi etunimi
-                               :sid sid
-                               :nimi s-nimi
-                               :lyhenne lyhenne
-                               :painokerroin painokerroin
-                               :arvosana arvosana
-                               :arvosana-lisätiedot a-lisätiedot)
-                arvosanat)
+      (loop :with suoritukset := nil
+            :with arvosanat := nil
+            :for (rivi . loput) :on kysely
+            :for (r-nimi nil r-lisätiedot nil sid s-nimi lyhenne painokerroin
+                         oid sukunimi etunimi arvosana a-lisätiedot) := rivi
+            :for seuraava-sid := (nth 4 (first loput)) ;s.sid
+            :do
 
-          (unless (eql sid seuraava-sid)
-            (push (make-instance 'arvosanat-suorituksesta
+            (push (make-instance 'arvosana
+                                 :oid oid
+                                 :sukunimi sukunimi
+                                 :etunimi etunimi
+                                 :sid sid
                                  :nimi s-nimi
-                                 :ryhmä r-nimi
-                                 :ryhmä-lisätiedot r-lisätiedot
-                                 :arvosanalista (nreverse arvosanat))
-                  suoritukset)
-            (setf arvosanat nil))
+                                 :lyhenne lyhenne
+                                 :painokerroin painokerroin
+                                 :arvosana arvosana
+                                 :arvosana-lisätiedot a-lisätiedot)
+                  arvosanat)
 
-          :finally
-          (return (when suoritukset
-                    (make-instance 'arvosanat-suorituksista
-                                   :lista (nreverse suoritukset)))))))
+            (unless (eql sid seuraava-sid)
+              (push (make-instance 'arvosanat-suorituksesta
+                                   :nimi s-nimi
+                                   :ryhmä r-nimi
+                                   :ryhmä-lisätiedot r-lisätiedot
+                                   :arvosanalista (nreverse arvosanat))
+                    suoritukset)
+              (setf arvosanat nil))
+
+            :finally
+            (return (when suoritukset
+                      (make-instance 'arvosanat-suorituksista
+                                     :lista (nreverse suoritukset))))))))
 
 
 (defun hae-arvosanat-oppilailta (sukunimi &optional (etunimi "") (ryhmä "")
@@ -892,8 +919,15 @@
 
           :finally
           (return (when oppilas-ryhmät
-                    (make-instance 'arvosanat-oppilailta
-                                   :lista (nreverse oppilas-ryhmät)))))))
+                    (make-instance
+                     'arvosanat-oppilailta
+                     :lista (moni-sort (nreverse oppilas-ryhmät)
+                                       (cons #'sukunimi #'string-lessp)
+                                       (cons #'etunimi #'string-lessp)
+                                       (cons #'oid #'<)
+                                       (cons #'ryhmä #'string-lessp)
+                                       (cons #'ryhmä-lisätiedot
+                                             #'string-lessp))))))))
 
 
 (defun hae-arvosanat-koonti (ryhmä)
@@ -903,12 +937,12 @@
                 FROM ryhmat AS r ~
                 JOIN suoritukset AS s ON r.rid=s.rid ~
                 WHERE r.nimi LIKE ~A ~
-                ORDER BY r.nimi,r.rid,s.sija,s.sid"
+                ORDER BY s.sija,s.sid"
                  (sql-like-suoja ryhmä))))
 
     (when suorituslista
       (let* ((kysely
-              (query "SELECT o.sukunimi,o.etunimi,~
+              (query "SELECT o.sukunimi,o.etunimi,o.oid,~
                         ~{~A.arvosana~*~^,~}~:* ~
                         FROM oppilaat_ryhmat AS j ~
                         LEFT JOIN oppilaat AS o ON j.oid=o.oid ~
@@ -925,11 +959,16 @@
                      (sql-like-suoja ryhmä))))
 
         (when kysely
+          (setf kysely (moni-sort kysely
+                                  (cons (lambda (x) (nth 0 x)) #'string-lessp)
+                                  (cons (lambda (x) (nth 1 x)) #'string-lessp)
+                                  (cons (lambda (x) (nth 2 x)) #'<)))
+
           (let ((taulukko (make-array (list (length kysely)
                                             (length suorituslista))))
                 (oppilaslista nil))
 
-            (loop :for (sukunimi etunimi . arvosanat) :in kysely
+            (loop :for (sukunimi etunimi nil . arvosanat) :in kysely
                   :for opp :upfrom 0
                   :do
                   (push (oppilas-mj sukunimi etunimi) oppilaslista)
@@ -1055,20 +1094,16 @@
             :finally (setf rivit lista))
 
       (when rivit
-        (flet ((rivi> (r1 r2)
-                 (let ((ka1 (nth 2 r1))
-                       (ka2 (nth 2 r2)))
-                   (or (> ka1 ka2)
-                       (and (= ka1 ka2)
-                            (string-lessp (nth 0 r1) (nth 0 r2)))))))
+        (setf rivit (moni-sort rivit
+                               (cons (lambda (x) (nth 2 x)) #'>)
+                               (cons (lambda (x) (nth 0 x)) #'string-lessp)))
 
-          (setf rivit (sort rivit #'rivi>))
-          (loop :for rivi :in rivit
-                :do (setf (nth 2 rivi) (tulosta-luku (nth 2 rivi) 2)))
-          (make-instance 'tilasto-paremmuus
-                         :lista rivit
-                         :kokonaiskeskiarvo
-                         (tulosta-luku (/ summa (length rivit)) 2)))))))
+        (loop :for rivi :in rivit
+              :do (setf (nth 2 rivi) (tulosta-luku (nth 2 rivi) 2)))
+        (make-instance 'tilasto-paremmuus
+                       :lista rivit
+                       :kokonaiskeskiarvo
+                       (tulosta-luku (/ summa (length rivit)) 2))))))
 
 
 (defun tilasto-koonti ()
