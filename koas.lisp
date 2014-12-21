@@ -192,7 +192,7 @@
         nil)))
 
 
-(defun päivitä-versiosta-1-versioon-2 ()
+(defun päivitä-tietokanta-2 ()
   (with-transaction
     (query "CREATE TABLE arvosanat ~
                 (sid INTEGER, oid INTEGER, arvosana TEXT, lisatiedot TEXT)")
@@ -208,7 +208,7 @@
     (query "INSERT INTO hallinto (avain, arvo) VALUES ('versio', '2')")))
 
 
-(defun päivitä-versiosta-2-versioon-3 ()
+(defun päivitä-tietokanta-3 ()
   (with-transaction
     (unless (hae-muokkauslaskuri)
       (query "INSERT INTO hallinto (avain, arvo) ~
@@ -335,14 +335,14 @@
 
       (if (löytyy "hallinto")
           (let ((versio (tietokannan-versio)))
-            (cond ((= versio 1)
-                   (viesti "Päivitetään tietokanta: v1 > v3.~%")
-                   (päivitä-versiosta-1-versioon-2)
-                   (päivitä-versiosta-2-versioon-3)
-                   (eheytys t))
-                  ((= versio 2)
-                   (viesti "Päivitetään tietokanta: v2 > v3.~%")
-                   (päivitä-versiosta-2-versioon-3)
+            (cond ((< versio *tietokannan-versio*)
+                   (viesti "Päivitetään tietokanta: ~D > ~D.~%"
+                           versio *tietokannan-versio*)
+                   (loop :for kohde :from (1+ versio)
+                         :upto *tietokannan-versio*
+                         :do (funcall (intern
+                                       (format nil "PÄIVITÄ-TIETOKANTA-~D"
+                                               kohde))))
                    (eheytys t))
                   ((> versio *tietokannan-versio*)
                    (viesti "VAROITUS! Tietokannan versio on ~A mutta ohjelma ~
