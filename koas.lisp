@@ -155,22 +155,22 @@
   (unless rid-lista
     (setf rid-lista (mapcar #'first (query "SELECT rid FROM ryhmat"))))
   (loop :for rid :in rid-lista
-        :if (and (not (query "SELECT rid FROM oppilaat_ryhmat WHERE rid=~A"
+        :if (and (not (query "SELECT rid FROM oppilaat_ryhmat WHERE rid = ~A"
                              rid))
-                 (not (query "SELECT rid FROM suoritukset WHERE rid=~A" rid)))
-        :do (query "DELETE FROM ryhmat WHERE rid=~A" rid)
+                 (not (query "SELECT rid FROM suoritukset WHERE rid = ~A" rid)))
+        :do (query "DELETE FROM ryhmat WHERE rid = ~A" rid)
         :and :collect rid))
 
 
 (defun aseta-muokkauslaskuri (arvo)
-  (query "UPDATE hallinto SET arvo=~A WHERE avain='muokkauslaskuri'"
+  (query "UPDATE hallinto SET arvo = ~A WHERE avain = 'muokkauslaskuri'"
          (sql-mj arvo))
   arvo)
 
 
 (defun hae-muokkauslaskuri ()
   (lue-numero (caar (query "SELECT arvo FROM hallinto ~
-                                WHERE avain='muokkauslaskuri'"))))
+                                WHERE avain = 'muokkauslaskuri'"))))
 
 
 (defun lisää-muokkauslaskuriin (muokkaukset)
@@ -184,8 +184,8 @@
           (with-transaction
             (poista-tyhjät-ryhmät)
             (query "DELETE FROM arvosanat ~
-                        WHERE (arvosana='' OR arvosana IS NULL) ~
-                        AND (lisatiedot='' OR lisatiedot IS NULL)"))
+                        WHERE (arvosana = '' OR arvosana IS NULL) ~
+                        AND (lisatiedot = '' OR lisatiedot IS NULL)"))
           (query "VACUUM")
           (aseta-muokkauslaskuri 0)
           t)
@@ -233,7 +233,7 @@
 
     (loop :for (ryhmä . nil) :in (query "SELECT ryhma FROM ryhmat")
           :do (query "INSERT INTO ryhmat_v3 ~
-                (nimi, lisatiedot) VALUES (~A,'')"
+                (nimi, lisatiedot) VALUES (~A, '')"
                      (sql-mj ryhmä)))
 
     (loop :for (oid sukunimi etunimi ryhmä-mj lisätiedot)
@@ -242,19 +242,19 @@
           :do
           (query "INSERT INTO oppilaat_v3 ~
                 (oid, sukunimi, etunimi, lisatiedot)
-                VALUES (~A,~A,~A,~A)"
+                VALUES (~A, ~A, ~A, ~A)"
                  oid (sql-mj sukunimi) (sql-mj etunimi) (sql-mj lisätiedot))
           (loop :for ryhmä :in ryhmät
                 :do
                 (let ((rid (caar (query "SELECT rid FROM ryhmat_v3 ~
-                        WHERE nimi=~A" (sql-mj ryhmä)))))
+                        WHERE nimi = ~A" (sql-mj ryhmä)))))
                   (unless rid
                     (query "INSERT INTO ryhmat_v3 ~
-                        (nimi, lisatiedot) VALUES (~A,'')"
+                        (nimi, lisatiedot) VALUES (~A, '')"
                            (sql-mj ryhmä))
                     (setf rid (query-last-insert-rowid)))
                   (query "INSERT INTO oppilaat_ryhmat ~
-                        (oid, rid) VALUES (~A,~A)" oid rid))))
+                        (oid, rid) VALUES (~A, ~A)" oid rid))))
 
     (loop :for (ryhmä suoritukset-mj) :in (query "SELECT * FROM ryhmat")
           :for suoritukset := (mapcar #'lue-numero
@@ -263,14 +263,14 @@
           (loop :for sid :in suoritukset
                 :for sija :upfrom 1
                 :for rid := (caar (query "SELECT rid FROM ryhmat_v3 ~
-                                WHERE nimi=~A" (sql-mj ryhmä)))
+                                WHERE nimi = ~A" (sql-mj ryhmä)))
                 :for (nimi lyhenne painokerroin)
-                := (first (query "SELECT nimi,lyhenne,painokerroin ~
-                                FROM suoritukset WHERE sid=~A" sid))
+                := (first (query "SELECT nimi, lyhenne, painokerroin ~
+                                FROM suoritukset WHERE sid = ~A" sid))
                 :do
                 (query "INSERT INTO suoritukset_v3 ~
                         (sid, rid, sija, nimi, lyhenne, painokerroin) ~
-                        VALUES (~A,~A,~A,~A,~A,~A)"
+                        VALUES (~A, ~A, ~A, ~A, ~A, ~A)"
                        sid rid sija (sql-mj nimi) (sql-mj lyhenne)
                        (or painokerroin "NULL"))))
 
@@ -296,21 +296,21 @@
     (loop :for (oid sukunimi etunimi lisätiedot)
           :in (query "SELECT * FROM oppilaat_v3")
           :do (query "INSERT INTO oppilaat ~
-                (oid,sukunimi,etunimi,lisatiedot) ~
-                VALUES (~A,~A,~A,~A)"
+                (oid, sukunimi, etunimi, lisatiedot) ~
+                VALUES (~A, ~A, ~A, ~A)"
                      oid (sql-mj sukunimi) (sql-mj etunimi)
                      (sql-mj lisätiedot)))
 
     (loop :for (rid nimi lisätiedot) :in (query "SELECT * FROM ryhmat_v3")
           :do (query "INSERT INTO ryhmat ~
                 (rid, nimi, lisatiedot) ~
-                VALUES (~A,~A,~A)" rid (sql-mj nimi) (sql-mj lisätiedot)))
+                VALUES (~A, ~A, ~A)" rid (sql-mj nimi) (sql-mj lisätiedot)))
 
     (loop :for (sid rid sija nimi lyhenne painokerroin)
           :in (query "SELECT * FROM suoritukset_v3")
           :do (query "INSERT INTO suoritukset ~
                 (sid, rid, sija, nimi, lyhenne, painokerroin) ~
-                VALUES (~A,~A,~A,~A,~A,~A)"
+                VALUES (~A, ~A, ~A, ~A, ~A, ~A)"
                      sid rid sija (sql-mj nimi)
                      (sql-mj lyhenne) (or painokerroin "NULL")))
 
@@ -318,18 +318,18 @@
     (query "DROP TABLE ryhmat_v3")
     (query "DROP TABLE suoritukset_v3")
 
-    (query "UPDATE hallinto SET arvo='3' WHERE avain='versio'")))
+    (query "UPDATE hallinto SET arvo = '3' WHERE avain = 'versio'")))
 
 
 (defun tietokannan-versio ()
   (let ((kysely (caar (query "SELECT arvo FROM hallinto ~
-                                WHERE avain='versio'"))))
+                                WHERE avain = 'versio'"))))
     (if kysely (lue-numero kysely) 1)))
 
 
 (defun alusta-tietokanta ()
   (let ((kaikki (mapcar #'first (query "SELECT name FROM sqlite_master ~
-                                        WHERE type='table'"))))
+                                        WHERE type = 'table'"))))
     (flet ((löytyy (asia)
              (member asia kaikki :test #'equal)))
 
@@ -357,7 +357,7 @@
                     (sb-ext:native-pathname *tiedosto*))
 
             (query "CREATE TABLE hallinto (avain TEXT UNIQUE, arvo TEXT)")
-            (query "INSERT INTO hallinto (avain, arvo) VALUES ('versio',~A)"
+            (query "INSERT INTO hallinto (avain, arvo) VALUES ('versio', ~A)"
                    (sql-mj *tietokannan-versio*))
             (query "INSERT INTO hallinto (avain, arvo) ~
                 VALUES ('muokkauslaskuri', '0')")
@@ -381,7 +381,7 @@
             (query "CREATE TABLE arvosanat ~
                 (sid INTEGER, oid INTEGER, arvosana TEXT, lisatiedot TEXT)")))
 
-      (query "PRAGMA case_sensitive_like=1"))))
+      (query "PRAGMA case_sensitive_like = 1"))))
 
 
 (defun connect ()
@@ -1533,8 +1533,8 @@
 
 
 (defmethod lisää ((oppilas oppilas) &key)
-  (query "INSERT INTO oppilaat (sukunimi,etunimi,lisatiedot) ~
-        VALUES (~A,~A,~A)"
+  (query "INSERT INTO oppilaat (sukunimi, etunimi, lisatiedot) ~
+        VALUES (~A, ~A, ~A)"
          (sql-mj (sukunimi oppilas))
          (sql-mj (etunimi oppilas))
          (sql-mj (oppilas-lisätiedot oppilas)))
@@ -1545,12 +1545,12 @@
                                    (sql-like-suoja ryhmä)))
 
           :unless rid :do
-          (query "INSERT INTO ryhmat (nimi,lisatiedot) VALUES (~A,'')"
+          (query "INSERT INTO ryhmat (nimi, lisatiedot) VALUES (~A, '')"
                  (sql-mj ryhmä))
           (setf rid (query-last-insert-rowid))
 
           :do
-          (query "INSERT INTO oppilaat_ryhmat (oid, rid) VALUES (~A,~A)"
+          (query "INSERT INTO oppilaat_ryhmat (oid, rid) VALUES (~A, ~A)"
                  oid rid))
     oid))
 
@@ -1564,29 +1564,30 @@
 
     (setf (rid suoritus) rid)
 
-    (query "INSERT INTO suoritukset (rid,nimi,lyhenne,painokerroin) ~
-                VALUES (~A,~A,~A,~A)"
+    (query "INSERT INTO suoritukset (rid, nimi, lyhenne, painokerroin) ~
+                VALUES (~A, ~A, ~A, ~A)"
            rid (sql-mj (nimi suoritus)) (sql-mj (lyhenne suoritus))
            (or (painokerroin suoritus) "NULL"))
 
     (let* ((uusi-sid (query-last-insert-rowid))
            (sid-lista
             (mapcar #'first (query "SELECT sid FROM suoritukset ~
-                                        WHERE rid=~A ~
-                                        AND NOT sid=~A ~
-                                        ORDER BY sija,sid"
+                                        WHERE rid = ~A ~
+                                        AND NOT sid = ~A ~
+                                        ORDER BY sija, sid"
                                    rid uusi-sid))))
       (setf (sid suoritus) uusi-sid)
       (cond ((or (not sija)
                  (> sija (1+ (length sid-lista))))
              (setf sija (1+ (length sid-lista))))
             ((< sija 1) (setf sija 1)))
-      (query "UPDATE suoritukset SET sija=~A WHERE sid=~A" sija uusi-sid)
+      (query "UPDATE suoritukset SET sija = ~A WHERE sid = ~A" sija uusi-sid)
       (loop :with i := 0
             :for sid :in sid-lista
             :do (incf i)
             :if (= i sija) :do (incf i)
-            :do (query "UPDATE suoritukset SET sija=~A WHERE sid=~A" i sid)))))
+            :do (query "UPDATE suoritukset SET sija = ~A ~
+                                WHERE sid = ~A" i sid)))))
 
 
 (defgeneric muokkaa (asia &key &allow-other-keys))
@@ -1594,12 +1595,12 @@
 
 (defmethod muokkaa ((oppilas oppilas) &key)
   (let ((vanha-rid-lista
-         (mapcar #'first (query "SELECT rid FROM oppilaat_ryhmat WHERE oid=~A"
+         (mapcar #'first (query "SELECT rid FROM oppilaat_ryhmat WHERE oid = ~A"
                                 (oid oppilas))))
         (uusi-rid-lista nil))
 
-    (query "UPDATE oppilaat SET sukunimi=~A,etunimi=~A,lisatiedot=~A ~
-                WHERE oid=~A"
+    (query "UPDATE oppilaat SET sukunimi = ~A, etunimi = ~A, lisatiedot = ~A ~
+                WHERE oid = ~A"
            (sql-mj (sukunimi oppilas))
            (sql-mj (etunimi oppilas))
            (sql-mj (oppilas-lisätiedot oppilas))
@@ -1615,7 +1616,7 @@
           (setf rid (query-last-insert-rowid))
 
           :unless (member rid vanha-rid-lista) :do
-          (query "INSERT INTO oppilaat_ryhmat (oid, rid) VALUES (~A,~A)"
+          (query "INSERT INTO oppilaat_ryhmat (oid, rid) VALUES (~A, ~A)"
                  (oid oppilas) rid)
 
           :collect rid :into rid-lista
@@ -1624,7 +1625,7 @@
     (let ((ero (set-difference vanha-rid-lista uusi-rid-lista)))
       (when ero
         (query "DELETE FROM oppilaat_ryhmat ~
-                WHERE oid=~A AND (~{rid=~A~^ OR ~})"
+                WHERE oid = ~A AND (~{rid = ~A~^ OR ~})"
                (oid oppilas) ero)
         (poista-tyhjät-ryhmät ero)))
 
@@ -1632,8 +1633,8 @@
 
 
 (defmethod muokkaa ((suoritus suoritus) &key sija)
-  (query "UPDATE suoritukset SET nimi=~A,lyhenne=~A,painokerroin=~A ~
-                WHERE sid=~A"
+  (query "UPDATE suoritukset SET nimi = ~A, lyhenne = ~A, painokerroin = ~A ~
+                WHERE sid = ~A"
          (sql-mj (nimi suoritus)) (sql-mj (lyhenne suoritus))
          (or (painokerroin suoritus) "NULL")
          (sid suoritus))
@@ -1641,23 +1642,25 @@
   (when sija
     (let ((sid-lista
            (mapcar #'first (query "SELECT sid FROM suoritukset ~
-                                        WHERE rid=~A ~
-                                        AND NOT sid=~A ~
-                                        ORDER BY sija,sid"
+                                        WHERE rid = ~A ~
+                                        AND NOT sid = ~A ~
+                                        ORDER BY sija, sid"
                                   (rid suoritus) (sid suoritus)))))
 
       (setf sija (min sija (1+ (length sid-lista)))
             sija (max sija 1))
-      (query "UPDATE suoritukset SET sija=~A WHERE sid=~A" sija (sid suoritus))
+      (query "UPDATE suoritukset SET sija = ~A WHERE sid = ~A"
+             sija (sid suoritus))
       (loop :with i := 0
             :for sid :in sid-lista
             :do (incf i)
             :if (= i sija) :do (incf i)
-            :do (query "UPDATE suoritukset SET sija=~A WHERE sid=~A" i sid)))))
+            :do (query "UPDATE suoritukset SET sija = ~A WHERE sid = ~A"
+                       i sid)))))
 
 
 (defmethod muokkaa ((ryhmä ryhmä) &key)
-  (query "UPDATE ryhmat SET nimi=~A,lisatiedot=~A WHERE rid=~A"
+  (query "UPDATE ryhmat SET nimi = ~A, lisatiedot = ~A WHERE rid = ~A"
          (sql-mj (nimi ryhmä))
          (sql-mj (ryhmä-lisätiedot ryhmä))
          (rid ryhmä)))
@@ -1668,14 +1671,14 @@
                       (if (or (not lisä) (equal lisä ""))
                           "NULL"
                           (sql-mj lisä)))))
-    (if (query "SELECT oid FROM arvosanat WHERE sid=~A AND oid=~A"
+    (if (query "SELECT oid FROM arvosanat WHERE sid = ~A AND oid = ~A"
                (sid arvosana) (oid arvosana))
-        (query "UPDATE arvosanat SET arvosana=~A,lisatiedot=~A ~
-                WHERE sid=~A AND oid=~A"
+        (query "UPDATE arvosanat SET arvosana = ~A, lisatiedot = ~A ~
+                WHERE sid = ~A AND oid = ~A"
                (sql-mj (arvosana arvosana)) lisätiedot (sid arvosana)
                (oid arvosana))
-        (query "INSERT INTO arvosanat (sid,oid,arvosana,lisatiedot) ~
-                VALUES (~A,~A,~A,~A)"
+        (query "INSERT INTO arvosanat (sid, oid, arvosana, lisatiedot) ~
+                VALUES (~A, ~A, ~A, ~A)"
                (sid arvosana) (oid arvosana) (sql-mj (arvosana arvosana))
                lisätiedot))))
 
@@ -1685,30 +1688,30 @@
 
 (defmethod poista ((oppilas oppilas))
   (let ((rid-lista
-         (mapcar #'first (query "SELECT rid FROM oppilaat_ryhmat WHERE oid=~A"
+         (mapcar #'first (query "SELECT rid FROM oppilaat_ryhmat WHERE oid = ~A"
                                 (oid oppilas)))))
-    (query "DELETE FROM oppilaat_ryhmat WHERE oid=~A" (oid oppilas))
-    (query "DELETE FROM arvosanat WHERE oid=~A" (oid oppilas))
-    (query "DELETE FROM oppilaat WHERE oid=~A" (oid oppilas))
+    (query "DELETE FROM oppilaat_ryhmat WHERE oid = ~A" (oid oppilas))
+    (query "DELETE FROM arvosanat WHERE oid = ~A" (oid oppilas))
+    (query "DELETE FROM oppilaat WHERE oid = ~A" (oid oppilas))
     (when rid-lista
       (poista-tyhjät-ryhmät rid-lista))))
 
 
 (defmethod poista ((suoritus suoritus))
-  (query "DELETE FROM suoritukset WHERE sid=~A" (sid suoritus))
-  (query "DELETE FROM arvosanat WHERE sid=~A" (sid suoritus))
+  (query "DELETE FROM suoritukset WHERE sid = ~A" (sid suoritus))
+  (query "DELETE FROM arvosanat WHERE sid = ~A" (sid suoritus))
   (poista-tyhjät-ryhmät (list (rid suoritus)))
   (let ((sid-lista
          (mapcar #'first (query "SELECT sid FROM suoritukset ~
-                                WHERE rid=~A ORDER BY sija,sid"
+                                WHERE rid = ~A ORDER BY sija, sid"
                                 (rid suoritus)))))
     (loop :for i :upfrom 1
           :for sid :in sid-lista
-          :do (query "UPDATE suoritukset SET sija=~A WHERE sid=~A" i sid))))
+          :do (query "UPDATE suoritukset SET sija= ~A WHERE sid = ~A" i sid))))
 
 
 (defmethod poista ((arvosana arvosana))
-  (query "DELETE FROM arvosanat WHERE sid=~A AND oid=~A"
+  (query "DELETE FROM arvosanat WHERE sid = ~A AND oid = ~A"
          (sid arvosana) (oid arvosana)))
 
 
