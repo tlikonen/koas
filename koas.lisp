@@ -33,7 +33,7 @@
 (defvar *suppea* nil)
 (defvar *poistoraja* 10)
 (defvar *muokkaukset-kunnes-eheytys* 5000)
-(defparameter *tietokannan-versio* 3)
+(defparameter *tietokannan-versio* 4)
 
 
 (defun alusta-tiedostopolku ()
@@ -164,17 +164,18 @@
 
 (defun aseta-muokkauslaskuri (arvo)
   (query "UPDATE hallinto SET arvo = ~A WHERE avain = 'muokkauslaskuri'"
-         (sql-mj arvo))
+         arvo)
   arvo)
 
 
 (defun hae-muokkauslaskuri ()
-  (lue-numero (caar (query "SELECT arvo FROM hallinto ~
-                                WHERE avain = 'muokkauslaskuri'"))))
+  (caar (query "SELECT arvo FROM hallinto WHERE avain = 'muokkauslaskuri'")))
 
 
 (defun lisää-muokkauslaskuriin (muokkaukset)
-  (aseta-muokkauslaskuri (+ (or (hae-muokkauslaskuri) 0) muokkaukset)))
+  (query "UPDATE hallinto SET arvo = arvo + ~A WHERE avain = 'muokkauslaskuri'"
+         muokkaukset)
+  muokkaukset)
 
 
 (defun eheytys (&optional nyt)
@@ -205,14 +206,14 @@
                                 VALUES (~A, ~A, ~A, ~A)"
                            sid oid (sql-mj arv) (sql-mj lis)))
           (ignore-errors (query "DROP TABLE suoritus_~A" sid)))
-    (query "INSERT INTO hallinto (avain, arvo) VALUES ('versio', '2')")))
+    (query "INSERT INTO hallinto (avain, arvo) VALUES ('versio', 2)")))
 
 
 (defun päivitä-tietokanta-3 ()
   (with-transaction
     (unless (hae-muokkauslaskuri)
       (query "INSERT INTO hallinto (avain, arvo) ~
-                VALUES ('muokkauslaskuri', '0')"))
+                VALUES ('muokkauslaskuri', 0)"))
 
     (query "CREATE TABLE oppilaat_v3 ~
                 (oid INTEGER PRIMARY KEY, ~
@@ -318,7 +319,42 @@
     (query "DROP TABLE ryhmat_v3")
     (query "DROP TABLE suoritukset_v3")
 
-    (query "UPDATE hallinto SET arvo = '3' WHERE avain = 'versio'")))
+    (query "UPDATE hallinto SET arvo = 3 WHERE avain = 'versio'")))
+
+
+(defun päivitä-tietokanta-4 ()
+  (with-transaction
+    (query "CREATE VIEW IF NOT EXISTS view_oppilaat AS ~
+                SELECT o.oid, o.sukunimi, o.etunimi, ~
+                r.rid, r.nimi AS ryhma, o.lisatiedot AS olt ~
+                FROM oppilaat AS o ~
+                LEFT JOIN oppilaat_ryhmat AS j ~
+                ON j.oid = o.oid AND j.rid = r.rid ~
+                LEFT JOIN ryhmat AS r ON r.rid = j.rid")
+
+    (query "CREATE VIEW IF NOT EXISTS view_suoritukset AS ~
+                SELECT r.rid, r.nimi AS ryhma, r.lisatiedot AS rlt, ~
+                s.sid, s.nimi AS suoritus, s.lyhenne, s.sija, s.painokerroin ~
+                FROM suoritukset AS s ~
+                JOIN ryhmat AS r ON r.rid = s.rid")
+
+    (query "CREATE VIEW IF NOT EXISTS view_arvosanat AS ~
+                SELECT o.oid, o.sukunimi, o.etunimi, o.lisatiedot AS olt, ~
+                r.rid, r.nimi AS ryhma, r.lisatiedot AS rlt, ~
+                s.sid, s.nimi AS suoritus, s.lyhenne, s.sija, s.painokerroin, ~
+                a.arvosana, a.lisatiedot AS alt ~
+                FROM oppilaat_ryhmat AS j ~
+                JOIN oppilaat AS o ON o.oid = j.oid ~
+                JOIN ryhmat AS r ON r.rid = j.rid ~
+                LEFT JOIN suoritukset AS s ON r.rid = s.rid ~
+                LEFT JOIN arvosanat AS a ON o.oid = a.oid AND s.sid = a.sid")
+
+    (query "CREATE TABLE hallinto_v4 (avain TEXT UNIQUE, arvo INTEGER)")
+    (query "INSERT INTO hallinto_v4 SELECT avain, arvo FROM hallinto")
+    (query "DROP TABLE hallinto")
+    (query "ALTER TABLE hallinto_v4 RENAME TO hallinto")
+
+    (query "UPDATE hallinto SET arvo = 4 WHERE avain = 'versio'")))
 
 
 (defun tietokannan-versio ()
@@ -336,7 +372,7 @@
       (if (löytyy "hallinto")
           (let ((versio (tietokannan-versio)))
             (cond ((< versio *tietokannan-versio*)
-                   (viesti "Päivitetään tietokanta: ~D > ~D.~%"
+                   (viesti "Päivitetään tietokanta: v~D -> v~D.~%"
                            versio *tietokannan-versio*)
                    (loop :for kohde :from (1+ versio)
                          :upto *tietokannan-versio*
@@ -356,30 +392,62 @@
                 Ota tietokantatiedostosta varmuuskopio riittävän usein.~%"
                     (sb-ext:native-pathname *tiedosto*))
 
-            (query "CREATE TABLE hallinto (avain TEXT UNIQUE, arvo TEXT)")
-            (query "INSERT INTO hallinto (avain, arvo) VALUES ('versio', ~A)"
-                   (sql-mj *tietokannan-versio*))
-            (query "INSERT INTO hallinto (avain, arvo) ~
-                VALUES ('muokkauslaskuri', '0')")
+            (query "CREATE TABLE IF NOT EXISTS hallinto ~
+                (avain TEXT UNIQUE, arvo INTEGER)")
 
-            (query "CREATE TABLE oppilaat ~
+            (query "INSERT INTO hallinto (avain, arvo) VALUES ('versio', ~A)"
+                   *tietokannan-versio*)
+
+            (query "INSERT INTO hallinto (avain, arvo) ~
+                VALUES ('muokkauslaskuri', 0)")
+
+            (query "CREATE TABLE IF NOT EXISTS oppilaat ~
                 (oid INTEGER PRIMARY KEY, ~
                 sukunimi TEXT, etunimi TEXT, ~
                 lisatiedot TEXT DEFAULT '')")
-            (query "CREATE TABLE ryhmat ~
+
+            (query "CREATE TABLE IF NOT EXISTS ryhmat ~
                 (rid INTEGER PRIMARY KEY, nimi TEXT, ~
                 lisatiedot TEXT DEFAULT '')")
-            (query "CREATE TABLE oppilaat_ryhmat ~
+
+            (query "CREATE TABLE IF NOT EXISTS oppilaat_ryhmat ~
                 (oid INTEGER, rid INTEGER)")
-            (query "CREATE TABLE suoritukset ~
+
+            (query "CREATE TABLE IF NOT EXISTS suoritukset ~
                 (sid INTEGER PRIMARY KEY, ~
                 rid INTEGER, ~
                 sija INTEGER, ~
                 nimi TEXT DEFAULT '', ~
                 lyhenne TEXT DEFAULT '', ~
                 painokerroin INTEGER)")
-            (query "CREATE TABLE arvosanat ~
-                (sid INTEGER, oid INTEGER, arvosana TEXT, lisatiedot TEXT)")))
+
+            (query "CREATE TABLE IF NOT EXISTS arvosanat ~
+                (sid INTEGER, oid INTEGER, arvosana TEXT, lisatiedot TEXT)")
+
+            (query "CREATE VIEW IF NOT EXISTS view_oppilaat AS ~
+                SELECT o.oid, o.sukunimi, o.etunimi, ~
+                r.rid, r.nimi AS ryhma, o.lisatiedot AS olt ~
+                FROM oppilaat AS o ~
+                LEFT JOIN oppilaat_ryhmat AS j ~
+                ON j.oid = o.oid AND j.rid = r.rid ~
+                LEFT JOIN ryhmat AS r ON r.rid = j.rid")
+
+            (query "CREATE VIEW IF NOT EXISTS view_suoritukset AS ~
+                SELECT r.rid, r.nimi AS ryhma, r.lisatiedot AS rlt, ~
+                s.sid, s.nimi AS suoritus, s.lyhenne, s.sija, s.painokerroin ~
+                FROM suoritukset AS s ~
+                JOIN ryhmat AS r ON r.rid = s.rid")
+
+            (query "CREATE VIEW IF NOT EXISTS view_arvosanat AS ~
+                SELECT o.oid, o.sukunimi, o.etunimi, o.lisatiedot AS olt, ~
+                r.rid, r.nimi AS ryhma, r.lisatiedot AS rlt, ~
+                s.sid, s.nimi AS suoritus, s.lyhenne, s.sija, s.painokerroin, ~
+                a.arvosana, a.lisatiedot AS alt ~
+                FROM oppilaat_ryhmat AS j ~
+                JOIN oppilaat AS o ON o.oid = j.oid ~
+                JOIN ryhmat AS r ON r.rid = j.rid ~
+                LEFT JOIN suoritukset AS s ON r.rid = s.rid ~
+                LEFT JOIN arvosanat AS a ON o.oid = a.oid AND s.sid = a.sid")))
 
       (query "PRAGMA case_sensitive_like = 1"))))
 
@@ -700,14 +768,12 @@
 (defun hae-oppilaat (sukunimi &optional (etunimi "") (ryhmä "")
                                 (lisätiedot ""))
   (let ((kysely ;Ei karsita vielä ryhmän perusteella.
-         (query "SELECT o.oid,o.sukunimi,o.etunimi,r.nimi,o.lisatiedot ~
-                FROM oppilaat AS o ~
-                LEFT JOIN oppilaat_ryhmat AS j ON j.oid=o.oid AND j.rid=r.rid ~
-                LEFT JOIN ryhmat AS r ON r.rid=j.rid ~
-                WHERE o.sukunimi LIKE ~A ~
-                AND o.etunimi LIKE ~A ~
-                AND o.lisatiedot LIKE ~A ~
-                ORDER BY o.sukunimi,o.etunimi,o.oid,r.nimi DESC"
+         (query "SELECT oid, sukunimi, etunimi, ryhma, olt ~
+                FROM view_oppilaat ~
+                WHERE sukunimi LIKE ~A ~
+                AND etunimi LIKE ~A ~
+                AND olt LIKE ~A ~
+                ORDER BY sukunimi, etunimi, oid, ryhma DESC"
                 (sql-like-suoja sukunimi t)
                 (sql-like-suoja etunimi t)
                 (sql-like-suoja lisätiedot t))))
@@ -747,12 +813,11 @@
 
 (defun hae-suoritukset (ryhmä)
   (let ((suoritukset
-         (query "SELECT r.rid,r.nimi,r.lisatiedot,~
-                s.sid,s.nimi,s.lyhenne,s.painokerroin ~
-                FROM suoritukset AS s ~
-                JOIN ryhmat as r ON r.rid=s.rid ~
-                WHERE r.nimi LIKE ~A ~
-                ORDER BY s.sija,s.sid"
+         (query "SELECT rid, ryhma, rlt, ~
+                sid, suoritus, lyhenne, painokerroin ~
+                FROM view_suoritukset ~
+                WHERE ryhma LIKE ~A ~
+                ORDER BY sija, sid"
                 (sql-like-suoja ryhmä))))
 
     (when suoritukset
@@ -773,7 +838,7 @@
 
 
 (defun hae-ryhmät (&optional (ryhmä "") (lisätiedot ""))
-  (let ((ryhmät (query "SELECT rid,nimi,lisatiedot FROM ryhmat ~
+  (let ((ryhmät (query "SELECT rid, nimi, lisatiedot FROM ryhmat ~
                 WHERE nimi LIKE ~A AND lisatiedot LIKE ~A"
                        (sql-like-suoja ryhmä t)
                        (sql-like-suoja lisätiedot t))))
@@ -795,19 +860,15 @@
 
 (defun hae-arvosanat-suorituksista (ryhmä &optional (nimi "") (lyhenne ""))
   (let ((kysely
-         (query "SELECT r.nimi,r.rid,r.lisatiedot,~
-                s.sija,s.sid,s.nimi,s.lyhenne,s.painokerroin,~
-                o.oid,o.sukunimi,o.etunimi,a.arvosana,a.lisatiedot ~
-                FROM suoritukset AS s ~
-                LEFT JOIN ryhmat AS r ON s.rid=r.rid ~
-                LEFT JOIN oppilaat_ryhmat AS j ON s.rid=j.rid ~
-                LEFT JOIN oppilaat AS o ON o.oid=j.oid ~
-                LEFT JOIN arvosanat AS a ON a.oid=o.oid AND a.sid=s.sid ~
-                WHERE r.nimi LIKE ~A ~
-                AND s.nimi LIKE ~A ~
-                AND s.lyhenne LIKE ~A ~
-                AND o.oid IS NOT NULL ~
-                ORDER BY r.nimi,r.rid,s.sija,s.sid,o.sukunimi,o.etunimi,o.oid"
+         (query "SELECT ryhma, rid, rlt, ~
+                sija, sid, suoritus, lyhenne, painokerroin,~
+                oid, sukunimi, etunimi, arvosana, alt ~
+                FROM view_arvosanat ~
+                WHERE ryhma LIKE ~A ~
+                AND suoritus LIKE ~A ~
+                AND lyhenne LIKE ~A ~
+                AND oid IS NOT NULL ~
+                ORDER BY ryhma, rid, sija, sid, sukunimi, etunimi, oid"
                 (sql-like-suoja ryhmä)
                 (sql-like-suoja nimi t)
                 (sql-like-suoja lyhenne t))))
@@ -861,21 +922,17 @@
 (defun hae-arvosanat-oppilailta (sukunimi &optional (etunimi "") (ryhmä "")
                                             (lisätiedot ""))
   (let ((kysely
-         (query "SELECT o.oid,o.sukunimi,o.etunimi,o.lisatiedot,~
-                r.rid,r.nimi,r.lisatiedot,~
-                s.sid,s.nimi,s.lyhenne,s.painokerroin,~
-                a.arvosana,a.lisatiedot ~
-                FROM oppilaat_ryhmat AS j ~
-                JOIN oppilaat AS o ON o.oid=j.oid ~
-                JOIN ryhmat AS r ON r.rid=j.rid ~
-                LEFT JOIN suoritukset AS s ON r.rid=s.rid ~
-                LEFT JOIN arvosanat AS a ON o.oid=a.oid AND s.sid=a.sid ~
-                WHERE o.sukunimi LIKE ~A ~
-                AND o.etunimi LIKE ~A ~
-                AND r.nimi LIKE ~A ~
-                AND o.lisatiedot LIKE ~A ~
-                AND s.sid IS NOT NULL ~
-                ORDER BY o.sukunimi,o.etunimi,o.oid,r.nimi,r.rid,s.sija,s.sid"
+         (query "SELECT oid, sukunimi, etunimi, olt, ~
+                rid, ryhma, rlt, ~
+                sid, suoritus, lyhenne, painokerroin, ~
+                arvosana, alt ~
+                FROM view_arvosanat ~
+                WHERE sukunimi LIKE ~A ~
+                AND etunimi LIKE ~A ~
+                AND ryhma LIKE ~A ~
+                AND olt LIKE ~A ~
+                AND sid IS NOT NULL ~
+                ORDER BY sukunimi, etunimi, oid, ryhma, rid, sija, sid"
                 (sql-like-suoja sukunimi t)
                 (sql-like-suoja etunimi t)
                 (sql-like-suoja ryhmä t)
@@ -931,50 +988,50 @@
 
 
 (defun hae-arvosanat-koonti (ryhmä)
-  (let* ((suorituslista
-          (query "SELECT r.nimi,r.lisatiedot,~
-                s.sid,s.nimi,s.lyhenne,s.painokerroin ~
-                FROM ryhmat AS r ~
-                JOIN suoritukset AS s ON r.rid=s.rid ~
-                WHERE r.nimi LIKE ~A ~
-                ORDER BY s.sija,s.sid"
-                 (sql-like-suoja ryhmä))))
+  (let ((suorituslista
+         (query "SELECT ryhma, rlt, sid, suoritus, lyhenne, painokerroin ~
+                FROM view_suoritukset ~
+                WHERE ryhma LIKE ~A ~
+                ORDER BY sija, sid"
+                (sql-like-suoja ryhmä)))
+        (oppilasmäärä (caar (query "SELECT count(oid) ~
+                FROM oppilaat_ryhmat AS j ~
+                JOIN ryhmat AS r ON j.rid = r.rid ~
+                WHERE r.nimi LIKE ~A"
+                                   (sql-like-suoja ryhmä)))))
 
     (when suorituslista
-      (let* ((kysely
-              (query "SELECT o.sukunimi,o.etunimi,o.oid,~
-                        ~{~A.arvosana~*~^,~}~:* ~
-                        FROM oppilaat_ryhmat AS j ~
-                        LEFT JOIN oppilaat AS o ON j.oid=o.oid ~
-                        LEFT JOIN ryhmat AS r on j.rid=r.rid ~
-                        ~{LEFT JOIN arvosanat AS ~A~:* ~
-                        ON o.oid=~A.oid~:* AND ~A.sid=~A ~} ~
-                        WHERE r.nimi LIKE ~A ~
-                        ORDER BY o.sukunimi,o.etunimi,o.oid"
-                     (loop :for suoritus :in suorituslista
-                           ;; SQLiten suurin taulukkomäärä joinissa 64.
-                           :for i :from 1 :below 64
-                           :collect (format nil "a~A" i)
-                           :collect (nth 2 suoritus)) ;s.sid
-                     (sql-like-suoja ryhmä))))
+      (let ((kysely
+             (query "SELECT sukunimi, etunimi, oid, sija, arvosana ~
+                        FROM view_arvosanat ~
+                        WHERE ryhma LIKE ~A ~
+                        ORDER BY sukunimi, etunimi, oid, sija"
+                    (sql-like-suoja ryhmä))))
 
         (when kysely
           (setf kysely (moni-sort kysely
                                   (cons (lambda (x) (nth 0 x)) #'string-lessp)
                                   (cons (lambda (x) (nth 1 x)) #'string-lessp)
-                                  (cons (lambda (x) (nth 2 x)) #'<)))
+                                  (cons (lambda (x) (nth 2 x)) #'<)
+                                  (cons (lambda (x) (nth 3 x)) #'<)))
 
-          (let ((taulukko (make-array (list (length kysely)
+          (let ((taulukko (make-array (list oppilasmäärä
                                             (length suorituslista))))
                 (oppilaslista nil))
 
-            (loop :for (sukunimi etunimi nil . arvosanat) :in kysely
-                  :for opp :upfrom 0
+            (loop :with opp := 0
+                  :with arv := 0
+                  :for (rivi . loput) :on kysely
+                  :for (sukunimi etunimi oid nil arvosana) := rivi
+                  :for seuraava-oid := (nth 2 (first loput))
                   :do
-                  (push (oppilas-mj sukunimi etunimi) oppilaslista)
-                  (loop :for arvosana :in arvosanat
-                        :for arv :upfrom 0
-                        :do (setf (aref taulukko opp arv) arvosana)))
+                  (setf (aref taulukko opp arv) arvosana)
+                  (incf arv)
+
+                  (unless (eql oid seuraava-oid)
+                    (push (oppilas-mj sukunimi etunimi) oppilaslista)
+                    (incf opp)
+                    (setf arv 0)))
 
             (make-instance 'arvosanat-koonti
                            :ryhmä (nth 0 (first suorituslista))
@@ -988,18 +1045,14 @@
                           &optional (ryhmä "") (suoritus "") (lyhenne "")
                             (sukunimi "") (etunimi "") (lisätiedot ""))
   (let ((kysely
-         (mapcar #'first (query "SELECT a.arvosana ~
-                FROM oppilaat_ryhmat AS j ~
-                JOIN oppilaat AS o ON o.oid=j.oid ~
-                JOIN ryhmat AS r ON r.rid=j.rid ~
-                JOIN suoritukset AS s ON r.rid=s.rid ~
-                JOIN arvosanat AS a ON a.oid=o.oid AND s.sid=a.sid ~
-                WHERE o.sukunimi LIKE ~A ~
-                AND o.etunimi LIKE ~A ~
-                AND r.nimi LIKE ~A ~
-                AND o.lisatiedot LIKE ~A ~
-                AND s.nimi LIKE ~A ~
-                AND s.lyhenne LIKE ~A ~A"
+         (mapcar #'first (query "SELECT arvosana ~
+                FROM view_arvosanat ~
+                WHERE sukunimi LIKE ~A ~
+                AND etunimi LIKE ~A ~
+                AND ryhma LIKE ~A ~
+                AND olt LIKE ~A ~
+                AND suoritus LIKE ~A ~
+                AND lyhenne LIKE ~A ~A"
                                 (sql-like-suoja sukunimi t)
                                 (sql-like-suoja etunimi t)
                                 (sql-like-suoja ryhmä t)
@@ -1007,7 +1060,7 @@
                                 (sql-like-suoja suoritus t)
                                 (sql-like-suoja lyhenne t)
                                 (if painokerroin
-                                    "AND s.painokerroin >= 1"
+                                    "AND painokerroin >= 1"
                                     "")))))
     (loop :for mj :in kysely
           :for as := (lue-numero mj)
@@ -1029,27 +1082,23 @@
                             &optional (ryhmä "") (suoritus "") (lyhenne "")
                               (sukunimi "") (etunimi "") (lisätiedot ""))
   (let ((kysely
-         (query "SELECT o.oid,o.sukunimi,o.etunimi,r.nimi,~
-                a.arvosana,s.painokerroin ~
-                FROM oppilaat_ryhmat AS j ~
-                JOIN oppilaat AS o ON o.oid=j.oid ~
-                JOIN ryhmat AS r ON r.rid=j.rid ~
-                JOIN suoritukset AS s ON r.rid=s.rid ~
-                JOIN arvosanat AS a ON a.oid=o.oid AND s.sid=a.sid ~
-                WHERE o.sukunimi LIKE ~A ~
-                AND o.etunimi LIKE ~A ~
-                AND r.nimi LIKE ~A ~
-                AND o.lisatiedot LIKE ~A ~
-                AND s.nimi LIKE ~A ~
-                AND s.lyhenne LIKE ~A ~A ~
-                ORDER BY o.oid"
+         (query "SELECT oid, sukunimi, etunimi, ryhma, ~
+                arvosana, painokerroin ~
+                FROM view_arvosanat ~
+                WHERE sukunimi LIKE ~A ~
+                AND etunimi LIKE ~A ~
+                AND ryhma LIKE ~A ~
+                AND olt LIKE ~A ~
+                AND suoritus LIKE ~A ~
+                AND lyhenne LIKE ~A ~A ~
+                ORDER BY oid"
                 (sql-like-suoja sukunimi t)
                 (sql-like-suoja etunimi t)
                 (sql-like-suoja ryhmä t)
                 (sql-like-suoja lisätiedot t)
                 (sql-like-suoja suoritus t)
                 (sql-like-suoja lyhenne t)
-                (if painokerroin "AND s.painokerroin >= 1" ""))))
+                (if painokerroin "AND painokerroin >= 1" ""))))
 
     (loop :for rivi :in kysely
           :for (oid sukunimi etunimi ryhmä arvosana painokerroin) := rivi
