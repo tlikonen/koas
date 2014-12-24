@@ -291,45 +291,9 @@
     (query "DROP TABLE ryhmat")
     (query "DROP TABLE suoritukset")
 
-    (query "CREATE TABLE oppilaat ~
-                (oid INTEGER PRIMARY KEY, ~
-                sukunimi TEXT, etunimi TEXT, ~
-                lisatiedot TEXT DEFAULT '')")
-    (query "CREATE TABLE ryhmat ~
-                (rid INTEGER PRIMARY KEY, nimi TEXT, ~
-                lisatiedot TEXT DEFAULT '')")
-    (query "CREATE TABLE suoritukset ~
-                (sid INTEGER PRIMARY KEY, ~
-                rid INTEGER, ~
-                sija INTEGER, ~
-                nimi TEXT DEFAULT '', ~
-                lyhenne TEXT DEFAULT '', ~
-                painokerroin INTEGER)")
-
-    (loop :for (oid sukunimi etunimi lisätiedot)
-          :in (query "SELECT * FROM oppilaat_v3")
-          :do (query "INSERT INTO oppilaat ~
-                (oid, sukunimi, etunimi, lisatiedot) ~
-                VALUES (~A, ~A, ~A, ~A)"
-                     oid (sql-mj sukunimi) (sql-mj etunimi)
-                     (sql-mj lisätiedot)))
-
-    (loop :for (rid nimi lisätiedot) :in (query "SELECT * FROM ryhmat_v3")
-          :do (query "INSERT INTO ryhmat ~
-                (rid, nimi, lisatiedot) ~
-                VALUES (~A, ~A, ~A)" rid (sql-mj nimi) (sql-mj lisätiedot)))
-
-    (loop :for (sid rid sija nimi lyhenne painokerroin)
-          :in (query "SELECT * FROM suoritukset_v3")
-          :do (query "INSERT INTO suoritukset ~
-                (sid, rid, sija, nimi, lyhenne, painokerroin) ~
-                VALUES (~A, ~A, ~A, ~A, ~A, ~A)"
-                     sid rid sija (sql-mj nimi)
-                     (sql-mj lyhenne) (or painokerroin "NULL")))
-
-    (query "DROP TABLE oppilaat_v3")
-    (query "DROP TABLE ryhmat_v3")
-    (query "DROP TABLE suoritukset_v3")
+    (query "ALTER TABLE oppilaat_v3 RENAME TO oppilaat")
+    (query "ALTER TABLE ryhmat_v3 RENAME TO ryhmat")
+    (query "ALTER TABLE suoritukset_v3 RENAME TO suoritukset")
 
     (query "UPDATE hallinto SET arvo = 3 WHERE avain = 'versio'")))
 
