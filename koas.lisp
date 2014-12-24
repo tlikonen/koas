@@ -202,6 +202,7 @@
 
 
 (defun päivitä-tietokanta-2 ()
+  ;; Kaikki arvosanat yhteen taulukkoon.
   (with-transaction
     (query "CREATE TABLE arvosanat ~
                 (sid INTEGER, oid INTEGER, arvosana TEXT, lisatiedot TEXT)")
@@ -218,6 +219,9 @@
 
 
 (defun päivitä-tietokanta-3 ()
+  ;; Oppilaiden ryhmät määritellään uudessa taulukossa oppilaat_ryhmat.
+  ;; Myös ryhmän suoritukset määritellään järkevämmin relaatioilla eikä
+  ;; merkkijonolistan avulla.
   (with-transaction
     (unless (hae-muokkauslaskuri)
       (query "INSERT INTO hallinto (avain, arvo) ~
@@ -331,6 +335,8 @@
 
 
 (defun päivitä-tietokanta-4 ()
+  ;; Valmiita kyselyjä perustoimintoja varten. Hallinto-taulukon
+  ;; arvo-kentän tietotyypiksi integer.
   (with-transaction
     (query "CREATE VIEW IF NOT EXISTS view_oppilaat AS ~
                 SELECT o.oid, o.sukunimi, o.etunimi, ~
@@ -366,6 +372,8 @@
 
 
 (defun tietokannan-versio ()
+  ;; Täällä tarvitaan LUE-NUMERO-funktiota, koska aiemmissa versioissa
+  ;; arvo-kenttä oli merkkijonotyyppiä.
   (let ((kysely (query-1 "SELECT arvo FROM hallinto WHERE avain = 'versio'")))
     (if kysely (lue-numero kysely) 1)))
 
