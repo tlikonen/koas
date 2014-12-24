@@ -1137,7 +1137,8 @@
   (let ((oppilaita (query-1 "SELECT count(*) FROM oppilaat"))
         (ryhmiä (query-1 "SELECT count(*) FROM ryhmat"))
         (suorituksia (query-1 "SELECT count(*) FROM suoritukset"))
-        (arvosanoja (query-1 "SELECT count(*) FROM arvosanat")))
+        (arvosanoja (query-1 "SELECT count(*) FROM arvosanat ~
+                                WHERE arvosana LIKE '_%'")))
     (make-instance 'tilasto-koonti
                    :oppilaita oppilaita
                    :ryhmiä ryhmiä
