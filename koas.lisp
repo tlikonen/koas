@@ -33,7 +33,7 @@
 (defvar *suppea* nil)
 (defvar *poistoraja* 10)
 (defvar *muokkaukset-kunnes-eheytys* 5000)
-(defparameter *ohjelman-tietokantaversio* 4)
+(defparameter *ohjelman-tietokantaversio* 5)
 
 
 (defun alusta-tiedostopolku ()
@@ -187,11 +187,6 @@
   (let ((laskuri (or (hae-muokkauslaskuri) 0)))
     (if (or nyt (>= laskuri *muokkaukset-kunnes-eheytys*))
         (ignore-errors
-          (with-transaction
-            (poista-tyhjät-ryhmät)
-            (query "DELETE FROM arvosanat ~
-                        WHERE (arvosana = '' OR arvosana IS NULL) ~
-                        AND (lisatiedot = '' OR lisatiedot IS NULL)"))
           (query "VACUUM")
           (aseta-muokkauslaskuri 0)
           t)
@@ -332,6 +327,52 @@
     (query "UPDATE hallinto SET arvo = 4 WHERE avain = 'versio'")))
 
 
+(defun päivitä-tietokanta-5 ()
+  ;; Foreign key sekä composite primary key käyttöön.
+  (query "PRAGMA foreign_keys = OFF")
+
+  (with-transaction
+    (query "ALTER TABLE oppilaat_ryhmat RENAME TO oppilaat_ryhmat_vanha")
+    (query "ALTER TABLE suoritukset RENAME TO suoritukset_vanha")
+    (query "ALTER TABLE arvosanat RENAME TO arvosanat_vanha")
+
+    (query "CREATE TABLE oppilaat_ryhmat ~
+        (oid INTEGER NOT NULL REFERENCES oppilaat(oid) ON DELETE CASCADE, ~
+        rid INTEGER NOT NULL REFERENCES ryhmat(rid) ON DELETE CASCADE, ~
+        PRIMARY KEY (oid, rid))")
+
+    (query "CREATE TABLE suoritukset ~
+        (sid INTEGER PRIMARY KEY, ~
+        rid INTEGER NOT NULL REFERENCES ryhmat(rid) ON DELETE CASCADE, ~
+        sija INTEGER, ~
+        nimi TEXT DEFAULT '', ~
+        lyhenne TEXT DEFAULT '', ~
+        painokerroin INTEGER)")
+
+    (query "CREATE TABLE arvosanat ~
+        (sid INTEGER NOT NULL REFERENCES suoritukset(sid) ON DELETE CASCADE, ~
+        oid INTEGER NOT NULL REFERENCES oppilaat(oid) ON DELETE CASCADE, ~
+        arvosana TEXT, ~
+        lisatiedot TEXT, ~
+        PRIMARY KEY (sid, oid))")
+
+    (query "INSERT INTO oppilaat_ryhmat ~
+        SELECT oid, rid FROM oppilaat_ryhmat_vanha")
+    (query "INSERT INTO suoritukset ~
+        SELECT sid, rid, sija, nimi, lyhenne, painokerroin ~
+        FROM suoritukset_vanha")
+    (query "INSERT INTO arvosanat ~
+        SELECT sid, oid, arvosana, lisatiedot FROM arvosanat_vanha")
+
+    (query "DROP TABLE oppilaat_ryhmat_vanha")
+    (query "DROP TABLE suoritukset_vanha")
+    (query "DROP TABLE arvosanat_vanha")
+
+    (query "UPDATE hallinto SET arvo = 5 WHERE avain = 'versio'"))
+
+  (query "PRAGMA foreign_keys = ON"))
+
+
 (defun tietokannan-versio ()
   ;; Täällä tarvitaan LUE-NUMERO-funktiota, koska aiemmissa versioissa
   ;; arvo-kenttä oli merkkijonotyyppiä.
@@ -340,67 +381,72 @@
 
 
 (defun alusta-tietokanta ()
-  (let ((kaikki (query-nconc "SELECT name FROM sqlite_master ~
-                                        WHERE type = 'table'")))
-    (flet ((löytyy (asia)
-             (member asia kaikki :test #'equal)))
-
-      (if (löytyy "hallinto")
-          (let ((versio (tietokannan-versio)))
-            (cond ((< versio *ohjelman-tietokantaversio*)
-                   (viesti "Päivitetään tietokanta: v~D -> v~D.~%"
-                           versio *ohjelman-tietokantaversio*)
-                   (loop :for kohde :from (1+ versio)
-                         :upto *ohjelman-tietokantaversio*
-                         :do (funcall (intern
-                                       (format nil "PÄIVITÄ-TIETOKANTA-~D"
-                                               kohde))))
-                   (eheytys t))
-                  ((> versio *ohjelman-tietokantaversio*)
-                   (viesti "VAROITUS! Tietokannan versio on ~A mutta ohjelma ~
+  (if (query-1 "SELECT 1 FROM sqlite_master ~
+                WHERE type = 'table' AND name = 'hallinto'")
+      (let ((versio (tietokannan-versio)))
+        (cond ((< versio *ohjelman-tietokantaversio*)
+               (viesti "Päivitetään tietokanta: v~D -> v~D.~%"
+                       versio *ohjelman-tietokantaversio*)
+               (loop :for kohde :from (1+ versio)
+                     :upto *ohjelman-tietokantaversio*
+                     :do (funcall (read-from-string
+                                   (format nil "päivitä-tietokanta-~D" kohde))))
+               (eheytys t))
+              ((> versio *ohjelman-tietokantaversio*)
+               (viesti "VAROITUS! Tietokannan versio on ~A mutta ohjelma ~
                 osaa vain version ~A.~%Päivitä ohjelma!~%"
-                           versio *ohjelman-tietokantaversio*)
-                   (error 'poistu-ohjelmasta))))
+                       versio *ohjelman-tietokantaversio*)
+               (error 'poistu-ohjelmasta))))
 
-          ;; Tietokanta puuttuu
-          (with-transaction
-            (viesti "~&Valmistellaan tietokanta (~A).~%~
+      ;; Tietokanta puuttuu
+      (with-transaction
+        (viesti "~&Valmistellaan tietokanta (~A).~%~
                 Ota tietokantatiedostosta varmuuskopio riittävän usein.~%"
-                    (sb-ext:native-pathname *tiedosto*))
+                (sb-ext:native-pathname *tiedosto*))
 
-            (query "CREATE TABLE IF NOT EXISTS hallinto ~
+        (query "CREATE TABLE IF NOT EXISTS hallinto ~
                 (avain TEXT UNIQUE, arvo INTEGER)")
 
-            (query "INSERT INTO hallinto (avain, arvo) VALUES ('versio', ~A)"
-                   *ohjelman-tietokantaversio*)
+        (query "INSERT INTO hallinto (avain, arvo) VALUES ('versio', ~A)"
+               *ohjelman-tietokantaversio*)
 
-            (query "INSERT INTO hallinto (avain, arvo) ~
+        (query "INSERT INTO hallinto (avain, arvo) ~
                 VALUES ('muokkauslaskuri', 0)")
 
-            (query "CREATE TABLE IF NOT EXISTS oppilaat ~
+        (query "CREATE TABLE oppilaat ~
                 (oid INTEGER PRIMARY KEY, ~
                 sukunimi TEXT, etunimi TEXT, ~
                 lisatiedot TEXT DEFAULT '')")
 
-            (query "CREATE TABLE IF NOT EXISTS ryhmat ~
+        (query "CREATE TABLE ryhmat ~
                 (rid INTEGER PRIMARY KEY, nimi TEXT, ~
                 lisatiedot TEXT DEFAULT '')")
 
-            (query "CREATE TABLE IF NOT EXISTS oppilaat_ryhmat ~
-                (oid INTEGER, rid INTEGER)")
+        (query "CREATE TABLE oppilaat_ryhmat ~
+                (oid INTEGER NOT NULL ~
+                        REFERENCES oppilaat(oid) ON DELETE CASCADE, ~
+                rid INTEGER NOT NULL ~
+                        REFERENCES ryhmat(rid) ON DELETE CASCADE, ~
+                PRIMARY KEY (oid, rid))")
 
-            (query "CREATE TABLE IF NOT EXISTS suoritukset ~
+        (query "CREATE TABLE suoritukset ~
                 (sid INTEGER PRIMARY KEY, ~
-                rid INTEGER, ~
+                rid INTEGER NOT NULL REFERENCES ryhmat(rid) ON DELETE CASCADE, ~
                 sija INTEGER, ~
                 nimi TEXT DEFAULT '', ~
                 lyhenne TEXT DEFAULT '', ~
                 painokerroin INTEGER)")
 
-            (query "CREATE TABLE IF NOT EXISTS arvosanat ~
-                (sid INTEGER, oid INTEGER, arvosana TEXT, lisatiedot TEXT)")
+        (query "CREATE TABLE arvosanat ~
+                (sid INTEGER NOT NULL ~
+                        REFERENCES suoritukset(sid) ON DELETE CASCADE, ~
+                oid INTEGER NOT NULL ~
+                        REFERENCES oppilaat(oid) ON DELETE CASCADE, ~
+                arvosana TEXT, ~
+                lisatiedot TEXT, ~
+                PRIMARY KEY (sid, oid))")
 
-            (query "CREATE VIEW IF NOT EXISTS view_oppilaat AS ~
+        (query "CREATE VIEW view_oppilaat AS ~
                 SELECT o.oid, o.sukunimi, o.etunimi, ~
                 r.rid, r.nimi AS ryhma, o.lisatiedot AS olt ~
                 FROM oppilaat AS o ~
@@ -408,13 +454,13 @@
                 ON j.oid = o.oid AND j.rid = r.rid ~
                 LEFT JOIN ryhmat AS r ON r.rid = j.rid")
 
-            (query "CREATE VIEW IF NOT EXISTS view_suoritukset AS ~
+        (query "CREATE VIEW view_suoritukset AS ~
                 SELECT r.rid, r.nimi AS ryhma, r.lisatiedot AS rlt, ~
                 s.sid, s.nimi AS suoritus, s.lyhenne, s.sija, s.painokerroin ~
                 FROM suoritukset AS s ~
                 JOIN ryhmat AS r ON r.rid = s.rid")
 
-            (query "CREATE VIEW IF NOT EXISTS view_arvosanat AS ~
+        (query "CREATE VIEW view_arvosanat AS ~
                 SELECT o.oid, o.sukunimi, o.etunimi, o.lisatiedot AS olt, ~
                 r.rid, r.nimi AS ryhma, r.lisatiedot AS rlt, ~
                 s.sid, s.nimi AS suoritus, s.lyhenne, s.sija, s.painokerroin, ~
@@ -425,7 +471,8 @@
                 LEFT JOIN suoritukset AS s ON r.rid = s.rid ~
                 LEFT JOIN arvosanat AS a ON o.oid = a.oid AND s.sid = a.sid")))
 
-      (query "PRAGMA case_sensitive_like = 1"))))
+  (query "PRAGMA foreign_keys = ON")
+  (query "PRAGMA case_sensitive_like = 1"))
 
 
 (defun connect ()
@@ -1709,15 +1756,12 @@
 
 
 (defmethod poista ((oppilas oppilas))
-  (query "DELETE FROM oppilaat_ryhmat WHERE oid = ~A" (oid oppilas))
-  (query "DELETE FROM arvosanat WHERE oid = ~A" (oid oppilas))
   (query "DELETE FROM oppilaat WHERE oid = ~A" (oid oppilas))
   (poista-tyhjät-ryhmät))
 
 
 (defmethod poista ((suoritus suoritus))
   (query "DELETE FROM suoritukset WHERE sid = ~A" (sid suoritus))
-  (query "DELETE FROM arvosanat WHERE sid = ~A" (sid suoritus))
   (poista-tyhjät-ryhmät)
   (let ((sid-lista
          (query-nconc "SELECT sid FROM suoritukset ~
