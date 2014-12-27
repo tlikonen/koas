@@ -33,7 +33,7 @@
 (defvar *suppea* nil)
 (defvar *poistoraja* 10)
 (defvar *muokkaukset-kunnes-eheytys* 5000)
-(defparameter *tietokannan-versio* 4)
+(defparameter *ohjelman-tietokantaversio* 4)
 
 
 (defun alusta-tiedostopolku ()
@@ -347,19 +347,19 @@
 
       (if (löytyy "hallinto")
           (let ((versio (tietokannan-versio)))
-            (cond ((< versio *tietokannan-versio*)
+            (cond ((< versio *ohjelman-tietokantaversio*)
                    (viesti "Päivitetään tietokanta: v~D -> v~D.~%"
-                           versio *tietokannan-versio*)
+                           versio *ohjelman-tietokantaversio*)
                    (loop :for kohde :from (1+ versio)
-                         :upto *tietokannan-versio*
+                         :upto *ohjelman-tietokantaversio*
                          :do (funcall (intern
                                        (format nil "PÄIVITÄ-TIETOKANTA-~D"
                                                kohde))))
                    (eheytys t))
-                  ((> versio *tietokannan-versio*)
+                  ((> versio *ohjelman-tietokantaversio*)
                    (viesti "VAROITUS! Tietokannan versio on ~A mutta ohjelma ~
                 osaa vain version ~A.~%Päivitä ohjelma!~%"
-                           versio *tietokannan-versio*)
+                           versio *ohjelman-tietokantaversio*)
                    (error 'poistu-ohjelmasta))))
 
           ;; Tietokanta puuttuu
@@ -372,7 +372,7 @@
                 (avain TEXT UNIQUE, arvo INTEGER)")
 
             (query "INSERT INTO hallinto (avain, arvo) VALUES ('versio', ~A)"
-                   *tietokannan-versio*)
+                   *ohjelman-tietokantaversio*)
 
             (query "INSERT INTO hallinto (avain, arvo) ~
                 VALUES ('muokkauslaskuri', 0)")
