@@ -159,15 +159,12 @@
           (* (or merkki 1) (decimals:parse-decimal-number objekti))))))))
 
 
-(defun poista-tyhjät-ryhmät (&optional rid-lista)
-  (unless rid-lista
-    (setf rid-lista (query-nconc "SELECT rid FROM ryhmat")))
-  (loop :for rid :in rid-lista
-        :if (and (not (query "SELECT rid FROM oppilaat_ryhmat WHERE rid = ~A"
-                             rid))
-                 (not (query "SELECT rid FROM suoritukset WHERE rid = ~A" rid)))
-        :do (query "DELETE FROM ryhmat WHERE rid = ~A" rid)
-        :and :collect rid))
+(defun poista-tyhjät-ryhmät ()
+  (query "DELETE FROM ryhmat WHERE rid IN ~
+        (SELECT r.rid FROM ryhmat AS r ~
+        LEFT JOIN oppilaat_ryhmat AS j ON r.rid = j.rid ~
+        LEFT JOIN suoritukset AS s ON s.rid = r.rid ~
+        WHERE j.rid IS NULL AND s.rid IS NULL)"))
 
 
 (defun aseta-muokkauslaskuri (arvo)
@@ -1648,12 +1645,12 @@
           :collect rid :into rid-lista
           :finally (setf uusi-rid-lista rid-lista))
 
-    (let ((ero (set-difference vanha-rid-lista uusi-rid-lista)))
-      (when ero
-        (query "DELETE FROM oppilaat_ryhmat ~
-                WHERE oid = ~A AND (~{rid = ~A~^ OR ~})"
-               (oid oppilas) ero)
-        (poista-tyhjät-ryhmät ero)))
+    (loop :with ero := (set-difference vanha-rid-lista uusi-rid-lista)
+          :for rid :in ero
+          :do (query "DELETE FROM oppilaat_ryhmat ~
+                        WHERE oid = ~A AND rid = ~A"
+                     (oid oppilas) rid)
+          :finally (when ero (poista-tyhjät-ryhmät)))
 
     oppilas))
 
@@ -1712,20 +1709,16 @@
 
 
 (defmethod poista ((oppilas oppilas))
-  (let ((rid-lista
-         (query-nconc "SELECT rid FROM oppilaat_ryhmat WHERE oid = ~A"
-                      (oid oppilas))))
-    (query "DELETE FROM oppilaat_ryhmat WHERE oid = ~A" (oid oppilas))
-    (query "DELETE FROM arvosanat WHERE oid = ~A" (oid oppilas))
-    (query "DELETE FROM oppilaat WHERE oid = ~A" (oid oppilas))
-    (when rid-lista
-      (poista-tyhjät-ryhmät rid-lista))))
+  (query "DELETE FROM oppilaat_ryhmat WHERE oid = ~A" (oid oppilas))
+  (query "DELETE FROM arvosanat WHERE oid = ~A" (oid oppilas))
+  (query "DELETE FROM oppilaat WHERE oid = ~A" (oid oppilas))
+  (poista-tyhjät-ryhmät))
 
 
 (defmethod poista ((suoritus suoritus))
   (query "DELETE FROM suoritukset WHERE sid = ~A" (sid suoritus))
   (query "DELETE FROM arvosanat WHERE sid = ~A" (sid suoritus))
-  (poista-tyhjät-ryhmät (list (rid suoritus)))
+  (poista-tyhjät-ryhmät)
   (let ((sid-lista
          (query-nconc "SELECT sid FROM suoritukset ~
                         WHERE rid = ~A ORDER BY sija, sid"
