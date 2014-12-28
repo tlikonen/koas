@@ -299,7 +299,7 @@
   ;; Valmiita kyselyjä perustoimintoja varten. Hallinto-taulukon
   ;; arvo-kentän tietotyypiksi integer.
   (with-transaction
-    (query "CREATE VIEW IF NOT EXISTS view_oppilaat AS ~
+    (query "CREATE VIEW view_oppilaat AS ~
                 SELECT o.oid, o.sukunimi, o.etunimi, ~
                 r.rid, r.nimi AS ryhma, o.lisatiedot AS olt ~
                 FROM oppilaat AS o ~
@@ -307,13 +307,13 @@
                 ON j.oid = o.oid AND j.rid = r.rid ~
                 LEFT JOIN ryhmat AS r ON r.rid = j.rid")
 
-    (query "CREATE VIEW IF NOT EXISTS view_suoritukset AS ~
+    (query "CREATE VIEW view_suoritukset AS ~
                 SELECT r.rid, r.nimi AS ryhma, r.lisatiedot AS rlt, ~
                 s.sid, s.nimi AS suoritus, s.lyhenne, s.sija, s.painokerroin ~
                 FROM suoritukset AS s ~
                 JOIN ryhmat AS r ON r.rid = s.rid")
 
-    (query "CREATE VIEW IF NOT EXISTS view_arvosanat AS ~
+    (query "CREATE VIEW view_arvosanat AS ~
                 SELECT o.oid, o.sukunimi, o.etunimi, o.lisatiedot AS olt, ~
                 r.rid, r.nimi AS ryhma, r.lisatiedot AS rlt, ~
                 s.sid, s.nimi AS suoritus, s.lyhenne, s.sija, s.painokerroin, ~
