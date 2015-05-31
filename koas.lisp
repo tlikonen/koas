@@ -496,16 +496,13 @@
 
 
 (defun arvottu-järjestys (lista)
-  (flet ((poista-osa (n sequence)
-           (delete-if (constantly t) sequence :start n :count 1)))
-    (loop :with rs := (make-random-state t)
-          :with lista := (copy-seq lista)
-          :for i :from (length lista) :downto 1
-          :for satunnainen := (random i rs)
-          :collect (prog1 (elt lista satunnainen)
-                     (setf lista (poista-osa satunnainen lista)))
-          :into uusi-lista
-          :finally (return (nconc lista uusi-lista)))))
+  (loop :with pituus := (length lista)
+        :with vektori := (make-array pituus :initial-contents lista)
+        :with rs := (make-random-state t)
+        :for i :from 0 :below pituus
+        :do (rotatef (aref vektori i)
+                     (aref vektori (+ i (random (- pituus i) rs))))
+        :finally (return (coerce vektori 'list))))
 
 
 (defun lue-rivi (kehote &optional muistiin)
