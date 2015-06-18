@@ -193,7 +193,10 @@
         nil)))
 
 
-(defun päivitä-tietokanta-2 ()
+(defgeneric päivitä-tietokanta (versio))
+
+
+(defmethod päivitä-tietokanta ((versio (eql 2)))
   ;; Kaikki arvosanat yhteen taulukkoon.
   (with-transaction
     (query "CREATE TABLE arvosanat ~
@@ -210,7 +213,7 @@
     (query "INSERT INTO hallinto (avain, arvo) VALUES ('versio', 2)")))
 
 
-(defun päivitä-tietokanta-3 ()
+(defmethod päivitä-tietokanta ((versio (eql 3)))
   ;; Oppilaiden ryhmät määritellään uudessa taulukossa oppilaat_ryhmat.
   ;; Myös ryhmän suoritukset määritellään järkevämmin relaatioilla eikä
   ;; merkkijonolistan avulla.
@@ -290,7 +293,7 @@
     (query "UPDATE hallinto SET arvo = 3 WHERE avain = 'versio'")))
 
 
-(defun päivitä-tietokanta-4 ()
+(defmethod päivitä-tietokanta ((versio (eql 4)))
   ;; Valmiita kyselyjä perustoimintoja varten. Hallinto-taulukon
   ;; arvo-kentän tietotyypiksi integer.
   (with-transaction
@@ -327,7 +330,7 @@
     (query "UPDATE hallinto SET arvo = 4 WHERE avain = 'versio'")))
 
 
-(defun päivitä-tietokanta-5 ()
+(defmethod päivitä-tietokanta ((versio (eql 5)))
   ;; Foreign key sekä composite primary key käyttöön.
   (query "PRAGMA foreign_keys = OFF")
 
@@ -389,8 +392,7 @@
                        versio *ohjelman-tietokantaversio*)
                (loop :for kohde :from (1+ versio)
                      :upto *ohjelman-tietokantaversio*
-                     :do (funcall (read-from-string
-                                   (format nil "päivitä-tietokanta-~D" kohde))))
+                     :do (päivitä-tietokanta kohde))
                (eheytys t))
               ((> versio *ohjelman-tietokantaversio*)
                (viesti "VAROITUS! Tietokannan versio on ~A mutta ohjelma ~
