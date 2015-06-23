@@ -474,7 +474,7 @@
                 LEFT JOIN arvosanat AS a ON o.oid = a.oid AND s.sid = a.sid")))
 
   (query "PRAGMA foreign_keys = ON")
-  (query "PRAGMA case_sensitive_like = 1"))
+  (query "PRAGMA case_sensitive_like = ON"))
 
 
 (defun connect ()
