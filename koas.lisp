@@ -33,7 +33,7 @@
 (defvar *suppea* nil)
 (defvar *poistoraja* 10)
 (defvar *muokkaukset-kunnes-eheytys* 5000)
-(defparameter *ohjelman-tietokantaversio* 5)
+(defparameter *ohjelman-tietokantaversio* 6)
 
 
 (defun alusta-tiedostopolku ()
@@ -376,6 +376,26 @@
   (query "PRAGMA foreign_keys = ON"))
 
 
+(defmethod päivitä-tietokanta ((versio (eql 6)))
+  ;; UNIQUE NOT NULL -vaatimus ryhmän nimelle.
+  (query "PRAGMA foreign_keys = OFF")
+
+  (with-transaction
+    (query "ALTER TABLE ryhmat RENAME TO ryhmat_vanha")
+
+    (query "CREATE TABLE ryhmat ~
+        (rid INTEGER PRIMARY KEY, ~
+        nimi TEXT UNIQUE NOT NULL, ~
+        lisatiedot TEXT DEFAULT '')")
+    (query "INSERT INTO ryhmat ~
+        SELECT rid, nimi, lisatiedot FROM ryhmat_vanha")
+    (query "DROP TABLE ryhmat_vanha")
+
+    (query "UPDATE hallinto SET arvo = 6 WHERE avain = 'versio'"))
+
+  (query "PRAGMA foreign_keys = ON"))
+
+
 (defun tietokannan-versio ()
   ;; Täällä tarvitaan LUE-NUMERO-funktiota, koska aiemmissa versioissa
   ;; arvo-kenttä oli merkkijonotyyppiä.
@@ -421,7 +441,8 @@
                 lisatiedot TEXT DEFAULT '')")
 
         (query "CREATE TABLE ryhmat ~
-                (rid INTEGER PRIMARY KEY, nimi TEXT, ~
+                (rid INTEGER PRIMARY KEY, ~
+                nimi TEXT UNIQUE NOT NULL, ~
                 lisatiedot TEXT DEFAULT '')")
 
         (query "CREATE TABLE oppilaat_ryhmat ~
