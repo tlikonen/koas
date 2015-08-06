@@ -33,7 +33,7 @@
 (defvar *suppea* nil)
 (defvar *poistoraja* 10)
 (defvar *muokkaukset-kunnes-eheytys* 5000)
-(defparameter *ohjelman-tietokantaversio* 6)
+(defparameter *ohjelman-tietokantaversio* 7)
 
 
 (defun alusta-tiedostopolku ()
@@ -185,12 +185,11 @@
 
 (defun eheytys (&optional nyt)
   (let ((laskuri (or (hae-muokkauslaskuri) 0)))
-    (if (or nyt (>= laskuri *muokkaukset-kunnes-eheytys*))
-        (ignore-errors
-          (query "VACUUM")
-          (aseta-muokkauslaskuri 0)
-          t)
-        nil)))
+    (when (or nyt (>= laskuri *muokkaukset-kunnes-eheytys*))
+      (ignore-errors
+        (query "VACUUM")
+        (aseta-muokkauslaskuri 0)
+        t))))
 
 
 (defgeneric päivitä-tietokanta (versio))
@@ -396,6 +395,12 @@
   (query "PRAGMA foreign_keys = ON"))
 
 
+(defmethod päivitä-tietokanta ((versio (eql 7)))
+  (with-transaction
+    (query "UPDATE hallinto SET arvo = 7 WHERE avain = 'versio'")
+    (query "PRAGMA auto_vacuum = FULL")))
+
+
 (defun tietokannan-versio ()
   ;; Täällä tarvitaan LUE-NUMERO-funktiota, koska aiemmissa versioissa
   ;; arvo-kenttä oli merkkijonotyyppiä.
@@ -425,6 +430,8 @@
         (viesti "~&Valmistellaan tietokanta (~A).~%~
                 Ota tietokantatiedostosta varmuuskopio riittävän usein.~%"
                 (sb-ext:native-pathname *tiedosto*))
+
+        (query "PRAGMA auto_vacuum = FULL")
 
         (query "CREATE TABLE IF NOT EXISTS hallinto ~
                 (avain TEXT UNIQUE, arvo INTEGER)")
