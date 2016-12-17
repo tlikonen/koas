@@ -1302,7 +1302,7 @@
 
     (unless (muoto nil :latex)
       (taulukkoväli)
-      (tulosta-taulu (list (list (otsikko-rivi "K") "= painokerroin"))))))
+      (tulosta-taulu (list (list (otsikko-rivi "K") "painokerroin"))))))
 
 
 (defmethod tulosta ((lista ryhmät))
@@ -1371,7 +1371,7 @@
 
           (unless (muoto nil :latex)
             (taulukkoväli)
-            (tulosta-taulu (list (list (otsikko-rivi "As") "= arvosana")))))
+            (tulosta-taulu (list (list (otsikko-rivi "As") "arvosana")))))
 
         :if lisää :do (taulukkoväli t))
 
@@ -1435,8 +1435,8 @@
           (unless (muoto nil :latex)
             (taulukkoväli)
             (tulosta-taulu
-             (list (list (otsikko-rivi "As") "= arvosana"
-                         (otsikko-rivi "K") "= painokerroin")))))
+             (list (list (otsikko-rivi "As") "arvosana"
+                         (otsikko-rivi "K") "painokerroin")))))
 
         :if lisää :do (taulukkoväli t))
 
@@ -1558,8 +1558,8 @@
           (unless (muoto nil :latex)
             (taulukkoväli)
             (tulosta-taulu
-             (list (list (otsikko-rivi "As") "= arvosana"
-                         (otsikko-rivi "Lkm") "= lukumäärä")))))))
+             (list (list (otsikko-rivi "As") "arvosana"
+                         (otsikko-rivi "Lkm") "lukumäärä")))))))
 
 
 (defmethod tulosta ((paremmuus tilasto-paremmuus))
@@ -1601,8 +1601,8 @@
     (unless (muoto nil :latex)
       (taulukkoväli)
       (tulosta-taulu
-       (list (list (otsikko-rivi "Ka") "= keskiarvo"
-                   (otsikko-rivi "Lkm") "= suoritusten lukumäärä"))))))
+       (list (list (otsikko-rivi "Ka") "keskiarvo"
+                   (otsikko-rivi "Lkm") "suoritusten lukumäärä"))))))
 
 
 (defmethod tulosta ((koonti tilasto-koonti))
