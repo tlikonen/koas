@@ -568,7 +568,6 @@
 (defun otsikko-sarake (mj)
   (setf mj (or mj ""))
   (case *tulostusmuoto*
-    (:wilma (if (equal "" mj) "" (format nil "~A" mj)))
     (:org (if (equal "" mj) "" (format nil "*~A*" mj)))
     (t mj)))
 
@@ -576,7 +575,6 @@
 (defun otsikko-rivi (mj)
   (setf mj (or mj ""))
   (case *tulostusmuoto*
-    (:wilma (if (equal "" mj) "" (format nil "~A" mj)))
     (:org (if (equal "" mj) "" (format nil "*~A*" mj)))
     (t mj)))
 
@@ -641,15 +639,19 @@
               :do (format virta "~%")
 
               :else :if (or (muoto nil :org)
-                            (and (muoto :wilma)
-                                 (not (member rivi '(:viiva-alku
-                                                     :viiva-loppu))))
-                            (and (muoto :latex)
+                            (and (or (muoto :latex)
+                                     (muoto :tab))
                                  (not (viivap rivi))))
               :do
-              (if (muoto :latex)
-                  (format virta "\\rivi")
-                  (format virta "~:[|~;+~]" (and (viivap rivi) (muoto nil))))
+              (cond ((muoto :latex)
+                     (format virta "\\rivi"))
+                    ((and (viivap rivi) (muoto nil))
+                     (format virta "+"))
+                    ((and (viivap rivi) (muoto :org))
+                     (format virta "|"))
+                    ((muoto nil :org)
+                     (format virta "|")))
+
               (loop :for (osa . loput) :on uusi
                     :for leveys :in leveimmät-sarakkeet
                     :do
@@ -657,8 +659,8 @@
                       ((and (muoto :org nil) (viivap osa))
                        (format virta "--~V,,,'-<~>~:[|~;+~]" leveys
                                (or loput (and (not loput) (muoto nil)))))
-                      ((and (muoto :wilma) (viivap osa))
-                       (format virta " ~V<~> |" leveys))
+                      ((and (muoto :tab) (not (viivap osa)))
+                       (format virta "~A~A" osa (if loput #\Tab "")))
                       ((and (muoto :latex) (not (viivap osa)))
                        (loop :initially (princ #\{ virta)
                              :for m :across (string-trim " " osa)
@@ -1228,11 +1230,9 @@
 
 (defun taulukkoväli (&optional iso)
   (if iso
-      (cond ((muoto :wilma) (viesti "~&~%----------~%~%"))
-            ((muoto :org) (viesti "~& ~%-----~% ~%"))
+      (cond ((muoto :org) (viesti "~& ~%-----~% ~%"))
             (t (viesti "~&~%~%")))
-      (cond ((muoto :wilma) (viesti "~&.~%"))
-            ((muoto :org) (viesti "~& ~%"))
+      (cond ((muoto :org) (viesti "~& ~%"))
             (t (viesti "~&~%")))))
 
 
@@ -2432,7 +2432,7 @@ alkuun avainsanan. Alla oleva taulukko ja esimerkki selventää niitä.
            :viiva-alku
            (list (otsikko-sarake "Sana") (otsikko-sarake "Selitys"))
            :viiva-otsikko
-           '("wilma" "Wilma-viestiin sopiva taulukkomalli.")
+           '("tab" "Tab-merkeillä erotettu taulukko.")
            '("org" "Emacsin Org-tilaan sopiva taulukkomalli.")
            '("latex" "Tulosteet Latex-komentoina.")
            '("suppea" "Karsitaan tulostuksesta Lisätiedot-kentät yms.")
@@ -2442,7 +2442,7 @@ alkuun avainsanan. Alla oleva taulukko ja esimerkki selventää niitä.
 
 Esimerkiksi
 
-    wilma suppea hao /Meikäl/Mat/2013:äi:7a
+    tab suppea hao /Meikäl/Mat/2013:äi:7a
     org hak 2013:äi:7a
 
 Kun ohjelman käynnistää ilman komentoriviargumentteja, se käynnistyy
@@ -2502,7 +2502,7 @@ laskennassa. Alla on esimerkkejä suoritusten lisäämisestä.
                (tuntematon ()
                  (virhe "Tuntematon komento. Ohjeita saa ?:llä.")))
           (cond
-            ((testaa "wilma") (let ((*tulostusmuoto* :wilma))
+            ((testaa "tab") (let ((*tulostusmuoto* :tab))
                                 (käsittele-komentorivi arg)))
             ((testaa "org") (let ((*tulostusmuoto* :org))
                               (käsittele-komentorivi arg)))
