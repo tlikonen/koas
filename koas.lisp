@@ -634,14 +634,11 @@
                                                :initial-element :viiva)
                                     rivi)
 
-              :if (and (muoto :latex)
-                       (find rivi '(:viiva-otsikko :viiva)))
-              :do (format virta "~%")
-
-              :else :if (or (muoto nil :org)
-                            (and (or (muoto :latex)
-                                     (muoto :tab))
-                                 (not (viivap rivi))))
+              :if (or (muoto nil :org)
+                      (and (or (muoto :latex)
+                               (muoto :tab)
+                               (muoto :csv))
+                           (not (viivap rivi))))
               :do
               (cond ((muoto :latex)
                      (format virta "\\rivi"))
@@ -665,6 +662,16 @@
                              :if (find m "%&{}") :do (princ #\\ virta)
                              :do (princ m virta)
                              :finally (princ #\} virta)))
+                      ((and (muoto :csv) (not (viivap solu)))
+                       (let ((solu (string-trim " " solu)))
+                         (if (every #'digit-char-p solu)
+                             (princ solu virta)
+                             (loop :initially (princ #\" virta)
+                                   :for m :across solu
+                                   :if (eql m #\") :do (princ #\\ virta)
+                                   :do (princ m virta)
+                                   :finally (princ #\" virta)))
+                         (if loput (princ #\, virta))))
                       (t (format virta " ~VA |" leveys solu))))
               (format virta "~%"))))))
 
@@ -2431,6 +2438,7 @@ alkuun avainsanan. Alla oleva taulukko ja esimerkki selventää niitä.
        (list (otsikko-sarake "Sana") (otsikko-sarake "Selitys"))
        :viiva-otsikko
        '("tab" "Tab-merkeillä erotettu taulukko.")
+       '("csv" "Pilkuilla erotettu taulukko (comma-separated values).")
        '("org" "Emacsin Org-tilaan sopiva taulukkomalli.")
        '("latex" "Tulosteet Latex-komentoina.")
        '("suppea" "Karsitaan tulostuksesta Lisätiedot-kentät yms.")
@@ -2501,6 +2509,8 @@ laskennassa. Alla on esimerkkejä suoritusten lisäämisestä.
                  (virhe "Tuntematon komento. Ohjeita saa ?:llä.")))
           (cond
             ((testaa "tab") (let ((*tulostusmuoto* :tab))
+                                (käsittele-komentorivi arg)))
+            ((testaa "csv") (let ((*tulostusmuoto* :csv))
                                 (käsittele-komentorivi arg)))
             ((testaa "org") (let ((*tulostusmuoto* :org))
                               (käsittele-komentorivi arg)))
