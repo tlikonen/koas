@@ -2335,47 +2335,47 @@
 
 
 (defun ohjeet (&optional komento)
-  (tulosta-taulu
-   (list
-    :viiva-alku
-    (list (otsikko-sarake "Komento") (otsikko-sarake "Tarkoitus"))
-    :viiva-otsikko
-    '("ho /sukunimi/etunimi/ryhmät/lisätiedot" "Hae oppilaita.")
-    '("hoa /sukunimi/etunimi/ryhmät/lisätiedot"
-      "Hae oppilaita arvotussa järjestyksessä.")
-    '("hr /ryhmä/lisätiedot" "Hae ryhmiä.")
-    '("hs ryhmä" "Hae suoritukset ryhmältä.")
-    '("hao /sukunimi/etunimi/ryhmät/lisätiedot" "Hae arvosanat oppilailta.")
-    '("has ryhmä /suoritus/lyhenne" "Hae arvosanat suorituksista.")
-    '("hak ryhmä" "Hae arvosanojen koonti.")
-    :viiva
-    '("tj  @/ryh/suor/lyh/suku/etu/lisät@/..."
-      "Jakauma arvosanoista (painokertoimelliset).")
-    '("tjk @/ryh/suor/lyh/suku/etu/lisät@/..."
-      "Jakauma arvosanoista (kaikki).")
-    '("tp  @/ryh/suor/lyh/suku/etu/lisät@/..."
-      "Oppilaat paremmuusjärjestyksessä (painokert.).")
-    '("tpk @/ryh/suor/lyh/suku/etu/lisät@/..."
-      "Oppilaat paremmuusjärjestyksessä (kaikki).")
-    '("tk" "Tulosta tietokannasta koonti.")
-    :viiva
-    '("lo /sukunimi/etunimi/ryhmät/lisätiedot" "Lisää oppilas.")
-    '("ls ryhmä /suoritus/lyhenne/painokerroin/sija"
-      "Lisää ryhmälle suoritus.")
-    :viiva
-    '("m numerot /.../.../.../..." "Muokkaa valittuja tietueita ja kenttiä.")
-    '("ms numerot kenttä /.../.../..." "Muokkaa tietueista samaa kenttää.")
-    '("poista numerot" "Poista tietueet.")
-    :viiva
-    '("?" "Ohjeet.")
-    '("??" "Tarkemmat ohjeet.")
-    '("???" "Aloitusvinkkejä.")
-    :viiva-loppu))
+  (cond
+    ((equal komento "?")
+     (tulosta-taulu
+      (list
+       :viiva-alku
+       (list (otsikko-sarake "Komento") (otsikko-sarake "Tarkoitus"))
+       :viiva-otsikko
+       '("ho /sukunimi/etunimi/ryhmät/lisätiedot" "Hae oppilaita.")
+       '("hoa /sukunimi/etunimi/ryhmät/lisätiedot"
+         "Hae oppilaita arvotussa järjestyksessä.")
+       '("hr /ryhmä/lisätiedot" "Hae ryhmiä.")
+       '("hs ryhmä" "Hae suoritukset ryhmältä.")
+       '("hao /sukunimi/etunimi/ryhmät/lisätiedot" "Hae arvosanat oppilailta.")
+       '("has ryhmä /suoritus/lyhenne" "Hae arvosanat suorituksista.")
+       '("hak ryhmä" "Hae arvosanojen koonti.")
+       :viiva
+       '("tj  @/ryh/suor/lyh/suku/etu/lisät@/..."
+         "Jakauma arvosanoista (painokertoimelliset).")
+       '("tjk @/ryh/suor/lyh/suku/etu/lisät@/..."
+         "Jakauma arvosanoista (kaikki).")
+       '("tp  @/ryh/suor/lyh/suku/etu/lisät@/..."
+         "Oppilaat paremmuusjärjestyksessä (painokert.).")
+       '("tpk @/ryh/suor/lyh/suku/etu/lisät@/..."
+         "Oppilaat paremmuusjärjestyksessä (kaikki).")
+       '("tk" "Tulosta tietokannasta koonti.")
+       :viiva
+       '("lo /sukunimi/etunimi/ryhmät/lisätiedot" "Lisää oppilas.")
+       '("ls ryhmä /suoritus/lyhenne/painokerroin/sija"
+         "Lisää ryhmälle suoritus.")
+       :viiva
+       '("m numerot /.../.../.../..." "Muokkaa valittuja tietueita ja kenttiä.")
+       '("ms numerot kenttä /.../.../..." "Muokkaa tietueista samaa kenttää.")
+       '("poista numerot" "Poista tietueet.")
+       :viiva
+       '("?" "Komennot.")
+       '("??" "Käyttöohjeita.")
+       '("???" "Aloitusvinkkejä.")
+       :viiva-loppu)))
 
-  (cond ((equal komento "?")
-         (return-from ohjeet))
-        ((equal komento "??")
-         (viesti "~%~
+    ((equal komento "??")
+     (viesti "~
 
 Komennon argumenteissa oleva vinoviiva (/.../...) tarkoittaa kenttien
 erotinmerkkiä. Merkki voi ola mikä tahansa, ja ensimmäisenä oleva merkki
@@ -2427,18 +2427,18 @@ Hakutoimintojen tulostusasua voi muuttaa kirjoittamalla komentorivin
 alkuun avainsanan. Alla oleva taulukko ja esimerkki selventää niitä.
 
 ")
-         (tulosta-taulu
-          (list
-           :viiva-alku
-           (list (otsikko-sarake "Sana") (otsikko-sarake "Selitys"))
-           :viiva-otsikko
-           '("tab" "Tab-merkeillä erotettu taulukko.")
-           '("org" "Emacsin Org-tilaan sopiva taulukkomalli.")
-           '("latex" "Tulosteet Latex-komentoina.")
-           '("suppea" "Karsitaan tulostuksesta Lisätiedot-kentät yms.")
-           :viiva-loppu))
+     (tulosta-taulu
+      (list
+       :viiva-alku
+       (list (otsikko-sarake "Sana") (otsikko-sarake "Selitys"))
+       :viiva-otsikko
+       '("tab" "Tab-merkeillä erotettu taulukko.")
+       '("org" "Emacsin Org-tilaan sopiva taulukkomalli.")
+       '("latex" "Tulosteet Latex-komentoina.")
+       '("suppea" "Karsitaan tulostuksesta Lisätiedot-kentät yms.")
+       :viiva-loppu))
 
-         (viesti "~%~
+     (viesti "~%~
 
 Esimerkiksi
 
@@ -2454,10 +2454,10 @@ vain vuorovaikutteisessa tilassa.
 
 "))
 
-        ((equal komento "???")
-         (viesti "~%~
+    ((equal komento "???")
+     (viesti "~
 
-Tietokantaohjelman käyttö kannattaa aloittaa lisäämällä oppilaita.
+Ohjelman käyttö kannattaa aloittaa lisäämällä oppilaita.
 Lisäystoiminnossa (lo) syötettävät kentät ovat vasemmalta oikealle
 sukunimi, etunimi, ryhmät ja lisätiedot. Ainakin sukunimi, etunimi ja
 yksi ryhmä täytyy syöttää. Kentät erotetaan toisistaan jollakin
