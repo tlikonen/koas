@@ -629,10 +629,10 @@
 
         (format virta "~&")
         (loop :for rivi :in taulu
-              :for uusi := (if (viivap rivi)
-                               (make-list sarakkeiden-lkm
-                                          :initial-element :viiva)
-                               rivi)
+              :for rivi-uusi := (if (viivap rivi)
+                                    (make-list sarakkeiden-lkm
+                                               :initial-element :viiva)
+                                    rivi)
 
               :if (and (muoto :latex)
                        (find rivi '(:viiva-otsikko :viiva)))
@@ -650,22 +650,22 @@
                     ((muoto nil :org)
                      (format virta "|")))
 
-              (loop :for (osa . loput) :on uusi
+              (loop :for (solu . loput) :on rivi-uusi
                     :for leveys :in leveimmät-sarakkeet
                     :do
                     (cond
-                      ((and (muoto :org nil) (viivap osa))
+                      ((and (muoto :org nil) (viivap solu))
                        (format virta "--~V,,,'-<~>~:[|~;+~]" leveys
                                (or loput (and (not loput) (muoto nil)))))
-                      ((and (muoto :tab) (not (viivap osa)))
-                       (format virta "~A~A" osa (if loput #\Tab "")))
-                      ((and (muoto :latex) (not (viivap osa)))
+                      ((and (muoto :tab) (not (viivap solu)))
+                       (format virta "~A~A" solu (if loput #\Tab "")))
+                      ((and (muoto :latex) (not (viivap solu)))
                        (loop :initially (princ #\{ virta)
-                             :for m :across (string-trim " " osa)
+                             :for m :across (string-trim " " solu)
                              :if (find m "%&{}") :do (princ #\\ virta)
                              :do (princ m virta)
                              :finally (princ #\} virta)))
-                      (t (format virta " ~VA |" leveys osa))))
+                      (t (format virta " ~VA |" leveys solu))))
               (format virta "~%"))))))
 
 
