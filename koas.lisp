@@ -647,8 +647,6 @@
                      (format virta "\\rivi"))
                     ((and (viivap rivi) (muoto nil))
                      (format virta "+"))
-                    ((and (viivap rivi) (muoto :org))
-                     (format virta "|"))
                     ((muoto nil :org)
                      (format virta "|")))
 
