@@ -2375,11 +2375,40 @@
        '("poista numerot" "Poista tietueet.")
        :viiva
        '("?" "Komennot.")
-       '("??" "Käyttöohjeita.")
-       '("???" "Aloitusvinkkejä.")
+       '("??" "Tulostusmuotoja.")
+       '("???" "Käyttöohjeita.")
+       '("????" "Aloitusvinkkejä.")
        :viiva-loppu)))
 
     ((equal komento "??")
+     (viesti "~
+
+Hakutoimintojen tulostusasua voi muuttaa kirjoittamalla komentorivin
+alkuun avainsanan. Alla oleva taulukko ja esimerkki selventää niitä.
+
+")
+     (tulosta-taulu
+      (list
+       :viiva-alku
+       (list (otsikko-sarake "Sana") (otsikko-sarake "Selitys"))
+       :viiva-otsikko
+       '("tab" "Tab-merkeillä erotettu taulukko.")
+       '("csv" "Pilkuilla erotettu taulukko (comma-separated values).")
+       '("org" "Emacsin Org-tilaan sopiva taulukkomalli.")
+       '("latex" "Tulosteet Latex-komentoina.")
+       '("suppea" "Karsitaan tulostuksesta Lisätiedot-kentät yms.")
+       :viiva-loppu))
+
+     (viesti "~%~
+
+Esimerkiksi
+
+    tab suppea hao /Meikäl/Mat/2013:äi:7a
+    org hak 2013:äi:7a
+
+"))
+
+    ((equal komento "???")
      (viesti "~
 
 Komennon argumenteissa oleva vinoviiva (/.../...) tarkoittaa kenttien
@@ -2428,29 +2457,6 @@ ryhmiin tai poistetaan niistä.
     m 1-5 ///2013:äi:7a 2014:äi:8a
     m 6 ///+2014:äi:8a
 
-Hakutoimintojen tulostusasua voi muuttaa kirjoittamalla komentorivin
-alkuun avainsanan. Alla oleva taulukko ja esimerkki selventää niitä.
-
-")
-     (tulosta-taulu
-      (list
-       :viiva-alku
-       (list (otsikko-sarake "Sana") (otsikko-sarake "Selitys"))
-       :viiva-otsikko
-       '("tab" "Tab-merkeillä erotettu taulukko.")
-       '("csv" "Pilkuilla erotettu taulukko (comma-separated values).")
-       '("org" "Emacsin Org-tilaan sopiva taulukkomalli.")
-       '("latex" "Tulosteet Latex-komentoina.")
-       '("suppea" "Karsitaan tulostuksesta Lisätiedot-kentät yms.")
-       :viiva-loppu))
-
-     (viesti "~%~
-
-Esimerkiksi
-
-    tab suppea hao /Meikäl/Mat/2013:äi:7a
-    org hak 2013:äi:7a
-
 Kun ohjelman käynnistää ilman komentoriviargumentteja, se käynnistyy
 vuorovaikutteiseen tilaan. Jos ohjelmalle antaa argumentiksi \"-\",
 luetaan komennot rivi kerrallaan standardisyötteestä. Muussa tapauksessa
@@ -2460,7 +2466,7 @@ vain vuorovaikutteisessa tilassa.
 
 "))
 
-    ((equal komento "???")
+    ((equal komento "????")
      (viesti "~
 
 Ohjelman käyttö kannattaa aloittaa lisäämällä oppilaita.
@@ -2532,7 +2538,8 @@ laskennassa. Alla on esimerkkejä suoritusten lisäämisestä.
             ((testaa "tp") (komento-tilasto-paremmuus arg t))
             ((testaa "tpk") (komento-tilasto-paremmuus arg))
             ((testaa "tk") (komento-tilasto-koonti))
-            ((or (testaa "?") (testaa "??") (testaa "???")) (ohjeet komento))
+            ((or (testaa "?") (testaa "??") (testaa "???") (testaa "????"))
+             (ohjeet komento))
             (*vuorovaikutteinen*
              (cond
                ((testaa "") (signal 'poistu-ohjelmasta))
