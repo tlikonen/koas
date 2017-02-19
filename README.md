@@ -87,7 +87,7 @@ Ohjelman tekijä ei kuitenkaan anna mitään takuita ohjelmalle, ei edes
 lupausta, että se sopii johonkin tiettyyn käyttötarkoitukseen.
 
 [GPL]: http://www.gnu.org/licenses/gpl-3.0.html
-[PGP]: http://koti.kapsi.fi/~dtw/pgp-key.asc
+[PGP]: http://www.iki.fi/tlikonen/pgp-key.asc
 
 
 Copyright and Licence
