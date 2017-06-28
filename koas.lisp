@@ -420,7 +420,7 @@
                      :do (päivitä-tietokanta kohde))
                (eheytys t))
               ((> versio *ohjelman-tietokantaversio*)
-               (viesti "VAROITUS! Tietokannan versio on ~A mutta ohjelma ~
+               (viesti "ONGELMA! Tietokannan versio on ~A mutta ohjelma ~
                 osaa vain version ~A.~%Päivitä ohjelma!~%"
                        versio *ohjelman-tietokantaversio*)
                (error 'poistu-ohjelmasta))))
