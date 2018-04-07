@@ -31,7 +31,6 @@
 (defvar *vuorovaikutteinen* t)
 (defvar *tulostusmuoto* nil)
 (defvar *suppea* nil)
-(defvar *poistoraja* 10)
 (defvar *muokkaukset-kunnes-eheytys* 5000)
 (defparameter *ohjelman-tietokantaversio* 7)
 
@@ -2046,8 +2045,6 @@
                         (<= 1 n suurin))
                       numeroluettelo)
         (virhe "Vain seuraavat voi poistaa: 1~[~;~:;-~:*~A~]." suurin)))
-    (when (> (length numeroluettelo) *poistoraja*)
-      (virhe "Vain ~A kpl voi poistaa kerralla." *poistoraja*))
 
     (with-transaction
       (loop :for i :in numeroluettelo
