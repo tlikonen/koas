@@ -93,7 +93,7 @@ lupausta, että se sopii johonkin tiettyyn käyttötarkoitukseen.
 Copyright and Licence
 ---------------------
 
-Copyright (C) 2013-2017 Teemu Likonen <<tlikonen@iki.fi>>
+Copyright (C) 2013-2018 Teemu Likonen <<tlikonen@iki.fi>>
 
 PGP: [4E10 55DC 84E9 DFF6 13D7 8557 719D 69D3 2453 9450][PGP]
 
