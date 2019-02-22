@@ -2573,5 +2573,5 @@ laskennassa. Alla on esimerkkejä suoritusten lisäämisestä.
         (viesti "~%")))))
 
 
-#+script
+#-interactive
 (let ((*readline* t)) (main (script:argv)))
