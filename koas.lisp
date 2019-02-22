@@ -2568,6 +2568,7 @@ laskennassa. Alla on esimerkkejä suoritusten lisäämisestä.
                    (käsittele-komentorivi
                     (format nil "~{~A~^ ~}" (rest argv)))))))
       (poistu-ohjelmasta () nil)
+      (sb-int:simple-stream-error () nil)
       (sb-sys:interactive-interrupt ()
         (viesti "~%")))))
 
