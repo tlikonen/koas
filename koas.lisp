@@ -1,7 +1,7 @@
 ;;;; Koas - tietokantaohjelma kouluarvosanoille
 
 
-;;; Copyright (C) 2013-2018 Teemu Likonen <tlikonen@iki.fi>
+;;; Copyright (C) 2013-2019 Teemu Likonen <tlikonen@iki.fi>
 ;;;
 ;;; This program is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
