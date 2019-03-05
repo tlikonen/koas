@@ -19,7 +19,7 @@
 (defpackage #:koas
   (:use #:cl)
   (:import-from #:split-sequence #:split-sequence)
-  (:export #:main))
+  (:export #:main #:start))
 
 (in-package #:koas)
 
@@ -536,7 +536,7 @@
 
 (defun lue-rivi (kehote &optional muistiin)
   (if *readline*
-      (script:readline kehote muistiin)
+      (readline:readline kehote muistiin)
       (progn
         (format *query-io* "~A" kehote)
         (force-output *query-io*)
@@ -2550,28 +2550,28 @@ laskennassa. Alla on esimerkkejä suoritusten lisäämisestä.
       (format *error-output* "~&~A~%" tila))))
 
 
-(defun main (&optional argv)
-  (script:with-pp-errors
-    (handler-case
-        (tietokanta-käytössä
-          (cond ((and (not (rest argv))
-                      (not (listen *standard-input*)))
-                 (let ((*vuorovaikutteinen* t))
-                   (loop (käsittele-komentorivi (lue-rivi "KOAS> " t)))))
-                ((and (equal (nth 1 argv) "-")
-                      (not (nth 2 argv)))
-                 (let ((*vuorovaikutteinen* nil))
-                   (loop :for rivi := (read-line *standard-input* nil)
-                         :while rivi :do (käsittele-komentorivi rivi))))
-                ((rest argv)
-                 (let ((*vuorovaikutteinen* nil))
-                   (käsittele-komentorivi
-                    (format nil "~{~A~^ ~}" (rest argv)))))))
-      (poistu-ohjelmasta () nil)
-      (sb-int:simple-stream-error () nil)
-      (sb-sys:interactive-interrupt ()
-        (viesti "~%")))))
+(defun main (&rest argv)
+  (handler-case
+      (tietokanta-käytössä
+        (cond ((and (not argv) (not (listen *standard-input*)))
+               (let ((*vuorovaikutteinen* t))
+                 (loop (käsittele-komentorivi (lue-rivi "KOAS> " t)))))
+              ((and (equal (nth 0 argv) "-")
+                    (not (rest argv)))
+               (let ((*vuorovaikutteinen* nil))
+                 (loop :for rivi := (read-line *standard-input* nil)
+                       :while rivi :do (käsittele-komentorivi rivi))))
+              (argv
+               (let ((*vuorovaikutteinen* nil))
+                 (käsittele-komentorivi (format nil "~{~A~^ ~}" argv))))))
+    (poistu-ohjelmasta () nil)))
 
 
-#-interactive
-(let ((*readline* t)) (main (script:argv)))
+(defun start ()
+  (handler-case (let ((*readline* t))
+                  (apply #'main (rest sb-ext:*posix-argv*)))
+    (sb-int:simple-stream-error () nil)
+    (sb-sys:interactive-interrupt ()
+      (viesti "~%"))
+    (serious-condition (c)
+      (format *error-output* "~&~A~%" c))))

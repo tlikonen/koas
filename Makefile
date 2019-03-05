@@ -1,24 +1,32 @@
+sbcl = sbcl
 bindir = $(HOME)/bin
-IMAGE = koas
-SYSTEM = koas
-MAKEIMG = make-image.lisp
-SBCL = sbcl
-LISPFILES = koas.asd koas.lisp script-lib.lisp
 
-$(IMAGE): $(MAKEIMG) $(LISPFILES)
-	@$(SBCL) --script $(MAKEIMG) $(SYSTEM) $(IMAGE)
+src = koas.asd koas.lisp readline.lisp
+src-ql = $(patsubst %,quicklisp/local-projects/%,$(src))
 
-install: $(IMAGE)
-	install -d -- $(bindir)
-	install -m 755 -- $(IMAGE) $(bindir)
+koas: quicklisp/setup.lisp $(src-ql)
+	$(sbcl) --script make-image.lisp
 
-uninstall:
-	rm -f -- $(bindir)/$(IMAGE)
+$(src-ql): quicklisp/local-projects/%: %
+	cp $< $@
+
+quicklisp.lisp:
+	wget -O $@ "http://beta.quicklisp.org/quicklisp.lisp"
+
+quicklisp/setup.lisp: quicklisp.lisp
+	$(sbcl) --noinform --no-sysinit --no-userinit --non-interactive \
+		--load quicklisp.lisp \
+		--eval '(quicklisp-quickstart:install :path "quicklisp/")'
+
+install:
+	install -d -m 755 $(bindir)
+	install -m 755 koas $(bindir)
 
 clean:
-	rm -f -- $(IMAGE) system-index.txt
+	rm -f koas quicklisp/local-projects/*
 
 clean-all: clean
-	rm -fr -- quicklisp
+	rm -fr quicklisp
+	rm -f quicklisp.lisp
 
-.PHONY: clean clean-all install uninstall
+.PHONY: install clean clean-all
