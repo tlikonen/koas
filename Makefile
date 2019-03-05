@@ -2,13 +2,9 @@ sbcl = sbcl
 bindir = $(HOME)/bin
 
 src = koas.asd koas.lisp
-src-ql = $(patsubst %,quicklisp/local-projects/%,$(src))
 
-koas: quicklisp/setup.lisp $(src-ql)
+koas: quicklisp/setup.lisp $(src)
 	$(sbcl) --script make-image.lisp
-
-$(src-ql): quicklisp/local-projects/%: %
-	cp $< $@
 
 quicklisp.lisp:
 	wget -O $@ "http://beta.quicklisp.org/quicklisp.lisp"
@@ -23,7 +19,7 @@ install:
 	install -m 755 koas $(bindir)
 
 clean:
-	rm -f koas quicklisp/local-projects/*
+	rm -f koas
 
 clean-all: clean
 	rm -fr quicklisp

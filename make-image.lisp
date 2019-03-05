@@ -1,5 +1,10 @@
 (load "quicklisp/setup.lisp")
 
+(asdf:initialize-source-registry
+ (list :source-registry
+       :ignore-inherited-configuration
+       (list :directory *default-pathname-defaults*)))
+
 (ql:quickload "koas")
 
 (sb-ext:save-lisp-and-die
