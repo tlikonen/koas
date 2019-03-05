@@ -536,7 +536,7 @@
 
 (defun lue-rivi (kehote &optional muistiin)
   (if *readline*
-      (readline:readline kehote muistiin)
+      (cl-readline:readline :prompt kehote :add-history muistiin)
       (progn
         (format *query-io* "~A" kehote)
         (force-output *query-io*)

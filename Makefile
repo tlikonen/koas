@@ -1,7 +1,7 @@
 sbcl = sbcl
 bindir = $(HOME)/bin
 
-src = koas.asd koas.lisp readline.lisp
+src = koas.asd koas.lisp
 src-ql = $(patsubst %,quicklisp/local-projects/%,$(src))
 
 koas: quicklisp/setup.lisp $(src-ql)
