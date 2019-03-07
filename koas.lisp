@@ -38,10 +38,9 @@
 (defun alusta-tiedostopolku ()
   (unless *tiedosto*
     (setf *tiedosto*
-          (make-pathname
-           :directory (append (pathname-directory (user-homedir-pathname))
-                              '(".config"))
-           :name "koas" :type "db")))
+          (merge-pathnames (make-pathname :directory '(:relative ".config")
+                                          :name "koas" :type "db")
+                           (user-homedir-pathname))))
   (ensure-directories-exist *tiedosto*))
 
 
@@ -428,7 +427,7 @@
       (with-transaction
         (viesti "~&Valmistellaan tietokanta (~A).~%~
                 Ota tietokantatiedostosta varmuuskopio riittävän usein.~%"
-                (sb-ext:native-pathname *tiedosto*))
+                (sb-ext:native-namestring *tiedosto*))
 
         (query "PRAGMA auto_vacuum = FULL")
 
@@ -507,7 +506,7 @@
 (defun connect ()
   (unless (typep *tietokanta* 'sqlite:sqlite-handle)
     (alusta-tiedostopolku)
-    (setf *tietokanta* (sqlite:connect *tiedosto*))
+    (setf *tietokanta* (sqlite:connect (sb-ext:native-namestring *tiedosto*)))
     (alusta-tietokanta)
     *tietokanta*))
 
