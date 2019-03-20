@@ -427,7 +427,7 @@
       (with-transaction
         (viesti "~&Valmistellaan tietokanta (~A).~%~
                 Ota tietokantatiedostosta varmuuskopio riittävän usein.~%"
-                (sb-ext:native-namestring *tiedosto*))
+                (pathconv:namestring *tiedosto*))
 
         (query "PRAGMA auto_vacuum = FULL")
 
@@ -506,7 +506,7 @@
 (defun connect ()
   (unless (typep *tietokanta* 'sqlite:sqlite-handle)
     (alusta-tiedostopolku)
-    (setf *tietokanta* (sqlite:connect (sb-ext:native-namestring *tiedosto*)))
+    (setf *tietokanta* (sqlite:connect (pathconv:namestring *tiedosto*)))
     (alusta-tietokanta)
     *tietokanta*))
 
