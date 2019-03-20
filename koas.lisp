@@ -2549,20 +2549,20 @@ laskennassa. Alla on esimerkkejä suoritusten lisäämisestä.
       (format *error-output* "~&~A~%" tila))))
 
 
-(defun main (&rest argv)
+(defun main (&rest args)
   (handler-case
       (tietokanta-käytössä
-        (cond ((and (not argv) (not (listen *standard-input*)))
+        (cond ((and (not args) (not (listen *standard-input*)))
                (let ((*vuorovaikutteinen* t))
                  (loop (käsittele-komentorivi (lue-rivi "KOAS> " t)))))
-              ((and (equal (nth 0 argv) "-")
-                    (not (rest argv)))
+              ((and (equal (nth 0 args) "-")
+                    (not (rest args)))
                (let ((*vuorovaikutteinen* nil))
                  (loop :for rivi := (read-line *standard-input* nil)
                        :while rivi :do (käsittele-komentorivi rivi))))
-              (argv
+              (args
                (let ((*vuorovaikutteinen* nil))
-                 (käsittele-komentorivi (format nil "~{~A~^ ~}" argv))))))
+                 (käsittele-komentorivi (format nil "~{~A~^ ~}" args))))))
     (poistu-ohjelmasta () nil)))
 
 
