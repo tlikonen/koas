@@ -72,7 +72,7 @@ tilaa lainkaan.
 Tekijä ja tekijänoikeus
 -----------------------
 
-Ohjelman tekijä on Teemu Likonen <<tlikonen@iki.fi>> (PGP:
+Ohjelman tekijä on Teemu Likonen <<tlikonen@iki.fi>> (OpenPGP-avain:
 [4E10 55DC 84E9 DFF6 13D7 8557 719D 69D3 2453 9450][PGP]), ja ohjelmaa
 levitetään [The GNU General Public License][GPL] -nimisellä lisenssillä.
 Lisenssin teksti on linkin takana englanninkielisenä. Lisenssin
@@ -95,7 +95,7 @@ Copyright and Licence
 
 Copyright (C) 2013-2019 Teemu Likonen <<tlikonen@iki.fi>>
 
-PGP: [4E10 55DC 84E9 DFF6 13D7 8557 719D 69D3 2453 9450][PGP]
+OpenPGP key: [4E10 55DC 84E9 DFF6 13D7 8557 719D 69D3 2453 9450][PGP]
 
 This program is free software: you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the
