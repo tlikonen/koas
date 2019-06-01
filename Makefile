@@ -6,12 +6,13 @@ koas: quicklisp/setup.lisp $(src)
 	$(sbcl) --script make-quickload.lisp
 	$(sbcl) --script make-image.lisp
 
-quicklisp.lisp:
+quicklisp/install.lisp:
+	mkdir -p quicklisp
 	wget -O $@ "http://beta.quicklisp.org/quicklisp.lisp"
 
-quicklisp/setup.lisp: quicklisp.lisp
+quicklisp/setup.lisp: quicklisp/install.lisp
 	$(sbcl) --noinform --no-sysinit --no-userinit --non-interactive \
-		--load quicklisp.lisp \
+		--load quicklisp/install.lisp \
 		--eval '(require "asdf")' \
 		--eval '(asdf:disable-output-translations)' \
 		--eval '(quicklisp-quickstart:install :path "quicklisp/")'
@@ -25,6 +26,5 @@ clean:
 
 clean-all: clean
 	rm -fr quicklisp
-	rm -f quicklisp.lisp
 
 .PHONY: install clean clean-all
