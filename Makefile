@@ -1,6 +1,6 @@
 sbcl = sbcl
 bindir = $(HOME)/bin
-src = koas.asd koas.lisp
+src = koas.asd koas.lisp pathconv.lisp
 
 koas: quicklisp/setup.lisp $(src)
 	$(sbcl) --script make-quickload.lisp
