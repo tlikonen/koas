@@ -25,8 +25,8 @@ Asentaminen
 -----------
 
 _Kouluarvosanatietokanta_ toimii GNU/Linux-käyttöjärjestelmissä ja
-luultavasti myös Mac OS X -käyttöjärjestelmissä. Ohjelman kääntäminen
-lähdekoodista vaatii [SBCL][]-nimisen Common Lisp -toteutuksen. Lisäksi
+luultavasti myös Mac OS X -käyttöjärjestelmissä. Ohjelman kääntäminen ja
+suorittaminen vaatii [SBCL][]-nimisen Common Lisp -toteutuksen. Lisäksi
 asennettuna täytyy olla kehittäjäversio [Readline][]- ja
 [SQLite3][]-kirjastosta. Esimerkiksi [Debian GNU/Linux][Debian]
 -käyttöjärjestelmässä edellä mainitut ovat asennuspaketeissa nimeltä
@@ -38,9 +38,14 @@ asennettuna. Quicklispin avulla ladataan internetistä automaattisesti
 eräitä Common Lisp -kirjastoja.
 
 Ohjelma käännetään komennolla `make` ja asennetaan komennolla `make
-install`. Ohjelmatiedosto on nimeltään `koas`, ja se asentuu oletuksena
-hakemistoon `~/bin`. Muunkin asennushakemiston voi valita seuraavalla
-tavalla: `make install bindir=/jokin/muu/hakemisto`.
+install`. Ohjelman tiedostot asennetaan oletuksena hakemiston
+`/usr/local` alle. Asennushakemistohierarkian voi määrittää
+makefile-muuttujalla `prefix` tai erikseen ajettavalle tiedostolle
+muuttujalla `bindir` ja kirjastotiedostoille muuttujalla `libdir`.
+Käytettävän SBCL:n polun voi määrittää muuttujalla `sbcl`. Esimerkki:
+`make sbcl=... prefix=...`. Käytä samoja asetuksia kääntämisen ja
+asentamisen yhteydessä.
+
 
 [SBCL]:     http://www.sbcl.org/
 [Readline]: http://www.gnu.org/software/readline/

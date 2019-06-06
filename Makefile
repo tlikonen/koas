@@ -1,10 +1,13 @@
-sbcl = sbcl
-bindir = $(HOME)/bin
+prefix = /usr/local
+bindir = $(prefix)/bin
+libdir = $(prefix)/lib
+sbcl = /usr/bin/sbcl
 src = koas.asd koas.lisp pathconv.lisp
 
-koas: quicklisp/setup.lisp $(src)
-	$(sbcl) --script make-quickload.lisp
-	$(sbcl) --script make-image.lisp
+all: build/koas
+
+build/koas: quicklisp/setup.lisp $(src)
+	$(sbcl) --script make.lisp "$(libdir)/koas/"
 
 quicklisp/install.lisp:
 	mkdir -p quicklisp
@@ -12,19 +15,24 @@ quicklisp/install.lisp:
 
 quicklisp/setup.lisp: quicklisp/install.lisp
 	$(sbcl) --noinform --no-sysinit --no-userinit --non-interactive \
+		--load asdf.conf \
 		--load quicklisp/install.lisp \
-		--eval '(require "asdf")' \
-		--eval '(asdf:disable-output-translations)' \
 		--eval '(quicklisp-quickstart:install :path "quicklisp/")'
 
 install:
-	install -d -m 755 $(bindir)
-	install -m 755 koas $(bindir)
+	install -d -m 755 "$(bindir)" "$(libdir)/koas"
+	install -m 755 build/koas "$(bindir)"
+	install -m 644 build/koas.asd "$(libdir)/koas"
+	install -m 644 build/koas--all-systems.fasl "$(libdir)/koas"
+
+uninstall:
+	rm -f -- "$(bindir)/koas"
+	rm -fr -- "$(libdir)/koas"
 
 clean:
-	rm -f koas *.fasl
+	rm -fr build
 
 clean-all: clean
 	rm -fr quicklisp
 
-.PHONY: install clean clean-all
+.PHONY: all install uninstall clean clean-all
