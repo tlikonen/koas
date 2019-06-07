@@ -43,8 +43,8 @@ install`. Ohjelman tiedostot asennetaan oletuksena hakemiston
 makefile-muuttujalla `prefix` tai erikseen ajettavalle tiedostolle
 muuttujalla `bindir` ja kirjastotiedostoille muuttujalla `libdir`.
 Käytettävän SBCL:n polun voi määrittää muuttujalla `sbcl`. Esimerkki:
-`make sbcl=... prefix=...`. Käytä samoja asetuksia kääntämisen ja
-asentamisen yhteydessä.
+`make sbcl=... prefix=...`. Käytetyt muuttujat tallennetaan tiedostoon
+`config.mk`.
 
 
 [SBCL]:     http://www.sbcl.org/
