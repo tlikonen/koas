@@ -40,8 +40,8 @@ uninstall:
 clean:
 	rm -fr build
 
-clean-all: clean
+distclean: clean
 	rm -fr quicklisp
 	rm -f config.mk
 
-.PHONY: all install uninstall clean clean-all
+.PHONY: all install uninstall clean distclean
