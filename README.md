@@ -33,9 +33,8 @@ asennettuna täytyy olla kehittäjäversio [Readline][]- ja
 `sbcl`, `libreadline6-dev` ja `libsqlite3-dev`.
 
 Ensimmäisellä kerralla kääntämisen yhteydessä käytetään `wget`-ohjelmaa,
-jolla haetaan internetistä [Quicklisp][QL], jos sitä ei ole jo valmiiksi
-asennettuna. Quicklispin avulla ladataan internetistä automaattisesti
-eräitä Common Lisp -kirjastoja.
+jolla haetaan internetistä [Quicklisp][QL]. Quicklispin avulla ladataan
+internetistä automaattisesti eräitä Common Lisp -kirjastoja.
 
 Ohjelma käännetään komennolla `make` ja asennetaan komennolla `make
 install`. Ohjelman tiedostot asennetaan oletuksena hakemiston
