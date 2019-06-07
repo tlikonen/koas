@@ -4,6 +4,8 @@ libdir = $(prefix)/lib
 sbcl = /usr/bin/sbcl
 src = koas.asd koas.lisp pathconv.lisp
 
+-include config.mk
+
 all: build/koas
 
 build/koas: quicklisp/setup.lisp $(src)
@@ -18,6 +20,12 @@ quicklisp/setup.lisp: quicklisp/install.lisp
 		--load asdf.conf \
 		--load quicklisp/install.lisp \
 		--eval '(quicklisp-quickstart:install :path "quicklisp/")'
+
+config.mk:
+	@echo "bindir = $(bindir)" > $@
+	@echo "libdir = $(libdir)" >> $@
+	@echo "sbcl = $(sbcl)" >> $@
+	@echo "Write $@"
 
 install:
 	install -d -m 755 "$(bindir)" "$(libdir)/koas"
@@ -34,5 +42,6 @@ clean:
 
 clean-all: clean
 	rm -fr quicklisp
+	rm -f config.mk
 
 .PHONY: all install uninstall clean clean-all
