@@ -2,7 +2,7 @@ prefix = /usr/local
 bindir = $(prefix)/bin
 libdir = $(prefix)/lib
 sbcl = /usr/bin/sbcl
-src = koas.asd koas.lisp pathconv.lisp
+src = src/*.asd src/*.lisp
 
 -include config.mk
 
@@ -30,8 +30,8 @@ config.mk:
 install:
 	install -d -m 755 "$(bindir)" "$(libdir)/koas"
 	install -m 755 build/koas "$(bindir)"
-	install -m 644 build/koas.asd "$(libdir)/koas"
-	install -m 644 build/koas--all-systems.fasl "$(libdir)/koas"
+	install -m 644 build/src/koas.asd "$(libdir)/koas"
+	install -m 644 build/src/koas--all-systems.fasl "$(libdir)/koas"
 
 uninstall:
 	rm -f -- "$(bindir)/koas"
