@@ -22,5 +22,9 @@
                           (list :source-registry
                                 :ignore-inherited-configuration
                                 (list :directory *lib*))))
-              '(asdf:operate 'asdf:monolithic-load-bundle-op "koas")
+              '(handler-case
+                (asdf:operate 'asdf:monolithic-load-bundle-op "koas")
+                (serious-condition (c)
+                 (format *error-output* "~A~%" c)
+                 (sb-ext:exit :code 1)))
               '(koas:start)))))
