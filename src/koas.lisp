@@ -46,10 +46,11 @@
 
 (define-condition poistu-ohjelmasta () nil)
 
-(define-condition virhe ()
+(define-condition virhe (error)
   ((teksti :reader teksti :initarg :teksti))
   (:report (lambda (tila virta)
              (format virta "~A" (teksti tila)))))
+
 
 (defun virhe (fmt &rest args)
   (error 'virhe :teksti (apply #'format nil fmt args)))
@@ -57,6 +58,11 @@
 
 (defun viesti (fmt &rest args)
   (apply #'format t fmt args))
+
+
+(defun virheviesti (fmt &rest args)
+  (apply #'format *error-output* fmt args)
+  (finish-output *error-output*))
 
 
 (defun query (format-string &rest parameters)
@@ -418,10 +424,9 @@
                      :do (päivitä-tietokanta kohde))
                (eheytys t))
               ((> versio *ohjelman-tietokantaversio*)
-               (viesti "ONGELMA! Tietokannan versio on ~A mutta ohjelma ~
-                osaa vain version ~A.~%Päivitä ohjelma!~%"
-                       versio *ohjelman-tietokantaversio*)
-               (error 'poistu-ohjelmasta))))
+               (virhe "ONGELMA! Tietokannan versio on ~A mutta ohjelma ~
+                osaa vain version ~A. Päivitä ohjelma!"
+                      versio *ohjelman-tietokantaversio*))))
 
       ;; Tietokanta puuttuu
       (with-transaction
@@ -1628,7 +1633,7 @@
 
 (defmethod tulosta ((object t))
   (setf *muokattavat* nil)
-  (format *error-output* "~&Ei löytynyt.~%"))
+  (virheviesti "Ei löytynyt.~%"))
 
 
 (defgeneric lisää (asia &key &allow-other-keys))
@@ -2335,77 +2340,47 @@
     (eheytys)))
 
 
-(defun ohjeet (&optional komento)
-  (cond
-    ((equal komento "?")
-     (tulosta-taulu
-      (list
-       :viiva-alku
-       (list (otsikko-sarake "Komento") (otsikko-sarake "Tarkoitus"))
-       :viiva-otsikko
-       '("ho /sukunimi/etunimi/ryhmät/lisätiedot" "Hae oppilaita.")
-       '("hoa /sukunimi/etunimi/ryhmät/lisätiedot"
-         "Hae oppilaita arvotussa järjestyksessä.")
-       '("hr /ryhmä/lisätiedot" "Hae ryhmiä.")
-       '("hs ryhmä" "Hae suoritukset ryhmältä.")
-       '("hao /sukunimi/etunimi/ryhmät/lisätiedot" "Hae arvosanat oppilailta.")
-       '("has ryhmä /suoritus/lyhenne" "Hae arvosanat suorituksista.")
-       '("hak ryhmä" "Hae arvosanojen koonti.")
-       :viiva
-       '("tj  @/ryh/suor/lyh/suku/etu/lisät@/..."
-         "Jakauma arvosanoista (painokertoimelliset).")
-       '("tjk @/ryh/suor/lyh/suku/etu/lisät@/..."
-         "Jakauma arvosanoista (kaikki).")
-       '("tp  @/ryh/suor/lyh/suku/etu/lisät@/..."
-         "Oppilaat paremmuusjärjestyksessä (painokert.).")
-       '("tpk @/ryh/suor/lyh/suku/etu/lisät@/..."
-         "Oppilaat paremmuusjärjestyksessä (kaikki).")
-       '("tk" "Tulosta tietokannasta koonti.")
-       :viiva
-       '("lo /sukunimi/etunimi/ryhmät/lisätiedot" "Lisää oppilas.")
-       '("ls ryhmä /suoritus/lyhenne/painokerroin/sija"
-         "Lisää ryhmälle suoritus.")
-       :viiva
-       '("m numerot /.../.../.../..." "Muokkaa valittuja tietueita ja kenttiä.")
-       '("ms numerot kenttä /.../.../..." "Muokkaa tietueista samaa kenttää.")
-       '("poista numerot" "Poista tietueet.")
-       :viiva
-       '("?" "Komennot.")
-       '("??" "Tulostusmuotoja.")
-       '("???" "Käyttöohjeita.")
-       '("????" "Aloitusvinkkejä.")
-       :viiva-loppu)))
+(defun ohjeet-komennot ()
+  (tulosta-taulu
+   (list
+    :viiva-alku
+    (list (otsikko-sarake "Komento") (otsikko-sarake "Tarkoitus"))
+    :viiva-otsikko
+    '("ho /sukunimi/etunimi/ryhmät/lisätiedot" "Hae oppilaita.")
+    '("hoa /sukunimi/etunimi/ryhmät/lisätiedot"
+      "Hae oppilaita arvotussa järjestyksessä.")
+    '("hr /ryhmä/lisätiedot" "Hae ryhmiä.")
+    '("hs ryhmä" "Hae suoritukset ryhmältä.")
+    '("hao /sukunimi/etunimi/ryhmät/lisätiedot" "Hae arvosanat oppilailta.")
+    '("has ryhmä /suoritus/lyhenne" "Hae arvosanat suorituksista.")
+    '("hak ryhmä" "Hae arvosanojen koonti.")
+    :viiva
+    '("tj  @/ryh/suor/lyh/suku/etu/lisät@/..."
+      "Jakauma arvosanoista (painokertoimelliset).")
+    '("tjk @/ryh/suor/lyh/suku/etu/lisät@/..."
+      "Jakauma arvosanoista (kaikki).")
+    '("tp  @/ryh/suor/lyh/suku/etu/lisät@/..."
+      "Oppilaat paremmuusjärjestyksessä (painokert.).")
+    '("tpk @/ryh/suor/lyh/suku/etu/lisät@/..."
+      "Oppilaat paremmuusjärjestyksessä (kaikki).")
+    '("tk" "Tulosta tietokannasta koonti.")
+    :viiva
+    '("lo /sukunimi/etunimi/ryhmät/lisätiedot" "Lisää oppilas.")
+    '("ls ryhmä /suoritus/lyhenne/painokerroin/sija"
+      "Lisää ryhmälle suoritus.")
+    :viiva
+    '("m numerot /.../.../.../..." "Muokkaa valittuja tietueita ja kenttiä.")
+    '("ms numerot kenttä /.../.../..." "Muokkaa tietueista samaa kenttää.")
+    '("poista numerot" "Poista tietueet.")
+    :viiva
+    '("?" "Komennot.")
+    '("??" "Käyttöohjeita.")
+    '("???" "Aloitusvinkkejä.")
+    :viiva-loppu)))
 
-    ((equal komento "??")
-     (viesti "~
 
-Hakutoimintojen tulostusasua voi muuttaa kirjoittamalla komentorivin
-alkuun avainsanan. Alla oleva taulukko ja esimerkki selventää niitä.
-
-")
-     (tulosta-taulu
-      (list
-       :viiva-alku
-       (list (otsikko-sarake "Sana") (otsikko-sarake "Selitys"))
-       :viiva-otsikko
-       '("tab" "Tab-merkeillä erotettu taulukko.")
-       '("csv" "Pilkuilla erotettu taulukko (comma-separated values).")
-       '("org" "Emacsin Org-tilaan sopiva taulukkomalli.")
-       '("latex" "Tulosteet Latex-komentoina.")
-       '("suppea" "Karsitaan tulostuksesta Lisätiedot-kentät yms.")
-       :viiva-loppu))
-
-     (viesti "~%~
-
-Esimerkiksi
-
-    tab suppea hao /Meikäl/Mat/2013:äi:7a
-    org hak 2013:äi:7a
-
-"))
-
-    ((equal komento "???")
-     (viesti "~
+(defun ohjeet-käyttö ()
+  (viesti "~
 
 Komennon argumenteissa oleva vinoviiva (/.../...) tarkoittaa kenttien
 erotinmerkkiä. Merkki voi ola mikä tahansa, ja ensimmäisenä oleva merkki
@@ -2462,8 +2437,9 @@ vain vuorovaikutteisessa tilassa.
 
 "))
 
-    ((equal komento "????")
-     (viesti "~
+
+(defun ohjeet-aloitus ()
+  (viesti "~
 
 Ohjelman käyttö kannattaa aloittaa lisäämällä oppilaita.
 Lisäystoiminnossa (lo) syötettävät kentät ovat vasemmalta oikealle
@@ -2495,82 +2471,193 @@ laskennassa. Alla on esimerkkejä suoritusten lisäämisestä.
     ls 2013:äi:7a /Kirjoitelma romaanista/rom/3
     ls 2013:äi:7a /Välitodistus/vto
 
-"))))
+"))
+
+
+(defun ohjeet-komentorivi ()
+  (viesti "Käyttö: koas [valitsimet] [--] [komennot]
+
+Koas eli kouluarvosanatietokanta. Ohjelma käynnistyy vuorovaikutteiseen
+tilaan, kun sen käynnistää komentoriviltä ilman argumentteja.
+Vuorovaikutteisessa tilassa saa apua komennolla \"?\".
+
+Valitsimet:
+
+  --muoto=tulostusmuoto
+        Vaihtaa ohjelman tulostusmuodon. Tämä valitsin ei vaikuta
+        vuorovaikutteisen tilan tulostusmuotoon.
+
+        Tulostusmuodot ovat: \"csv\" eli pilkuilla erotetut taulukon
+        solut (csv = comma-separated values); \"tab\" eli
+        sarkainmerkeillä erotetut taulukon solut; \"org\" eli Emacsin
+        org-tilan taulukkomuoto; \"latex\" eli Latex-komennon näköiset
+        taulukon rivit.
+
+  --suppea
+        Tulostaa taulukoiden tiedot suppeammin. Esimerkiksi taulukoiden
+        Lisätiedot-sarake jätetään pois. Tämä valitsin ei vaikuta
+        vuorovaikutteiseen tilaan.
+
+  -h, --ohje[=aihe]
+        Tulostaa ohjelman ohjeita. Jos ohjeen aihetta ei ole mainittu,
+        tulostetaan nämä komentorivin ohjeet. Ohjeen aiheita ovat
+        \"komennot\", \"käyttö\" ja \"aloitus\".
+
+Ohjelman komennot saa näkyviin valitsimella \"--ohje=komennot\" tai
+vuorovaikutteisessa tilassa komennolla \"?\". Jos komentorivillä
+komentona on vain yhdysmerkki \"-\", luetaan komennot
+standardisyötteestä, niin että yhdellä rivillä on aina yksi komento.
+Muokkauskomennot eivät ole tällöin käytössä.
+
+"))
 
 
 (defun käsittele-komentorivi (mj)
   (when (null mj)
     (viesti "~%")
     (error 'poistu-ohjelmasta))
-  (handler-case
-      (multiple-value-bind (komento arg)
-          (erota-ensimmäinen-sana mj)
-        (flet ((testaa (mj)
-                 (equalp komento mj))
-               (tuntematon ()
-                 (virhe "Tuntematon komento. Ohjeita saa ?:llä.")))
-          (cond
-            ((testaa "tab") (let ((*tulostusmuoto* :tab))
-                                (käsittele-komentorivi arg)))
-            ((testaa "csv") (let ((*tulostusmuoto* :csv))
-                                (käsittele-komentorivi arg)))
-            ((testaa "org") (let ((*tulostusmuoto* :org))
-                              (käsittele-komentorivi arg)))
-            ((testaa "latex") (let ((*tulostusmuoto* :latex))
-                                (käsittele-komentorivi arg)))
-            ((testaa "suppea") (let ((*suppea* t))
-                                 (käsittele-komentorivi arg)))
-            ((testaa "ho") (komento-hae-oppilaat arg))
-            ((testaa "hoa") (komento-hae-oppilaat-arvottu arg))
-            ((testaa "hs") (komento-hae-suoritukset arg))
-            ((testaa "hr") (komento-hae-ryhmät arg))
-            ((testaa "has") (komento-hae-arvosanat-suorituksista arg))
-            ((testaa "hao") (komento-hae-arvosanat-oppilailta arg))
-            ((testaa "hak") (komento-hae-arvosanat-koonti arg))
-            ((testaa "lo") (komento-lisää-oppilas arg))
-            ((testaa "ls") (komento-lisää-suoritus arg))
-            ((testaa "tj") (komento-tilasto-jakauma arg t))
-            ((testaa "tjk") (komento-tilasto-jakauma arg))
-            ((testaa "tp") (komento-tilasto-paremmuus arg t))
-            ((testaa "tpk") (komento-tilasto-paremmuus arg))
-            ((testaa "tk") (komento-tilasto-koonti))
-            ((or (testaa "?") (testaa "??") (testaa "???") (testaa "????"))
-             (ohjeet komento))
-            (*vuorovaikutteinen*
-             (cond
-               ((testaa "") (signal 'poistu-ohjelmasta))
-               ((testaa "poista") (komento-poista arg))
-               ((testaa "m") (komento-muokkaa arg))
-               ((testaa "ms") (komento-muokkaa-sarjana arg))
-               (t (tuntematon))))
-            (t (tuntematon)))))
 
-    (virhe (tila)
-      (format *error-output* "~&~A~%" tila))))
+  (multiple-value-bind (komento arg)
+      (erota-ensimmäinen-sana mj)
+    (flet ((testaa (mj)
+             (equalp komento mj))
+           (tuntematon (mj)
+             (if *vuorovaikutteinen*
+                 (virhe "Tuntematon komento \"~A\". Ohjeita saa ?:llä." mj)
+                 (virhe "Tuntematon komento \"~A\". Ohjeita saa ~
+                        valitsimella \"-h\" tai \"--ohje\"." mj))))
+
+      (cond
+        ((testaa "ho") (komento-hae-oppilaat arg))
+        ((testaa "hoa") (komento-hae-oppilaat-arvottu arg))
+        ((testaa "hs") (komento-hae-suoritukset arg))
+        ((testaa "hr") (komento-hae-ryhmät arg))
+        ((testaa "has") (komento-hae-arvosanat-suorituksista arg))
+        ((testaa "hao") (komento-hae-arvosanat-oppilailta arg))
+        ((testaa "hak") (komento-hae-arvosanat-koonti arg))
+        ((testaa "lo") (komento-lisää-oppilas arg))
+        ((testaa "ls") (komento-lisää-suoritus arg))
+        ((testaa "tj") (komento-tilasto-jakauma arg t))
+        ((testaa "tjk") (komento-tilasto-jakauma arg))
+        ((testaa "tp") (komento-tilasto-paremmuus arg t))
+        ((testaa "tpk") (komento-tilasto-paremmuus arg))
+        ((testaa "tk") (komento-tilasto-koonti))
+        ((and (testaa "") (not *vuorovaikutteinen*)))
+        (*vuorovaikutteinen*
+         (cond
+           ((testaa "") (error 'poistu-ohjelmasta))
+           ((testaa "?") (ohjeet-komennot))
+           ((testaa "??") (ohjeet-käyttö))
+           ((testaa "???") (ohjeet-aloitus))
+           ((testaa "poista") (komento-poista arg))
+           ((testaa "m") (komento-muokkaa arg))
+           ((testaa "ms") (komento-muokkaa-sarjana arg))
+           (t (tuntematon mj))))
+        (t (tuntematon mj))))))
 
 
 (defun main (&rest args)
-  (handler-case
-      (tietokanta-käytössä
-        (cond ((and (not args) (not (listen *standard-input*)))
-               (let ((*vuorovaikutteinen* t))
-                 (loop (käsittele-komentorivi (lue-rivi "KOAS> " t)))))
-              ((and (equal (nth 0 args) "-")
-                    (not (rest args)))
-               (let ((*vuorovaikutteinen* nil))
+  (flet ((tulosta-valitsin (valitsin)
+           (etypecase valitsin
+             (character (format nil "-~C" valitsin))
+             (string (format nil "--~A" valitsin)))))
+
+    (handler-bind
+        ((just-getopt-parser:unknown-option
+           (lambda (tila)
+             (virheviesti "Tuntematon valitsin \"~A\".~%"
+                          (tulosta-valitsin
+                           (just-getopt-parser:option-name tila)))
+             (invoke-restart 'just-getopt-parser:skip-option)))
+
+         (just-getopt-parser:required-argument-missing
+           (lambda (tila)
+             (virhe "Valitsin \"~A\" tarvitsee lisäksi argumentin."
+                    (tulosta-valitsin (just-getopt-parser:option-name tila)))))
+
+         (just-getopt-parser:argument-not-allowed
+           (lambda (tila)
+             (virhe "Valitsimelle \"~A\" ei hyväksytä argumenttia."
+                    (tulosta-valitsin (just-getopt-parser:option-name tila)))))
+
+         (poistu-ohjelmasta
+           (lambda (tila)
+             (declare (ignore tila))
+             (return-from main))))
+
+      (multiple-value-bind (valitsimet argumentit tuntemattomat)
+          (just-getopt-parser:getopt args '((:help #\h)
+                                            (:help "ohje" :optional)
+                                            (:muoto "muoto" :required)
+                                            (:suppea "suppea"))
+                                     :error-on-unknown-option t
+                                     :error-on-argument-missing t
+                                     :error-on-argument-not-allowed t)
+
+        (when (and tuntemattomat (not (assoc :help valitsimet)))
+          (virhe "Ohjeita saa valitsimella \"-h\" tai \"--ohje\"."))
+
+        (when (assoc :help valitsimet)
+          (when argumentit
+            (virheviesti "(Annettuja komentoja \"~{~A~^ ~}\" ei huomioida, ~
+                kun näytetään ohjeet.)~%~%" argumentit))
+          (let ((tapa (cdr (assoc :help valitsimet))))
+            (cond ((null tapa) (ohjeet-komentorivi))
+                  ((string= tapa "komennot") (ohjeet-komennot))
+                  ((string= tapa "käyttö") (ohjeet-käyttö))
+                  ((string= tapa "aloitus") (ohjeet-aloitus))
+                  (t (virhe "Tuntematon ohjeen aihe \"~A\"." tapa))))
+          (error 'poistu-ohjelmasta))
+
+        (let ((muoto nil))
+
+          (when (assoc :muoto valitsimet)
+            (setf muoto (cdr (assoc :muoto valitsimet)))
+            (cond ((string= muoto "tab") (setf muoto :tab))
+                  ((string= muoto "csv") (setf muoto :csv))
+                  ((string= muoto "org") (setf muoto :org))
+                  ((string= muoto "latex") (setf muoto :latex))
+                  (t (virhe "Tuntematon tulostusmuoto \"~A\"." muoto))))
+
+          (tietokanta-käytössä
+            (cond
+              ((and (equal (nth 0 argumentit) "-")
+                    (not (rest argumentit)))
+               (let ((*vuorovaikutteinen* nil)
+                     (*tulostusmuoto* muoto)
+                     (*suppea* (assoc :suppea valitsimet)))
                  (loop :for rivi := (read-line *standard-input* nil)
                        :while rivi :do (käsittele-komentorivi rivi))))
-              (args
-               (let ((*vuorovaikutteinen* nil))
-                 (käsittele-komentorivi (format nil "~{~A~^ ~}" args))))))
-    (poistu-ohjelmasta () nil)))
+
+              (argumentit
+               (let ((*vuorovaikutteinen* nil)
+                     (*tulostusmuoto* muoto)
+                     (*suppea* (assoc :suppea valitsimet)))
+                 (käsittele-komentorivi
+                  (format nil "~{~A~^ ~}" argumentit))))
+
+              (t (let ((*vuorovaikutteinen* t)
+                       (*tulostusmuoto* nil)
+                       (*suppea* nil))
+                   (when (or (assoc :muoto valitsimet)
+                             (assoc :suppea valitsimet))
+                     (virheviesti "(Vuorovaikutteisessa tilassa ei huomioida ~
+                        kaikkia valitsimia.)~%"))
+                   (loop
+                     (handler-case
+                         (käsittele-komentorivi (lue-rivi "KOAS> " t))
+                       (virhe (tila)
+                         (viesti "~A~%" tila)))))))))))))
 
 
 (defun start ()
   (handler-case (let ((*readline* t))
                   (apply #'main (rest sb-ext:*posix-argv*)))
-    (sb-int:simple-stream-error () nil)
+    (sb-int:simple-stream-error ()
+      (sb-ext:exit :code 0))
     (sb-sys:interactive-interrupt ()
-      (viesti "~%"))
+      (terpri)
+      (sb-ext:exit :code 1))
     (serious-condition (c)
-      (format *error-output* "~&~A~%" c))))
+      (virheviesti "~A~%" c)
+      (sb-ext:exit :code 1))))
