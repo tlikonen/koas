@@ -46,14 +46,14 @@
 
 (define-condition poistu-ohjelmasta () nil)
 
-(define-condition virhe (error)
+(define-condition koas-virhe (error)
   ((teksti :reader teksti :initarg :teksti))
   (:report (lambda (tila virta)
              (format virta "~A" (teksti tila)))))
 
 
 (defun virhe (fmt &rest args)
-  (error 'virhe :teksti (apply #'format nil fmt args)))
+  (error 'koas-virhe :teksti (apply #'format nil fmt args)))
 
 
 (defun viesti (fmt &rest args)
@@ -2646,7 +2646,7 @@ Muokkauskomennot eivät ole tällöin käytössä.
                    (loop
                      (handler-case
                          (käsittele-komentorivi (lue-rivi "KOAS> " t))
-                       (virhe (tila)
+                       (koas-virhe (tila)
                          (viesti "~A~%" tila)))))))))))))
 
 
