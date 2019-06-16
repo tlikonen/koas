@@ -586,12 +586,16 @@
   (member *tulostusmuoto* tyypit :test #'eql))
 
 
-(defun olion-mj-pituus (olio)
-  (length (prin1-to-string olio)))
+(defun luvun-leveys (luku)
+  (check-type luku (integer 0 *))
+  (loop :for l := (truncate luku 10) :then (truncate l 10)
+        :for n :upfrom 1
+        :while (plusp l)
+        :finally (return n)))
 
 
 (defun numeroi (taulu)
-  (let ((suurin-leveys (olion-mj-pituus (length taulu))))
+  (let ((suurin-leveys (luvun-leveys (length taulu))))
     (loop :for i :upfrom 1
           :for rivi :in taulu
           :collect (cons (format nil "~V@A" suurin-leveys i) rivi))))
@@ -1544,7 +1548,7 @@
                    (setf as-suurin (max as-suurin (lue-numero k))))
                (setf suurin-arvo (max suurin-arvo v)))
              (hajautustaulu jakauma))
-    (loop :with lkm-leveys := (max 3 (olion-mj-pituus suurin-arvo))
+    (loop :with lkm-leveys := (max 3 (luvun-leveys suurin-arvo))
           :for i :from (floor as-pienin) :upto (ceiling as-suurin) :by 1/4
           :for as := (tulosta-luku i)
           :for määrä := (gethash as (hajautustaulu jakauma) 0)
@@ -1579,8 +1583,8 @@
     (loop :for (nil nil nil lkm) :in (lista paremmuus)
           :for i :upfrom 1
           :maximize lkm :into suurin-lkm
-          :finally (setf sija-leveys (olion-mj-pituus i)
-                         lkm-leveys (max 3 (olion-mj-pituus suurin-lkm))))
+          :finally (setf sija-leveys (luvun-leveys i)
+                         lkm-leveys (max 3 (luvun-leveys suurin-lkm))))
 
     (loop :with edellinen-ka := nil
           :for (nimi ryhmät ka lkm) :in (lista paremmuus)
@@ -1619,7 +1623,7 @@
                                     (ryhmiä koonti)
                                     (suorituksia koonti)
                                     (arvosanoja koonti))
-                        :key #'olion-mj-pituus)))
+                        :key #'luvun-leveys)))
     (flet ((rivi (otsikko olio)
              (list (otsikko-rivi otsikko) (format nil "~V@A" suurin olio))))
       (tulosta-taulu
