@@ -2617,11 +2617,9 @@ Muokkauskomennot eivät ole tällöin käytössä.
 
           (when (assoc :muoto valitsimet)
             (setf muoto (cdr (assoc :muoto valitsimet)))
-            (cond ((string= muoto "tab") (setf muoto :tab))
-                  ((string= muoto "csv") (setf muoto :csv))
-                  ((string= muoto "org") (setf muoto :org))
-                  ((string= muoto "latex") (setf muoto :latex))
-                  (t (virhe "Tuntematon tulostusmuoto \"~A\"." muoto))))
+            (if (find muoto '("tab" "csv" "org" "latex") :test #'equal)
+                (setf muoto (intern (string-upcase muoto) "KEYWORD"))
+                (virhe "Tuntematon tulostusmuoto \"~A\"." muoto)))
 
           (tietokanta-käytössä
             (cond
