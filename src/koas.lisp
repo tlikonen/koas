@@ -28,7 +28,7 @@
 (defvar *readline* nil)
 (defvar *tietokanta* nil)
 (defvar *muokattavat* nil)
-(defvar *vuorovaikutteinen* t)
+(defvar *vuorovaikutteinen* nil)
 (defvar *tulostusmuoto* nil)
 (defvar *suppea* nil)
 (defvar *muokkaukset-kunnes-eheytys* 5000)
