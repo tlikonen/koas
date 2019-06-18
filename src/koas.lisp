@@ -2482,8 +2482,8 @@ laskennassa. Alla on esimerkkejä suoritusten lisäämisestä.
   (viesti "Käyttö: koas [valitsimet] [--] [komennot]
 
 Koas eli kouluarvosanatietokanta. Ohjelma käynnistyy vuorovaikutteiseen
-tilaan, kun sen käynnistää komentoriviltä ilman argumentteja.
-Vuorovaikutteisessa tilassa saa apua komennolla \"?\".
+tilaan, kun sen käynnistää ilman \"komentoja\". Vuorovaikutteisessa
+tilassa saa apua komennolla \"?\".
 
 Valitsimet:
 
