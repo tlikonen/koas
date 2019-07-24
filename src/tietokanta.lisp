@@ -33,7 +33,7 @@
 (defvar *tiedosto* nil)
 (defvar *tietokanta* nil)
 (defvar *muokkaukset-kunnes-eheytys* 5000)
-(defparameter *ohjelman-tietokantaversio* 7)
+(defparameter *ohjelman-tietokantaversio* 8)
 
 
 (defun alusta-tiedostopolku ()
@@ -329,6 +329,20 @@
     (query "PRAGMA auto_vacuum = FULL")))
 
 
+(defmethod päivitä-tietokanta ((versio (eql 8)))
+  ;; Korjataan view_oppilaat: ON-lause ei voi viitata seuraavaan
+  ;; JOINiin.
+  (with-transaction
+    (query "DROP VIEW IF EXISTS view_oppilaat")
+    (query "CREATE VIEW view_oppilaat AS ~
+                SELECT o.oid, o.sukunimi, o.etunimi, ~
+                r.rid, r.nimi AS ryhma, o.lisatiedot AS olt ~
+                FROM oppilaat AS o ~
+                LEFT JOIN oppilaat_ryhmat AS j ON j.oid = o.oid ~
+                LEFT JOIN ryhmat AS r ON r.rid = j.rid")
+    (query "UPDATE hallinto SET arvo = 8 WHERE avain = 'versio'")))
+
+
 (defun tietokannan-versio ()
   ;; Täällä tarvitaan LUE-NUMERO-funktiota, koska aiemmissa versioissa
   ;; arvo-kenttä oli merkkijonotyyppiä.
@@ -407,8 +421,7 @@
                 SELECT o.oid, o.sukunimi, o.etunimi, ~
                 r.rid, r.nimi AS ryhma, o.lisatiedot AS olt ~
                 FROM oppilaat AS o ~
-                LEFT JOIN oppilaat_ryhmat AS j ~
-                ON j.oid = o.oid AND j.rid = r.rid ~
+                LEFT JOIN oppilaat_ryhmat AS j ON j.oid = o.oid ~
                 LEFT JOIN ryhmat AS r ON r.rid = j.rid")
 
         (query "CREATE VIEW view_suoritukset AS ~
