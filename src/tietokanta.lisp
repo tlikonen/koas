@@ -25,6 +25,7 @@
    #:query #:query-1 #:query-nconc
    #:sql-mj #:sql-like-suoja
    #:with-transaction
+   #:eheytys
    ))
 
 (in-package #:tietokanta)
