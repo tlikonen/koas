@@ -1416,7 +1416,7 @@
 
 (defun komento-hae-arvosanat-koonti (arg)
   ;; ryhmä
-  (when(zerop (length arg))
+  (when (zerop (length arg))
     (virhe "Anna ryhmän tunnus."))
   (tulosta (hae-arvosanat-koonti (erota-ensimmäinen-sana arg))))
 
