@@ -1155,7 +1155,7 @@
 
 (defmethod tulosta ((object t))
   (setf *muokattavat* nil)
-  (virheviesti "Ei löytynyt.~%"))
+  (virhe "Ei löytynyt."))
 
 
 (defgeneric lisää (asia &key &allow-other-keys))
