@@ -6,6 +6,7 @@
                              "just-getopt-parser")
   :components
   ((:file "koas" :depends-on ("yhteinen" "pathconv" "tietokanta"))
-   (:file "tietokanta" :depends-on ("yhteinen" "pathconv"))
+   (:file "tietokanta" :depends-on ("yhteinen" "pathconv" "string-io"))
    (:file "yhteinen")
-   (:file "pathconv")))
+   (:file "pathconv")
+   (:file "string-io")))

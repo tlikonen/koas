@@ -70,30 +70,13 @@
 
 
 (defun sql-mj (asia)
-  (with-output-to-string (ulos)
-    (princ #\' ulos)
-    (loop :for merkki :across (typecase asia
-                                (string asia)
-                                (character (string asia))
-                                (integer (princ-to-string asia))
-                                (t ""))
-          :do (princ (if (char= merkki #\') "''" merkki) ulos))
-    (princ #\' ulos)))
+  (string-io:sql-string (princ-to-string asia)))
 
 
-(defun sql-like-suoja (mj &optional jokerit)
-  (with-output-to-string (ulos)
-    (format ulos "'~A" (if jokerit "%" ""))
-    (loop :for merkki :across (typecase mj
-                                (string mj)
-                                (character (string mj))
-                                (integer (princ-to-string mj))
-                                (t ""))
-          :do (princ (cond ((char= merkki #\') "''")
-                           ((find merkki "_%\\") (format nil "\\~A" merkki))
-                           (t merkki))
-                     ulos))
-    (format ulos "~A' ESCAPE '\\'" (if jokerit "%" ""))))
+(defun sql-like-suoja (asia &optional jokerit)
+  (string-io:sql-escape-like (princ-to-string asia)
+                             :wild-before jokerit
+                             :wild-after jokerit))
 
 
 (defun aseta-muokkauslaskuri (arvo)
