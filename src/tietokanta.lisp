@@ -70,11 +70,19 @@
 
 
 (defun sql-mj (asia)
-  (string-io:sql-string (princ-to-string asia)))
+  (string-io:sql-string (typecase asia
+                          (string asia)
+                          (character (string asia))
+                          (integer (princ-to-string asia))
+                          (t ""))))
 
 
 (defun sql-like-suoja (asia &optional jokerit)
-  (string-io:sql-escape-like (princ-to-string asia)
+  (string-io:sql-escape-like (typecase asia
+                               (string asia)
+                               (character (string asia))
+                               (integer (princ-to-string asia))
+                               (t ""))
                              :wild-before jokerit
                              :wild-after jokerit))
 
