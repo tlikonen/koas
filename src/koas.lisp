@@ -114,15 +114,20 @@
 
 (defun numeroi (taulu)
   (let ((suurin-leveys (luvun-leveys (length taulu))))
-    (loop :for i :upfrom 1
-          :for rivi :in taulu
-          :collect (cons (format nil "~V@A" suurin-leveys i) rivi))))
+    (loop :with i := 0
+       :for rivi :in taulu
+       :collect
+         (if (find :jatko rivi)
+             (cons :jatko rivi)
+             (cons (format nil "~V@A" suurin-leveys (incf i)) rivi)))))
 
 
 (defun tulosta-taulu (taulu &key (virta *standard-output*))
   (when taulu
     (flet ((viivap (ob)
-             (find ob '(:viiva :viiva-alku :viiva-loppu :viiva-otsikko))))
+             (find ob '(:viiva :viiva-alku :viiva-loppu :viiva-otsikko)))
+           (jatkop (solu)
+             (eql :jatko solu)))
       (let* ((sarakkeiden-lkm (reduce #'max taulu :key (lambda (osa)
                                                          (if (viivap osa)
                                                              0
@@ -134,10 +139,11 @@
               :if (viivap rivi) :collect rivi :into uusi-taulu
               :else :collect
               (let ((lisättävät (- sarakkeiden-lkm (length rivi)))
-                    (rivi-mj (mapcar (lambda (osa)
-                                       (cond ((null osa) "")
-                                             ((stringp osa) osa)
-                                             (t (princ-to-string osa))))
+                    (rivi-mj (mapcar (lambda (solu)
+                                       (cond ((null solu) "")
+                                             ((jatkop solu) "")
+                                             ((stringp solu) solu)
+                                             (t (princ-to-string solu))))
                                      rivi)))
 
                 (when (plusp lisättävät)
@@ -774,14 +780,33 @@
                                  (not *tulostusmuoto*)
                                  (not *suppea*))
                         (coerce (oppilaslista opp) 'vector)))
-  (let ((taulu (loop :for oppilas :in (oppilaslista opp)
-                     :collect (nconc
-                               (list (sukunimi oppilas))
-                               (list (etunimi oppilas))
-                               (list (lista-mj-listaksi
-                                      (ryhmälista oppilas)))
-                               (unless *suppea*
-                                 (list (oppilas-lisätiedot oppilas)))))))
+  (let ((taulu nil))
+
+    (loop :for oppilas :in (oppilaslista opp)
+       :for ryhmät := (ryhmälista oppilas)
+       :do
+         (push (nconc (list (sukunimi oppilas))
+                      (list (etunimi oppilas))
+                      (list (lista-mj-listaksi
+                             (delete nil (list (pop ryhmät)
+                                               (pop ryhmät)
+                                               (pop ryhmät)))))
+                      (unless *suppea*
+                        (list (oppilas-lisätiedot oppilas))))
+               taulu)
+
+         (loop :while ryhmät
+            :do (push (nconc (list :jatko)
+                             (list :jatko)
+                             (list (lista-mj-listaksi
+                                    (delete nil (list (pop ryhmät)
+                                                      (pop ryhmät)
+                                                      (pop ryhmät)))))
+                             (unless *suppea*
+                               (list :jatko)))
+                      taulu))
+
+       :finally (setf taulu (nreverse taulu)))
 
     (tulosta-taulu
      (nconc (list :viiva-alku)
