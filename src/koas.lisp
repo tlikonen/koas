@@ -779,7 +779,7 @@
             (t (viesti "~&~%")))))
 
 
-(defun muokkaustila ()
+(defun muokkaustilap ()
   (and *vuorovaikutteinen*
        (not *tulostusmuoto*)
        (not *suppea*)))
@@ -789,7 +789,7 @@
 
 
 (defmethod tulosta ((opp oppilaat))
-  (setf *muokattavat* (when (muokkaustila)
+  (setf *muokattavat* (when (muokkaustilap)
                         (coerce (oppilaslista opp) 'vector)))
   (let ((taulu nil))
 
@@ -839,7 +839,7 @@
 
 
 (defmethod tulosta ((suo suoritukset))
-  (setf *muokattavat* (when (muokkaustila)
+  (setf *muokattavat* (when (muokkaustilap)
                         (coerce (suorituslista suo) 'vector)))
 
   (let ((taulu (loop :for suoritus :in (suorituslista suo)
@@ -874,7 +874,7 @@
 
 
 (defmethod tulosta ((lista ryhmät))
-  (setf *muokattavat* (when (muokkaustila)
+  (setf *muokattavat* (when (muokkaustilap)
                         (coerce (ryhmälista lista) 'vector)))
 
   (let ((taulu (loop :for ryhmä :in (ryhmälista lista)
@@ -892,7 +892,7 @@
 
 
 (defmethod tulosta ((arv arvosanat-suorituksista))
-  (setf *muokattavat* (when (and (muokkaustila)
+  (setf *muokattavat* (when (and (muokkaustilap)
                                  (= (length (lista arv)) 1))
                         (coerce (arvosanalista (first (lista arv))) 'vector)))
 
@@ -943,7 +943,7 @@
 
 
 (defmethod tulosta ((arv arvosanat-oppilailta))
-  (setf *muokattavat* (when (and (muokkaustila)
+  (setf *muokattavat* (when (and (muokkaustilap)
                                  (= (length (lista arv)) 1))
                         (coerce (arvosanalista (first (lista arv))) 'vector)))
 
