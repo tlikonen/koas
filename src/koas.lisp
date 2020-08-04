@@ -1989,11 +1989,12 @@ vain vuorovaikutteisessa tilassa.
 (defun ohjeet-aloitus ()
   (viesti "~
 
-Ohjelman käyttö kannattaa aloittaa lisäämällä oppilaita.
-Lisäystoiminnossa (lo) syötettävät kentät ovat vasemmalta oikealle
-sukunimi, etunimi, ryhmät ja lisätiedot. Ainakin sukunimi, etunimi ja
-yksi ryhmä täytyy syöttää. Kentät erotetaan toisistaan jollakin
-erotinmerkillä. Tässä esimerkissä käytetään vivoviivaa (/):
+Ohjelman käyttö kannattaa aloittaa lisäämällä oppilaita ja suorituksia.
+
+Oppilaiden lisäystoiminnossa (lo) syötettävät kentät ovat vasemmalta
+oikealle sukunimi, etunimi, ryhmät ja lisätiedot. Ainakin sukunimi,
+etunimi ja yksi ryhmä täytyy syöttää. Kentät erotetaan toisistaan
+jollakin erotinmerkillä. Tässä esimerkissä käytetään vivoviivaa (/):
 
     lo /Meikäläinen/Matti/2013:suk:7a
     lo /Oppilas/Oona/2013:suk:7a
@@ -2004,15 +2005,17 @@ ryhmätunnuksen avulla, esimerkiksi \"2013:suk:7a\". Näin ryhmät voi
 yksilöidä usean lukuvuoden aikana. Oppilaan tiedoissa eri ryhmät
 erotetaan toisistaan välilyönnein:
 
-    lo /Meikäläinen/Maija/2013:suk:7a 2014:suk:8a 2015:suk:9a
+    lo /Meikäläinen/Maija/2013:suk:7a 2013:hi:7a
 
-Sitten voi luoda ryhmälle suorituksia. Suoritustiedoissa kentät ovat
-seuraavat: suorituksen nimi, lyhenne, painokerroin ja sija eli
-järjestysnumero. Suorituksen lyhennettä käytetään arvosanojen
-koonnissa (hak-komento). Painokerrointa käytetään suoritusten keskiarvon
-laskennassa. Sen täytyy olla positiivinen kokonaisluku. Jos
-painokerrointa ei ole, kyseistä suoritusta ei huomioida keskiarvon
-laskennassa. Alla on esimerkkejä suoritusten lisäämisestä.
+Suorituksia lisätään komennolla \"ls\". Kentät ovat seuraavat: ryhmä,
+suorituksen nimi, lyhenne, painokerroin ja sija eli järjestysnumero.
+Suorituksen lyhennettä käytetään arvosanojen koonnissa (hak-komento).
+Painokerrointa käytetään suoritusten keskiarvon laskennassa. Sen täytyy
+olla positiivinen kokonaisluku. Jos painokerrointa ei ole, kyseistä
+suoritusta ei huomioida keskiarvon laskennassa. Sija eli suorituksen
+järjestysnumero tarkoittaa, kuinka monentena tämä suoritus halutaan
+näyttää suoritusten luettelossa. Jos sitä ei anneta, suoritus lisätään
+luettelon perään. Alla on esimerkkejä suoritusten lisäämisestä.
 
     ls /2013:suk:7a/Kirje opettajalle/kir
     ls /2013:suk:7a/Sanaluokkakoe/san/2
