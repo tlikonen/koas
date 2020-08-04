@@ -1974,8 +1974,8 @@ toisistaan välilyönnillä. Kentän voi aloittaa plusmerkillä (+) tai
 miinusmerkillä (-). Tällöin oppilas lisätään kentässä lueteltuihin
 ryhmiin tai poistetaan niistä.
 
-    m 1-5 ///2013:äi:7a 2014:äi:8a
-    m 6 ///+2014:äi:8a
+    m 1-5 ///2013:suk:7a 2014:suk:8a
+    m 6 ///+2014:suk:8a
 
 Kun ohjelman käynnistää ilman komentoriviargumentteja, se käynnistyy
 vuorovaikutteiseen tilaan. Jos ohjelmalle antaa argumentiksi \"-\",
@@ -1996,16 +1996,16 @@ sukunimi, etunimi, ryhmät ja lisätiedot. Ainakin sukunimi, etunimi ja
 yksi ryhmä täytyy syöttää. Kentät erotetaan toisistaan jollakin
 erotinmerkillä. Tässä esimerkissä käytetään vivoviivaa (/):
 
-    lo /Meikäläinen/Matti/2013:äi:7a
-    lo /Oppilas/Oona/2013:äi:7a
-    lo /Koululainen/Kalle/2013:äi:7a/lukivaikeus
+    lo /Meikäläinen/Matti/2013:suk:7a
+    lo /Oppilas/Oona/2013:suk:7a
+    lo /Koululainen/Kalle/2013:suk:7a/lukivaikeus
 
 Kannattaa nimetä ryhmät lukuvuoden aloitusvuoden, aine- ja
-ryhmätunnuksen avulla, esimerkiksi \"2013:äi:7a\". Näin ryhmät voi
+ryhmätunnuksen avulla, esimerkiksi \"2013:suk:7a\". Näin ryhmät voi
 yksilöidä usean lukuvuoden aikana. Oppilaan tiedoissa eri ryhmät
 erotetaan toisistaan välilyönnein:
 
-    lo /Meikäläinen/Maija/2013:äi:7a 2014:äi:8a 2015:äi:9a
+    lo /Meikäläinen/Maija/2013:suk:7a 2014:suk:8a 2015:suk:9a
 
 Sitten voi luoda ryhmälle suorituksia. Suoritustiedoissa kentät ovat
 seuraavat: suorituksen nimi, lyhenne, painokerroin ja sija eli
@@ -2015,10 +2015,10 @@ laskennassa. Sen täytyy olla positiivinen kokonaisluku. Jos
 painokerrointa ei ole, kyseistä suoritusta ei huomioida keskiarvon
 laskennassa. Alla on esimerkkejä suoritusten lisäämisestä.
 
-    ls 2013:äi:7a /Kirje opettajalle/kir
-    ls 2013:äi:7a /Sanaluokkakoe/san/2
-    ls 2013:äi:7a /Kirjoitelma romaanista/rom/3
-    ls 2013:äi:7a /Välitodistus/vto
+    ls 2013:suk:7a Kirje opettajalle/kir
+    ls 2013:suk:7a Sanaluokkakoe/san/2
+    ls 2013:suk:7a Kirjoitelma romaanista/rom/3
+    ls 2013:suk:7a Välitodistus/vto
 
 "))
 
