@@ -1514,45 +1514,44 @@
 
 
 (defun komento-lisää-suoritus (arg)
-  ;; ryhmä /suoritus/lyhenne/painokerroin/sija
-  (multiple-value-bind (ryhmä tiedot)
-      (erota-ensimmäinen-sana arg)
-    (setf tiedot (loop :for i :in (pilko-erottimella tiedot)
-                       :collect (normalisoi-mj i)))
-    (unless tiedot
-      (virhe "Anna lisättävän suorituksen tiedot."))
+  ;; /ryhmä/suoritus/lyhenne/painokerroin/sija
+  (let* ((jaettu (mapcar #'normalisoi-mj (pilko-erottimella arg)))
+         (ryhmä (nth 0 jaettu))
+         (nimi (nth 1 jaettu))
+         (lyh (nth 2 jaettu))
+         (paino (nth 3 jaettu))
+         (sija (nth 4 jaettu)))
 
-    (let ((nimi (nth 0 tiedot))
-          (lyh (nth 1 tiedot))
-          (paino (nth 2 tiedot))
-          (sija (nth 3 tiedot)))
-      (when (or (not (and nimi (on-sisältöä-p nimi)))
-                (not (and lyh (on-sisältöä-p lyh))))
-        (virhe "Pitää antaa vähintään suorituksen nimi ja lyhenne."))
-      (if (and paino (on-sisältöä-p paino))
-          (let ((num (lue-numero paino)))
-            (if (and (integerp num) (plusp num))
-                (setf paino num)
-                (virhe "Painokertoimen täytyy olla positiivinen kokonaisluku ~
+    (when (or (not (and ryhmä (on-sisältöä-p ryhmä)))
+              (not (and nimi (on-sisältöä-p nimi)))
+              (not (and lyh (on-sisältöä-p lyh))))
+      (virhe "Pitää antaa vähintään ryhmä, suorituksen nimi ja lyhenne."))
+
+    (if (and paino (on-sisältöä-p paino))
+        (let ((num (lue-numero paino)))
+          (if (and (integerp num) (plusp num))
+              (setf paino num)
+              (virhe "Painokertoimen täytyy olla positiivinen kokonaisluku ~
                          (tai jättää pois).")))
-          (setf paino nil))
-      (if (and sija (on-sisältöä-p sija))
-          (let ((num (lue-numero sija)))
-            (if (and (integerp num) (plusp num))
-                (setf sija num)
-                (virhe "Sijainnin täytyy olla positiivinen kokonaisluku ~
-                        (tai jättää pois).")))
-          (setf sija nil))
+        (setf paino nil))
 
-      (with-transaction
-        (lisää (make-instance 'suoritus
-                              :ryhmä ryhmä
-                              :nimi nimi
-                              :lyhenne lyh
-                              :painokerroin paino)
-               :sija sija)
-        (lisää-muokkauslaskuriin 1))
-      (eheytys))))
+    (if (and sija (on-sisältöä-p sija))
+        (let ((num (lue-numero sija)))
+          (if (and (integerp num) (plusp num))
+              (setf sija num)
+              (virhe "Sijainnin täytyy olla positiivinen kokonaisluku ~
+                        (tai jättää pois).")))
+        (setf sija nil))
+
+    (with-transaction
+      (lisää (make-instance 'suoritus
+                            :ryhmä ryhmä
+                            :nimi nimi
+                            :lyhenne lyh
+                            :painokerroin paino)
+             :sija sija)
+      (lisää-muokkauslaskuriin 1))
+    (eheytys)))
 
 
 (defun jäsennä-numeroluettelo (mj)
@@ -1915,7 +1914,7 @@
     '("tk" "Tulosta tietokannasta koonti.")
     :viiva
     '("lo /sukunimi/etunimi/ryhmät/lisätiedot" "Lisää oppilas.")
-    '("ls ryhmä /suoritus/lyhenne/painokerroin/sija"
+    '("ls /ryhmä/suoritus/lyhenne/painokerroin/sija"
       "Lisää ryhmälle suoritus.")
     :viiva
     '("m numerot /.../.../.../..." "Muokkaa valittuja tietueita ja kenttiä.")
@@ -2015,10 +2014,10 @@ laskennassa. Sen täytyy olla positiivinen kokonaisluku. Jos
 painokerrointa ei ole, kyseistä suoritusta ei huomioida keskiarvon
 laskennassa. Alla on esimerkkejä suoritusten lisäämisestä.
 
-    ls 2013:suk:7a Kirje opettajalle/kir
-    ls 2013:suk:7a Sanaluokkakoe/san/2
-    ls 2013:suk:7a Kirjoitelma romaanista/rom/3
-    ls 2013:suk:7a Välitodistus/vto
+    ls /2013:suk:7a/Kirje opettajalle/kir
+    ls /2013:suk:7a/Sanaluokkakoe/san/2
+    ls /2013:suk:7a/Kirjoitelma romaanista/rom/3
+    ls /2013:suk:7a/Välitodistus/vto
 
 "))
 
