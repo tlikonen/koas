@@ -2038,7 +2038,7 @@ Valitsimet:
         Tulostusmuodot ovat: \"csv\" eli pilkuilla erotetut taulukon
         solut (csv = comma-separated values); \"tab\" eli
         sarkainmerkeillä erotetut taulukon solut; \"org\" eli Emacsin
-        org-tilan taulukkomuoto; \"latex\" eli Latex-komennon näköiset
+        org-moden taulukkomuoto; \"latex\" eli Latex-komennon näköiset
         taulukon rivit.
 
   --suppea
