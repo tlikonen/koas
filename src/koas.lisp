@@ -771,11 +771,11 @@
             kentät)))
 
 
-(defun taulukkoväli (&optional iso)
-  (if iso
-      (cond ((muoto :org) (viesti "~& ~%-----~% ~%"))
+(defun taulukkoväli (&optional tila)
+  (if (eql tila :iso)
+      (cond ((muoto :org) (viesti "~&~%-----~%~%"))
             (t (viesti "~&~%~%")))
-      (cond ((muoto :org) (viesti "~& ~%"))
+      (cond ((muoto :org) (viesti "~&~%"))
             (t (viesti "~&~%")))))
 
 
@@ -937,7 +937,7 @@
             (taulukkoväli)
             (tulosta-taulu (list (list (otsikko-rivi "As") "arvosana")))))
 
-        :if lisää :do (taulukkoväli t))
+        :if lisää :do (taulukkoväli :iso))
 
   (tulosta-muokattavat "arvosana" "lisätiedot"))
 
@@ -1000,7 +1000,7 @@
              (list (list (otsikko-rivi "As") "arvosana"
                          (otsikko-rivi "K") "painokerroin")))))
 
-        :if lisää :do (taulukkoväli t))
+        :if lisää :do (taulukkoväli :iso))
 
   (tulosta-muokattavat "arvosana" "lisätiedot"))
 
