@@ -72,6 +72,8 @@
 
 
 (defun normalisoi-ryhmät (asia)
+  ;; Argumentiksi ryhmiä listana tai merkkijonona. Palauttaa
+  ;; normalisoidun ryhmälistan.
   (assert (or (stringp asia) (listp asia)))
   (when (stringp asia)
     (setf asia (mj-lista-listaksi asia)))
