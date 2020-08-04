@@ -1896,11 +1896,11 @@
     :viiva-alku
     (list (otsikko-sarake "Komento") (otsikko-sarake "Tarkoitus"))
     :viiva-otsikko
-    '("ho /sukunimi/etunimi/ryhmät/lisätiedot" "Hae oppilaita.")
+    '("ho  /sukunimi/etunimi/ryhmät/lisätiedot" "Hae oppilaita.")
     '("hoa /sukunimi/etunimi/ryhmät/lisätiedot"
       "Hae oppilaita arvotussa järjestyksessä.")
-    '("hr /ryhmä/lisätiedot" "Hae ryhmiä.")
-    '("hs ryhmä" "Hae suoritukset ryhmältä.")
+    '("hr  /ryhmä/lisätiedot" "Hae ryhmiä.")
+    '("hs  ryhmä" "Hae suoritukset ryhmältä.")
     '("hao /sukunimi/etunimi/ryhmät/lisätiedot" "Hae arvosanat oppilailta.")
     '("has /ryhmä/suoritus/lyhenne" "Hae arvosanat suorituksista.")
     '("hak ryhmä" "Hae arvosanojen koonti.")
@@ -1919,7 +1919,7 @@
     '("ls /ryhmä/suoritus/lyhenne/painokerroin/sija"
       "Lisää ryhmälle suoritus.")
     :viiva
-    '("m numerot /.../.../.../..." "Muokkaa valittuja tietueita ja kenttiä.")
+    '("m  numerot /.../.../.../..." "Muokkaa valittuja tietueita ja kenttiä.")
     '("ms numerot kenttä /.../.../..." "Muokkaa tietueista samaa kenttää.")
     '("poista numerot" "Poista tietueet.")
     :viiva
