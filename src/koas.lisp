@@ -66,6 +66,8 @@
 
 
 (defun normalisoi-mj (mj)
+  ;; Poistetaan välilyönnit alusta ja lopusta sekä yhtä useammat
+  ;; välilyönnit keskeltä.
   (format nil "~{~A~^ ~}" (split-sequence #\space mj :remove-empty-subseqs t)))
 
 
