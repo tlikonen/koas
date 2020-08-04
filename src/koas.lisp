@@ -785,15 +785,19 @@
                         (coerce (oppilaslista opp) 'vector)))
   (let ((taulu nil))
 
-    (loop :for oppilas :in (oppilaslista opp)
+    (loop :with ryhmä-rivi-lkm := 3
+       :for oppilas :in (oppilaslista opp)
        :for ryhmät := (ryhmälista oppilas)
        :do
          (push (nconc (list (sukunimi oppilas))
                       (list (etunimi oppilas))
                       (list (lista-mj-listaksi
-                             (delete nil (list (pop ryhmät)
-                                               (pop ryhmät)
-                                               (pop ryhmät)))))
+                             (loop :for i :upfrom 1
+                                :while ryhmät
+                                :if (and *vuorovaikutteinen*
+                                         (> i ryhmä-rivi-lkm))
+                                :do (loop-finish)
+                                :collect (pop ryhmät))))
                       (unless *suppea*
                         (list (oppilas-lisätiedot oppilas))))
                taulu)
@@ -802,9 +806,9 @@
             :do (push (nconc (list :jatko)
                              (list :jatko)
                              (list (lista-mj-listaksi
-                                    (delete nil (list (pop ryhmät)
-                                                      (pop ryhmät)
-                                                      (pop ryhmät)))))
+                                    (loop :repeat ryhmä-rivi-lkm
+                                       :while ryhmät
+                                       :collect (pop ryhmät))))
                              (unless *suppea*
                                (list :jatko)))
                       taulu))
