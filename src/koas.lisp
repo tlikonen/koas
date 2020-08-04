@@ -449,7 +449,7 @@
                                         :ryhmä-lisätiedot lisätiedot))))))
 
 
-(defun hae-arvosanat-suorituksista (ryhmä &optional (nimi "") (lyhenne ""))
+(defun hae-arvosanat-suorituksista (&optional (ryhmä "") (nimi "") (lyhenne ""))
   (let ((kysely
          (query "SELECT ryhma, rid, rlt, ~
                 sija, sid, suoritus, lyhenne, painokerroin,~
@@ -460,7 +460,7 @@
                 AND lyhenne LIKE ~A ~
                 AND oid IS NOT NULL ~
                 ORDER BY ryhma, rid, sija, sid, sukunimi, etunimi, oid"
-                (sql-like-suoja ryhmä)
+                (sql-like-suoja ryhmä t)
                 (sql-like-suoja nimi t)
                 (sql-like-suoja lyhenne t))))
 
@@ -1419,16 +1419,13 @@
 
 
 (defun komento-hae-arvosanat-suorituksista (arg)
-  ;; ryhmä /suoritus/lyhenne
-  (multiple-value-bind (ryhmä loput)
-      (erota-ensimmäinen-sana arg)
-    (when (zerop (length ryhmä))
-      (virhe "Anna ryhmän tunnus."))
-    (when (zerop (length loput))
-      (setf loput "/"))
-    (let ((jaettu (pilko-erottimella loput)))
-      (tulosta (hae-arvosanat-suorituksista ryhmä (nth 0 jaettu)
-                                            (nth 1 jaettu))))))
+  ;; /ryhmä/suoritus/lyhenne
+  (when (zerop (length arg))
+    (setf arg "/"))
+  (let ((jaettu (pilko-erottimella arg)))
+    (tulosta (hae-arvosanat-suorituksista (nth 0 jaettu)
+                                          (nth 1 jaettu)
+                                          (nth 2 jaettu)))))
 
 
 (defun komento-hae-arvosanat-oppilailta (arg)
@@ -1902,7 +1899,7 @@
     '("hr /ryhmä/lisätiedot" "Hae ryhmiä.")
     '("hs ryhmä" "Hae suoritukset ryhmältä.")
     '("hao /sukunimi/etunimi/ryhmät/lisätiedot" "Hae arvosanat oppilailta.")
-    '("has ryhmä /suoritus/lyhenne" "Hae arvosanat suorituksista.")
+    '("has /ryhmä/suoritus/lyhenne" "Hae arvosanat suorituksista.")
     '("hak ryhmä" "Hae arvosanojen koonti.")
     :viiva
     '("tj  @/ryh/suor/lyh/suku/etu/lisät@/..."
