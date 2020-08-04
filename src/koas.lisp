@@ -1884,7 +1884,7 @@
                   (ryhmä
                    (komento-muokkaa-ryhmä kentät kohde))
 
-                  (t (virhe "Tietue ~A on poistettu." i))))
+                  (t (virhe "Tietuetta ~A ei ole olemassa." i))))
 
       (lisää-muokkauslaskuriin (length numeroluettelo)))
     (eheytys)))
