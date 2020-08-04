@@ -775,13 +775,17 @@
             (t (viesti "~&~%")))))
 
 
+(defun muokkaustila ()
+  (and *vuorovaikutteinen*
+       (not *tulostusmuoto*)
+       (not *suppea*)))
+
+
 (defgeneric tulosta (object))
 
 
 (defmethod tulosta ((opp oppilaat))
-  (setf *muokattavat* (when (and *vuorovaikutteinen*
-                                 (not *tulostusmuoto*)
-                                 (not *suppea*))
+  (setf *muokattavat* (when (muokkaustila)
                         (coerce (oppilaslista opp) 'vector)))
   (let ((taulu nil))
 
@@ -831,9 +835,7 @@
 
 
 (defmethod tulosta ((suo suoritukset))
-  (setf *muokattavat* (when (and *vuorovaikutteinen*
-                                 (not *tulostusmuoto*)
-                                 (not *suppea*))
+  (setf *muokattavat* (when (muokkaustila)
                         (coerce (suorituslista suo) 'vector)))
 
   (let ((taulu (loop :for suoritus :in (suorituslista suo)
@@ -868,9 +870,7 @@
 
 
 (defmethod tulosta ((lista ryhmät))
-  (setf *muokattavat* (when (and *vuorovaikutteinen*
-                                 (not *tulostusmuoto*)
-                                 (not *suppea*))
+  (setf *muokattavat* (when (muokkaustila)
                         (coerce (ryhmälista lista) 'vector)))
 
   (let ((taulu (loop :for ryhmä :in (ryhmälista lista)
@@ -888,9 +888,7 @@
 
 
 (defmethod tulosta ((arv arvosanat-suorituksista))
-  (setf *muokattavat* (when (and *vuorovaikutteinen*
-                                 (not *tulostusmuoto*)
-                                 (not *suppea*)
+  (setf *muokattavat* (when (and (muokkaustila)
                                  (= (length (lista arv)) 1))
                         (coerce (arvosanalista (first (lista arv))) 'vector)))
 
@@ -941,9 +939,7 @@
 
 
 (defmethod tulosta ((arv arvosanat-oppilailta))
-  (setf *muokattavat* (when (and *vuorovaikutteinen*
-                                 (not *tulostusmuoto*)
-                                 (not *suppea*)
+  (setf *muokattavat* (when (and (muokkaustila)
                                  (= (length (lista arv)) 1))
                         (coerce (arvosanalista (first (lista arv))) 'vector)))
 
