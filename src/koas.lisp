@@ -824,18 +824,16 @@
 
        :do
        ;; Oppilaan ensimmäinen rivi.
-         (push (nconc (list (sukunimi oppilas))
-                      (list (etunimi oppilas))
-                      (list (lista-mj-listaksi (pop ryhmät-riveittäin)))
+         (push (list* (sukunimi oppilas) (etunimi oppilas)
+                      (lista-mj-listaksi (pop ryhmät-riveittäin))
                       (unless *suppea*
                         (list (oppilas-lisätiedot oppilas))))
                taulu)
 
        ;; Oppilaan mahdolliset lisärivit.
          (loop :while ryhmät-riveittäin
-            :do (push (nconc (list :jatko)
-                             (list :jatko)
-                             (list (lista-mj-listaksi (pop ryhmät-riveittäin)))
+            :do (push (list* :jatko :jatko
+                             (lista-mj-listaksi (pop ryhmät-riveittäin))
                              (unless *suppea*
                                (list :jatko)))
                       taulu)))
