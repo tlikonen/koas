@@ -793,35 +793,54 @@
                         (coerce (oppilaslista opp) 'vector)))
   (let ((taulu nil))
 
-    (loop :with ryhmä-rivi-lkm := 3
+    (loop :with ryhmä-rivin-pituus := 38
+       :with ryhmät-riveittäin := nil
        :for oppilas :in (oppilaslista opp)
        :for ryhmät := (ryhmälista oppilas)
+
+       :if *vuorovaikutteinen*
        :do
+       ;; Jaetaan ryhmälista riveihin.
+         (setf ryhmät-riveittäin nil)
+         (loop :with rivi := nil
+            :while ryhmät
+            :if (or (null rivi)
+                    (<= (length (lista-mj-listaksi
+                                 (append rivi (list (first ryhmät)))))
+                        ryhmä-rivin-pituus))
+            :do
+              (push (pop ryhmät) rivi)
+              (when (null ryhmät)
+                (push (nreverse rivi) ryhmät-riveittäin))
+
+            :else :do
+              (push (nreverse rivi) ryhmät-riveittäin)
+              (setf rivi nil))
+         (setf ryhmät-riveittäin (nreverse ryhmät-riveittäin))
+
+       :else :do
+       ;; ei *vuorovaikutteinen*
+         (setf ryhmät-riveittäin (list ryhmät))
+
+       :do
+       ;; Oppilaan ensimmäinen rivi.
          (push (nconc (list (sukunimi oppilas))
                       (list (etunimi oppilas))
-                      (list (lista-mj-listaksi
-                             (loop :for i :upfrom 1
-                                :while ryhmät
-                                :if (and *vuorovaikutteinen*
-                                         (> i ryhmä-rivi-lkm))
-                                :do (loop-finish)
-                                :collect (pop ryhmät))))
+                      (list (lista-mj-listaksi (pop ryhmät-riveittäin)))
                       (unless *suppea*
                         (list (oppilas-lisätiedot oppilas))))
                taulu)
 
-         (loop :while ryhmät
+       ;; Oppilaan mahdolliset lisärivit.
+         (loop :while ryhmät-riveittäin
             :do (push (nconc (list :jatko)
                              (list :jatko)
-                             (list (lista-mj-listaksi
-                                    (loop :repeat ryhmä-rivi-lkm
-                                       :while ryhmät
-                                       :collect (pop ryhmät))))
+                             (list (lista-mj-listaksi (pop ryhmät-riveittäin)))
                              (unless *suppea*
                                (list :jatko)))
-                      taulu))
+                      taulu)))
 
-       :finally (setf taulu (nreverse taulu)))
+    (setf taulu (nreverse taulu))
 
     (tulosta-taulu
      (nconc (list :viiva-alku)
