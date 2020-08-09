@@ -27,6 +27,7 @@
    #:lue-numero
    #:mj-lista-listaksi
    #:lista-mj-listaksi
+   #:sanalista-riveiksi
    ))
 
 (in-package #:yhteinen)
@@ -92,3 +93,22 @@
 
 (defun lista-mj-listaksi (lista)
   (format nil "~{~A~^ ~}" lista))
+
+
+(defun sanalista-riveiksi (sanalista rivin-pituus)
+  (loop :with rivit := nil
+     :with rivi := nil
+     :while sanalista
+     :if (or (null rivi)
+             (<= (length (lista-mj-listaksi
+                          (append rivi (list (first sanalista)))))
+                 rivin-pituus))
+     :do
+       (push (pop sanalista) rivi)
+       (when (null sanalista)
+         (push (lista-mj-listaksi (nreverse rivi)) rivit))
+
+     :else :do
+       (push (lista-mj-listaksi (nreverse rivi)) rivit)
+       (setf rivi nil)
+     :finally (return (nreverse rivit))))

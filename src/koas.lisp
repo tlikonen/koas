@@ -788,25 +788,6 @@
 (defgeneric tulosta (object))
 
 
-(defun sanalista-riveiksi (sanalista rivin-pituus)
-  (loop :with rivit := nil
-     :with rivi := nil
-     :while sanalista
-     :if (or (null rivi)
-             (<= (length (lista-mj-listaksi
-                          (append rivi (list (first sanalista)))))
-                 rivin-pituus))
-     :do
-       (push (pop sanalista) rivi)
-       (when (null sanalista)
-         (push (lista-mj-listaksi (nreverse rivi)) rivit))
-
-     :else :do
-       (push (lista-mj-listaksi (nreverse rivi)) rivit)
-       (setf rivi nil)
-     :finally (return (nreverse rivit))))
-
-
 (defmethod tulosta ((opp oppilaat))
   (setf *muokattavat* (when (muokkaustilap)
                         (coerce (oppilaslista opp) 'vector)))
