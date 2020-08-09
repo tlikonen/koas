@@ -117,7 +117,11 @@
 
 
 (defun numeroi (taulu)
-  (let ((suurin-leveys (luvun-leveys (length taulu))))
+  (let ((suurin-leveys (loop :with n := 0
+                          :for rivi :in taulu
+                          :unless (find :jatko rivi)
+                          :do (incf n)
+                          :finally (return (luvun-leveys n)))))
     (loop :with i := 0
        :for rivi :in taulu
        :collect
