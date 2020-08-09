@@ -812,27 +812,35 @@
                         (coerce (oppilaslista opp) 'vector)))
   (let ((taulu nil))
 
-    (loop 
+    (loop
        :for oppilas :in (oppilaslista opp)
        :for ryhmät-riveittäin
          := (if *vuorovaikutteinen*
-                (sanalista-riveiksi (ryhmälista oppilas) 38)
+                (sanalista-riveiksi (ryhmälista oppilas) 36)
                 (list (lista-mj-listaksi (ryhmälista oppilas))))
-         
+       :for lisätiedot-riveittäin
+         := (cond (*suppea* nil)
+                  (*vuorovaikutteinen*
+                   (sanalista-riveiksi (mj-lista-listaksi
+                                        (oppilas-lisätiedot oppilas))
+                                       36))
+                  (t (list (oppilas-lisätiedot oppilas))))
+
        :do
        ;; Oppilaan ensimmäinen rivi.
          (push (list* (sukunimi oppilas) (etunimi oppilas)
                       (pop ryhmät-riveittäin)
                       (unless *suppea*
-                        (list (oppilas-lisätiedot oppilas))))
+                        (list (pop lisätiedot-riveittäin))))
                taulu)
 
        ;; Oppilaan mahdolliset lisärivit.
-         (loop :while ryhmät-riveittäin
+         (loop :while (or ryhmät-riveittäin lisätiedot-riveittäin)
             :do (push (list* :jatko :jatko
-                             (pop ryhmät-riveittäin)
+                             (or (pop ryhmät-riveittäin) :jatko)
                              (unless *suppea*
-                               (list :jatko)))
+                               (list (or (pop lisätiedot-riveittäin)
+                                         :jatko))))
                       taulu)))
 
     (setf taulu (nreverse taulu))
