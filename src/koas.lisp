@@ -766,6 +766,22 @@
                    :arvosanoja arvosanoja)))
 
 
+(defun alusta-muokkausvektori ()
+  (setf *muokattavat* (make-array 25 :adjustable t :fill-pointer 0)))
+
+
+(defun lisää-muokkausvektoriin (asia)
+  (vector-push-extend asia *muokattavat*))
+
+
+(defun poista-muokkausvektori ()
+  (setf *muokattavat* nil))
+
+
+(defun on-muokkausvektori-p ()
+  (vectorp *muokattavat*))
+
+
 (defun tulosta-muokattavat (&rest kentät)
   (when *muokattavat*
     (viesti "~&~[~;Tietue: 1~:;Tietueet: 1-~:*~A~]. ~
@@ -793,8 +809,10 @@
 
 
 (defmethod tulosta ((opp oppilaat))
-  (setf *muokattavat* (when (muokkaustilap)
-                        (coerce (oppilaslista opp) 'vector)))
+  (if (muokkaustilap)
+      (alusta-muokkausvektori)
+      (poista-muokkausvektori))
+
   (let ((taulu nil))
 
     (loop
@@ -812,6 +830,9 @@
                   (t (list (oppilas-lisätiedot oppilas))))
 
        :do
+         (when (on-muokkausvektori-p)
+           (lisää-muokkausvektoriin oppilas))
+
        ;; Oppilaan ensimmäinen rivi.
          (push (list* (sukunimi oppilas) (etunimi oppilas)
                       (pop ryhmät-riveittäin)
@@ -832,27 +853,30 @@
 
     (tulosta-taulu
      (nconc (list :viiva-alku)
-            (list (nconc (if *muokattavat* (list nil))
+            (list (nconc (if (on-muokkausvektori-p) (list nil))
                          (list (otsikko-sarake "Sukunimi"))
                          (list (otsikko-sarake "Etunimi"))
                          (list (otsikko-sarake "Ryhmät"))
                          (unless *suppea*
                            (list (otsikko-sarake "Lisätiedot")))))
             (list :viiva-otsikko)
-            (if *muokattavat* (numeroi-taulu taulu) taulu)
+            (if (on-muokkausvektori-p) (numeroi-taulu taulu) taulu)
             (list :viiva-loppu)))
 
     (tulosta-muokattavat "sukunimi" "etunimi" "ryhmät" "lisätiedot")))
 
 
 (defmethod tulosta ((suo suoritukset))
-  (setf *muokattavat* (when (muokkaustilap)
-                        (coerce (suorituslista suo) 'vector)))
+  (if (muokkaustilap)
+      (alusta-muokkausvektori)
+      (poista-muokkausvektori))
 
   (let ((taulu (loop :for suoritus :in (suorituslista suo)
-                     :collect (list (nimi suoritus)
-                                    (lyhenne suoritus)
-                                    (painokerroin suoritus)))))
+                  :collect (list (nimi suoritus)
+                                 (lyhenne suoritus)
+                                 (painokerroin suoritus))
+                  :do (when (on-muokkausvektori-p)
+                        (lisää-muokkausvektoriin suoritus)))))
 
     (tulosta-taulu
      (nconc (list :viiva-alku)
@@ -863,12 +887,12 @@
 
     (tulosta-taulu
      (nconc (list :viiva-alku)
-            (list (nconc (if *muokattavat* (list nil))
+            (list (nconc (if (on-muokkausvektori-p) (list nil))
                          (list (otsikko-sarake "Suoritus"))
                          (list (otsikko-sarake "Lyh"))
                          (list (otsikko-sarake "K"))))
             (list :viiva-otsikko)
-            (if *muokattavat* (numeroi-taulu taulu) taulu)
+            (if (on-muokkausvektori-p) (numeroi-taulu taulu) taulu)
             (list :viiva-loppu)))
 
     (tulosta-muokattavat "suoritus" "lyhenne" "painokerroin"
@@ -881,40 +905,47 @@
 
 
 (defmethod tulosta ((lista ryhmät))
-  (setf *muokattavat* (when (muokkaustilap)
-                        (coerce (ryhmälista lista) 'vector)))
+  (if (muokkaustilap)
+      (alusta-muokkausvektori)
+      (poista-muokkausvektori))
 
   (let ((taulu (loop :for ryhmä :in (ryhmälista lista)
-                     :collect (list (nimi ryhmä)
-                                    (ryhmä-lisätiedot ryhmä)))))
+                  :collect (list (nimi ryhmä)
+                                 (ryhmä-lisätiedot ryhmä))
+                  :do (when (on-muokkausvektori-p)
+                        (lisää-muokkausvektoriin ryhmä)))))
     (tulosta-taulu
      (nconc (list :viiva-alku)
-            (list (nconc (if *muokattavat* (list nil))
+            (list (nconc (if (on-muokkausvektori-p) (list nil))
                          (list (otsikko-sarake "Nimi"))
                          (list (otsikko-sarake "Lisätiedot"))))
             (list :viiva-otsikko)
-            (if *muokattavat* (numeroi-taulu taulu) taulu)
+            (if (on-muokkausvektori-p) (numeroi-taulu taulu) taulu)
             (list :viiva-loppu))))
   (tulosta-muokattavat "nimi" "lisätiedot"))
 
 
 (defmethod tulosta ((arv arvosanat-suorituksista))
-  (setf *muokattavat* (when (and (muokkaustilap)
-                                 (= (length (lista arv)) 1))
-                        (coerce (arvosanalista (first (lista arv))) 'vector)))
+  (if (and (muokkaustilap)
+           (= (length (lista arv)) 1))
+      (alusta-muokkausvektori)
+      (poista-muokkausvektori))
 
   (loop :for (arv-suo . lisää) :on (lista arv)
         :do
         (let* ((luvut)
                (taulu (loop :for arvosana :in (arvosanalista arv-suo)
-                            :for suku := (sukunimi arvosana)
-                            :for etu := (etunimi arvosana)
-                            :collect
-                            (nconc (list (oppilas-mj suku etu))
-                                   (list (arvosana arvosana))
-                                   (unless *suppea*
-                                     (list (arvosana-lisätiedot arvosana))))
-                            :do (push (arvosana arvosana) luvut))))
+                         :for suku := (sukunimi arvosana)
+                         :for etu := (etunimi arvosana)
+                         :collect
+                           (nconc (list (oppilas-mj suku etu))
+                                  (list (arvosana arvosana))
+                                  (unless *suppea*
+                                    (list (arvosana-lisätiedot arvosana))))
+                         :do
+                           (push (arvosana arvosana) luvut)
+                           (when (on-muokkausvektori-p)
+                             (lisää-muokkausvektoriin arvosana)))))
 
           (tulosta-taulu
            (nconc (list :viiva-alku)
@@ -928,15 +959,15 @@
 
           (tulosta-taulu
            (nconc (list :viiva-alku)
-                  (list (nconc (if *muokattavat* (list nil))
+                  (list (nconc (if (on-muokkausvektori-p) (list nil))
                                (list (otsikko-sarake "Oppilas"))
                                (list (otsikko-sarake "As"))
                                (unless *suppea*
                                  (list (otsikko-sarake "Lisätiedot")))))
                   (list :viiva-otsikko)
-                  (if *muokattavat* (numeroi-taulu taulu) taulu)
+                  (if (on-muokkausvektori-p) (numeroi-taulu taulu) taulu)
                   (list :viiva)
-                  (list (nconc (if *muokattavat* (list nil))
+                  (list (nconc (if (on-muokkausvektori-p) (list nil))
                                (list "Keskiarvo" (keskiarvo luvut))))
                   (list :viiva-loppu)))
 
@@ -950,24 +981,27 @@
 
 
 (defmethod tulosta ((arv arvosanat-oppilailta))
-  (setf *muokattavat* (when (and (muokkaustilap)
-                                 (= (length (lista arv)) 1))
-                        (coerce (arvosanalista (first (lista arv))) 'vector)))
+  (if (and (muokkaustilap)
+           (= (length (lista arv)) 1))
+      (alusta-muokkausvektori)
+      (poista-muokkausvektori))
 
   (loop :for (arv-opp . lisää) :on (lista arv)
         :do
         (let* ((arvot)
                (kertoimet)
                (taulu (loop :for arvosana :in (arvosanalista arv-opp)
-                            :collect
-                            (nconc (list (nimi arvosana))
-                                   (list (arvosana arvosana))
-                                   (list (painokerroin arvosana))
-                                   (unless *suppea*
-                                     (list (arvosana-lisätiedot arvosana))))
-                            :do
-                            (push (arvosana arvosana) arvot)
-                            (push (painokerroin arvosana) kertoimet))))
+                         :collect
+                           (nconc (list (nimi arvosana))
+                                  (list (arvosana arvosana))
+                                  (list (painokerroin arvosana))
+                                  (unless *suppea*
+                                    (list (arvosana-lisätiedot arvosana))))
+                         :do
+                           (push (arvosana arvosana) arvot)
+                           (push (painokerroin arvosana) kertoimet)
+                           (when (on-muokkausvektori-p)
+                             (lisää-muokkausvektoriin arvosana)))))
 
           (tulosta-taulu
            (nconc (list :viiva-alku)
@@ -987,16 +1021,16 @@
 
           (tulosta-taulu
            (nconc (list :viiva-alku)
-                  (list (nconc (if *muokattavat* (list nil))
+                  (list (nconc (if (on-muokkausvektori-p) (list nil))
                                (list (otsikko-sarake "Suoritus"))
                                (list (otsikko-sarake "As"))
                                (list (otsikko-sarake "K"))
                                (unless *suppea*
                                  (list (otsikko-sarake "Lisätiedot")))))
                   (list :viiva-otsikko)
-                  (if *muokattavat* (numeroi-taulu taulu) taulu)
+                  (if (on-muokkausvektori-p) (numeroi-taulu taulu) taulu)
                   (list :viiva)
-                  (list (nconc (if *muokattavat* (list nil))
+                  (list (nconc (if (on-muokkausvektori-p) (list nil))
                                (list "Keskiarvo"
                                      (keskiarvo arvot kertoimet 2))))
                   (list :viiva-loppu)))
@@ -1013,7 +1047,7 @@
 
 
 (defmethod tulosta ((koonti arvosanat-koonti))
-  (setf *muokattavat* nil)
+  (poista-muokkausvektori)
   (let ((kertoimet)
         (lyhenteet)
         (ka-oppilas (make-array (array-dimension (taulukko koonti) 0)
@@ -1091,7 +1125,7 @@
 
 
 (defmethod tulosta ((jakauma tilasto-jakauma))
-  (setf *muokattavat* nil)
+  (poista-muokkausvektori)
   (let ((as-pienin)
         (as-suurin)
         (suurin-arvo 1)
@@ -1132,7 +1166,7 @@
 
 
 (defmethod tulosta ((paremmuus tilasto-paremmuus))
-  (setf *muokattavat* nil)
+  (poista-muokkausvektori)
   (let ((sija-leveys)
         (lkm-leveys)
         (rivit))
@@ -1175,7 +1209,7 @@
 
 
 (defmethod tulosta ((koonti tilasto-koonti))
-  (setf *muokattavat* nil)
+  (poista-muokkausvektori)
   (let ((suurin (reduce #'max (list (oppilaita koonti)
                                     (ryhmiä koonti)
                                     (suorituksia koonti)
@@ -1193,7 +1227,7 @@
 
 
 (defmethod tulosta ((object t))
-  (setf *muokattavat* nil)
+  (poista-muokkausvektori)
   (virhe "Ei löytynyt."))
 
 
@@ -1593,7 +1627,7 @@
 
 (defun komento-poista (arg)
   ;; numeroluettelo
-  (unless *muokattavat*
+  (unless (on-muokkausvektori-p)
     (virhe "Edellinen komento ei sisällä poistettavia."))
   (let ((numeroluettelo (erota-ensimmäinen-sana arg)))
     (when (zerop (length numeroluettelo))
@@ -1792,7 +1826,7 @@
 (defun komento-muokkaa-sarjana (arg)
   ;; numeroluettelo kentän_numero ////
   (cond
-    ((not *muokattavat*)
+    ((not (on-muokkausvektori-p))
      (virhe "Edellinen komento ei sisällä muokattavia."))
     ((zerop (length arg))
      (virhe "Anna tietueiden numerot, kentän numero ja uudet tiedot. ~
@@ -1843,7 +1877,7 @@
 (defun komento-muokkaa (arg)
   ;; numeroluettelo //// (tilannekohtaiset kentät)
   (cond
-    ((not *muokattavat*)
+    ((not (on-muokkausvektori-p))
      (virhe "Edellinen komento ei sisällä muokattavia."))
     ((zerop (length arg))
      (virhe "Anna tietueiden numerot ja uudet tiedot. Ohjeita saa ?:llä.")))
