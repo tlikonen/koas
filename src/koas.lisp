@@ -116,7 +116,7 @@
         :finally (return n)))
 
 
-(defun numeroi (taulu)
+(defun numeroi-taulu (taulu)
   (let ((suurin-leveys (loop :with n := 0
                           :for rivi :in taulu
                           :unless (find :jatko rivi)
@@ -839,7 +839,7 @@
                          (unless *suppea*
                            (list (otsikko-sarake "Lisätiedot")))))
             (list :viiva-otsikko)
-            (if *muokattavat* (numeroi taulu) taulu)
+            (if *muokattavat* (numeroi-taulu taulu) taulu)
             (list :viiva-loppu)))
 
     (tulosta-muokattavat "sukunimi" "etunimi" "ryhmät" "lisätiedot")))
@@ -868,7 +868,7 @@
                          (list (otsikko-sarake "Lyh"))
                          (list (otsikko-sarake "K"))))
             (list :viiva-otsikko)
-            (if *muokattavat* (numeroi taulu) taulu)
+            (if *muokattavat* (numeroi-taulu taulu) taulu)
             (list :viiva-loppu)))
 
     (tulosta-muokattavat "suoritus" "lyhenne" "painokerroin"
@@ -893,7 +893,7 @@
                          (list (otsikko-sarake "Nimi"))
                          (list (otsikko-sarake "Lisätiedot"))))
             (list :viiva-otsikko)
-            (if *muokattavat* (numeroi taulu) taulu)
+            (if *muokattavat* (numeroi-taulu taulu) taulu)
             (list :viiva-loppu))))
   (tulosta-muokattavat "nimi" "lisätiedot"))
 
@@ -934,7 +934,7 @@
                                (unless *suppea*
                                  (list (otsikko-sarake "Lisätiedot")))))
                   (list :viiva-otsikko)
-                  (if *muokattavat* (numeroi taulu) taulu)
+                  (if *muokattavat* (numeroi-taulu taulu) taulu)
                   (list :viiva)
                   (list (nconc (if *muokattavat* (list nil))
                                (list "Keskiarvo" (keskiarvo luvut))))
@@ -994,7 +994,7 @@
                                (unless *suppea*
                                  (list (otsikko-sarake "Lisätiedot")))))
                   (list :viiva-otsikko)
-                  (if *muokattavat* (numeroi taulu) taulu)
+                  (if *muokattavat* (numeroi-taulu taulu) taulu)
                   (list :viiva)
                   (list (nconc (if *muokattavat* (list nil))
                                (list "Keskiarvo"
