@@ -18,7 +18,7 @@
 
 (defpackage #:tietokanta
   (:use #:cl #:yhteinen)
-  (:export 
+  (:export
    #:query-last-insert-rowid
    #:lisää-muokkauslaskuriin
    #:tietokanta-käytössä
