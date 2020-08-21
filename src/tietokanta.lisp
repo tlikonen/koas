@@ -34,7 +34,7 @@
 (defvar *tiedosto* nil)
 (defvar *tietokanta* nil)
 (defvar *muokkaukset-kunnes-eheytys* 5000)
-(defparameter *ohjelman-tietokantaversio* 8)
+(defparameter *ohjelman-tietokantaversio* 9)
 
 
 (defun alusta-tiedostopolku ()
@@ -335,6 +335,14 @@
     (query "UPDATE hallinto SET arvo = 8 WHERE avain = 'versio'")))
 
 
+(defmethod päivitä-tietokanta ((versio (eql 9)))
+  (with-transaction
+    (query "CREATE INDEX idx_oppilaat_ryhmat_rid ON oppilaat_ryhmat (rid)")
+    (query "CREATE INDEX idx_suoritukset_rid ON suoritukset (rid)")
+    (query "CREATE INDEX idx_arvosanat_oid ON arvosanat (oid)")
+    (query "UPDATE hallinto SET arvo = 9 WHERE avain = 'versio'")))
+
+
 (defun tietokannan-versio ()
   ;; Täällä tarvitaan LUE-NUMERO-funktiota, koska aiemmissa versioissa
   ;; arvo-kenttä oli merkkijonotyyppiä.
@@ -392,6 +400,9 @@
                         REFERENCES ryhmat(rid) ON DELETE CASCADE, ~
                 PRIMARY KEY (oid, rid))")
 
+        (query "CREATE INDEX idx_oppilaat_ryhmat_rid ~
+                ON oppilaat_ryhmat (rid)")
+
         (query "CREATE TABLE suoritukset ~
                 (sid INTEGER PRIMARY KEY, ~
                 rid INTEGER NOT NULL REFERENCES ryhmat(rid) ON DELETE CASCADE, ~
@@ -399,6 +410,9 @@
                 nimi TEXT DEFAULT '', ~
                 lyhenne TEXT DEFAULT '', ~
                 painokerroin INTEGER)")
+
+        (query "CREATE INDEX idx_suoritukset_rid ~
+                ON suoritukset (rid)")
 
         (query "CREATE TABLE arvosanat ~
                 (sid INTEGER NOT NULL ~
@@ -408,6 +422,9 @@
                 arvosana TEXT, ~
                 lisatiedot TEXT, ~
                 PRIMARY KEY (sid, oid))")
+
+        (query "CREATE INDEX idx_arvosanat_oid ~
+                ON arvosanat (oid)")
 
         (query "CREATE VIEW view_oppilaat AS ~
                 SELECT o.oid, o.sukunimi, o.etunimi, ~
