@@ -355,7 +355,7 @@
                 WHERE type = 'table' AND name = 'hallinto'")
       (let ((versio (tietokannan-versio)))
         (cond ((< versio *ohjelman-tietokantaversio*)
-               (viesti "Päivitetään tietokanta: v~D -> v~D.~%"
+               (viesti "Päivitetään tietokanta uudempaan versioon: ~D -> ~D.~%"
                        versio *ohjelman-tietokantaversio*)
                (loop :for kohde :from (1+ versio)
                      :upto *ohjelman-tietokantaversio*
