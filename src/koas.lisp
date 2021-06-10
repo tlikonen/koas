@@ -1129,8 +1129,12 @@
   (let ((as-pienin)
         (as-suurin)
         (suurin-arvo 1)
-        (leveys 40))
+        (leveys 40)
+        (kaikki-as-kokonaislukuja t))
     (maphash (lambda (k v)
+               (when (and kaikki-as-kokonaislukuja
+                          (not (integerp (lue-numero k))))
+                 (setf kaikki-as-kokonaislukuja nil))
                (if (not as-pienin)
                    (setf as-pienin (lue-numero k))
                    (setf as-pienin (min as-pienin (lue-numero k))))
@@ -1140,7 +1144,8 @@
                (setf suurin-arvo (max suurin-arvo v)))
              (hajautustaulu jakauma))
     (loop :with lkm-leveys := (max 3 (luvun-leveys suurin-arvo))
-          :for i :from (floor as-pienin) :upto (ceiling as-suurin) :by 1/4
+          :for i :from (floor as-pienin) :upto (ceiling as-suurin)
+          :by (if kaikki-as-kokonaislukuja 1 1/4)
           :for as := (tulosta-luku i)
           :for määrä := (gethash as (hajautustaulu jakauma) 0)
           :collect (list as (format nil "~V@A" lkm-leveys määrä)
