@@ -62,7 +62,7 @@
 Versio:   ~A
 Tekijä:   Teemu Likonen <tlikonen@iki.fi>
 Lisenssi: GNU General Public License 3
-          https://www.gnu.org/licenses/gpl-3.0.html
+          <https://www.gnu.org/licenses/gpl-3.0.html>
 " *ohjelman-versio*))
 
 
