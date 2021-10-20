@@ -1,3 +1,4 @@
+versio = 2021
 prefix = /usr/local
 bindir = $(prefix)/bin
 libdir = $(prefix)/lib
@@ -8,7 +9,7 @@ src = src/*.asd src/*.lisp
 
 all: build/koas
 
-build/koas: quicklisp/setup.lisp $(src)
+build/koas: quicklisp/setup.lisp $(src) versio.txt
 	$(sbcl) --script make.lisp "$(libdir)/koas/"
 
 quicklisp/install.lisp:
@@ -27,6 +28,12 @@ config.mk:
 	@echo "sbcl = $(sbcl)" >> $@
 	@cat $@
 
+versio.txt:
+	if v=$$(git describe --always --dirty); \
+		then echo "$$v" > $@; \
+		else echo "$(versio)" > $@; \
+		fi
+
 install:
 	install -d -m 755 "$(bindir)" "$(libdir)/koas"
 	install -m 755 build/koas "$(bindir)"
@@ -38,7 +45,7 @@ uninstall:
 	rm -fr -- "$(libdir)/koas"
 
 clean:
-	rm -fr build
+	rm -fr build versio.txt
 
 distclean: clean
 	rm -fr quicklisp

@@ -1,5 +1,7 @@
 (defparameter *sbcl* (nth 0 sb-ext:*posix-argv*))
 (defparameter *lib* (sb-ext:native-pathname (nth 1 sb-ext:*posix-argv*)))
+(defparameter *versio* (with-open-file (v "versio.txt" :direction :input)
+                         (read-line v)))
 
 (load "asdf.conf")
 (load "quicklisp/setup.lisp")
@@ -27,4 +29,4 @@
                 (serious-condition (c)
                  (format *error-output* "~A~%" c)
                  (sb-ext:exit :code 1)))
-              '(koas:start)))))
+              (list 'koas:start :versio *versio*)))))

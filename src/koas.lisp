@@ -2259,8 +2259,10 @@ Muokkauskomennot eivät ole tällöin käytössä.
                          (viesti "~A~%" tila)))))))))))))
 
 
-(defun start ()
-  (handler-case (let ((*readline* t))
+(defun start (&key versio)
+  (handler-case (let ((yhteinen:*ohjelman-versio*
+                        (or versio yhteinen:*ohjelman-versio*))
+                      (*readline* t))
                   (apply #'main (rest sb-ext:*posix-argv*)))
     (sb-int:simple-stream-error ()
       (sb-ext:exit :code 0))
