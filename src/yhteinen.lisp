@@ -28,10 +28,12 @@
    #:mj-lista-listaksi
    #:lista-mj-listaksi
    #:sanalista-riveiksi
+   #:tulosta-ohjelman-tiedot
    ))
 
 (in-package #:yhteinen)
 
+(defparameter *ohjelman-versio* "KEHITYSVERSIO")
 
 (define-condition poistu-ohjelmasta () nil)
 
@@ -52,6 +54,14 @@
 (defun virheviesti (fmt &rest args)
   (apply #'format *error-output* fmt args)
   (finish-output *error-output*))
+
+
+(defun tulosta-ohjelman-tiedot ()
+  (viesti "Koas - kouluarvosanatietokanta
+Versio:   ~A
+Tekijä:   Teemu Likonen
+Lisenssi: GNU General Public License 3~%"
+          *ohjelman-versio*))
 
 
 (defun lue-numero (objekti)

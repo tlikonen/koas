@@ -2102,6 +2102,9 @@ Valitsimet:
         tulostetaan nämä komentorivin ohjeet. Ohjeen aiheita ovat
         \"komennot\", \"käyttö\" ja \"aloitus\".
 
+  -v, --versio
+        Tulostaa versio- ja tekijänoikeustietoa.
+
 Ohjelman komennot saa näkyviin valitsimella \"--ohje=komennot\" tai
 vuorovaikutteisessa tilassa komennolla \"?\". Jos komentorivillä
 komentona on vain yhdysmerkki \"-\", luetaan komennot
@@ -2188,7 +2191,9 @@ Muokkauskomennot eivät ole tällöin käytössä.
           (just-getopt-parser:getopt args '((:help #\h)
                                             (:help "ohje" :optional)
                                             (:muoto "muoto" :required)
-                                            (:suppea "suppea"))
+                                            (:suppea "suppea")
+                                            (:versio #\v)
+                                            (:versio "versio"))
                                      :error-on-unknown-option t
                                      :error-on-argument-missing t
                                      :error-on-argument-not-allowed t)
@@ -2206,6 +2211,13 @@ Muokkauskomennot eivät ole tällöin käytössä.
                   ((string= tapa "käyttö") (ohjeet-käyttö))
                   ((string= tapa "aloitus") (ohjeet-aloitus))
                   (t (virhe "Tuntematon ohjeen aihe \"~A\"." tapa))))
+          (error 'poistu-ohjelmasta))
+
+        (when (assoc :versio valitsimet)
+          (when argumentit
+            (virheviesti "(Annettuja komentoja \"~{~A~^ ~}\" ei huomioida, ~
+                kun tulostetaan ohjelman tietoja.)~%~%" argumentit))
+          (tulosta-ohjelman-tiedot)
           (error 'poistu-ohjelmasta))
 
         (let ((muoto nil))
