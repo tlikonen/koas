@@ -58,11 +58,12 @@
 
 
 (defun tulosta-ohjelman-tiedot ()
-  (viesti "Koas - kouluarvosanatietokanta
+  (viesti "KOAS - kouluarvosanatietokanta
 Versio:   ~A
 Tekijä:   Teemu Likonen <tlikonen@iki.fi>
-Lisenssi: GNU General Public License 3~%"
-          *ohjelman-versio*))
+Lisenssi: GNU General Public License 3
+          https://www.gnu.org/licenses/gpl-3.0.html
+" *ohjelman-versio*))
 
 
 (defun lue-numero (objekti)
