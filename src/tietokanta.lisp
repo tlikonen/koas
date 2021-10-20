@@ -34,7 +34,7 @@
 (defvar *tiedosto* nil)
 (defvar *tietokanta* nil)
 (defvar *muokkaukset-kunnes-eheytys* 5000)
-(defparameter *ohjelman-tietokantaversio* 9)
+(defparameter *ohjelman-tietokantaversio* 10)
 
 
 (defun alusta-tiedostopolku ()
@@ -343,6 +343,35 @@
     (query "UPDATE hallinto SET arvo = 9 WHERE avain = 'versio'")))
 
 
+(defmethod päivitä-tietokanta ((versio (eql 10)))
+  ;; Lisätään hallinto-taulukkoon sarake teksti TEXT.
+  (with-transaction
+    (query "ALTER TABLE hallinto RENAME TO hallinto_vanha")
+    (query "CREATE TABLE hallinto ~
+                (avain TEXT PRIMARY KEY NOT NULL, ~
+                arvo INTEGER, ~
+                teksti TEXT)")
+    (query "INSERT INTO hallinto (avain, arvo) ~
+                SELECT avain, arvo FROM hallinto_vanha")
+
+    (query "INSERT INTO hallinto (avain, teksti) ~
+                VALUES ('tietokanta tyyppi', 'sqlite')")
+    (query "INSERT INTO hallinto (avain, teksti) ~
+                VALUES ('tietokanta host', '')")
+    (query "INSERT INTO hallinto (avain, arvo) ~
+                VALUES ('tietokanta port', 5432)")
+    (query "INSERT INTO hallinto (avain, teksti) ~
+                VALUES ('tietokanta kanta', '')")
+    (query "INSERT INTO hallinto (avain, teksti) ~
+                VALUES ('tietokanta user', '')")
+    (query "INSERT INTO hallinto (avain, teksti) ~
+                VALUES ('tietokanta password', '')")
+
+    (query "DROP TABLE hallinto_vanha")
+
+    (query "UPDATE hallinto SET arvo = 10 WHERE avain = 'versio'")))
+
+
 (defun tietokannan-versio ()
   ;; Täällä tarvitaan LUE-NUMERO-funktiota, koska aiemmissa versioissa
   ;; arvo-kenttä oli merkkijonotyyppiä.
@@ -374,14 +403,29 @@
 
         (query "PRAGMA auto_vacuum = FULL")
 
+        ;; SQlitessa PRIMARY KEY ei sisällä NOT NULLia, vaikka
+        ;; SQL-standardissa pitäisi.
         (query "CREATE TABLE IF NOT EXISTS hallinto ~
-                (avain TEXT UNIQUE, arvo INTEGER)")
+                (avain TEXT PRIMARY KEY NOT NULL, ~
+                arvo INTEGER, ~
+                teksti TEXT)")
 
         (query "INSERT INTO hallinto (avain, arvo) VALUES ('versio', ~A)"
                *ohjelman-tietokantaversio*)
-
         (query "INSERT INTO hallinto (avain, arvo) ~
                 VALUES ('muokkauslaskuri', 0)")
+        (query "INSERT INTO hallinto (avain, teksti) ~
+                VALUES ('tietokanta tyyppi', 'sqlite')")
+        (query "INSERT INTO hallinto (avain, teksti) ~
+                VALUES ('tietokanta host', '')")
+        (query "INSERT INTO hallinto (avain, arvo) ~
+                VALUES ('tietokanta port', 5432)")
+        (query "INSERT INTO hallinto (avain, teksti) ~
+                VALUES ('tietokanta kanta', '')")
+        (query "INSERT INTO hallinto (avain, teksti) ~
+                VALUES ('tietokanta user', '')")
+        (query "INSERT INTO hallinto (avain, teksti) ~
+                VALUES ('tietokanta password', '')")
 
         (query "CREATE TABLE oppilaat ~
                 (oid INTEGER PRIMARY KEY, ~
