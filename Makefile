@@ -45,7 +45,8 @@ uninstall:
 	rm -fr -- "$(libdir)/koas"
 
 clean:
-	rm -fr build versio.txt
+	rm -f versio.txt
+	rm -fr build
 
 distclean: clean
 	rm -fr quicklisp
