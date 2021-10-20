@@ -41,7 +41,7 @@
   (unless *tiedosto*
     (setf *tiedosto*
           (merge-pathnames (make-pathname :directory '(:relative ".config")
-                                          :name "koas" :type "db")
+                                          :name "koas-kehitys" :type "db")
                            (user-homedir-pathname))))
   (ensure-directories-exist *tiedosto*))
 
