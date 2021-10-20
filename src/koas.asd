@@ -3,7 +3,7 @@
   :author "Teemu Likonen <tlikonen@iki.fi>"
   :licence "The GNU General Public License version 3"
   :depends-on ("cl-readline" "sqlite" "decimals" "split-sequence"
-                             "just-getopt-parser")
+                             "just-getopt-parser" "postmodern")
   :components
   ((:file "koas" :depends-on ("yhteinen" "pathconv" "tietokanta"))
    (:file "tietokanta" :depends-on ("yhteinen" "pathconv" "string-io"))

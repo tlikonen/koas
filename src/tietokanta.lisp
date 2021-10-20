@@ -36,6 +36,19 @@
 (defvar *muokkaukset-kunnes-eheytys* 5000)
 (defparameter *ohjelman-tietokantaversio* 10)
 
+(defparameter *tietokanta-user* "")
+(defparameter *tietokanta-password* "")
+(defparameter *tietokanta-host* "localhost")
+(defparameter *tietokanta-port* 5432)
+(defparameter *tietokanta-kanta* "")
+
+
+(defun sqlite-yhteys-p ()
+  (typep *tietokanta* 'sqlite:sqlite-handle))
+
+(defun psql-yhteys-p ()
+  (typep *tietokanta* 'postmodern:database-connection))
+
 
 (defun alusta-tiedostopolku ()
   (unless *tiedosto*
@@ -47,7 +60,7 @@
 
 
 (defun query (format-string &rest parameters)
-  (if (typep *tietokanta* 'sqlite:sqlite-handle)
+  (if (sqlite-yhteys-p)
       (sqlite:execute-to-list *tietokanta*
                               (apply #'format nil format-string parameters))
       (virhe "Ei yhteyttä tietokantaan.")))
@@ -112,10 +125,10 @@
         t))))
 
 
-(defgeneric päivitä-tietokanta (versio))
+(defgeneric päivitä-sqlite (versio))
 
 
-(defmethod päivitä-tietokanta ((versio (eql 2)))
+(defmethod päivitä-sqlite ((versio (eql 2)))
   ;; Kaikki arvosanat yhteen taulukkoon.
   (with-transaction
     (query "CREATE TABLE arvosanat ~
@@ -132,7 +145,7 @@
     (query "INSERT INTO hallinto (avain, arvo) VALUES ('versio', 2)")))
 
 
-(defmethod päivitä-tietokanta ((versio (eql 3)))
+(defmethod päivitä-sqlite ((versio (eql 3)))
   ;; Oppilaiden ryhmät määritellään uudessa taulukossa oppilaat_ryhmat.
   ;; Myös ryhmän suoritukset määritellään järkevämmin relaatioilla eikä
   ;; merkkijonolistan avulla.
@@ -212,7 +225,7 @@
     (query "UPDATE hallinto SET arvo = 3 WHERE avain = 'versio'")))
 
 
-(defmethod päivitä-tietokanta ((versio (eql 4)))
+(defmethod päivitä-sqlite ((versio (eql 4)))
   ;; Valmiita kyselyjä perustoimintoja varten. Hallinto-taulukon
   ;; arvo-kentän tietotyypiksi integer.
   (with-transaction
@@ -249,7 +262,7 @@
     (query "UPDATE hallinto SET arvo = 4 WHERE avain = 'versio'")))
 
 
-(defmethod päivitä-tietokanta ((versio (eql 5)))
+(defmethod päivitä-sqlite ((versio (eql 5)))
   ;; Foreign key sekä composite primary key käyttöön.
   (query "PRAGMA foreign_keys = OFF")
 
@@ -295,7 +308,7 @@
   (query "PRAGMA foreign_keys = ON"))
 
 
-(defmethod päivitä-tietokanta ((versio (eql 6)))
+(defmethod päivitä-sqlite ((versio (eql 6)))
   ;; UNIQUE NOT NULL -vaatimus ryhmän nimelle.
   (query "PRAGMA foreign_keys = OFF")
 
@@ -315,13 +328,13 @@
   (query "PRAGMA foreign_keys = ON"))
 
 
-(defmethod päivitä-tietokanta ((versio (eql 7)))
+(defmethod päivitä-sqlite ((versio (eql 7)))
   (with-transaction
     (query "UPDATE hallinto SET arvo = 7 WHERE avain = 'versio'")
     (query "PRAGMA auto_vacuum = FULL")))
 
 
-(defmethod päivitä-tietokanta ((versio (eql 8)))
+(defmethod päivitä-sqlite ((versio (eql 8)))
   ;; Korjataan view_oppilaat: ON-lause ei voi viitata seuraavaan
   ;; JOINiin.
   (with-transaction
@@ -335,7 +348,7 @@
     (query "UPDATE hallinto SET arvo = 8 WHERE avain = 'versio'")))
 
 
-(defmethod päivitä-tietokanta ((versio (eql 9)))
+(defmethod päivitä-sqlite ((versio (eql 9)))
   (with-transaction
     (query "CREATE INDEX idx_oppilaat_ryhmat_rid ON oppilaat_ryhmat (rid)")
     (query "CREATE INDEX idx_suoritukset_rid ON suoritukset (rid)")
@@ -343,7 +356,7 @@
     (query "UPDATE hallinto SET arvo = 9 WHERE avain = 'versio'")))
 
 
-(defmethod päivitä-tietokanta ((versio (eql 10)))
+(defmethod päivitä-sqlite ((versio (eql 10)))
   ;; Lisätään hallinto-taulukkoon sarake teksti TEXT.
   (with-transaction
     (query "ALTER TABLE hallinto RENAME TO hallinto_vanha")
@@ -379,7 +392,7 @@
     (if kysely (lue-numero kysely) 1)))
 
 
-(defun alusta-tietokanta ()
+(defun alusta-sqlite ()
   (if (query-1 "SELECT 1 FROM sqlite_master ~
                 WHERE type = 'table' AND name = 'hallinto'")
       (let ((versio (tietokannan-versio)))
@@ -388,7 +401,7 @@
                        versio *ohjelman-tietokantaversio*)
                (loop :for kohde :from (1+ versio)
                      :upto *ohjelman-tietokantaversio*
-                     :do (päivitä-tietokanta kohde))
+                     :do (päivitä-sqlite kohde))
                (eheytys t))
               ((> versio *ohjelman-tietokantaversio*)
                (virhe "ONGELMA! Tietokannan versio on ~A mutta ohjelma ~
@@ -498,21 +511,29 @@
   (query "PRAGMA case_sensitive_like = ON"))
 
 
-(defun connect ()
-  (unless (typep *tietokanta* 'sqlite:sqlite-handle)
+(defun connect-sqlite ()
+  (unless (sqlite-yhteys-p)
     (alusta-tiedostopolku)
     (setf *tietokanta* (sqlite:connect (pathconv:namestring *tiedosto*)))
-    (alusta-tietokanta)
+    (alusta-sqlite)
     *tietokanta*))
 
 
-(defun disconnect ()
-  (when (typep *tietokanta* 'sqlite:sqlite-handle)
+(defun disconnect-sqlite ()
+  (when (sqlite-yhteys-p)
     (prog1 (sqlite:disconnect *tietokanta*)
       (setf *tietokanta* nil))))
 
 
 (defmacro tietokanta-käytössä (&body body)
   `(let ((*tietokanta* nil))
-     (unwind-protect (progn (connect) ,@body)
-       (disconnect))))
+     (unwind-protect
+          (progn
+            (connect-sqlite)
+            ;;; Haetaan Sqliten hallinto-taulukosta tarvittavat
+            ;;; muuttujat muistiin. Tarkistetaan, tarvitaanko Sqlitea
+            ;;; enää. Jos ei tarvita, suljetaan se ja avataan Psql.
+            ,@body)
+
+       ;; (disconnect-psql)
+       (disconnect-sqlite))))
