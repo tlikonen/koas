@@ -28,13 +28,10 @@
    #:mj-lista-listaksi
    #:lista-mj-listaksi
    #:sanalista-riveiksi
-   #:*ohjelman-versio*
-   #:tulosta-ohjelman-tiedot
    ))
 
 (in-package #:yhteinen)
 
-(defvar *ohjelman-versio* "KEHITYS")
 
 (define-condition poistu-ohjelmasta () nil)
 
@@ -55,15 +52,6 @@
 (defun virheviesti (fmt &rest args)
   (apply #'format *error-output* fmt args)
   (finish-output *error-output*))
-
-
-(defun tulosta-ohjelman-tiedot ()
-  (viesti "~
-koas ~A
-Tekijä:   Teemu Likonen <tlikonen@iki.fi>
-Lisenssi: GNU General Public License 3
-          <https://www.gnu.org/licenses/gpl-3.0.html>
-" *ohjelman-versio*))
 
 
 (defun lue-numero (objekti)

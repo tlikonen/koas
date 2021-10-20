@@ -24,6 +24,7 @@
 (in-package #:koas)
 
 
+(defvar *ohjelman-versio* "KEHITYSVERSIO")
 (defvar *readline* nil)
 (defvar *muokattavat* nil)
 (defvar *vuorovaikutteinen* nil)
@@ -2114,6 +2115,15 @@ Muokkauskomennot eivät ole tällöin käytössä.
 "))
 
 
+(defun ohjeet-versio ()
+  (viesti "~
+koas ~A
+Tekijä:   Teemu Likonen <tlikonen@iki.fi>
+Lisenssi: GNU General Public License 3
+          <https://www.gnu.org/licenses/gpl-3.0.html>
+" *ohjelman-versio*))
+
+
 (defun käsittele-komentorivi (mj)
   (when (null mj)
     (viesti "~%")
@@ -2217,7 +2227,7 @@ Muokkauskomennot eivät ole tällöin käytössä.
           (when argumentit
             (virheviesti "(Annettuja komentoja \"~{~A~^ ~}\" ei huomioida, ~
                 kun tulostetaan ohjelman tietoja.)~%~%" argumentit))
-          (tulosta-ohjelman-tiedot)
+          (ohjeet-versio)
           (error 'poistu-ohjelmasta))
 
         (let ((muoto nil))
@@ -2260,8 +2270,7 @@ Muokkauskomennot eivät ole tällöin käytössä.
 
 
 (defun start (&key versio)
-  (handler-case (let ((yhteinen:*ohjelman-versio*
-                        (or versio yhteinen:*ohjelman-versio*))
+  (handler-case (let ((*ohjelman-versio* (or versio *ohjelman-versio*))
                       (*readline* t))
                   (apply #'main (rest sb-ext:*posix-argv*)))
     (sb-int:simple-stream-error ()
