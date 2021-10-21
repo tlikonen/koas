@@ -19,6 +19,7 @@
 (defpackage #:tietokanta
   (:use #:cl #:yhteinen)
   (:export
+   #:alusta-sqlite-tiedostopolku #:*sqlite-tiedosto*
    #:query-last-insert-rowid
    #:lisää-muokkauslaskuriin
    #:tietokanta-käytössä #:sqlite-käytössä

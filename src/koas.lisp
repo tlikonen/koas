@@ -2090,15 +2090,15 @@ luettelon perään. Alla on esimerkkejä suoritusten lisäämisestä.
 
 
 (defun ohjeet-komentorivi ()
-  (viesti "Käyttö: koas [valitsimet] [--] [komennot]
+  (viesti "Käyttö: koas [valitsimet] [--] [komento]
 
 Koas eli kouluarvosanatietokanta. Ohjelma käynnistyy vuorovaikutteiseen
-tilaan, kun sen käynnistää ilman \"komentoja\". Vuorovaikutteisessa
-tilassa saa apua komennolla \"?\".
+tilaan, kun sen käynnistää ilman \"komento\"-argumenttia.
 
 Valitsimet:
 
   --muoto=tulostusmuoto
+
         Vaihtaa ohjelman tulostusmuodon. Tämä valitsin ei vaikuta
         vuorovaikutteisen tilan tulostusmuotoon.
 
@@ -2109,52 +2109,71 @@ Valitsimet:
         taulukon rivit.
 
   --suppea
+
         Tulostaa taulukoiden tiedot suppeammin. Esimerkiksi taulukoiden
         Lisätiedot-sarake jätetään pois. Tämä valitsin ei vaikuta
         vuorovaikutteiseen tilaan.
 
   --tietokanta=sqlite
-        Käytetään SQLite-tietokantaa, mikä on ohjelman oletus. Tämä
-        asetus tallentuu, ja sitä käytetään automaattisesti seuraavilla
-        kerroilla.
 
-  --tietokanta=psql:käyttäjä:salasana:kanta:osoite:portti
-        Käytetään PostgreSQL-tietokantaa. \"käyttäjä\" ja \"salasana\"
-        ovat tietokannan kirjautumistiedot. \"kanta\" on tietokannan
-        nimi, johon kirjaudutaan. Sen täytyy olla valmiiksi olemassa ja
+        Käytetään SQLite-tietokantaa, joka on tiedostossa
+        \"~A\".
+
+        Sekä ohjelman asetukset että varsinainen kouluarvosanatietokanta
+        tallennetaan edellä mainittuun tiedostoon. Tämän valitsimen
+        asetus tallentuu, eli seuraavilla kerroilla käytetään
+        automaattisesti SQLite-tietokantaa. Tämä on myös ohjelman
+        oletusasetus.
+
+  --tietokanta=psql/käyttäjä/salasana/kanta/osoite/portti
+
+        Käytetään erillistä PostgreSQL-tietokantapalvelinta
+        kouluarvosanatietokannan tallentamiseen. Ohjelman asetukset
+        tallentuvat edelleenkin SQLite-tietokantaan, joka on tiedostossa
+        \"~0@*~A\".
+
+        Komentorivillä annetut asetukset \"käyttäjä\" ja \"salasana\"
+        ovat tietokannan kirjautumistietoja. \"kanta\" on tietokannan
+        nimi, johon kirjaudutaan. Sen täytyy olla valmiiksi olemassa, ja
         tällä käyttäjällä pitää olla oikeus luoda taulukoita yms.
-        \"osoite\" ja \"portti\" ovat tietokannan IP-osoitetietoja. Jos
-        tietokantapalvelin toimii samalla tietokoneella, sopiva osoite
-        on silloin \"localhost\". \"portti\"-asetukseen sopii yleensä
+        \"osoite\" ja \"portti\" ovat tietokannan verkko-osoitetietoja.
+        Jos tietokantapalvelin toimii samalla tietokoneella, sopiva
+        osoite on \"localhost\". \"portti\"-asetukseen sopii yleensä
         \"5432\", joka on PostgreSQL:n oletusportti. Kaikki edellä
-        mainitut asetukset tallentuvat, ja niitä käytetään
-        automaattisesti seuraavilla kerroilla.
+        mainitut asetukset tallentuvat SQLite-tiedostoon, ja niitä
+        käytetään automaattisesti seuraavilla kerroilla.
 
         Asetusten erotinmerkkinä on yllä olevassa esimerkissä
-        kaksoispiste \":\". Erottimena voi olla mikä tahansa muukin
-        merkki, kunhan kaikissa on sama eikä kyseistä merkkiä esiinny
-        asetuskentissä itsessään.
+        vinoviiva (/), mutta se voisi olla mikä tahansa muukin merkki.
+        Sanojen \"--tietokanta=psql\" jälkeinen merkki määrittää, mikä
+        merkki erottaa asetuskentät toisistaan.
 
   --tietokanta=psql
-        Käytetään PostgreSQL-tietokantaa. Tämä ei muuta edellä
-        mainittuja kirjautumisasetuksia vaan ainoastaan siirtyy
-        käyttämään PostgreSQL:ää ja tallentaa sen asetuksen.
+
+        Käytetään erillistä PostgreSQL-tietokantapalvelinta
+        kouluarvosanatietokannan tallentamiseen. Tämä asetus tallentuu,
+        ja sitä käytetään automaattisesti seuraavilla kerroilla.
+        PostgreSQL-tietokannan kirjautumistietojen ja verkko-osoitteen
+        täytyy olla jo valmiiksi asetettuna. Katso lisätietoja tätä
+        edeltävän valitsimen kuvauksesta.
+
+  -v, --versio
+
+        Tulostaa ohjelman versio- ja tekijänoikeustietoa.
 
   -h, --ohje[=aihe]
+
         Tulostaa ohjelman ohjeita. Jos ohjeen aihetta ei ole mainittu,
         tulostetaan nämä komentorivin ohjeet. Ohjeen aiheita ovat
         \"komennot\", \"käyttö\" ja \"aloitus\".
 
-  -v, --versio
-        Tulostaa versio- ja tekijänoikeustietoa.
+Kouluarvosanatietokannan komennot saa näkyviin valitsimella
+\"--ohje=komennot\" tai vuorovaikutteisessa tilassa komennolla \"?\".
+Jos komentorivillä annetaan komennoksi vain yhdysmerkki \"-\", luetaan
+komennot standardisyötteestä, niin että yhdellä rivillä on aina yksi
+komento. Muokkauskomennot eivät ole tällöin käytössä.
 
-Ohjelman komennot saa näkyviin valitsimella \"--ohje=komennot\" tai
-vuorovaikutteisessa tilassa komennolla \"?\". Jos komentorivillä
-komentona on vain yhdysmerkki \"-\", luetaan komennot
-standardisyötteestä, niin että yhdellä rivillä on aina yksi komento.
-Muokkauskomennot eivät ole tällöin käytössä.
-
-"))
+" (pathconv:namestring *sqlite-tiedosto*)))
 
 
 (defun ohjeet-versio ()
@@ -2238,6 +2257,8 @@ Lisenssi: GNU General Public License 3
            (lambda (tila)
              (declare (ignore tila))
              (return-from main))))
+
+      (alusta-sqlite-tiedostopolku)
 
       (multiple-value-bind (valitsimet argumentit tuntemattomat)
           (just-getopt-parser:getopt args '((:help #\h)
