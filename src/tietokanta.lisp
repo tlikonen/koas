@@ -435,24 +435,28 @@
     (if kysely (lue-numero kysely) 1)))
 
 
+(defun tietokannan-versiotarkistus (tyyppi)
+  (let ((versio (tietokannan-versio)))
+    (cond ((< versio *ohjelman-tietokantaversio*)
+           (viesti "Päivitetään tietokanta uudempaan versioon: ~D -> ~D.~%"
+                   versio *ohjelman-tietokantaversio*)
+           (loop :for kohde :from (1+ versio)
+                 :upto *ohjelman-tietokantaversio*
+                 :do (päivitä-tietokanta tyyppi kohde))
+           (eheytys t))
+          ((> versio *ohjelman-tietokantaversio*)
+           (virhe "ONGELMA! Tietokannan versio on ~A mutta ohjelma ~
+                osaa vain version ~A. Päivitä ohjelma!"
+                  versio *ohjelman-tietokantaversio*)))))
+
+
 (defgeneric alusta-tietokanta (tyyppi))
 
 
 (defmethod alusta-tietokanta ((tyyppi sqlite:sqlite-handle))
   (if (query-1 "SELECT 1 FROM sqlite_master ~
                 WHERE type = 'table' AND name = 'hallinto'")
-      (let ((versio (tietokannan-versio)))
-        (cond ((< versio *ohjelman-tietokantaversio*)
-               (viesti "Päivitetään tietokanta uudempaan versioon: ~D -> ~D.~%"
-                       versio *ohjelman-tietokantaversio*)
-               (loop :for kohde :from (1+ versio)
-                     :upto *ohjelman-tietokantaversio*
-                     :do (päivitä-tietokanta tyyppi kohde))
-               (eheytys t))
-              ((> versio *ohjelman-tietokantaversio*)
-               (virhe "ONGELMA! Tietokannan versio on ~A mutta ohjelma ~
-                osaa vain version ~A. Päivitä ohjelma!"
-                      versio *ohjelman-tietokantaversio*))))
+      (tietokannan-versiotarkistus tyyppi)
 
       ;; Tietokanta puuttuu
       (with-transaction
@@ -560,18 +564,7 @@
 (defmethod alusta-tietokanta ((tyyppi pomo:database-connection))
   (if (query-1 "SELECT 1 FROM pg_catalog.pg_tables ~
         WHERE schemaname = 'public' AND tablename = 'hallinto'")
-      (let ((versio (tietokannan-versio)))
-        (cond ((< versio *ohjelman-tietokantaversio*)
-               (viesti "Päivitetään tietokanta uudempaan versioon: ~D -> ~D.~%"
-                       versio *ohjelman-tietokantaversio*)
-               (loop :for kohde :from (1+ versio)
-                     :upto *ohjelman-tietokantaversio*
-                     :do (päivitä-tietokanta tyyppi kohde))
-               (eheytys t))
-              ((> versio *ohjelman-tietokantaversio*)
-               (virhe "ONGELMA! Tietokannan versio on ~A mutta ohjelma ~
-                osaa vain version ~A. Päivitä ohjelma!"
-                      versio *ohjelman-tietokantaversio*))))
+      (tietokannan-versiotarkistus tyyppi)
 
       ;; Tietokanta puuttuu
       (with-transaction
