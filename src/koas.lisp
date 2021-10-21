@@ -488,7 +488,8 @@
             :with arvosanat := nil
             :for (rivi . loput) :on kysely
             :for (r-nimi nil r-lisätiedot nil sid s-nimi lyhenne painokerroin
-                         oid sukunimi etunimi arvosana a-lisätiedot) := rivi
+                         oid sukunimi etunimi arvosana a-lisätiedot)
+               := (substitute-nulls rivi)
             :for seuraava-sid := (nth 4 (first loput)) ;s.sid
             :do
 
@@ -543,7 +544,7 @@
           :for (rivi . loput) :on kysely
           :for (oid sukunimi etunimi o-lisätiedot rid r-nimi r-lisätiedot
                     sid s-nimi lyhenne painokerroin arvosana a-lisätiedot)
-          := rivi
+             := (substitute-nulls rivi)
           :for seuraava-oid := (caar loput)
           :for seuraava-rid := (nth 4 (first loput)) ;r.rid
           :do
@@ -622,7 +623,8 @@
             (loop :with opp := 0
                   :with arv := 0
                   :for (rivi . loput) :on kysely
-                  :for (sukunimi etunimi oid nil arvosana) := rivi
+                  :for (sukunimi etunimi oid nil arvosana)
+                     := (substitute-nulls rivi)
                   :for seuraava-oid := (nth 2 (first loput))
                   :do
                   (setf (aref taulukko opp arv) arvosana)
@@ -661,7 +663,7 @@
                       (if painokerroin
                           "AND painokerroin >= 1"
                           ""))))
-    (loop :for mj :in kysely
+    (loop :for mj :in (substitute-nulls kysely)
           :for as := (lue-numero mj)
           :if (numberp as)
           :do (incf (gethash (tulosta-luku as) hajautustaulu 0)))))
@@ -700,7 +702,8 @@
                 (if painokerroin "AND painokerroin >= 1" ""))))
 
     (loop :for rivi :in kysely
-          :for (oid sukunimi etunimi ryhmä arvosana painokerroin) := rivi
+          :for (oid sukunimi etunimi ryhmä arvosana painokerroin)
+             := (substitute-nulls rivi)
           :for as := (lue-numero arvosana)
           :if (numberp as) :do
           (setf (getf (gethash oid hajautustaulu) :nimi)
@@ -1241,8 +1244,9 @@
 
 
 (defmethod lisää ((oppilas oppilas) &key)
-  (query "INSERT INTO oppilaat (sukunimi, etunimi, lisatiedot) ~
-        VALUES (~A, ~A, ~A)"
+  (query-returning "oid" "INSERT INTO oppilaat ~
+                (sukunimi, etunimi, lisatiedot) ~
+                VALUES (~A, ~A, ~A)"
          (sql-mj (sukunimi oppilas))
          (sql-mj (etunimi oppilas))
          (sql-mj (oppilas-lisätiedot oppilas)))
@@ -1252,13 +1256,14 @@
                                (sql-like-suoja ryhmä))
 
           :unless rid :do
-          (query "INSERT INTO ryhmat (nimi, lisatiedot) VALUES (~A, '')"
-                 (sql-mj ryhmä))
-          (setf rid (query-last-insert-rowid))
+             (query-returning "rid" "INSERT INTO ryhmat ~
+                                (nimi, lisatiedot) VALUES (~A, '')"
+              (sql-mj ryhmä))
+             (setf rid (query-last-insert-rowid))
 
           :do
-          (query "INSERT INTO oppilaat_ryhmat (oid, rid) VALUES (~A, ~A)"
-                 oid rid))
+             (query "INSERT INTO oppilaat_ryhmat (oid, rid) VALUES (~A, ~A)"
+                    oid rid))
     oid))
 
 
@@ -1266,15 +1271,17 @@
   (let ((rid (query-1 "SELECT rid FROM ryhmat WHERE nimi LIKE ~A"
                       (sql-like-suoja (ryhmä suoritus)))))
     (unless rid
-      (query "INSERT INTO ryhmat (nimi) VALUES (~A)" (sql-mj (ryhmä suoritus)))
+      (query-returning "rid" "INSERT INTO ryhmat (nimi) VALUES (~A)"
+                       (sql-mj (ryhmä suoritus)))
       (setf rid (query-last-insert-rowid)))
 
     (setf (rid suoritus) rid)
 
-    (query "INSERT INTO suoritukset (rid, nimi, lyhenne, painokerroin) ~
-                VALUES (~A, ~A, ~A, ~A)"
-           rid (sql-mj (nimi suoritus)) (sql-mj (lyhenne suoritus))
-           (or (painokerroin suoritus) "NULL"))
+    (query-returning "sid" "INSERT INTO suoritukset ~
+                        (rid, nimi, lyhenne, painokerroin) ~
+                        VALUES (~A, ~A, ~A, ~A)"
+                     rid (sql-mj (nimi suoritus)) (sql-mj (lyhenne suoritus))
+                     (or (painokerroin suoritus) "NULL"))
 
     (let* ((uusi-sid (query-last-insert-rowid))
            (sid-lista
@@ -1318,12 +1325,13 @@
                                (sql-like-suoja ryhmä))
 
           :unless rid :do
-          (query "INSERT INTO ryhmat (nimi) VALUES (~A)" (sql-mj ryhmä))
-          (setf rid (query-last-insert-rowid))
+             (query-returning "rid" "INSERT INTO ryhmat (nimi) VALUES (~A)"
+                              (sql-mj ryhmä))
+             (setf rid (query-last-insert-rowid))
 
           :unless (member rid vanha-rid-lista) :do
-          (query "INSERT INTO oppilaat_ryhmat (oid, rid) VALUES (~A, ~A)"
-                 (oid oppilas) rid)
+             (query "INSERT INTO oppilaat_ryhmat (oid, rid) VALUES (~A, ~A)"
+                    (oid oppilas) rid)
 
           :collect rid :into rid-lista
           :finally (setf uusi-rid-lista rid-lista))

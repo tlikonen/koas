@@ -26,21 +26,24 @@
    #:sql-mj #:sql-like-suoja
    #:with-transaction
    #:eheytys
+   #:query-returning
+   #:substitute-nulls
    ))
 
 (in-package #:tietokanta)
 
 
-(defvar *tiedosto* nil)
+(defvar *sqlite-tiedosto* nil)
 (defvar *tietokanta* nil)
 (defvar *muokkaukset-kunnes-eheytys* 5000)
+(defparameter *psql-last-insert-id* 0)
 (defparameter *ohjelman-tietokantaversio* 10)
 
-(defparameter *tietokanta-user* "")
-(defparameter *tietokanta-password* "")
+(defparameter *tietokanta-user* "dtw")
+(defparameter *tietokanta-password* "OyikDxSkOrnGVejh")
 (defparameter *tietokanta-host* "localhost")
 (defparameter *tietokanta-port* 5432)
-(defparameter *tietokanta-kanta* "")
+(defparameter *tietokanta-kanta* "koas")
 
 
 (defun sqlite-yhteys-p ()
@@ -50,20 +53,38 @@
   (typep *tietokanta* 'postmodern:database-connection))
 
 
-(defun alusta-tiedostopolku ()
-  (unless *tiedosto*
-    (setf *tiedosto*
+(defun alusta-sqlite-tiedostopolku ()
+  (unless *sqlite-tiedosto*
+    (setf *sqlite-tiedosto*
           (merge-pathnames (make-pathname :directory '(:relative ".config")
                                           :name "koas-kehitys" :type "db")
                            (user-homedir-pathname))))
-  (ensure-directories-exist *tiedosto*))
+  (ensure-directories-exist *sqlite-tiedosto*))
 
 
 (defun query (format-string &rest parameters)
-  (if (sqlite-yhteys-p)
-      (sqlite:execute-to-list *tietokanta*
-                              (apply #'format nil format-string parameters))
-      (virhe "Ei yhteyttä tietokantaan.")))
+  (cond ((sqlite-yhteys-p)
+         (sqlite:execute-to-list *tietokanta*
+                                 (apply #'format nil format-string
+                                        parameters)))
+        ((psql-yhteys-p)
+         (pomo:query (apply #'format nil format-string parameters)))
+        (t (virhe "Ei yhteyttä tietokantaan."))))
+
+
+(defun query-returning (ret format-string &rest parameters)
+  (cond ((sqlite-yhteys-p)
+         (sqlite:execute-to-list *tietokanta*
+                                 (apply #'format nil format-string
+                                        parameters)))
+        ((psql-yhteys-p)
+         (setf *psql-last-insert-id*
+               (caar (pomo:query
+                      (apply #'format nil
+                             (concatenate 'string format-string
+                                          " RETURNING " ret)
+                             parameters)))))
+        (t (virhe "Ei yhteyttä tietokantaan."))))
 
 
 (defun query-nconc (format-string &rest parameters)
@@ -75,11 +96,24 @@
 
 
 (defmacro with-transaction (&body body)
-  `(sqlite:with-transaction *tietokanta* ,@body))
+  `(cond ((sqlite-yhteys-p)
+          (sqlite:with-transaction *tietokanta* ,@body))
+         ((psql-yhteys-p)
+          (pomo:with-transaction () ,@body))))
 
 
 (defun query-last-insert-rowid ()
-  (sqlite:last-insert-rowid *tietokanta*))
+  ;; Sqlite 3.35.0 (2021-03-12) tukee INSERT ... RETURNING -lausetta.
+  ;; Sitten kun se otetaan käyttöön, voidaan poistaa tämä funktio.
+  (cond ((sqlite-yhteys-p)
+         (sqlite:last-insert-rowid *tietokanta*))
+        ((psql-yhteys-p)
+         *psql-last-insert-id*)
+        (t (virhe "Ei yhteyttä tietokantaan."))))
+
+
+(defun substitute-nulls (seq)
+  (substitute nil :null seq))
 
 
 (defun sql-mj (asia)
@@ -125,10 +159,11 @@
         t))))
 
 
-(defgeneric päivitä-sqlite (versio))
+(defgeneric päivitä-tietokanta (tyyppi versio))
 
 
-(defmethod päivitä-sqlite ((versio (eql 2)))
+(defmethod päivitä-tietokanta ((tyyppi sqlite:sqlite-handle)
+                               (versio (eql 2)))
   ;; Kaikki arvosanat yhteen taulukkoon.
   (with-transaction
     (query "CREATE TABLE arvosanat ~
@@ -145,7 +180,8 @@
     (query "INSERT INTO hallinto (avain, arvo) VALUES ('versio', 2)")))
 
 
-(defmethod päivitä-sqlite ((versio (eql 3)))
+(defmethod päivitä-tietokanta ((tyyppi sqlite:sqlite-handle)
+                               (versio (eql 3)))
   ;; Oppilaiden ryhmät määritellään uudessa taulukossa oppilaat_ryhmat.
   ;; Myös ryhmän suoritukset määritellään järkevämmin relaatioilla eikä
   ;; merkkijonolistan avulla.
@@ -225,7 +261,8 @@
     (query "UPDATE hallinto SET arvo = 3 WHERE avain = 'versio'")))
 
 
-(defmethod päivitä-sqlite ((versio (eql 4)))
+(defmethod päivitä-tietokanta ((tyyppi sqlite:sqlite-handle)
+                               (versio (eql 4)))
   ;; Valmiita kyselyjä perustoimintoja varten. Hallinto-taulukon
   ;; arvo-kentän tietotyypiksi integer.
   (with-transaction
@@ -262,7 +299,8 @@
     (query "UPDATE hallinto SET arvo = 4 WHERE avain = 'versio'")))
 
 
-(defmethod päivitä-sqlite ((versio (eql 5)))
+(defmethod päivitä-tietokanta ((tyyppi sqlite:sqlite-handle)
+                               (versio (eql 5)))
   ;; Foreign key sekä composite primary key käyttöön.
   (query "PRAGMA foreign_keys = OFF")
 
@@ -308,7 +346,8 @@
   (query "PRAGMA foreign_keys = ON"))
 
 
-(defmethod päivitä-sqlite ((versio (eql 6)))
+(defmethod päivitä-tietokanta ((tyyppi sqlite:sqlite-handle)
+                               (versio (eql 6)))
   ;; UNIQUE NOT NULL -vaatimus ryhmän nimelle.
   (query "PRAGMA foreign_keys = OFF")
 
@@ -328,13 +367,15 @@
   (query "PRAGMA foreign_keys = ON"))
 
 
-(defmethod päivitä-sqlite ((versio (eql 7)))
+(defmethod päivitä-tietokanta ((tyyppi sqlite:sqlite-handle)
+                               (versio (eql 7)))
   (with-transaction
     (query "UPDATE hallinto SET arvo = 7 WHERE avain = 'versio'")
     (query "PRAGMA auto_vacuum = FULL")))
 
 
-(defmethod päivitä-sqlite ((versio (eql 8)))
+(defmethod päivitä-tietokanta ((tyyppi sqlite:sqlite-handle)
+                               (versio (eql 8)))
   ;; Korjataan view_oppilaat: ON-lause ei voi viitata seuraavaan
   ;; JOINiin.
   (with-transaction
@@ -348,7 +389,8 @@
     (query "UPDATE hallinto SET arvo = 8 WHERE avain = 'versio'")))
 
 
-(defmethod päivitä-sqlite ((versio (eql 9)))
+(defmethod päivitä-tietokanta ((tyyppi sqlite:sqlite-handle)
+                               (versio (eql 9)))
   (with-transaction
     (query "CREATE INDEX idx_oppilaat_ryhmat_rid ON oppilaat_ryhmat (rid)")
     (query "CREATE INDEX idx_suoritukset_rid ON suoritukset (rid)")
@@ -356,7 +398,8 @@
     (query "UPDATE hallinto SET arvo = 9 WHERE avain = 'versio'")))
 
 
-(defmethod päivitä-sqlite ((versio (eql 10)))
+(defmethod päivitä-tietokanta ((tyyppi sqlite:sqlite-handle)
+                               (versio (eql 10)))
   ;; Lisätään hallinto-taulukkoon sarake teksti TEXT.
   (with-transaction
     (query "ALTER TABLE hallinto RENAME TO hallinto_vanha")
@@ -392,7 +435,10 @@
     (if kysely (lue-numero kysely) 1)))
 
 
-(defun alusta-sqlite ()
+(defgeneric alusta-tietokanta (tyyppi))
+
+
+(defmethod alusta-tietokanta ((tyyppi sqlite:sqlite-handle))
   (if (query-1 "SELECT 1 FROM sqlite_master ~
                 WHERE type = 'table' AND name = 'hallinto'")
       (let ((versio (tietokannan-versio)))
@@ -401,7 +447,7 @@
                        versio *ohjelman-tietokantaversio*)
                (loop :for kohde :from (1+ versio)
                      :upto *ohjelman-tietokantaversio*
-                     :do (päivitä-sqlite kohde))
+                     :do (päivitä-tietokanta tyyppi kohde))
                (eheytys t))
               ((> versio *ohjelman-tietokantaversio*)
                (virhe "ONGELMA! Tietokannan versio on ~A mutta ohjelma ~
@@ -412,7 +458,7 @@
       (with-transaction
         (viesti "~&Valmistellaan tietokanta (~A).~%~
                 Ota tietokantatiedostosta varmuuskopio riittävän usein.~%"
-                (pathconv:namestring *tiedosto*))
+                (pathconv:namestring *sqlite-tiedosto*))
 
         (query "PRAGMA auto_vacuum = FULL")
 
@@ -511,11 +557,109 @@
   (query "PRAGMA case_sensitive_like = ON"))
 
 
+(defmethod alusta-tietokanta ((tyyppi pomo:database-connection))
+  (if (query-1 "SELECT 1 FROM pg_catalog.pg_tables ~
+        WHERE schemaname = 'public' AND tablename = 'hallinto'")
+      (let ((versio (tietokannan-versio)))
+        (cond ((< versio *ohjelman-tietokantaversio*)
+               (viesti "Päivitetään tietokanta uudempaan versioon: ~D -> ~D.~%"
+                       versio *ohjelman-tietokantaversio*)
+               (loop :for kohde :from (1+ versio)
+                     :upto *ohjelman-tietokantaversio*
+                     :do (päivitä-tietokanta tyyppi kohde))
+               (eheytys t))
+              ((> versio *ohjelman-tietokantaversio*)
+               (virhe "ONGELMA! Tietokannan versio on ~A mutta ohjelma ~
+                osaa vain version ~A. Päivitä ohjelma!"
+                      versio *ohjelman-tietokantaversio*))))
+
+      ;; Tietokanta puuttuu
+      (with-transaction
+        (viesti "~&Valmistellaan PostgreSQL-tietokanta.~%~
+                Ota tietokannasta varmuuskopioita riittävän usein.~%")
+
+        (query "CREATE TABLE hallinto ~
+                (avain TEXT PRIMARY KEY, ~
+                arvo INTEGER, ~
+                teksti TEXT)")
+
+        (query "INSERT INTO hallinto (avain, arvo) VALUES ('versio', ~A)"
+               *ohjelman-tietokantaversio*)
+        
+        (query "CREATE TABLE oppilaat ~
+                (oid SERIAL PRIMARY KEY, ~
+                sukunimi TEXT, etunimi TEXT, ~
+                lisatiedot TEXT DEFAULT '')")
+
+        (query "CREATE TABLE ryhmat ~
+                (rid SERIAL PRIMARY KEY, ~
+                nimi TEXT UNIQUE NOT NULL, ~
+                lisatiedot TEXT DEFAULT '')")
+
+        (query "CREATE TABLE oppilaat_ryhmat ~
+                (oid INTEGER NOT NULL ~
+                        REFERENCES oppilaat(oid) ON DELETE CASCADE, ~
+                rid INTEGER NOT NULL ~
+                        REFERENCES ryhmat(rid) ON DELETE CASCADE, ~
+                PRIMARY KEY (oid, rid))")
+
+        (query "CREATE INDEX idx_oppilaat_ryhmat_rid ~
+                ON oppilaat_ryhmat (rid)")
+
+        (query "CREATE TABLE suoritukset ~
+                (sid SERIAL PRIMARY KEY, ~
+                rid INTEGER NOT NULL REFERENCES ryhmat(rid) ON DELETE CASCADE, ~
+                sija INTEGER, ~
+                nimi TEXT DEFAULT '', ~
+                lyhenne TEXT DEFAULT '', ~
+                painokerroin INTEGER)")
+
+        (query "CREATE INDEX idx_suoritukset_rid ~
+                ON suoritukset (rid)")
+
+        (query "CREATE TABLE arvosanat ~
+                (sid INTEGER NOT NULL ~
+                        REFERENCES suoritukset(sid) ON DELETE CASCADE, ~
+                oid INTEGER NOT NULL ~
+                        REFERENCES oppilaat(oid) ON DELETE CASCADE, ~
+                arvosana TEXT, ~
+                lisatiedot TEXT, ~
+                PRIMARY KEY (sid, oid))")
+
+        (query "CREATE INDEX idx_arvosanat_oid ~
+                ON arvosanat (oid)")
+
+        (query "CREATE VIEW view_oppilaat AS ~
+                SELECT o.oid, o.sukunimi, o.etunimi, ~
+                r.rid, r.nimi AS ryhma, o.lisatiedot AS olt ~
+                FROM oppilaat AS o ~
+                LEFT JOIN oppilaat_ryhmat AS j ON j.oid = o.oid ~
+                LEFT JOIN ryhmat AS r ON r.rid = j.rid")
+
+        (query "CREATE VIEW view_suoritukset AS ~
+                SELECT r.rid, r.nimi AS ryhma, r.lisatiedot AS rlt, ~
+                s.sid, s.nimi AS suoritus, s.lyhenne, s.sija, s.painokerroin ~
+                FROM suoritukset AS s ~
+                JOIN ryhmat AS r ON r.rid = s.rid")
+
+        (query "CREATE VIEW view_arvosanat AS ~
+                SELECT o.oid, o.sukunimi, o.etunimi, o.lisatiedot AS olt, ~
+                r.rid, r.nimi AS ryhma, r.lisatiedot AS rlt, ~
+                s.sid, s.nimi AS suoritus, s.lyhenne, s.sija, s.painokerroin, ~
+                a.arvosana, a.lisatiedot AS alt ~
+                FROM oppilaat_ryhmat AS j ~
+                JOIN oppilaat AS o ON o.oid = j.oid ~
+                JOIN ryhmat AS r ON r.rid = j.rid ~
+                LEFT JOIN suoritukset AS s ON r.rid = s.rid ~
+                LEFT JOIN arvosanat AS a ON o.oid = a.oid AND s.sid = a.sid"))))
+
+
 (defun connect-sqlite ()
   (unless (sqlite-yhteys-p)
-    (alusta-tiedostopolku)
-    (setf *tietokanta* (sqlite:connect (pathconv:namestring *tiedosto*)))
-    (alusta-sqlite)
+    (alusta-sqlite-tiedostopolku)
+    (setf *tietokanta* (sqlite:connect (pathconv:namestring
+                                        *sqlite-tiedosto*)))
+    (alusta-tietokanta *tietokanta*)
     *tietokanta*))
 
 
@@ -525,15 +669,45 @@
       (setf *tietokanta* nil))))
 
 
+(defun connect-psql (&key (database *tietokanta-kanta*)
+                          (user *tietokanta-user*)
+                          (password *tietokanta-password*)
+                          (host *tietokanta-host*)
+                          (port *tietokanta-port*))
+  (unless (psql-yhteys-p)
+    (setf *tietokanta* (pomo:connect database user password host
+                                     :port (or port 5432))
+          pomo:*database* *tietokanta*)
+    (alusta-tietokanta *tietokanta*)
+    *tietokanta*))
+
+
+(defun disconnect-psql ()
+  (when (psql-yhteys-p)
+    (pomo:disconnect *tietokanta*)
+    (setf *tietokanta* nil
+          pomo:*database* nil)))
+
+
 (defmacro tietokanta-käytössä (&body body)
-  `(let ((*tietokanta* nil))
+  `(let ((*tietokanta* nil)
+         (pomo:*database* nil))
      (unwind-protect
           (progn
             (connect-sqlite)
-            ;;; Haetaan Sqliten hallinto-taulukosta tarvittavat
-            ;;; muuttujat muistiin. Tarkistetaan, tarvitaanko Sqlitea
-            ;;; enää. Jos ei tarvita, suljetaan se ja avataan Psql.
+            (when (string= "psql" (query-1 "SELECT teksti FROM hallinto ~
+                        WHERE avain = 'tietokanta tyyppi'"))
+              (flet ((lue (avain)
+                       (query-1 "SELECT teksti FROM hallinto ~
+                        WHERE avain = ~A" (sql-mj avain))))
+                (setf *tietokanta-host* (lue "tietokanta host"))
+                (setf *tietokanta-port* (lue "tietokanta port"))
+                (setf *tietokanta-kanta* (lue "tietokanta kanta"))
+                (setf *tietokanta-user* (lue "tietokanta user"))
+                (setf *tietokanta-password* (lue "tietokanta password")))
+              (disconnect-sqlite)
+              (connect-psql))
             ,@body)
 
-       ;; (disconnect-psql)
+       (disconnect-psql)
        (disconnect-sqlite))))
