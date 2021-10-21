@@ -433,6 +433,13 @@
     (query "UPDATE hallinto SET arvo = 10 WHERE avain = 'versio'")))
 
 
+;; (defmethod päivitä-tietokanta (tyyppi (versio (eql 11)))
+;;   (with-transaction
+;;     (query "CREATE INDEX idx_oppilaat_sukunimi_etunimi
+;;                 ON oppilaat (sukunimi, etunimi)")
+;;     (query "UPDATE hallinto SET arvo = 11 WHERE avain = 'versio'")))
+
+
 (defun tietokannan-versio ()
   ;; Täällä tarvitaan LUE-NUMERO-funktiota, koska aiemmissa versioissa
   ;; arvo-kenttä oli merkkijonotyyppiä.
@@ -499,6 +506,10 @@
                 (oid INTEGER PRIMARY KEY, ~
                 sukunimi TEXT, etunimi TEXT, ~
                 lisatiedot TEXT DEFAULT '')")
+
+        ;; Seuraavaan tietokantaversioon.
+        ;; (query "CREATE INDEX idx_oppilaat_sukunimi_etunimi
+        ;;         ON oppilaat (sukunimi, etunimi)")
 
         (query "CREATE TABLE ryhmat ~
                 (rid INTEGER PRIMARY KEY, ~
@@ -588,6 +599,10 @@
                 (oid SERIAL PRIMARY KEY, ~
                 sukunimi TEXT, etunimi TEXT, ~
                 lisatiedot TEXT DEFAULT '')")
+
+        ;; Seuraavaan tietokantaversioon.
+        ;; (query "CREATE INDEX idx_oppilaat_sukunimi_etunimi
+        ;;         ON oppilaat (sukunimi, etunimi)")
 
         (query "CREATE TABLE ryhmat ~
                 (rid SERIAL PRIMARY KEY, ~
