@@ -2113,6 +2113,33 @@ Valitsimet:
         Lisätiedot-sarake jätetään pois. Tämä valitsin ei vaikuta
         vuorovaikutteiseen tilaan.
 
+  --tietokanta=sqlite
+        Käytetään SQLite-tietokantaa, mikä on ohjelman oletus. Tämä
+        asetus tallentuu, ja sitä käytetään automaattisesti seuraavilla
+        kerroilla.
+
+  --tietokanta=psql:käyttäjä:salasana:kanta:osoite:portti
+        Käytetään PostgreSQL-tietokantaa. \"käyttäjä\" ja \"salasana\"
+        ovat tietokannan kirjautumistiedot. \"kanta\" on tietokannan
+        nimi, johon kirjaudutaan. Sen täytyy olla valmiiksi olemassa ja
+        tällä käyttäjällä pitää olla oikeus luoda taulukoita yms.
+        \"osoite\" ja \"portti\" ovat tietokannan IP-osoitetietoja. Jos
+        tietokantapalvelin toimii samalla tietokoneella, sopiva osoite
+        on silloin \"localhost\". \"portti\"-asetukseen sopii yleensä
+        \"5432\", joka on PostgreSQL:n oletusportti. Kaikki edellä
+        mainitut asetukset tallentuvat, ja niitä käytetään
+        automaattisesti seuraavilla kerroilla.
+
+        Asetusten erotinmerkkinä on yllä olevassa esimerkissä
+        kaksoispiste \":\". Erottimena voi olla mikä tahansa muukin
+        merkki, kunhan kaikissa on sama eikä kyseistä merkkiä esiinny
+        asetuskentissä itsessään.
+
+  --tietokanta=psql
+        Käytetään PostgreSQL-tietokantaa. Tämä ei muuta edellä
+        mainittuja kirjautumisasetuksia vaan ainoastaan siirtyy
+        käyttämään PostgreSQL:ää ja tallentaa sen asetuksen.
+
   -h, --ohje[=aihe]
         Tulostaa ohjelman ohjeita. Jos ohjeen aihetta ei ole mainittu,
         tulostetaan nämä komentorivin ohjeet. Ohjeen aiheita ovat
@@ -2215,6 +2242,8 @@ Lisenssi: GNU General Public License 3
       (multiple-value-bind (valitsimet argumentit tuntemattomat)
           (just-getopt-parser:getopt args '((:help #\h)
                                             (:help "ohje" :optional)
+                                            (:tietokanta "tietokanta"
+                                             :required)
                                             (:muoto "muoto" :required)
                                             (:suppea "suppea")
                                             (:versio #\v)
@@ -2252,6 +2281,50 @@ Lisenssi: GNU General Public License 3
             (if (find muoto '("tab" "csv" "org" "latex") :test #'equal)
                 (setf muoto (intern (string-upcase muoto) "KEYWORD"))
                 (virhe "Tuntematon tulostusmuoto \"~A\"." muoto)))
+
+          (when (assoc :tietokanta valitsimet)
+            (let ((arg (cdr (assoc :tietokanta valitsimet))))
+              (cond
+
+                ((string= arg "sqlite")
+                 (sqlite-käytössä
+                   (query "UPDATE hallinto SET teksti = 'sqlite' ~
+                                WHERE avain = 'tietokanta tyyppi'")))
+
+                ((string= arg "psql" :end1 (min 4 (length arg)))
+                 (sqlite-käytössä
+                   (query "UPDATE hallinto SET teksti = 'psql' ~
+                                WHERE avain = 'tietokanta tyyppi'")
+
+                   (let ((asetukset (pilko-erottimella (subseq arg 4))))
+                     (when asetukset
+                       (flet ((aseta (avain teksti)
+                                (query "UPDATE hallinto SET teksti = ~A ~
+                                WHERE avain = ~A"
+                                       (if teksti (sql-mj teksti) "NULL")
+                                       (sql-mj avain))))
+
+                         (with-transaction
+                           (when (or (< (length asetukset) 5)
+                                     (some (lambda (as)
+                                             (zerop (length as)))
+                                           asetukset))
+                             (virhe "Virheelliset tietokanta-asetukset."))
+
+                           (aseta "tietokanta user" (nth 0 asetukset))
+                           (aseta "tietokanta password" (nth 1 asetukset))
+                           (aseta "tietokanta database" (nth 2 asetukset))
+                           (aseta "tietokanta host" (nth 3 asetukset))
+                           (let ((portti (lue-numero (nth 4 asetukset))))
+                             (if (and (integerp portti)
+                                      (<= 1 portti 65535))
+                                 (query "UPDATE hallinto SET arvo = ~A ~
+                                WHERE avain = 'tietokanta port'"
+                                        portti)
+                                 (virhe "Virheellinen tietoliikenneportti ~
+                                        (yleensä 5432).")))))))))
+
+                (t (virhe "Tuntematon valitsin \"--tietokanta=~A\"" arg)))))
 
           (tietokanta-käytössä
             (cond

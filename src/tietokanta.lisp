@@ -21,7 +21,7 @@
   (:export
    #:query-last-insert-rowid
    #:lisää-muokkauslaskuriin
-   #:tietokanta-käytössä
+   #:tietokanta-käytössä #:sqlite-käytössä
    #:query #:query-1 #:query-nconc
    #:sql-mj #:sql-like-suoja
    #:with-transaction
@@ -39,11 +39,11 @@
 (defparameter *psql-last-insert-id* 0)
 (defparameter *ohjelman-tietokantaversio* 10)
 
-(defparameter *tietokanta-user* "dtw")
-(defparameter *tietokanta-password* "OyikDxSkOrnGVejh")
+(defparameter *tietokanta-user* "")
+(defparameter *tietokanta-password* "")
 (defparameter *tietokanta-host* "localhost")
 (defparameter *tietokanta-port* 5432)
-(defparameter *tietokanta-kanta* "koas")
+(defparameter *tietokanta-database* "")
 
 
 (defun sqlite-yhteys-p ()
@@ -422,7 +422,7 @@
     (query "INSERT INTO hallinto (avain, arvo) ~
                 VALUES ('tietokanta port', 5432)")
     (query "INSERT INTO hallinto (avain, teksti) ~
-                VALUES ('tietokanta kanta', '')")
+                VALUES ('tietokanta database', '')")
     (query "INSERT INTO hallinto (avain, teksti) ~
                 VALUES ('tietokanta user', '')")
     (query "INSERT INTO hallinto (avain, teksti) ~
@@ -489,7 +489,7 @@
         (query "INSERT INTO hallinto (avain, arvo) ~
                 VALUES ('tietokanta port', 5432)")
         (query "INSERT INTO hallinto (avain, teksti) ~
-                VALUES ('tietokanta kanta', '')")
+                VALUES ('tietokanta database', '')")
         (query "INSERT INTO hallinto (avain, teksti) ~
                 VALUES ('tietokanta user', '')")
         (query "INSERT INTO hallinto (avain, teksti) ~
@@ -583,7 +583,7 @@
 
         (query "INSERT INTO hallinto (avain, arvo) VALUES ('versio', ~A)"
                *ohjelman-tietokantaversio*)
-        
+
         (query "CREATE TABLE oppilaat ~
                 (oid SERIAL PRIMARY KEY, ~
                 sukunimi TEXT, etunimi TEXT, ~
@@ -667,7 +667,7 @@
       (setf *tietokanta* nil))))
 
 
-(defun connect-psql (&key (database *tietokanta-kanta*)
+(defun connect-psql (&key (database *tietokanta-database*)
                           (user *tietokanta-user*)
                           (password *tietokanta-password*)
                           (host *tietokanta-host*)
@@ -699,8 +699,9 @@
                        (query-1 "SELECT teksti FROM hallinto ~
                         WHERE avain = ~A" (sql-mj avain))))
                 (setf *tietokanta-host* (lue "tietokanta host"))
-                (setf *tietokanta-port* (lue "tietokanta port"))
-                (setf *tietokanta-kanta* (lue "tietokanta kanta"))
+                (setf *tietokanta-port* (query-1 "SELECT arvo FROM hallinto ~
+                        WHERE avain = 'tietokanta port'"))
+                (setf *tietokanta-database* (lue "tietokanta database"))
                 (setf *tietokanta-user* (lue "tietokanta user"))
                 (setf *tietokanta-password* (lue "tietokanta password")))
               (disconnect-sqlite)
@@ -708,4 +709,10 @@
             ,@body)
 
        (disconnect-psql)
+       (disconnect-sqlite))))
+
+
+(defmacro sqlite-käytössä (&body body)
+  `(let ((*tietokanta* nil))
+     (unwind-protect (progn (connect-sqlite) ,@body)
        (disconnect-sqlite))))
