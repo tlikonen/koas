@@ -135,28 +135,33 @@
 
 
 (defun aseta-muokkauslaskuri (arvo)
-  (query "UPDATE hallinto SET arvo = ~A WHERE avain = 'muokkauslaskuri'"
-         arvo)
-  arvo)
+  (when (sqlite-yhteys-p)
+    (query "UPDATE hallinto SET arvo = ~A WHERE avain = 'muokkauslaskuri'"
+           arvo)
+    arvo))
 
 
 (defun hae-muokkauslaskuri ()
-  (query-1 "SELECT arvo FROM hallinto WHERE avain = 'muokkauslaskuri'"))
+  (when (sqlite-yhteys-p)
+    (query-1 "SELECT arvo FROM hallinto WHERE avain = 'muokkauslaskuri'")))
 
 
 (defun lisää-muokkauslaskuriin (muokkaukset)
-  (query "UPDATE hallinto SET arvo = arvo + ~A WHERE avain = 'muokkauslaskuri'"
-         muokkaukset)
+  (when (sqlite-yhteys-p)
+    (query "UPDATE hallinto SET arvo = arvo + ~A ~
+                WHERE avain = 'muokkauslaskuri'"
+           muokkaukset))
   muokkaukset)
 
 
 (defun eheytys (&optional nyt)
-  (let ((laskuri (or (hae-muokkauslaskuri) 0)))
-    (when (or nyt (>= laskuri *muokkaukset-kunnes-eheytys*))
-      (ignore-errors
-        (query "VACUUM")
-        (aseta-muokkauslaskuri 0)
-        t))))
+  (when (sqlite-yhteys-p)
+    (let ((laskuri (or (hae-muokkauslaskuri) 0)))
+      (when (or nyt (>= laskuri *muokkaukset-kunnes-eheytys*))
+        (ignore-errors
+         (query "VACUUM")
+         (aseta-muokkauslaskuri 0)
+         t)))))
 
 
 (defgeneric päivitä-tietokanta (tyyppi versio))
