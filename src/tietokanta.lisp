@@ -693,7 +693,7 @@
      (unwind-protect
           (progn
             (connect-sqlite)
-            (when (string= "psql" (query-1 "SELECT teksti FROM hallinto ~
+            (when (equal "psql" (query-1 "SELECT teksti FROM hallinto ~
                         WHERE avain = 'tietokanta tyyppi'"))
               (flet ((lue (avain)
                        (query-1 "SELECT teksti FROM hallinto ~
