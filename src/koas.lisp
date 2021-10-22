@@ -2320,18 +2320,15 @@ Lisenssi: GNU General Public License 3
                    (let ((asetukset (pilko-erottimella (subseq arg 4))))
                      (when asetukset
                        (flet ((aseta (avain teksti)
+                                (assert (and (stringp teksti)
+                                             (plusp (length teksti)))
+                                        nil "Virheelliset PostgreSQL-asetukset.")
                                 (query "UPDATE hallinto SET teksti = ~A ~
                                 WHERE avain = ~A"
-                                       (if teksti (sql-mj teksti) "NULL")
+                                       (sql-mj teksti)
                                        (sql-mj avain))))
 
                          (with-transaction
-                           (when (or (< (length asetukset) 5)
-                                     (some (lambda (as)
-                                             (zerop (length as)))
-                                           asetukset))
-                             (virhe "Virheelliset tietokanta-asetukset."))
-
                            (aseta "tietokanta user" (nth 0 asetukset))
                            (aseta "tietokanta password" (nth 1 asetukset))
                            (aseta "tietokanta database" (nth 2 asetukset))

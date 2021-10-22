@@ -702,6 +702,29 @@
           pomo:*database* nil)))
 
 
+(defun lue-psql-asetukset ()
+  (flet ((lue (avain)
+           (query-1 "SELECT teksti FROM hallinto ~
+                        WHERE avain = ~A" (sql-mj avain))))
+    (setf *tietokanta-host* (lue "tietokanta host"))
+    (setf *tietokanta-port* (query-1 "SELECT arvo FROM hallinto ~
+                        WHERE avain = 'tietokanta port'"))
+    (setf *tietokanta-database* (lue "tietokanta database"))
+    (setf *tietokanta-user* (lue "tietokanta user"))
+    (setf *tietokanta-password* (lue "tietokanta password"))
+
+    (assert (and (integerp *tietokanta-port*)
+                 (every (lambda (x)
+                          (and (stringp x)
+                               (plusp (length x))))
+                        (list *tietokanta-user*
+                              *tietokanta-password*
+                              *tietokanta-database*
+                              *tietokanta-host*)))
+            nil "Virheelliset PostgreSQL-asetukset."))
+  *tietokanta*)
+
+
 (defmacro tietokanta-käytössä (&body body)
   `(let ((*tietokanta* nil)
          (pomo:*database* nil))
@@ -710,15 +733,7 @@
             (connect-sqlite)
             (when (equal "psql" (query-1 "SELECT teksti FROM hallinto ~
                         WHERE avain = 'tietokanta tyyppi'"))
-              (flet ((lue (avain)
-                       (query-1 "SELECT teksti FROM hallinto ~
-                        WHERE avain = ~A" (sql-mj avain))))
-                (setf *tietokanta-host* (lue "tietokanta host"))
-                (setf *tietokanta-port* (query-1 "SELECT arvo FROM hallinto ~
-                        WHERE avain = 'tietokanta port'"))
-                (setf *tietokanta-database* (lue "tietokanta database"))
-                (setf *tietokanta-user* (lue "tietokanta user"))
-                (setf *tietokanta-password* (lue "tietokanta password")))
+              (lue-psql-asetukset)
               (disconnect-sqlite)
               (connect-psql))
             ,@body)
