@@ -44,11 +44,19 @@
 (defparameter *sqlite-nimi* "sqlite")
 (defparameter *ohjelman-tietokantaversio* 10)
 
-(defparameter *tietokanta-user* "")
-(defparameter *tietokanta-password* "")
-(defparameter *tietokanta-host* "localhost")
-(defparameter *tietokanta-port* 5432)
-(defparameter *tietokanta-database* "")
+
+(defclass tietokanta-asetukset ()
+  ((user :accessor user :initarg :user :type string)
+   (password :accessor password :initarg :password :type string)
+   (database :accessor database :initarg :database :type string )
+   (host :accessor host :initarg :host :type string)
+   (port :accessor port :initarg :port :type integer)))
+
+
+(defparameter *psql-asetukset*
+  (make-instance 'tietokanta-asetukset
+                 :user "" :password ""
+                 :database "" :host "" :port 5432))
 
 
 (defun sqlite-yhteys-p ()
@@ -686,11 +694,12 @@
       (setf *tietokanta* nil))))
 
 
-(defun connect-psql (&key (database *tietokanta-database*)
-                          (user *tietokanta-user*)
-                          (password *tietokanta-password*)
-                          (host *tietokanta-host*)
-                          (port *tietokanta-port*))
+(defun connect-psql (&key (user (user *psql-asetukset*))
+                          (password (password *psql-asetukset*))
+                          (database (database *psql-asetukset*))
+                          (host (host *psql-asetukset*))
+                          (port (port *psql-asetukset*)))
+
   (unless (psql-yhteys-p)
     (setf *tietokanta* (pomo:connect database user password host
                                      :port (or port 5432))
@@ -710,21 +719,22 @@
   (flet ((lue (avain)
            (query-1 "SELECT teksti FROM hallinto ~
                         WHERE avain = ~A" (sql-mj avain))))
-    (setf *tietokanta-host* (lue "tietokanta host"))
-    (setf *tietokanta-port* (query-1 "SELECT arvo FROM hallinto ~
-                        WHERE avain = 'tietokanta port'"))
-    (setf *tietokanta-database* (lue "tietokanta database"))
-    (setf *tietokanta-user* (lue "tietokanta user"))
-    (setf *tietokanta-password* (lue "tietokanta password"))
 
-    (unless (and (integerp *tietokanta-port*)
+    (setf (user *psql-asetukset*) (lue "tietokanta user"))
+    (setf (password *psql-asetukset*) (lue "tietokanta password"))
+    (setf (database *psql-asetukset*) (lue "tietokanta database"))
+    (setf (host *psql-asetukset*) (lue "tietokanta host"))
+    (setf (port *psql-asetukset*) (query-1 "SELECT arvo FROM hallinto ~
+                        WHERE avain = 'tietokanta port'"))
+
+    (unless (and (integerp (port *psql-asetukset*))
+                 (<= 1 (port *psql-asetukset*) 65535)
                  (every (lambda (x)
-                          (and (stringp x)
-                               (plusp (length x))))
-                        (list *tietokanta-user*
-                              *tietokanta-password*
-                              *tietokanta-database*
-                              *tietokanta-host*)))
+                          (plusp (length x)))
+                        (list (user *psql-asetukset*)
+                              (password *psql-asetukset*)
+                              (database *psql-asetukset*)
+                              (host *psql-asetukset*))))
       (virhe "Virheelliset PostgreSQL-asetukset.")))
   *tietokanta*)
 
