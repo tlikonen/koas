@@ -473,8 +473,7 @@
 
       ;; Tietokanta puuttuu
       (with-transaction
-        (viesti "~&Valmistellaan tietokanta (~A).~%~
-                Ota tietokantatiedostosta varmuuskopio riittävän usein.~%"
+        (viesti "~&Valmistellaan tietokanta \"~A\".~%"
                 (pathconv:namestring *sqlite-tiedosto*))
 
         (query "PRAGMA auto_vacuum = FULL")
@@ -585,8 +584,7 @@
 
       ;; Tietokanta puuttuu
       (with-transaction
-        (viesti "~&Valmistellaan PostgreSQL-tietokanta.~%~
-                Ota tietokannasta varmuuskopioita riittävän usein.~%")
+        (viesti "~&Valmistellaan PostgreSQL-tietokanta.~%")
 
         (query "CREATE TABLE hallinto ~
                 (avain TEXT PRIMARY KEY, ~
