@@ -53,7 +53,7 @@
    (port :accessor port :initarg :port :type integer)))
 
 
-(defparameter *psql-asetukset*
+(defvar *psql-asetukset*
   (make-instance 'tietokanta-asetukset
                  :user "" :password ""
                  :database "" :host "" :port 5432))
