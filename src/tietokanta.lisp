@@ -668,6 +668,7 @@
 
 (defun connect-sqlite ()
   (unless (sqlite-yhteys-p)
+    (sb-posix:umask #o0077)
     (alusta-sqlite-tiedostopolku)
     (setf *tietokanta* (sqlite:connect (pathconv:namestring
                                         *sqlite-tiedosto*)))
