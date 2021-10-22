@@ -33,6 +33,7 @@
    #:substitute-nulls
    #:kopioi-sqlite-psql
    #:kopioi-psql-sqlite
+   #:ohjelman-alkuilmoitus
    ))
 
 (in-package #:tietokanta)
@@ -740,27 +741,28 @@
   *tietokanta*)
 
 
+(defun ohjelman-alkuilmoitus ()
+  (cond ((sqlite-yhteys-p)
+         (viesti "KOAS - SQLite-tietokanta (~A)~%" *sqlite-tiedosto*))
+        ((psql-yhteys-p)
+         (viesti "KOAS - PostgreSQL-tietokanta (~A ~A ~A ~A)~%"
+                 (user *psql-asetukset*)
+                 (database *psql-asetukset*)
+                 (host *psql-asetukset*)
+                 (port *psql-asetukset*)))))
+
+
 (defmacro tietokanta-käytössä (&body body)
   `(let ((*tietokanta* nil)
          (pomo:*database* nil))
      (unwind-protect
           (progn
             (connect-sqlite)
-            (let ((tyyppi (query-1 "SELECT teksti FROM hallinto ~
-                        WHERE avain = 'tietokanta tyyppi'")))
-              (cond
-                ((equal tyyppi *psql-nimi*)
-                 (lue-psql-asetukset)
-                 (disconnect-sqlite)
-                 (connect-psql)
-                 (viesti "PostgreSQL-tietokanta (~A ~A ~A ~A)~%"
-                         (user *psql-asetukset*)
-                         (database *psql-asetukset*)
-                         (host *psql-asetukset*)
-                         (port *psql-asetukset*)))
-                ((equal tyyppi *sqlite-nimi*)
-                 (viesti "SQLite-tietokanta (~A)~%" *sqlite-tiedosto*))
-                (t (virhe "Tuntematon tietokantatyyppi."))))
+            (when (equal *psql-nimi* (query-1 "SELECT teksti FROM hallinto ~
+                        WHERE avain = 'tietokanta tyyppi'"))
+              (lue-psql-asetukset)
+              (disconnect-sqlite)
+              (connect-psql))
             ,@body)
 
        (disconnect-psql)

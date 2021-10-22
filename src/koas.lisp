@@ -2394,6 +2394,7 @@ Lisenssi: GNU General Public License 3
                              (assoc :suppea valitsimet))
                      (virheviesti "(Vuorovaikutteisessa tilassa ei huomioida ~
                         kaikkia valitsimia.)~%"))
+                   (ohjelman-alkuilmoitus)
                    (loop
                      (handler-case
                          (käsittele-komentorivi (lue-rivi "KOAS> " t))
