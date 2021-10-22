@@ -418,7 +418,8 @@
 
 (defmethod päivitä-tietokanta ((tyyppi sqlite:sqlite-handle)
                                (versio (eql 10)))
-  ;; Lisätään hallinto-taulukkoon sarake teksti TEXT.
+  ;; Lisätään hallinto-taulukkoon sarake teksti TEXT ja
+  ;; oppilaat-taulukkoon indeksi.
   (with-transaction
     (query "ALTER TABLE hallinto RENAME TO hallinto_vanha")
     (query "CREATE TABLE hallinto ~
@@ -443,14 +444,10 @@
 
     (query "DROP TABLE hallinto_vanha")
 
+    (query "CREATE INDEX idx_oppilaat_sukunimi_etunimi
+                ON oppilaat (sukunimi, etunimi)")
+
     (query "UPDATE hallinto SET arvo = 10 WHERE avain = 'versio'")))
-
-
-;; (defmethod päivitä-tietokanta (tyyppi (versio (eql 11)))
-;;   (with-transaction
-;;     (query "CREATE INDEX idx_oppilaat_sukunimi_etunimi
-;;                 ON oppilaat (sukunimi, etunimi)")
-;;     (query "UPDATE hallinto SET arvo = 11 WHERE avain = 'versio'")))
 
 
 (defun tietokannan-versio ()
@@ -463,8 +460,12 @@
 (defun tietokannan-versiotarkistus (tyyppi)
   (let ((versio (tietokannan-versio)))
     (cond ((< versio *ohjelman-tietokantaversio*)
-           (viesti "Päivitetään tietokanta uudempaan versioon: ~D -> ~D.~%"
-                   versio *ohjelman-tietokantaversio*)
+           (viesti "Päivitetään ~A-tietokanta versioon ~D.~%"
+                   (cond ((typep tyyppi 'sqlite:sqlite-handle)
+                          "SQLite")
+                         ((typep tyyppi 'pomo:database-connection)
+                          "PostgreSQL"))
+                   *ohjelman-tietokantaversio*)
            (loop :for kohde :from (1+ versio)
                  :upto *ohjelman-tietokantaversio*
                  :do (päivitä-tietokanta tyyppi kohde))
@@ -519,9 +520,8 @@
                 sukunimi TEXT, etunimi TEXT, ~
                 lisatiedot TEXT DEFAULT '')")
 
-        ;; Seuraavaan tietokantaversioon.
-        ;; (query "CREATE INDEX idx_oppilaat_sukunimi_etunimi
-        ;;         ON oppilaat (sukunimi, etunimi)")
+        (query "CREATE INDEX idx_oppilaat_sukunimi_etunimi
+                ON oppilaat (sukunimi, etunimi)")
 
         (query "CREATE TABLE ryhmat ~
                 (rid INTEGER PRIMARY KEY, ~
@@ -611,9 +611,8 @@
                 sukunimi TEXT, etunimi TEXT, ~
                 lisatiedot TEXT DEFAULT '')")
 
-        ;; Seuraavaan tietokantaversioon.
-        ;; (query "CREATE INDEX idx_oppilaat_sukunimi_etunimi
-        ;;         ON oppilaat (sukunimi, etunimi)")
+        (query "CREATE INDEX idx_oppilaat_sukunimi_etunimi
+                ON oppilaat (sukunimi, etunimi)")
 
         (query "CREATE TABLE ryhmat ~
                 (rid SERIAL PRIMARY KEY, ~
