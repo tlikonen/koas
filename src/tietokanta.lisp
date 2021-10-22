@@ -20,6 +20,7 @@
   (:use #:cl #:yhteinen)
   (:export
    #:alusta-sqlite-tiedostopolku #:*sqlite-tiedosto*
+   #:*sqlite-nimi* #:*psql-nimi*
    #:query-last-insert-rowid
    #:lisää-muokkauslaskuriin
    #:tietokanta-käytössä #:sqlite-käytössä
@@ -39,6 +40,8 @@
 (defvar *tietokanta* nil)
 (defvar *muokkaukset-kunnes-eheytys* 5000)
 (defparameter *psql-last-insert-id* 0)
+(defparameter *psql-nimi* "psql")
+(defparameter *sqlite-nimi* "sqlite")
 (defparameter *ohjelman-tietokantaversio* 10)
 
 (defparameter *tietokanta-user* "")
@@ -418,7 +421,7 @@
                 SELECT avain, arvo FROM hallinto_vanha")
 
     (query "INSERT INTO hallinto (avain, teksti) ~
-                VALUES ('tietokanta tyyppi', 'sqlite')")
+                VALUES ('tietokanta tyyppi', ~A)" (sql-mj *sqlite-nimi*))
     (query "INSERT INTO hallinto (avain, teksti) ~
                 VALUES ('tietokanta host', '')")
     (query "INSERT INTO hallinto (avain, arvo) ~
@@ -491,7 +494,7 @@
         (query "INSERT INTO hallinto (avain, arvo) ~
                 VALUES ('muokkauslaskuri', 0)")
         (query "INSERT INTO hallinto (avain, teksti) ~
-                VALUES ('tietokanta tyyppi', 'sqlite')")
+                VALUES ('tietokanta tyyppi', ~A)" (sql-mj *sqlite-nimi*))
         (query "INSERT INTO hallinto (avain, teksti) ~
                 VALUES ('tietokanta host', '')")
         (query "INSERT INTO hallinto (avain, arvo) ~
@@ -732,7 +735,7 @@
      (unwind-protect
           (progn
             (connect-sqlite)
-            (when (equal "psql" (query-1 "SELECT teksti FROM hallinto ~
+            (when (equal *psql-nimi* (query-1 "SELECT teksti FROM hallinto ~
                         WHERE avain = 'tietokanta tyyppi'"))
               (lue-psql-asetukset)
               (disconnect-sqlite)
@@ -844,4 +847,8 @@
                         VALUES (~A, ~A, ~A, ~A)"
                           sid oid (sql-mj (or arvosana ""))
                           (sql-mj lisatiedot)))
+
+        (squery "UPDATE hallinto SET teksti = ~A ~
+                        WHERE avain = 'tietokanta tyyppi'"
+                (sql-mj *psql-nimi*))
         nil))))
