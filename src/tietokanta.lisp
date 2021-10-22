@@ -745,11 +745,21 @@
      (unwind-protect
           (progn
             (connect-sqlite)
-            (when (equal *psql-nimi* (query-1 "SELECT teksti FROM hallinto ~
-                        WHERE avain = 'tietokanta tyyppi'"))
-              (lue-psql-asetukset)
-              (disconnect-sqlite)
-              (connect-psql))
+            (let ((tyyppi (query-1 "SELECT teksti FROM hallinto ~
+                        WHERE avain = 'tietokanta tyyppi'")))
+              (cond
+                ((equal tyyppi *psql-nimi*)
+                 (lue-psql-asetukset)
+                 (disconnect-sqlite)
+                 (connect-psql)
+                 (viesti "PostgreSQL-tietokanta (~A ~A ~A ~A)~%"
+                         (user *psql-asetukset*)
+                         (database *psql-asetukset*)
+                         (host *psql-asetukset*)
+                         (port *psql-asetukset*)))
+                ((equal tyyppi *sqlite-nimi*)
+                 (viesti "SQLite-tietokanta (~A)~%" *sqlite-tiedosto*))
+                (t (virhe "Tuntematon tietokantatyyppi."))))
             ,@body)
 
        (disconnect-psql)
