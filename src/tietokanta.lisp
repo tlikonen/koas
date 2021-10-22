@@ -872,3 +872,81 @@
                         WHERE avain = 'tietokanta tyyppi'"
                (sql-mj *psql-nimi*)))))
   *psql-nimi*)
+
+
+(defun kopioi-psql-sqlite ()
+  (molemmat-tietokannat-käytössä
+      (:sqlite-yhteys sqlite :psql-yhteys psql)
+    (flet ((qluku (fmt &rest args)
+             (pomo:query (apply #'format nil fmt args)))
+           (qkirj (fmt &rest args)
+             (sqlite:execute-to-list sqlite (apply #'format nil fmt args))))
+
+      (sqlite:with-transaction sqlite
+        (qkirj "DELETE FROM oppilaat")
+        (qkirj "DELETE FROM ryhmat")
+        (qkirj "DELETE FROM oppilaat_ryhmat")
+        (qkirj "DELETE FROM suoritukset")
+        (qkirj "DELETE FROM arvosanat")
+
+        ;; oppilaat
+        (loop :for rivi
+              :in (qluku "SELECT oid, sukunimi, etunimi, lisatiedot ~
+                                FROM oppilaat")
+              :for (oid sukunimi etunimi lisätiedot)
+                 := (substitute-nulls rivi)
+              :do (qkirj "INSERT INTO oppilaat ~
+                        (oid, sukunimi, etunimi, lisatiedot)
+                        VALUES (~A, ~A, ~A, ~A)"
+                         oid (sql-mj sukunimi) (sql-mj etunimi)
+                         (sql-mj lisätiedot)))
+
+        ;; ryhmät
+        (loop :for rivi
+              :in (qluku "SELECT rid, nimi, lisatiedot FROM ryhmat")
+              :for (rid nimi lisätiedot) := (substitute-nulls rivi)
+              :do (qkirj "INSERT INTO ryhmat ~
+                        (rid, nimi, lisatiedot)
+                        VALUES (~A, ~A, ~A)"
+                         rid (sql-mj nimi) (sql-mj lisätiedot)))
+
+        ;; oppilaat_ryhmät
+        (loop :for (oid rid)
+              :in (qluku "SELECT oid, rid FROM oppilaat_ryhmat")
+              :do (qkirj "INSERT INTO oppilaat_ryhmat ~
+                        (oid, rid) VALUES (~A, ~A)"
+                         oid rid))
+
+        ;; suoritukset
+        (loop :for rivi
+              :in (qluku "SELECT sid, rid, sija, ~
+                                nimi, lyhenne, painokerroin ~
+                                FROM suoritukset")
+              :for (sid rid sija nimi lyhenne painokerroin)
+                 := (substitute-nulls rivi)
+              :do (qkirj "INSERT INTO suoritukset ~
+                        (sid, rid, sija, nimi, lyhenne, painokerroin)
+                        VALUES (~A, ~A, ~A, ~A, ~A, ~A)"
+                         sid rid sija
+                         (sql-mj nimi) (sql-mj lyhenne)
+                         (or painokerroin "NULL")))
+
+        ;; arvosanat
+        (loop :for rivi
+              :in (qluku "SELECT sid, oid, arvosana, lisatiedot ~
+                                FROM arvosanat")
+              :for (sid oid arvosana lisatiedot)
+                 := (substitute-nulls rivi)
+              :do (qkirj "INSERT INTO arvosanat ~
+                        (sid, oid, arvosana, lisatiedot)
+                        VALUES (~A, ~A, ~A, ~A)"
+                         sid oid (sql-mj (or arvosana ""))
+                         (sql-mj lisatiedot)))
+
+        (qkirj "UPDATE hallinto SET teksti = ~A ~
+                        WHERE avain = 'tietokanta tyyppi'"
+               (sql-mj *sqlite-nimi*))))
+
+    (let ((*tietokanta* sqlite))
+      (eheytys t)))
+  *sqlite-nimi*)
