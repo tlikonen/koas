@@ -23,6 +23,7 @@
    #:query-last-insert-rowid
    #:lisää-muokkauslaskuriin
    #:tietokanta-käytössä #:sqlite-käytössä
+   #:molemmat-tietokannat-käytössä
    #:query #:query-1 #:query-nconc
    #:sql-mj #:sql-like-suoja
    #:with-transaction
@@ -746,3 +747,101 @@
   `(let ((*tietokanta* nil))
      (unwind-protect (progn (connect-sqlite) ,@body)
        (disconnect-sqlite))))
+
+
+(defmacro molemmat-tietokannat-käytössä ((&key sqlite-yhteys psql-yhteys)
+                                         &body body)
+  (let ((sqlite (gensym "SQLITE"))
+        (psql (gensym "PSQL")))
+    `(let ((*tietokanta* nil)
+           (pomo:*database* nil)
+           (,sqlite-yhteys nil)
+           (,psql-yhteys nil)
+           (,sqlite nil)
+           (,psql nil))
+       (declare (ignorable ,sqlite-yhteys ,psql-yhteys))
+       (unwind-protect
+            (progn
+              (setf ,sqlite (connect-sqlite))
+              (lue-psql-asetukset)
+              (setf ,psql (connect-psql))
+              (setf ,sqlite-yhteys ,sqlite)
+              (setf ,psql-yhteys ,psql)
+              (setf pomo:*database* ,psql-yhteys)
+              (setf *tietokanta* nil)
+              ,@body)
+
+         (let ((*tietokanta* ,psql))
+           (disconnect-psql))
+         (let ((*tietokanta* ,sqlite))
+           (disconnect-sqlite))))))
+
+
+(defun kopioi-sqlite-psql ()
+  (molemmat-tietokannat-käytössä
+      (:sqlite-yhteys sqlite :psql-yhteys psql)
+    (flet ((squery (fmt &rest args)
+             (sqlite:execute-to-list sqlite (apply #'format nil fmt args)))
+           (pquery (fmt &rest args)
+             (pomo:query (apply #'format nil fmt args))))
+
+      (pomo:with-transaction ()
+        (pquery "DELETE FROM oppilaat")
+        (pquery "DELETE FROM ryhmat")
+        (pquery "DELETE FROM oppilaat_ryhmat")
+        (pquery "DELETE FROM suoritukset")
+        (pquery "DELETE FROM arvosanat")
+
+        ;; oppilaat
+        (loop :for (oid sukunimi etunimi lisätiedot)
+              :in (squery "SELECT oid, sukunimi, etunimi, lisatiedot ~
+                                FROM oppilaat")
+              :do (pquery "INSERT INTO oppilaat ~
+                        (oid, sukunimi, etunimi, lisatiedot)
+                        VALUES (~A, ~A, ~A, ~A)"
+                          oid (sql-mj sukunimi) (sql-mj etunimi)
+                          (sql-mj lisätiedot)))
+        (pquery "SELECT setval('oppilaat_oid_seq',
+                                (SELECT max(oid) FROM oppilaat))")
+
+        ;; ryhmät
+        (loop :for (rid nimi lisätiedot)
+              :in (squery "SELECT rid, nimi, lisatiedot FROM ryhmat")
+              :do (pquery "INSERT INTO ryhmat ~
+                        (rid, nimi, lisatiedot)
+                        VALUES (~A, ~A, ~A)"
+                          rid (sql-mj nimi) (sql-mj lisätiedot)))
+        (pquery "SELECT setval('ryhmat_rid_seq',
+                                (SELECT max(rid) FROM ryhmat))")
+
+        ;; oppilaat_ryhmät
+        (loop :for (oid rid)
+              :in (squery "SELECT oid, rid FROM oppilaat_ryhmat")
+              :do (pquery "INSERT INTO oppilaat_ryhmat ~
+                        (oid, rid) VALUES (~A, ~A)"
+                          oid rid))
+
+        ;; suoritukset
+        (loop :for (sid rid sija nimi lyhenne painokerroin)
+              :in (squery "SELECT sid, rid, sija, ~
+                                nimi, lyhenne, painokerroin ~
+                                FROM suoritukset")
+              :do (pquery "INSERT INTO suoritukset ~
+                        (sid, rid, sija, nimi, lyhenne, painokerroin)
+                        VALUES (~A, ~A, ~A, ~A, ~A, ~A)"
+                          sid rid sija
+                          (sql-mj nimi) (sql-mj lyhenne)
+                          (or painokerroin "NULL")))
+        (pquery "SELECT setval('suoritukset_sid_seq',
+                                (SELECT max(sid) FROM suoritukset))")
+
+        ;; arvosanat
+        (loop :for (sid oid arvosana lisatiedot)
+              :in (squery "SELECT sid, oid, arvosana, lisatiedot ~
+                                FROM arvosanat")
+              :do (pquery "INSERT INTO arvosanat ~
+                        (sid, oid, arvosana, lisatiedot)
+                        VALUES (~A, ~A, ~A, ~A)"
+                          sid oid (sql-mj (or arvosana ""))
+                          (sql-mj lisatiedot)))
+        nil))))
