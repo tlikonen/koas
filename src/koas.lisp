@@ -2116,8 +2116,8 @@ Valitsimet:
 
   --tietokanta=sqlite
 
-        Käytetään SQLite-tietokantaa, joka on tiedostossa
-        \"~A\".
+        Siirtyy käyttämään käytetään SQLite-tietokantaa, joka on
+        tiedostossa \"~A\".
 
         Sekä ohjelman asetukset että varsinainen kouluarvosanatietokanta
         tallennetaan edellä mainittuun tiedostoon. Tämän valitsimen
@@ -2127,7 +2127,7 @@ Valitsimet:
 
   --tietokanta=psql/käyttäjä/salasana/kanta/osoite/portti
 
-        Käytetään erillistä PostgreSQL-tietokantapalvelinta
+        Siirtyy käyttämään erillistä PostgreSQL-tietokantapalvelinta
         kouluarvosanatietokannan tallentamiseen. Ohjelman asetukset
         tallentuvat edelleenkin SQLite-tietokantaan, joka on tiedostossa
         \"~0@*~A\".
@@ -2150,12 +2150,22 @@ Valitsimet:
 
   --tietokanta=psql
 
-        Käytetään erillistä PostgreSQL-tietokantapalvelinta
+        Siirtyy käyttämään erillistä PostgreSQL-tietokantapalvelinta
         kouluarvosanatietokannan tallentamiseen. Tämä asetus tallentuu,
         ja sitä käytetään automaattisesti seuraavilla kerroilla.
         PostgreSQL-tietokannan kirjautumistietojen ja verkko-osoitteen
         täytyy olla jo valmiiksi asetettuna. Katso lisätietoja tätä
         edeltävän valitsimen kuvauksesta.
+
+  --kopioi-sqlite-psql
+
+        Kopioi kouluarvosanatietokannan SQLitesta PostgreSQL:ään.
+        Kohdetietokanta tyhjennetään ennen sitä.
+
+  --kopioi-psql-sqlite
+
+        Kopioi kouluarvosanatietokannan PostgreSQL:stä SQLiteen.
+        Kohdetietokanta tyhjennetään ennen sitä.
 
   -v, --versio
 
@@ -2261,17 +2271,17 @@ Lisenssi: GNU General Public License 3
       (alusta-sqlite-tiedostopolku)
 
       (multiple-value-bind (valitsimet argumentit tuntemattomat)
-          (just-getopt-parser:getopt args '((:help #\h)
-                                            (:help "ohje" :optional)
-                                            (:tietokanta "tietokanta"
-                                             :required)
-                                            (:muoto "muoto" :required)
-                                            (:suppea "suppea")
-                                            (:versio #\v)
-                                            (:versio "versio"))
-                                     :error-on-unknown-option t
-                                     :error-on-argument-missing t
-                                     :error-on-argument-not-allowed t)
+          (just-getopt-parser:getopt
+           args '((:help #\h) (:help "ohje" :optional)
+                  (:tietokanta "tietokanta" :required)
+                  (:muoto "muoto" :required)
+                  (:suppea "suppea")
+                  (:versio #\v) (:versio "versio")
+                  (:sqlite-psql "kopioi-sqlite-psql")
+                  (:psql-sqlite "kopioi-psql-sqlite"))
+           :error-on-unknown-option t
+           :error-on-argument-missing t
+           :error-on-argument-not-allowed t)
 
         (when (and tuntemattomat (not (assoc :help valitsimet)))
           (virhe "Ohjeita saa valitsimella \"-h\" tai \"--ohje\"."))
@@ -2294,6 +2304,12 @@ Lisenssi: GNU General Public License 3
                 kun tulostetaan ohjelman tietoja.)~%~%" argumentit))
           (ohjeet-versio)
           (error 'poistu-ohjelmasta))
+
+        (when (< 1 (count :tietokanta valitsimet :key #'first))
+          (virhe "Käytä valitsinta \"--tietokanta\" korkeintaan kerran."))
+        (when (< 1 (+ (count :sqlite-psql valitsimet :key #'first)
+                      (count :psql-sqlite valitsimet :key #'first)))
+          (virhe "Käytä \"--kopioi\"-valitsimia korkeintaan kerran."))
 
         (let ((muoto nil))
 
@@ -2345,6 +2361,14 @@ Lisenssi: GNU General Public License 3
                                         (yleensä 5432).")))))))))
 
                 (t (virhe "Tuntematon tietokantatyyppi \"~A\"." arg)))))
+
+          (when (assoc :sqlite-psql valitsimet)
+            (kopioi-sqlite-psql)
+            (error 'poistu-ohjelmasta))
+
+          (when (assoc :psql-sqlite valitsimet)
+            (kopioi-psql-sqlite)
+            (error 'poistu-ohjelmasta))
 
           (tietokanta-käytössä
             (cond

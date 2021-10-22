@@ -31,6 +31,8 @@
    #:eheytys
    #:query-returning
    #:substitute-nulls
+   #:kopioi-sqlite-psql
+   #:kopioi-psql-sqlite
    ))
 
 (in-package #:tietokanta)
@@ -865,11 +867,7 @@
                         (sid, oid, arvosana, lisatiedot)
                         VALUES (~A, ~A, ~A, ~A)"
                          sid oid (sql-mj (or arvosana ""))
-                         (sql-mj lisatiedot)))
-
-        (qluku "UPDATE hallinto SET teksti = ~A ~
-                        WHERE avain = 'tietokanta tyyppi'"
-               (sql-mj *psql-nimi*)))))
+                         (sql-mj lisatiedot))))))
   *psql-nimi*)
 
 
@@ -940,11 +938,7 @@
                         (sid, oid, arvosana, lisatiedot)
                         VALUES (~A, ~A, ~A, ~A)"
                          sid oid (sql-mj (or arvosana ""))
-                         (sql-mj lisatiedot)))
-
-        (qkirj "UPDATE hallinto SET teksti = ~A ~
-                        WHERE avain = 'tietokanta tyyppi'"
-               (sql-mj *sqlite-nimi*))))
+                         (sql-mj lisatiedot)))))
 
     (let ((*tietokanta* sqlite))
       (eheytys t)))
