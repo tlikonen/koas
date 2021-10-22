@@ -717,7 +717,7 @@
     (setf *tietokanta-user* (lue "tietokanta user"))
     (setf *tietokanta-password* (lue "tietokanta password"))
 
-    (assert (and (integerp *tietokanta-port*)
+    (unless (and (integerp *tietokanta-port*)
                  (every (lambda (x)
                           (and (stringp x)
                                (plusp (length x))))
@@ -725,7 +725,7 @@
                               *tietokanta-password*
                               *tietokanta-database*
                               *tietokanta-host*)))
-            nil "Virheelliset PostgreSQL-asetukset."))
+      (virhe "Virheelliset PostgreSQL-asetukset.")))
   *tietokanta*)
 
 

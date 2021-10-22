@@ -2315,22 +2315,21 @@ Lisenssi: GNU General Public License 3
 
                 ((string= arg "psql" :end1 (min 4 (length arg)))
                  (sqlite-käytössä
-                   (query "UPDATE hallinto SET teksti = ~A ~
-                                WHERE avain = 'tietokanta tyyppi'"
-                          (sql-mj *psql-nimi*))
-
                    (let ((asetukset (pilko-erottimella (subseq arg 4))))
                      (when asetukset
                        (flet ((aseta (avain teksti)
-                                (assert (and (stringp teksti)
+                                (unless (and (stringp teksti)
                                              (plusp (length teksti)))
-                                        nil "Virheelliset PostgreSQL-asetukset.")
+                                  (virhe "Virheelliset PostgreSQL-asetukset."))
                                 (query "UPDATE hallinto SET teksti = ~A ~
                                 WHERE avain = ~A"
                                        (sql-mj teksti)
                                        (sql-mj avain))))
 
                          (with-transaction
+                           (query "UPDATE hallinto SET teksti = ~A ~
+                                        WHERE avain = 'tietokanta tyyppi'"
+                                  (sql-mj *psql-nimi*))
                            (aseta "tietokanta user" (nth 0 asetukset))
                            (aseta "tietokanta password" (nth 1 asetukset))
                            (aseta "tietokanta database" (nth 2 asetukset))
@@ -2344,7 +2343,7 @@ Lisenssi: GNU General Public License 3
                                  (virhe "Virheellinen tietoliikenneportti ~
                                         (yleensä 5432).")))))))))
 
-                (t (virhe "Tuntematon valitsin \"--tietokanta=~A\"" arg)))))
+                (t (virhe "Tuntematon tietokantatyyppi \"~A\"." arg)))))
 
           (tietokanta-käytössä
             (cond
