@@ -2315,6 +2315,10 @@ Lisenssi: GNU General Public License 3
 
                 ((string= arg "psql" :end1 (min 4 (length arg)))
                  (sqlite-käytössä
+                   (query "UPDATE hallinto SET teksti = ~A ~
+                                        WHERE avain = 'tietokanta tyyppi'"
+                          (sql-mj *psql-nimi*))
+
                    (let ((asetukset (pilko-erottimella (subseq arg 4))))
                      (when asetukset
                        (flet ((aseta (avain teksti)
@@ -2327,9 +2331,6 @@ Lisenssi: GNU General Public License 3
                                        (sql-mj avain))))
 
                          (with-transaction
-                           (query "UPDATE hallinto SET teksti = ~A ~
-                                        WHERE avain = 'tietokanta tyyppi'"
-                                  (sql-mj *psql-nimi*))
                            (aseta "tietokanta user" (nth 0 asetukset))
                            (aseta "tietokanta password" (nth 1 asetukset))
                            (aseta "tietokanta database" (nth 2 asetukset))
