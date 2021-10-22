@@ -456,6 +456,7 @@
 
 (defun connect ()
   (unless (typep *tietokanta* 'sqlite:sqlite-handle)
+    (sb-posix:umask #o0077)
     (alusta-tiedostopolku)
     (setf *tietokanta* (sqlite:connect (pathconv:namestring *tiedosto*)))
     (alusta-tietokanta)
