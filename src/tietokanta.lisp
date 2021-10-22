@@ -860,5 +860,5 @@
 
         (qluku "UPDATE hallinto SET teksti = ~A ~
                         WHERE avain = 'tietokanta tyyppi'"
-               (sql-mj *psql-nimi*))
-        *psql-nimi*))))
+               (sql-mj *psql-nimi*)))))
+  *psql-nimi*)
