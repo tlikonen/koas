@@ -49,7 +49,24 @@
          (pathname-as-directory pathname))
         (t (error "Invalid target type ~A." type))))
 
-(defgeneric pathname (pathspec &key type))
+(defgeneric pathname (pathspec &key type)
+  (:documentation
+   "Convert PATHSPEC to a PATHNAME object and return it.
+
+PATHSPEC is taken literally without interpreting any wild characters
+like *?[].
+
+If the optional TYPE argument is NIL (the default) the returned
+PATHNAME's last component is of the same type as the source
+PATHSPEC (file or directory).
+
+IF the TYPE argument is :FILE the last component of PATHSPEC will be
+converted to a file name component even if it was a directory component
+in PATHSPEC.
+
+If the TYPE argument is :DIRECTORY the last component of PATHSPEC will
+be converted to a directory component and there will be no file name
+component."))
 
 (defmethod pathname ((pathspec cl:pathname) &key type)
   (pathname-as-type pathspec type))
@@ -65,7 +82,12 @@
 (defmethod namestring ((pathspec string) &key type)
   (namestring (pathname pathspec :type type)))
 
-(defgeneric file-namestring (pathspec))
+(defgeneric file-namestring (pathspec)
+  (:documentation
+   "Return PATHSPEC's last component as a file name string.
+
+The last component of PATHSPEC is interpreted as a file name and it is
+returned as a string."))
 
 (defmethod file-namestring ((pathspec cl:pathname))
   (setf pathspec (pathname-as-file pathspec))
@@ -76,7 +98,13 @@
 (defmethod file-namestring ((pathspec string))
   (file-namestring (pathname pathspec)))
 
-(defgeneric directory-namestring (pathspec))
+(defgeneric directory-namestring (pathspec)
+  (:documentation
+   "Return PATHSPEC as a directory string.
+
+The last component of PATHSPEC is interpreted as a file name and is
+stripped. All the preceeding components are returned as a directory name
+string."))
 
 (defmethod directory-namestring ((pathspec cl:pathname))
   (setf pathspec (pathname-as-file pathspec))

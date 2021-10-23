@@ -23,14 +23,14 @@
 
 (defun make-adjustable-string (length)
   (make-array length :element-type 'character
-              :adjustable t :fill-pointer 0))
+                     :adjustable t :fill-pointer 0))
 
 (defun parse-quoted-word (string-or-stream
                           &key output-stream
-                            (quote-start-char #\") (quote-end-char #\")
-                            (escape-char #\\)
-                            (separator-chars '(#\space #\tab))
-                            (unescape t))
+                               (quote-start-char #\") (quote-end-char #\")
+                               (escape-char #\\)
+                               (separator-chars '(#\space #\tab))
+                               (unescape t))
 
   "Parse STRING-OR-STREAM and return the next word separated by
 SEPARATOR-CHARS. If nothing could be parsed return NIL. If OUTPUT-STREAM
@@ -77,41 +77,41 @@ invoked with a new string value which is then used and returned."
              (let ((quote nil))
                (handler-case
                    (loop
-                      :with content := nil
-                      :with esc := nil
-                      :for char := (read-char in)
+                     :with content := nil
+                     :with esc := nil
+                     :for char := (read-char in)
 
-                      :do (cond
-                            ((and (separator-char-p char)
-                                  (not content)
-                                  (not quote)
-                                  (not esc)))
-                            ((and (separator-char-p char)
-                                  content
-                                  (not quote)
-                                  (not esc))
-                             (return))
-                            ((and escape-char
-                                  (char= escape-char char)
-                                  (not esc))
-                             (setf esc t)
-                             (unless unescape
-                               (vector-push-extend char out)))
-                            ((and quote-start-char
-                                  quote-end-char
-                                  (char= quote-start-char char)
-                                  (not quote)
-                                  (not esc))
-                             (setf quote t))
-                            ((and quote-start-char
-                                  quote-end-char
-                                  (char= quote-end-char char)
-                                  quote
-                                  (not esc))
-                             (setf quote nil))
-                            (t (vector-push-extend char out)
-                               (setf content t)
-                               (setf esc nil))))
+                     :do (cond
+                           ((and (separator-char-p char)
+                                 (not content)
+                                 (not quote)
+                                 (not esc)))
+                           ((and (separator-char-p char)
+                                 content
+                                 (not quote)
+                                 (not esc))
+                            (return))
+                           ((and escape-char
+                                 (char= escape-char char)
+                                 (not esc))
+                            (setf esc t)
+                            (unless unescape
+                              (vector-push-extend char out)))
+                           ((and quote-start-char
+                                 quote-end-char
+                                 (char= quote-start-char char)
+                                 (not quote)
+                                 (not esc))
+                            (setf quote t))
+                           ((and quote-start-char
+                                 quote-end-char
+                                 (char= quote-end-char char)
+                                 quote
+                                 (not esc))
+                            (setf quote nil))
+                           (t (vector-push-extend char out)
+                              (setf content t)
+                              (setf esc nil))))
 
                  (end-of-file (c)
                    (if quote (error 'closing-quote-missing
@@ -144,17 +144,17 @@ NEEDS-ESCAPING sequence."
   (check-type escape-char character)
   (let ((out (make-adjustable-string (length string))))
     (loop :for char :across string
-       :do (when (find char needs-escaping)
-             (vector-push-extend escape-char out))
-         (vector-push-extend char out))
+          :do (when (find char needs-escaping)
+                (vector-push-extend escape-char out))
+              (vector-push-extend char out))
     out))
 
 (defun quote-string (string &key output-stream
-                              (quote-start-char #\") (quote-end-char #\")
-                              (escape-char #\\)
-                              (needs-escaping (list quote-start-char
-                                                    quote-end-char
-                                                    escape-char)))
+                                 (quote-start-char #\") (quote-end-char #\")
+                                 (escape-char #\\)
+                                 (needs-escaping (list quote-start-char
+                                                       quote-end-char
+                                                       escape-char)))
 
   "Put STRING inside quotes (QUOTE-START-CHAR, QUOTE-END-CHAR).
 
@@ -171,13 +171,13 @@ When OUTPUT-STREAM is a stream write the output to that stream."
   (check-type needs-escaping sequence)
 
   (let ((output
-         (concatenate 'string
-                      (string quote-start-char)
-                      (if escape-char
-                          (escape-characters string needs-escaping
-                                             escape-char)
-                          string)
-                      (string quote-end-char))))
+          (concatenate 'string
+                       (string quote-start-char)
+                       (if escape-char
+                           (escape-characters string needs-escaping
+                                              escape-char)
+                           string)
+                       (string quote-end-char))))
 
     (when output-stream (princ output output-stream))
     output))
@@ -188,10 +188,10 @@ characters.
 
 If OUTPUT-STREAM is a stream write the output to that stream."
   (quote-string string :output-stream output-stream
-                :quote-start-char #\'
-                :quote-end-char #\'
-                :escape-char #\'
-                :needs-escaping "'"))
+                       :quote-start-char #\'
+                       :quote-end-char #\'
+                       :escape-char #\'
+                       :needs-escaping "'"))
 
 (defun sql-escape-like (string &key output-stream wild-before wild-after)
   "Return STRING as an SQL language string ('...') and escape all '
@@ -235,10 +235,10 @@ character codes."
       ((read-chars (in predicate max)
          (let ((chars (make-adjustable-string max)))
            (loop :repeat max
-              :for c := (peek-char nil in)
-              :do (if (funcall predicate c)
-                      (vector-push-extend (read-char in) chars)
-                      (loop-finish)))
+                 :for c := (peek-char nil in)
+                 :do (if (funcall predicate c)
+                         (vector-push-extend (read-char in) chars)
+                         (loop-finish)))
            chars))
 
        (hex-char-p (char)
@@ -252,8 +252,8 @@ character codes."
 
        (parse-stream (in out)
          (loop
-            :for char := (read-char in)
-            :if (char= char #\\) :do
+           :for char := (read-char in)
+           :if (char= char #\\) :do
 
               (let ((sub-char (read-char in)))
                 (case sub-char
@@ -295,7 +295,7 @@ character codes."
                        (vector-push-extend (code-char (parse-int-base 8 cp))
                                            out))))))
 
-            :else :do (vector-push-extend char out))))
+           :else :do (vector-push-extend char out))))
 
     (let ((output (make-adjustable-string 15)))
       (handler-case (etypecase string-or-stream
