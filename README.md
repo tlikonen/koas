@@ -15,35 +15,35 @@ Tietokannasta voi hakea tietoja esimerkiksi seuraavilla tavoilla:
   * opetusryhmän kaikki arvosanat koottuna.
 
 Ohjelma myös laskee suoritusten keskiarvot automaattisesti ja hyödyntää
-laskemisessa käyttäjän määrittämiä painokertoimia.
+laskemisessa käyttäjän määrittämiä painokertoimia. Ohjelmassa on
+tekstipohjainen käyttöliittymä ja myös tulosteet ovat tekstimuotoisia
+taulukoita.
 
-Ohjelmassa on tekstipohjainen käyttöliittymä ja myös tulosteet ovat
-tekstimuotoisia taulukoita.
+Tiedot tallennetaan joko SQLite-tietokantatiedostoon tai erilliselle
+PostgreSQL-tietokantapalvelimelle.
 
 
 Asentaminen
 -----------
 
-_Kouluarvosanatietokanta_ toimii GNU/Linux-käyttöjärjestelmissä ja
-luultavasti myös Mac OS X -käyttöjärjestelmissä. Ohjelman kääntäminen ja
-suorittaminen vaatii [SBCL][]-nimisen Common Lisp -toteutuksen. Lisäksi
-asennettuna täytyy olla kehittäjäversio [Readline][]- ja
-[SQLite3][]-kirjastosta. Esimerkiksi [Debian GNU/Linux][Debian]
--käyttöjärjestelmässä edellä mainitut ovat asennuspaketeissa nimeltä
-`sbcl`, `libreadline6-dev` ja `libsqlite3-dev`.
+_Kouluarvosanatietokanta_ toimii ainakin GNU/Linux-käyttöjärjestelmissä.
+Ohjelman kääntäminen ja suorittaminen vaatii [SBCL][]-nimisen Common
+Lisp -toteutuksen. Lisäksi asennettuna täytyy olla kehittäjäversio
+[Readline][]- ja [SQLite3][]-kirjastosta. Esimerkiksi [Debian
+GNU/Linux][Debian] -käyttöjärjestelmässä edellä mainitut ovat
+asennuspaketeissa nimeltä `sbcl`, `libreadline6-dev` ja
+`libsqlite3-dev`.
 
 Ensimmäisellä kerralla kääntämisen yhteydessä käytetään `wget`-ohjelmaa,
 jolla haetaan internetistä [Quicklisp][QL]. Quicklispin avulla ladataan
 internetistä automaattisesti eräitä Common Lisp -kirjastoja.
 
 Ohjelma käännetään komennolla `make` ja asennetaan komennolla `make
-install`. Ohjelman tiedostot asennetaan oletuksena hakemiston
-`/usr/local` alle. Asennushakemistohierarkian voi määrittää
-makefile-muuttujalla `prefix` tai erikseen ajettavalle tiedostolle
-muuttujalla `bindir` ja kirjastotiedostoille muuttujalla `libdir`.
-Käytettävän SBCL:n polun voi määrittää muuttujalla `sbcl`. Esimerkki:
-`make sbcl=... prefix=...`. Käytetyt muuttujat tallennetaan tiedostoon
-`config.mk`.
+install`. Oletuksena ohjelma asennetaan hakemistoon `/usr/local/bin`.
+Asennushakemiston voi määrittää makefile-muuttujalla `bindir`.
+Käytettävän [SBCL][]:n polun voi määrittää muuttujalla `sbcl`.
+Esimerkki: `make sbcl=... bindir=...`. Käytetyt muuttujat tallentuvat
+tiedostoon `config.mk`.
 
 
 [SBCL]:     http://www.sbcl.org/
@@ -57,13 +57,12 @@ Käyttö
 ------
 
 Kun ohjelman `koas` käynnistää ensimmäisen kerran, luodaan
-tietokantatiedosto `~/.config/koas.db`. Siihen tallentuvat kaikki
-käyttäjän syöttämät tiedot. Tiedostosta kannattaa pitää hyvää huolta,
-eli se kannattaa varmuuskopioida riittävän usein.
+tietokantatiedosto `~/.config/koas.db`. Lisätietoa ohjelmasta saa
+käynnistämällä sen valitsimella `koas -h`.
 
 Ohjelman käyttö on yleensä vuorovaikutteista ja perustuu komentojen
 syöttämiseen näppäimistöltä. Kun ohjelma on käynnissä, komentojen kehote
-on `KOAS>`, jolloin komentoja voi syöttää. Ohjeita komentoihin ja niiden
+on `Koas>`, jolloin komentoja voi syöttää. Ohjeita komentoihin ja niiden
 käyttöön saa komennoilla `?`, `??` ja `???`.
 
 Useimmat toiminnot ovat käytettävissä myös ei-vuorovaikutteisesti eli
