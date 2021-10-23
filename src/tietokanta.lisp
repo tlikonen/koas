@@ -84,7 +84,7 @@
   (unless *sqlite-tiedosto*
     (setf *sqlite-tiedosto*
           (merge-pathnames (make-pathname :directory '(:relative ".config")
-                                          :name "koas-kehitys" :type "db")
+                                          :name "koas" :type "db")
                            (user-homedir-pathname))))
   (ensure-directories-exist *sqlite-tiedosto*))
 
