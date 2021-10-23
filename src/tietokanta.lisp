@@ -433,7 +433,8 @@
 (defmethod päivitä-tietokanta ((tyyppi sqlite:sqlite-handle)
                                (versio (eql 10)))
   ;; Lisätään hallinto-taulukkoon sarake teksti TEXT ja
-  ;; oppilaat-taulukkoon indeksi.
+  ;; oppilaat-taulukkoon indeksi. Lisätään hallinto-taulukkoon
+  ;; PostgreSQL-asetukset.
   (with-transaction
     (query "ALTER TABLE hallinto RENAME TO hallinto_vanha")
     (query "CREATE TABLE hallinto ~
