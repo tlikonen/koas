@@ -30,7 +30,6 @@
    #:with-transaction
    #:eheytys
    #:query-returning
-   #:substitute-nulls
    #:kopioi-sqlite-postgresql
    #:kopioi-postgresql-sqlite
    #:ohjelman-alkuilmoitus
@@ -137,10 +136,6 @@
         ((postgresql-yhteys-p)
          *postgresql-last-insert-id*)
         (t (virhe "Ei yhteyttä tietokantaan."))))
-
-
-(defun substitute-nulls (seq)
-  (substitute nil :null seq))
 
 
 (defun sql-mj (asia)
@@ -906,7 +901,7 @@
               :in (qluku "SELECT oid, sukunimi, etunimi, lisatiedot ~
                                 FROM oppilaat")
               :for (oid sukunimi etunimi lisätiedot)
-                 := (substitute-nulls rivi)
+                 := (substitute nil :null rivi)
               :do (qkirj "INSERT INTO oppilaat ~
                         (oid, sukunimi, etunimi, lisatiedot)
                         VALUES (~A, ~A, ~A, ~A)"
@@ -916,7 +911,7 @@
         ;; ryhmät
         (loop :for rivi
               :in (qluku "SELECT rid, nimi, lisatiedot FROM ryhmat")
-              :for (rid nimi lisätiedot) := (substitute-nulls rivi)
+              :for (rid nimi lisätiedot) := (substitute nil :null rivi)
               :do (qkirj "INSERT INTO ryhmat ~
                         (rid, nimi, lisatiedot)
                         VALUES (~A, ~A, ~A)"
@@ -935,7 +930,7 @@
                                 nimi, lyhenne, painokerroin ~
                                 FROM suoritukset")
               :for (sid rid sija nimi lyhenne painokerroin)
-                 := (substitute-nulls rivi)
+                 := (substitute nil :null rivi)
               :do (qkirj "INSERT INTO suoritukset ~
                         (sid, rid, sija, nimi, lyhenne, painokerroin)
                         VALUES (~A, ~A, ~A, ~A, ~A, ~A)"
@@ -948,7 +943,7 @@
               :in (qluku "SELECT sid, oid, arvosana, lisatiedot ~
                                 FROM arvosanat")
               :for (sid oid arvosana lisatiedot)
-                 := (substitute-nulls rivi)
+                 := (substitute nil :null rivi)
               :do (qkirj "INSERT INTO arvosanat ~
                         (sid, oid, arvosana, lisatiedot)
                         VALUES (~A, ~A, ~A, ~A)"
