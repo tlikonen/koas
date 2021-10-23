@@ -2407,7 +2407,7 @@ Lisenssi: GNU General Public License 3
                    (ohjelman-alkuilmoitus)
                    (loop
                      (handler-case
-                         (käsittele-komentorivi (lue-rivi "KOAS> " t))
+                         (käsittele-komentorivi (lue-rivi "Koas> " t))
                        (koas-virhe (tila)
                          (viesti "~A~%" tila)))))))))))))
 

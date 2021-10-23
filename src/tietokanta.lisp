@@ -71,9 +71,9 @@
 
 (defun ohjelman-alkuilmoitus ()
   (cond ((sqlite-yhteys-p)
-         (viesti "KOAS - SQLite (~A)~%" *sqlite-tiedosto*))
+         (viesti "Koas - SQLite (~A)~%" *sqlite-tiedosto*))
         ((psql-yhteys-p)
-         (viesti "KOAS - PostgreSQL (postgresql://~A@~A:~A/~A)~%"
+         (viesti "Koas - PostgreSQL (postgresql://~A@~A:~A/~A)~%"
                  (user *psql-asetukset*)
                  (host *psql-asetukset*)
                  (port *psql-asetukset*)
