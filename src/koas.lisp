@@ -2128,9 +2128,7 @@ Valitsimet:
   --tietokanta=psql/käyttäjä/salasana/osoite/portti/kanta
 
         Siirtyy käyttämään erillistä PostgreSQL-tietokantapalvelinta
-        kouluarvosanatietokannan tallentamiseen. Ohjelman asetukset
-        tallentuvat edelleenkin SQLite-tietokantaan, joka on tiedostossa
-        \"~0@*~A\".
+        kouluarvosanatietokannan tallentamiseen.
 
         Komentorivillä annetut asetukset \"käyttäjä\" ja \"salasana\"
         ovat tietokannan kirjautumistietoja. Asetukset \"osoite\" ja
@@ -2142,7 +2140,8 @@ Valitsimet:
         olemassa, ja tällä käyttäjällä pitää olla CREATE-oikeus eli
         oikeus luoda taulukoita yms. Kaikki edellä mainitut asetukset
         tallentuvat SQLite-tiedostoon, ja niitä käytetään
-        automaattisesti seuraavilla kerroilla.
+        automaattisesti seuraavilla kerroilla. Asetustiedosto on
+        \"~0@*~A\".
 
         Asetusten erotinmerkkinä on yllä olevassa esimerkissä
         vinoviiva (/), mutta se voisi olla mikä tahansa muukin merkki.
@@ -2162,6 +2161,12 @@ Valitsimet:
 
         Kopioi kouluarvosanatietokannan SQLitesta PostgreSQL:ään.
         Kohdetietokanta tyhjennetään ennen sitä.
+
+        Kopioinnin jälkeen SQLite-tiedoston voi poistaa. Se tosin
+        luodaan automaattisesti uudelleen ainakin ohjelman asetusten
+        tallentamista varten. Kouluarvosanatietokantaa ei siihen enää
+        tallenneta, jos käytössä on PostgreSQL-tietokanta eli asetus
+        \"--tietokanta=psql\".
 
   --kopioi-psql-sqlite
 
