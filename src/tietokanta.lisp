@@ -878,8 +878,9 @@
               :do (qkirj "INSERT INTO arvosanat ~
                         (sid, oid, arvosana, lisatiedot)
                         VALUES (~A, ~A, ~A, ~A)"
-                         sid oid (sql-mj (or arvosana ""))
-                         (sql-mj lisatiedot))))))
+                         sid oid
+                         (if arvosana (sql-mj arvosana) "NULL")
+                         (if lisatiedot (sql-mj lisatiedot) "NULL"))))))
   *psql-nimi*)
 
 
@@ -949,8 +950,9 @@
               :do (qkirj "INSERT INTO arvosanat ~
                         (sid, oid, arvosana, lisatiedot)
                         VALUES (~A, ~A, ~A, ~A)"
-                         sid oid (sql-mj (or arvosana ""))
-                         (sql-mj lisatiedot)))))
+                         sid oid
+                         (if arvosana (sql-mj arvosana) "NULL")
+                         (if lisatiedot (sql-mj lisatiedot) "NULL")))))
 
     (let ((*tietokanta* sqlite))
       (eheytys t)))
