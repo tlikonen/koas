@@ -69,6 +69,17 @@
   (typep *tietokanta* 'postmodern:database-connection))
 
 
+(defun ohjelman-alkuilmoitus ()
+  (cond ((sqlite-yhteys-p)
+         (viesti "KOAS - SQLite (~A)~%" *sqlite-tiedosto*))
+        ((psql-yhteys-p)
+         (viesti "KOAS - PostgreSQL (postgresql://~A@~A:~A/~A)~%"
+                 (user *psql-asetukset*)
+                 (host *psql-asetukset*)
+                 (port *psql-asetukset*)
+                 (database *psql-asetukset*)))))
+
+
 (defun alusta-sqlite-tiedostopolku ()
   (unless *sqlite-tiedosto*
     (setf *sqlite-tiedosto*
@@ -739,17 +750,6 @@
                               (host *psql-asetukset*))))
       (virhe "Virheelliset PostgreSQL-asetukset.")))
   *tietokanta*)
-
-
-(defun ohjelman-alkuilmoitus ()
-  (cond ((sqlite-yhteys-p)
-         (viesti "KOAS - SQLite-tietokanta (~A)~%" *sqlite-tiedosto*))
-        ((psql-yhteys-p)
-         (viesti "KOAS - PostgreSQL-tietokanta (~A ~A ~A ~A)~%"
-                 (user *psql-asetukset*)
-                 (database *psql-asetukset*)
-                 (host *psql-asetukset*)
-                 (port *psql-asetukset*)))))
 
 
 (defmacro tietokanta-käytössä (&body body)
