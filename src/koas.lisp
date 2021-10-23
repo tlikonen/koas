@@ -2194,7 +2194,7 @@ komento. Muokkauskomennot eivät ole tällöin käytössä.
 
 (defun ohjeet-versio ()
   (viesti "~
-koas ~A
+Koas versio ~A
 Tekijä:   Teemu Likonen <tlikonen@iki.fi>
 Lisenssi: GNU General Public License 3
           <https://www.gnu.org/licenses/gpl-3.0.html>
