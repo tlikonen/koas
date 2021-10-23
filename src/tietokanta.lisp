@@ -500,7 +500,7 @@
 
       ;; Tietokanta puuttuu
       (with-transaction
-        (viesti "~&Valmistellaan tietokanta \"~A\".~%"
+        (viesti "~&Valmistellaan SQLite-tietokanta (~A).~%"
                 (pathconv:namestring *sqlite-tiedosto*))
 
         (query "PRAGMA auto_vacuum = FULL")
@@ -610,7 +610,12 @@
 
       ;; Tietokanta puuttuu
       (with-transaction
-        (viesti "~&Valmistellaan PostgreSQL-tietokanta.~%")
+        (viesti "~&Valmistellaan PostgreSQL-tietokanta ~
+                (postgresql://~A@~A:~A/~A).~%"
+                (user *psql-asetukset*)
+                (host *psql-asetukset*)
+                (port *psql-asetukset*)
+                (database *psql-asetukset*))
 
         (query "CREATE TABLE hallinto ~
                 (avain TEXT PRIMARY KEY, ~
