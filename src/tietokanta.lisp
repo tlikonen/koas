@@ -446,15 +446,15 @@
     (query "INSERT INTO hallinto (avain, teksti) ~
                 VALUES ('tietokanta tyyppi', ~A)" (sql-mj *sqlite-nimi*))
     (query "INSERT INTO hallinto (avain, teksti) ~
-                VALUES ('tietokanta host', '')")
+                VALUES ('psql-host', '')")
     (query "INSERT INTO hallinto (avain, arvo) ~
-                VALUES ('tietokanta port', 5432)")
+                VALUES ('psql-port', 5432)")
     (query "INSERT INTO hallinto (avain, teksti) ~
-                VALUES ('tietokanta database', '')")
+                VALUES ('psql-database', '')")
     (query "INSERT INTO hallinto (avain, teksti) ~
-                VALUES ('tietokanta user', '')")
+                VALUES ('psql-user', '')")
     (query "INSERT INTO hallinto (avain, teksti) ~
-                VALUES ('tietokanta password', '')")
+                VALUES ('psql-password', '')")
 
     (query "DROP TABLE hallinto_vanha")
 
@@ -519,15 +519,15 @@
         (query "INSERT INTO hallinto (avain, teksti) ~
                 VALUES ('tietokanta tyyppi', ~A)" (sql-mj *sqlite-nimi*))
         (query "INSERT INTO hallinto (avain, teksti) ~
-                VALUES ('tietokanta host', '')")
+                VALUES ('psql-host', '')")
         (query "INSERT INTO hallinto (avain, arvo) ~
-                VALUES ('tietokanta port', 5432)")
+                VALUES ('psql-port', 5432)")
         (query "INSERT INTO hallinto (avain, teksti) ~
-                VALUES ('tietokanta database', '')")
+                VALUES ('psql-database', '')")
         (query "INSERT INTO hallinto (avain, teksti) ~
-                VALUES ('tietokanta user', '')")
+                VALUES ('psql-user', '')")
         (query "INSERT INTO hallinto (avain, teksti) ~
-                VALUES ('tietokanta password', '')")
+                VALUES ('psql-password', '')")
 
         (query "CREATE TABLE oppilaat ~
                 (oid INTEGER PRIMARY KEY, ~
@@ -733,12 +733,12 @@
            (query-1 "SELECT teksti FROM hallinto ~
                         WHERE avain = ~A" (sql-mj avain))))
 
-    (setf (user *psql-asetukset*) (lue "tietokanta user"))
-    (setf (password *psql-asetukset*) (lue "tietokanta password"))
-    (setf (database *psql-asetukset*) (lue "tietokanta database"))
-    (setf (host *psql-asetukset*) (lue "tietokanta host"))
+    (setf (user *psql-asetukset*) (lue "psql-user"))
+    (setf (password *psql-asetukset*) (lue "psql-password"))
+    (setf (database *psql-asetukset*) (lue "psql-database"))
+    (setf (host *psql-asetukset*) (lue "psql-host"))
     (setf (port *psql-asetukset*) (query-1 "SELECT arvo FROM hallinto ~
-                        WHERE avain = 'tietokanta port'"))
+                        WHERE avain = 'psql-port'"))
 
     (unless (and (integerp (port *psql-asetukset*))
                  (<= 1 (port *psql-asetukset*) 65535)

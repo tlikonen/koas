@@ -2348,18 +2348,18 @@ Lisenssi: GNU General Public License 3
                                        (sql-mj avain))))
 
                          (with-transaction
-                           (aseta "tietokanta user" (nth 0 asetukset))
-                           (aseta "tietokanta password" (nth 1 asetukset))
-                           (aseta "tietokanta host" (nth 2 asetukset))
+                           (aseta "psql-user" (nth 0 asetukset))
+                           (aseta "psql-password" (nth 1 asetukset))
+                           (aseta "psql-host" (nth 2 asetukset))
                            (let ((portti (lue-numero (nth 3 asetukset))))
                              (if (and (integerp portti)
                                       (<= 1 portti 65535))
                                  (query "UPDATE hallinto SET arvo = ~A ~
-                                WHERE avain = 'tietokanta port'"
+                                WHERE avain = 'psql-port'"
                                         portti)
                                  (virhe "Virheellinen tietoliikenneportti ~
                                         (yleensä 5432).")))
-                           (aseta "tietokanta database" (nth 4 asetukset))))))))
+                           (aseta "psql-database" (nth 4 asetukset))))))))
 
                 (t (virhe "Tuntematon tietokantatyyppi \"~A\"." arg)))))
 
