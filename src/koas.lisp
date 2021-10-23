@@ -2134,15 +2134,15 @@ Valitsimet:
 
         Komentorivillä annetut asetukset \"käyttäjä\" ja \"salasana\"
         ovat tietokannan kirjautumistietoja. Asetukset \"osoite\" ja
-        \"portti\" ovat verkko-osoitetietoja. Jos tietokantapalvelin
-        toimii samalla tietokoneella, sopiva osoite on \"localhost\".
-        \"portti\"-asetukseen sopii yleensä \"5432\", joka on
-        PostgreSQL:n oletusportti. \"kanta\" on tietokannan nimi, johon
-        kirjaudutaan. Sen täytyy olla valmiiksi olemassa, ja tällä
-        käyttäjällä pitää olla CREATE-oikeus eli mahdollisuus luoda
-        taulukoita yms. Kaikki edellä mainitut asetukset tallentuvat
-        SQLite-tiedostoon, ja niitä käytetään automaattisesti
-        seuraavilla kerroilla.
+        \"portti\" ovat palvelimen verkko-osoitetietoja. Jos
+        tietokantapalvelin toimii samalla tietokoneella, sopiva osoite
+        on \"localhost\". \"portti\"-asetuksen voi jättää tyhjäksi,
+        jolloin käytetään PostgreSQL:n oletusporttia 5432. \"kanta\" on
+        tietokannan nimi, johon kirjaudutaan. Sen täytyy olla valmiiksi
+        olemassa, ja tällä käyttäjällä pitää olla CREATE-oikeus eli
+        oikeus luoda taulukoita yms. Kaikki edellä mainitut asetukset
+        tallentuvat SQLite-tiedostoon, ja niitä käytetään
+        automaattisesti seuraavilla kerroilla.
 
         Asetusten erotinmerkkinä on yllä olevassa esimerkissä
         vinoviiva (/), mutta se voisi olla mikä tahansa muukin merkki.
@@ -2338,9 +2338,10 @@ Lisenssi: GNU General Public License 3
 
                    (let ((asetukset (pilko-erottimella (subseq arg 4))))
                      (when asetukset
+                       (unless (= 5 (length asetukset))
+                         (virhe "Virheelliset PostgreSQL-asetukset."))
                        (flet ((aseta (avain teksti)
-                                (unless (and (stringp teksti)
-                                             (plusp (length teksti)))
+                                (unless (plusp (length teksti))
                                   (virhe "Virheelliset PostgreSQL-asetukset."))
                                 (query "UPDATE hallinto SET teksti = ~A ~
                                 WHERE avain = ~A"
@@ -2351,14 +2352,17 @@ Lisenssi: GNU General Public License 3
                            (aseta "psql-user" (nth 0 asetukset))
                            (aseta "psql-password" (nth 1 asetukset))
                            (aseta "psql-host" (nth 2 asetukset))
-                           (let ((portti (lue-numero (nth 3 asetukset))))
-                             (if (and (integerp portti)
-                                      (<= 1 portti 65535))
-                                 (query "UPDATE hallinto SET arvo = ~A ~
-                                WHERE avain = 'psql-port'"
-                                        portti)
-                                 (virhe "Virheellinen tietoliikenneportti ~
-                                        (yleensä 5432).")))
+                           (let ((portti (nth 3 asetukset)))
+                             (cond ((string= "" portti)
+                                    (setf portti 5432))
+                                   ((and (every #'digit-char-p portti))
+                                    (setf portti (parse-integer portti))))
+                             (unless (and (integerp portti)
+                                          (<= 1 portti 65535))
+                               (virhe "Virheellinen tietoliikenneportti ~
+                                        (yleensä 5432)."))
+                             (query "UPDATE hallinto SET arvo = ~A ~
+                                WHERE avain = 'psql-port'" portti))
                            (aseta "psql-database" (nth 4 asetukset))))))))
 
                 (t (virhe "Tuntematon tietokantatyyppi \"~A\"." arg)))))
