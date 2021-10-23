@@ -2125,7 +2125,7 @@ Valitsimet:
         automaattisesti SQLite-tietokantaa. Tämä on myös ohjelman
         oletusasetus.
 
-  --tietokanta=psql/käyttäjä/salasana/osoite/portti/kanta
+  --tietokanta=postgresql/käyttäjä/salasana/osoite/portti/kanta
 
         Siirtyy käyttämään erillistä PostgreSQL-tietokantapalvelinta
         kouluarvosanatietokannan tallentamiseen.
@@ -2145,10 +2145,10 @@ Valitsimet:
 
         Asetusten erotinmerkkinä on yllä olevassa esimerkissä
         vinoviiva (/), mutta se voisi olla mikä tahansa muukin merkki.
-        Sanojen \"--tietokanta=psql\" jälkeinen merkki määrittää, mikä
-        merkki erottaa asetuskentät toisistaan.
+        Sanojen \"--tietokanta=postgresql\" jälkeinen merkki määrittää,
+        mikä merkki erottaa asetuskentät toisistaan.
 
-  --tietokanta=psql
+  --tietokanta=postgresql
 
         Siirtyy käyttämään erillistä PostgreSQL-tietokantapalvelinta
         kouluarvosanatietokannan tallentamiseen. Tämä asetus tallentuu,
@@ -2157,7 +2157,7 @@ Valitsimet:
         täytyy olla jo valmiiksi asetettuna. Katso lisätietoja tätä
         edeltävän valitsimen kuvauksesta.
 
-  --kopioi-sqlite-psql
+  --kopioi-sqlite-postgresql
 
         Kopioi kouluarvosanatietokannan SQLitesta PostgreSQL:ään.
         Kohdetietokanta tyhjennetään ennen sitä.
@@ -2165,10 +2165,10 @@ Valitsimet:
         Kopioinnin jälkeen SQLite-tiedoston voi poistaa. Se tosin
         luodaan automaattisesti uudelleen ainakin ohjelman asetusten
         tallentamista varten. Jos käytössä on PostgreSQL-tietokanta eli
-        asetus \"--tietokanta=psql\", kouluarvosanatietokantaa ei enää
-        tallenneta SQLite-tiedostoon.
+        asetus \"--tietokanta=postgresql\", kouluarvosanatietokantaa ei
+        enää tallenneta SQLite-tiedostoon.
 
-  --kopioi-psql-sqlite
+  --kopioi-postgresql-sqlite
 
         Kopioi kouluarvosanatietokannan PostgreSQL:stä SQLiteen.
         Kohdetietokanta tyhjennetään ennen sitä.
@@ -2283,8 +2283,8 @@ Lisenssi: GNU General Public License 3
                   (:muoto "muoto" :required)
                   (:suppea "suppea")
                   (:versio #\v) (:versio "versio")
-                  (:sqlite-psql "kopioi-sqlite-psql")
-                  (:psql-sqlite "kopioi-psql-sqlite"))
+                  (:sqlite-postgresql "kopioi-sqlite-postgresql")
+                  (:postgresql-sqlite "kopioi-postgresql-sqlite"))
            :error-on-unknown-option t
            :error-on-argument-missing t
            :error-on-argument-not-allowed t)
@@ -2313,8 +2313,8 @@ Lisenssi: GNU General Public License 3
 
         (when (< 1 (count :tietokanta valitsimet :key #'first))
           (virhe "Käytä valitsinta \"--tietokanta\" korkeintaan kerran."))
-        (when (< 1 (+ (count :sqlite-psql valitsimet :key #'first)
-                      (count :psql-sqlite valitsimet :key #'first)))
+        (when (< 1 (+ (count :sqlite-postgresql valitsimet :key #'first)
+                      (count :postgresql-sqlite valitsimet :key #'first)))
           (virhe "Käytä \"--kopioi\"-valitsimia korkeintaan kerran."))
 
         (let ((muoto nil))
@@ -2329,19 +2329,22 @@ Lisenssi: GNU General Public License 3
             (let ((arg (cdr (assoc :tietokanta valitsimet))))
               (cond
 
-                ((string= arg "sqlite")
+                ((string= arg *sqlite-nimi*)
                  (sqlite-käytössä
                    (query "UPDATE hallinto SET teksti = ~A ~
                                 WHERE avain = 'tietokanta'"
                           (sql-mj *sqlite-nimi*))))
 
-                ((string= arg "psql" :end1 (min 4 (length arg)))
+                ((string= arg *postgresql-nimi*
+                          :end1 (min (length *postgresql-nimi*)
+                                     (length arg)))
                  (sqlite-käytössä
                    (query "UPDATE hallinto SET teksti = ~A ~
                                         WHERE avain = 'tietokanta'"
-                          (sql-mj *psql-nimi*))
+                          (sql-mj *postgresql-nimi*))
 
-                   (let ((asetukset (pilko-erottimella (subseq arg 4))))
+                   (let ((asetukset (pilko-erottimella
+                                     (subseq arg (length *postgresql-nimi*)))))
                      (when asetukset
                        (unless (= 5 (length asetukset))
                          (virhe "Virheelliset PostgreSQL-asetukset."))
@@ -2354,9 +2357,9 @@ Lisenssi: GNU General Public License 3
                                        (sql-mj avain))))
 
                          (with-transaction
-                           (aseta "psql-user" (nth 0 asetukset))
-                           (aseta "psql-password" (nth 1 asetukset))
-                           (aseta "psql-host" (nth 2 asetukset))
+                           (aseta "postgresql-user" (nth 0 asetukset))
+                           (aseta "postgresql-password" (nth 1 asetukset))
+                           (aseta "postgresql-host" (nth 2 asetukset))
                            (let ((portti (nth 3 asetukset)))
                              (cond ((string= "" portti)
                                     (setf portti 5432))
@@ -2367,17 +2370,17 @@ Lisenssi: GNU General Public License 3
                                (virhe "Virheellinen tietoliikenneportti ~
                                         (yleensä 5432)."))
                              (query "UPDATE hallinto SET arvo = ~A ~
-                                WHERE avain = 'psql-port'" portti))
-                           (aseta "psql-database" (nth 4 asetukset))))))))
+                                WHERE avain = 'postgresql-port'" portti))
+                           (aseta "postgresql-database" (nth 4 asetukset))))))))
 
                 (t (virhe "Tuntematon tietokantatyyppi \"~A\"." arg)))))
 
-          (when (assoc :sqlite-psql valitsimet)
-            (kopioi-sqlite-psql)
+          (when (assoc :sqlite-postgresql valitsimet)
+            (kopioi-sqlite-postgresql)
             (error 'poistu-ohjelmasta))
 
-          (when (assoc :psql-sqlite valitsimet)
-            (kopioi-psql-sqlite)
+          (when (assoc :postgresql-sqlite valitsimet)
+            (kopioi-postgresql-sqlite)
             (error 'poistu-ohjelmasta))
 
           (tietokanta-käytössä

@@ -20,7 +20,7 @@
   (:use #:cl #:yhteinen)
   (:export
    #:alusta-sqlite-tiedostopolku #:*sqlite-tiedosto*
-   #:*sqlite-nimi* #:*psql-nimi*
+   #:*sqlite-nimi* #:*postgresql-nimi*
    #:query-last-insert-rowid
    #:lisää-muokkauslaskuriin
    #:tietokanta-käytössä #:sqlite-käytössä
@@ -31,8 +31,8 @@
    #:eheytys
    #:query-returning
    #:substitute-nulls
-   #:kopioi-sqlite-psql
-   #:kopioi-psql-sqlite
+   #:kopioi-sqlite-postgresql
+   #:kopioi-postgresql-sqlite
    #:ohjelman-alkuilmoitus
    ))
 
@@ -42,8 +42,8 @@
 (defvar *sqlite-tiedosto* nil)
 (defvar *tietokanta* nil)
 (defvar *muokkaukset-kunnes-eheytys* 5000)
-(defparameter *psql-last-insert-id* 0)
-(defparameter *psql-nimi* "psql")
+(defparameter *postgresql-last-insert-id* 0)
+(defparameter *postgresql-nimi* "postgresql")
 (defparameter *sqlite-nimi* "sqlite")
 (defparameter *ohjelman-tietokantaversio* 10)
 
@@ -56,7 +56,7 @@
    (port :accessor port :initarg :port :type integer)))
 
 
-(defvar *psql-asetukset*
+(defvar *postgresql-asetukset*
   (make-instance 'tietokanta-asetukset
                  :user "" :password ""
                  :database "" :host "" :port 5432))
@@ -65,19 +65,19 @@
 (defun sqlite-yhteys-p ()
   (typep *tietokanta* 'sqlite:sqlite-handle))
 
-(defun psql-yhteys-p ()
+(defun postgresql-yhteys-p ()
   (typep *tietokanta* 'postmodern:database-connection))
 
 
 (defun ohjelman-alkuilmoitus ()
   (cond ((sqlite-yhteys-p)
          (viesti "Koas - SQLite (~A)~%" *sqlite-tiedosto*))
-        ((psql-yhteys-p)
+        ((postgresql-yhteys-p)
          (viesti "Koas - PostgreSQL (postgresql://~A@~A:~A/~A)~%"
-                 (user *psql-asetukset*)
-                 (host *psql-asetukset*)
-                 (port *psql-asetukset*)
-                 (database *psql-asetukset*)))))
+                 (user *postgresql-asetukset*)
+                 (host *postgresql-asetukset*)
+                 (port *postgresql-asetukset*)
+                 (database *postgresql-asetukset*)))))
 
 
 (defun alusta-sqlite-tiedostopolku ()
@@ -94,7 +94,7 @@
          (sqlite:execute-to-list *tietokanta*
                                  (apply #'format nil format-string
                                         parameters)))
-        ((psql-yhteys-p)
+        ((postgresql-yhteys-p)
          (pomo:query (apply #'format nil format-string parameters)))
         (t (virhe "Ei yhteyttä tietokantaan."))))
 
@@ -104,8 +104,8 @@
          (sqlite:execute-to-list *tietokanta*
                                  (apply #'format nil format-string
                                         parameters)))
-        ((psql-yhteys-p)
-         (setf *psql-last-insert-id*
+        ((postgresql-yhteys-p)
+         (setf *postgresql-last-insert-id*
                (caar (pomo:query
                       (apply #'format nil
                              (concatenate 'string format-string
@@ -125,7 +125,7 @@
 (defmacro with-transaction (&body body)
   `(cond ((sqlite-yhteys-p)
           (sqlite:with-transaction *tietokanta* ,@body))
-         ((psql-yhteys-p)
+         ((postgresql-yhteys-p)
           (pomo:with-transaction () ,@body))))
 
 
@@ -134,8 +134,8 @@
   ;; Sitten kun se otetaan käyttöön, voidaan poistaa tämä funktio.
   (cond ((sqlite-yhteys-p)
          (sqlite:last-insert-rowid *tietokanta*))
-        ((psql-yhteys-p)
-         *psql-last-insert-id*)
+        ((postgresql-yhteys-p)
+         *postgresql-last-insert-id*)
         (t (virhe "Ei yhteyttä tietokantaan."))))
 
 
@@ -448,15 +448,15 @@
     (query "INSERT INTO hallinto (avain, teksti) ~
                 VALUES ('tietokanta', ~A)" (sql-mj *sqlite-nimi*))
     (query "INSERT INTO hallinto (avain, teksti) ~
-                VALUES ('psql-host', '')")
+                VALUES ('postgresql-host', '')")
     (query "INSERT INTO hallinto (avain, arvo) ~
-                VALUES ('psql-port', 5432)")
+                VALUES ('postgresql-port', 5432)")
     (query "INSERT INTO hallinto (avain, teksti) ~
-                VALUES ('psql-database', '')")
+                VALUES ('postgresql-database', '')")
     (query "INSERT INTO hallinto (avain, teksti) ~
-                VALUES ('psql-user', '')")
+                VALUES ('postgresql-user', '')")
     (query "INSERT INTO hallinto (avain, teksti) ~
-                VALUES ('psql-password', '')")
+                VALUES ('postgresql-password', '')")
 
     (query "DROP TABLE hallinto_vanha")
 
@@ -524,15 +524,15 @@
         (query "INSERT INTO hallinto (avain, teksti) ~
                 VALUES ('tietokanta', ~A)" (sql-mj *sqlite-nimi*))
         (query "INSERT INTO hallinto (avain, teksti) ~
-                VALUES ('psql-host', '')")
+                VALUES ('postgresql-host', '')")
         (query "INSERT INTO hallinto (avain, arvo) ~
-                VALUES ('psql-port', 5432)")
+                VALUES ('postgresql-port', 5432)")
         (query "INSERT INTO hallinto (avain, teksti) ~
-                VALUES ('psql-database', '')")
+                VALUES ('postgresql-database', '')")
         (query "INSERT INTO hallinto (avain, teksti) ~
-                VALUES ('psql-user', '')")
+                VALUES ('postgresql-user', '')")
         (query "INSERT INTO hallinto (avain, teksti) ~
-                VALUES ('psql-password', '')")
+                VALUES ('postgresql-password', '')")
 
         (query "CREATE TABLE oppilaat ~
                 (oid INTEGER PRIMARY KEY, ~
@@ -617,10 +617,10 @@
       (with-transaction
         (viesti "~&Valmistellaan PostgreSQL-tietokanta ~
                 (postgresql://~A@~A:~A/~A).~%"
-                (user *psql-asetukset*)
-                (host *psql-asetukset*)
-                (port *psql-asetukset*)
-                (database *psql-asetukset*))
+                (user *postgresql-asetukset*)
+                (host *postgresql-asetukset*)
+                (port *postgresql-asetukset*)
+                (database *postgresql-asetukset*))
 
         (query "CREATE TABLE hallinto ~
                 (avain TEXT PRIMARY KEY, ~
@@ -717,13 +717,13 @@
       (setf *tietokanta* nil))))
 
 
-(defun connect-psql (&key (user (user *psql-asetukset*))
-                          (password (password *psql-asetukset*))
-                          (database (database *psql-asetukset*))
-                          (host (host *psql-asetukset*))
-                          (port (port *psql-asetukset*)))
+(defun connect-postgresql (&key (user (user *postgresql-asetukset*))
+                                (password (password *postgresql-asetukset*))
+                                (database (database *postgresql-asetukset*))
+                                (host (host *postgresql-asetukset*))
+                                (port (port *postgresql-asetukset*)))
 
-  (unless (psql-yhteys-p)
+  (unless (postgresql-yhteys-p)
     (setf *tietokanta* (pomo:connect database user password host
                                      :port (or port 5432))
           pomo:*database* *tietokanta*)
@@ -731,33 +731,33 @@
     *tietokanta*))
 
 
-(defun disconnect-psql ()
-  (when (psql-yhteys-p)
+(defun disconnect-postgresql ()
+  (when (postgresql-yhteys-p)
     (pomo:disconnect *tietokanta*)
     (setf *tietokanta* nil
           pomo:*database* nil)))
 
 
-(defun lue-psql-asetukset ()
+(defun lue-postgresql-asetukset ()
   (flet ((lue (avain)
            (query-1 "SELECT teksti FROM hallinto ~
                         WHERE avain = ~A" (sql-mj avain))))
 
-    (setf (user *psql-asetukset*) (lue "psql-user"))
-    (setf (password *psql-asetukset*) (lue "psql-password"))
-    (setf (database *psql-asetukset*) (lue "psql-database"))
-    (setf (host *psql-asetukset*) (lue "psql-host"))
-    (setf (port *psql-asetukset*) (query-1 "SELECT arvo FROM hallinto ~
-                        WHERE avain = 'psql-port'"))
+    (setf (user *postgresql-asetukset*) (lue "postgresql-user"))
+    (setf (password *postgresql-asetukset*) (lue "postgresql-password"))
+    (setf (database *postgresql-asetukset*) (lue "postgresql-database"))
+    (setf (host *postgresql-asetukset*) (lue "postgresql-host"))
+    (setf (port *postgresql-asetukset*) (query-1 "SELECT arvo FROM hallinto ~
+                        WHERE avain = 'postgresql-port'"))
 
-    (unless (and (integerp (port *psql-asetukset*))
-                 (<= 1 (port *psql-asetukset*) 65535)
+    (unless (and (integerp (port *postgresql-asetukset*))
+                 (<= 1 (port *postgresql-asetukset*) 65535)
                  (every (lambda (x)
                           (plusp (length x)))
-                        (list (user *psql-asetukset*)
-                              (password *psql-asetukset*)
-                              (database *psql-asetukset*)
-                              (host *psql-asetukset*))))
+                        (list (user *postgresql-asetukset*)
+                              (password *postgresql-asetukset*)
+                              (database *postgresql-asetukset*)
+                              (host *postgresql-asetukset*))))
       (virhe "Virheelliset PostgreSQL-asetukset.")))
   *tietokanta*)
 
@@ -768,14 +768,15 @@
      (unwind-protect
           (progn
             (connect-sqlite)
-            (when (equal *psql-nimi* (query-1 "SELECT teksti FROM hallinto ~
-                        WHERE avain = 'tietokanta'"))
-              (lue-psql-asetukset)
+            (when (equal *postgresql-nimi*
+                         (query-1 "SELECT teksti FROM hallinto ~
+                                WHERE avain = 'tietokanta'"))
+              (lue-postgresql-asetukset)
               (disconnect-sqlite)
-              (connect-psql))
+              (connect-postgresql))
             ,@body)
 
-       (disconnect-psql)
+       (disconnect-postgresql)
        (disconnect-sqlite))))
 
 
@@ -785,37 +786,38 @@
        (disconnect-sqlite))))
 
 
-(defmacro molemmat-tietokannat-käytössä ((&key sqlite-yhteys psql-yhteys)
+(defmacro molemmat-tietokannat-käytössä ((&key sqlite-yhteys
+                                               postgresql-yhteys)
                                          &body body)
   (let ((sqlite (gensym "SQLITE"))
-        (psql (gensym "PSQL")))
+        (postgresql (gensym "POSTGRESQL")))
     `(let ((*tietokanta* nil)
            (pomo:*database* nil)
            (,sqlite-yhteys nil)
-           (,psql-yhteys nil)
+           (,postgresql-yhteys nil)
            (,sqlite nil)
-           (,psql nil))
-       (declare (ignorable ,sqlite-yhteys ,psql-yhteys))
+           (,postgresql nil))
+       (declare (ignorable ,sqlite-yhteys ,postgresql-yhteys))
        (unwind-protect
             (progn
               (setf ,sqlite (connect-sqlite))
-              (lue-psql-asetukset)
-              (setf ,psql (connect-psql))
+              (lue-postgresql-asetukset)
+              (setf ,postgresql (connect-postgresql))
               (setf ,sqlite-yhteys ,sqlite)
-              (setf ,psql-yhteys ,psql)
-              (setf pomo:*database* ,psql-yhteys)
+              (setf ,postgresql-yhteys ,postgresql)
+              (setf pomo:*database* ,postgresql-yhteys)
               (setf *tietokanta* nil)
               ,@body)
 
-         (let ((*tietokanta* ,psql))
-           (disconnect-psql))
+         (let ((*tietokanta* ,postgresql))
+           (disconnect-postgresql))
          (let ((*tietokanta* ,sqlite))
            (disconnect-sqlite))))))
 
 
-(defun kopioi-sqlite-psql ()
+(defun kopioi-sqlite-postgresql ()
   (molemmat-tietokannat-käytössä
-      (:sqlite-yhteys sqlite :psql-yhteys psql)
+      (:sqlite-yhteys sqlite :postgresql-yhteys postgresql)
     (flet ((qluku (fmt &rest args)
              (sqlite:execute-to-list sqlite (apply #'format nil fmt args)))
            (qkirj (fmt &rest args)
@@ -881,12 +883,12 @@
                          sid oid
                          (if arvosana (sql-mj arvosana) "NULL")
                          (if lisatiedot (sql-mj lisatiedot) "NULL"))))))
-  *psql-nimi*)
+  *postgresql-nimi*)
 
 
-(defun kopioi-psql-sqlite ()
+(defun kopioi-postgresql-sqlite ()
   (molemmat-tietokannat-käytössä
-      (:sqlite-yhteys sqlite :psql-yhteys psql)
+      (:sqlite-yhteys sqlite :postgresql-yhteys postgresql)
     (flet ((qluku (fmt &rest args)
              (pomo:query (apply #'format nil fmt args)))
            (qkirj (fmt &rest args)
