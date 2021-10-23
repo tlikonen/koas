@@ -2125,7 +2125,7 @@ Valitsimet:
         automaattisesti SQLite-tietokantaa. Tämä on myös ohjelman
         oletusasetus.
 
-  --tietokanta=psql/käyttäjä/salasana/kanta/osoite/portti
+  --tietokanta=psql/käyttäjä/salasana/osoite/portti/kanta
 
         Siirtyy käyttämään erillistä PostgreSQL-tietokantapalvelinta
         kouluarvosanatietokannan tallentamiseen. Ohjelman asetukset
@@ -2133,15 +2133,16 @@ Valitsimet:
         \"~0@*~A\".
 
         Komentorivillä annetut asetukset \"käyttäjä\" ja \"salasana\"
-        ovat tietokannan kirjautumistietoja. \"kanta\" on tietokannan
-        nimi, johon kirjaudutaan. Sen täytyy olla valmiiksi olemassa, ja
-        tällä käyttäjällä pitää olla oikeus luoda taulukoita yms.
-        \"osoite\" ja \"portti\" ovat tietokannan verkko-osoitetietoja.
-        Jos tietokantapalvelin toimii samalla tietokoneella, sopiva
-        osoite on \"localhost\". \"portti\"-asetukseen sopii yleensä
-        \"5432\", joka on PostgreSQL:n oletusportti. Kaikki edellä
-        mainitut asetukset tallentuvat SQLite-tiedostoon, ja niitä
-        käytetään automaattisesti seuraavilla kerroilla.
+        ovat tietokannan kirjautumistietoja. Asetukset \"osoite\" ja
+        \"portti\" ovat verkko-osoitetietoja. Jos tietokantapalvelin
+        toimii samalla tietokoneella, sopiva osoite on \"localhost\".
+        \"portti\"-asetukseen sopii yleensä \"5432\", joka on
+        PostgreSQL:n oletusportti. \"kanta\" on tietokannan nimi, johon
+        kirjaudutaan. Sen täytyy olla valmiiksi olemassa, ja tällä
+        käyttäjällä pitää olla CREATE-oikeus eli mahdollisuus luoda
+        taulukoita yms. Kaikki edellä mainitut asetukset tallentuvat
+        SQLite-tiedostoon, ja niitä käytetään automaattisesti
+        seuraavilla kerroilla.
 
         Asetusten erotinmerkkinä on yllä olevassa esimerkissä
         vinoviiva (/), mutta se voisi olla mikä tahansa muukin merkki.
@@ -2349,16 +2350,16 @@ Lisenssi: GNU General Public License 3
                          (with-transaction
                            (aseta "tietokanta user" (nth 0 asetukset))
                            (aseta "tietokanta password" (nth 1 asetukset))
-                           (aseta "tietokanta database" (nth 2 asetukset))
-                           (aseta "tietokanta host" (nth 3 asetukset))
-                           (let ((portti (lue-numero (nth 4 asetukset))))
+                           (aseta "tietokanta host" (nth 2 asetukset))
+                           (let ((portti (lue-numero (nth 3 asetukset))))
                              (if (and (integerp portti)
                                       (<= 1 portti 65535))
                                  (query "UPDATE hallinto SET arvo = ~A ~
                                 WHERE avain = 'tietokanta port'"
                                         portti)
                                  (virhe "Virheellinen tietoliikenneportti ~
-                                        (yleensä 5432).")))))))))
+                                        (yleensä 5432).")))
+                           (aseta "tietokanta database" (nth 4 asetukset))))))))
 
                 (t (virhe "Tuntematon tietokantatyyppi \"~A\"." arg)))))
 
