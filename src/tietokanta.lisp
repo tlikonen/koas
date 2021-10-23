@@ -432,9 +432,10 @@
 
 (defmethod päivitä-tietokanta ((tyyppi sqlite:sqlite-handle)
                                (versio (eql 10)))
-  ;; Lisätään hallinto-taulukkoon sarake teksti TEXT ja
-  ;; oppilaat-taulukkoon indeksi. Lisätään hallinto-taulukkoon
-  ;; PostgreSQL-asetukset.
+  ;; Lisätään hallinto-taulukkoon sarake teksti TEXT sekä kentät
+  ;; PostgreSQL-asetuksille. Lisätään oppilaat-taulukkoon indeksi.
+  ;; Muutetaan arvosanat-taulukon lisatiedot-sarakkeen tyhjät
+  ;; merkkijonot NULLiksi.
   (with-transaction
     (query "ALTER TABLE hallinto RENAME TO hallinto_vanha")
     (query "CREATE TABLE hallinto ~
@@ -461,6 +462,9 @@
 
     (query "CREATE INDEX idx_oppilaat_sukunimi_etunimi
                 ON oppilaat (sukunimi, etunimi)")
+
+    (query "UPDATE arvosanat SET lisatiedot = NULL ~
+                WHERE lisatiedot = ''")
 
     (query "UPDATE hallinto SET arvo = 10 WHERE avain = 'versio'")))
 
