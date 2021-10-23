@@ -2116,8 +2116,8 @@ Valitsimet:
 
   --tietokanta=sqlite
 
-        Siirtyy käyttämään käytetään SQLite-tietokantaa, joka on
-        tiedostossa \"~A\".
+        Siirtyy käyttämään SQLite-tietokantaa, joka on tiedostossa
+        \"~A\".
 
         Sekä ohjelman asetukset että varsinainen kouluarvosanatietokanta
         tallennetaan edellä mainittuun tiedostoon. Tämän valitsimen
