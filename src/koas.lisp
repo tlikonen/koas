@@ -2164,9 +2164,9 @@ Valitsimet:
 
         Kopioinnin jälkeen SQLite-tiedoston voi poistaa. Se tosin
         luodaan automaattisesti uudelleen ainakin ohjelman asetusten
-        tallentamista varten. Kouluarvosanatietokantaa ei siihen enää
-        tallenneta, jos käytössä on PostgreSQL-tietokanta eli asetus
-        \"--tietokanta=psql\".
+        tallentamista varten. Jos käytössä on PostgreSQL-tietokanta eli
+        asetus \"--tietokanta=psql\", kouluarvosanatietokantaa ei enää
+        tallenneta SQLite-tiedostoon.
 
   --kopioi-psql-sqlite
 
