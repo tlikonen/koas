@@ -444,7 +444,7 @@
                 SELECT avain, arvo FROM hallinto_vanha")
 
     (query "INSERT INTO hallinto (avain, teksti) ~
-                VALUES ('tietokanta tyyppi', ~A)" (sql-mj *sqlite-nimi*))
+                VALUES ('tietokanta', ~A)" (sql-mj *sqlite-nimi*))
     (query "INSERT INTO hallinto (avain, teksti) ~
                 VALUES ('psql-host', '')")
     (query "INSERT INTO hallinto (avain, arvo) ~
@@ -517,7 +517,7 @@
         (query "INSERT INTO hallinto (avain, arvo) ~
                 VALUES ('muokkauslaskuri', 0)")
         (query "INSERT INTO hallinto (avain, teksti) ~
-                VALUES ('tietokanta tyyppi', ~A)" (sql-mj *sqlite-nimi*))
+                VALUES ('tietokanta', ~A)" (sql-mj *sqlite-nimi*))
         (query "INSERT INTO hallinto (avain, teksti) ~
                 VALUES ('psql-host', '')")
         (query "INSERT INTO hallinto (avain, arvo) ~
@@ -759,7 +759,7 @@
           (progn
             (connect-sqlite)
             (when (equal *psql-nimi* (query-1 "SELECT teksti FROM hallinto ~
-                        WHERE avain = 'tietokanta tyyppi'"))
+                        WHERE avain = 'tietokanta'"))
               (lue-psql-asetukset)
               (disconnect-sqlite)
               (connect-psql))

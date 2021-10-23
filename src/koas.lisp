@@ -2327,13 +2327,13 @@ Lisenssi: GNU General Public License 3
                 ((string= arg "sqlite")
                  (sqlite-käytössä
                    (query "UPDATE hallinto SET teksti = ~A ~
-                                WHERE avain = 'tietokanta tyyppi'"
+                                WHERE avain = 'tietokanta'"
                           (sql-mj *sqlite-nimi*))))
 
                 ((string= arg "psql" :end1 (min 4 (length arg)))
                  (sqlite-käytössä
                    (query "UPDATE hallinto SET teksti = ~A ~
-                                        WHERE avain = 'tietokanta tyyppi'"
+                                        WHERE avain = 'tietokanta'"
                           (sql-mj *psql-nimi*))
 
                    (let ((asetukset (pilko-erottimella (subseq arg 4))))
