@@ -722,6 +722,7 @@
     (setf *tietokanta* (pomo:connect database user password host
                                      :port (or port 5432))
           pomo:*database* *tietokanta*)
+    (query "SET search_path TO public")
     (alusta-tietokanta *tietokanta*)
     *tietokanta*))
 
