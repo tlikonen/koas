@@ -56,20 +56,18 @@ tiedostoon `config.mk`.
 Käyttö
 ------
 
-Kun ohjelman `koas` käynnistää ensimmäisen kerran, luodaan
-tietokantatiedosto `~/.config/koas.db`. Lisätietoa ohjelman
-komentorivikäytöstä saa käynnistämällä sen valitsimella `-h`.
+Koas käynnistetään yleensä komennolla `koas`. Se käynnistää ohjelman
+vuorovaikutteiseen tilaan, jossa kehote `Koas>` ilmaisee, että komentoja
+voi syöttää. Komennolla `?` tulostuu ohjeet kaikista ohjelman
+komennoista.
 
-Ohjelman käyttö on yleensä vuorovaikutteista ja perustuu komentojen
-syöttämiseen näppäimistöltä. Kun ohjelma on käynnissä, komentojen kehote
-on `Koas>`, jolloin komentoja voi syöttää. Komennolla `?` tulostuu
-ohjeet kaikista ohjelman komennoista.
+Ensimmäisellä käynnistyskerralla luodaan automaattisesti
+SQLite-tietokantatiedosto `~/.config/koas.db`, johon ohjelman asetukset
+ja tietokanta oletuksena tallentuu.
 
-Useimmat toiminnot ovat käytettävissä myös ei-vuorovaikutteisesti eli
-komentotulkista. Esimerkiksi kaikki tiedonhakukomennot ovat tällaisia.
-Kirjoittamalla ohjelman komennot suoraan komentoriviargumenteiksi
-suoritetaan vain kyseinen toiminto eikä käynnistetä vuorovaikutteista
-tilaa lainkaan.
+Ohjelmassa on myös toimintoja ja asetuksia, joita käytetään vain
+komentoriviargumenttien kautta. Niistä saa lisätietoa, kun ohjelman
+käynnistää antamalla argumentin `-h` tai `--ohje`.
 
 
 Tekijä ja tekijänoikeus
