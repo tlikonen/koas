@@ -2171,7 +2171,8 @@ Valitsimet:
   --kopioi-postgresql-sqlite
 
         Kopioi kouluarvosanatietokannan PostgreSQL:stä SQLiteen.
-        Kohdetietokanta tyhjennetään ennen sitä.
+        Kohdetietokanta tyhjennetään ennen sitä. Tätä valitsinta voi
+        käyttää esimerkiksi PostgreSQL-tietokannan varmuuskopiointiin.
 
   -v, --versio
 
