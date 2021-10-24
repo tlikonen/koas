@@ -1,6 +1,6 @@
 versio = 2021.10.23
 bindir = /usr/local/bin
-sbcl = $(shell which sbcl)
+sbcl = sbcl
 src = src/*.asd src/*.lisp
 
 -include config.mk
