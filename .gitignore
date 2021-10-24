@@ -1,4 +1,5 @@
 quicklisp/
 build/
+koas
 config.mk
 versio.txt

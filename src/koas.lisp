@@ -381,7 +381,8 @@
     (loop :with oppilaat := nil
           :with ryhmät := nil
           :for (rivi . loput) :on kysely
-          :for (oid sukunimi etunimi r-nimi lisätiedot) := rivi
+          :for (oid sukunimi etunimi r-nimi lisätiedot)
+             := (substitute nil :null rivi)
           :for seuraava-oid := (caar loput)
           :do
 
@@ -421,6 +422,8 @@
                 (sql-like-suoja ryhmä))))
 
     (when suoritukset
+      (setf suoritukset (loop :for rivi :in suoritukset
+                              :collect (substitute nil :null rivi)))
       (make-instance
        'suoritukset
        :ryhmä (nth 1 (first suoritukset))
@@ -450,7 +453,9 @@
 
       (make-instance
        'ryhmät
-       :ryhmälista (loop :for (rid nimi lisätiedot) :in ryhmät
+       :ryhmälista (loop :for rivi :in ryhmät
+                         :for (rid nimi lisätiedot)
+                            := (substitute nil :null rivi)
                          :collect
                          (make-instance 'ryhmä
                                         :rid rid
@@ -488,7 +493,8 @@
             :with arvosanat := nil
             :for (rivi . loput) :on kysely
             :for (r-nimi nil r-lisätiedot nil sid s-nimi lyhenne painokerroin
-                         oid sukunimi etunimi arvosana a-lisätiedot) := rivi
+                         oid sukunimi etunimi arvosana a-lisätiedot)
+               := (substitute nil :null rivi)
             :for seuraava-sid := (nth 4 (first loput)) ;s.sid
             :do
 
@@ -543,7 +549,7 @@
           :for (rivi . loput) :on kysely
           :for (oid sukunimi etunimi o-lisätiedot rid r-nimi r-lisätiedot
                     sid s-nimi lyhenne painokerroin arvosana a-lisätiedot)
-          := rivi
+             := (substitute nil :null rivi)
           :for seuraava-oid := (caar loput)
           :for seuraava-rid := (nth 4 (first loput)) ;r.rid
           :do
@@ -601,6 +607,8 @@
                                (sql-like-suoja ryhmä))))
 
     (when suorituslista
+      (setf suorituslista (loop :for rivi :in suorituslista
+                                :collect (substitute nil :null rivi)))
       (let ((kysely
              (query "SELECT sukunimi, etunimi, oid, sija, arvosana ~
                         FROM view_arvosanat ~
@@ -622,7 +630,8 @@
             (loop :with opp := 0
                   :with arv := 0
                   :for (rivi . loput) :on kysely
-                  :for (sukunimi etunimi oid nil arvosana) := rivi
+                  :for (sukunimi etunimi oid nil arvosana)
+                     := (substitute nil :null rivi)
                   :for seuraava-oid := (nth 2 (first loput))
                   :do
                   (setf (aref taulukko opp arv) arvosana)
@@ -661,7 +670,7 @@
                       (if painokerroin
                           "AND painokerroin >= 1"
                           ""))))
-    (loop :for mj :in kysely
+    (loop :for mj :in (substitute nil :null kysely)
           :for as := (lue-numero mj)
           :if (numberp as)
           :do (incf (gethash (tulosta-luku as) hajautustaulu 0)))))
@@ -700,7 +709,8 @@
                 (if painokerroin "AND painokerroin >= 1" ""))))
 
     (loop :for rivi :in kysely
-          :for (oid sukunimi etunimi ryhmä arvosana painokerroin) := rivi
+          :for (oid sukunimi etunimi ryhmä arvosana painokerroin)
+             := (substitute nil :null rivi)
           :for as := (lue-numero arvosana)
           :if (numberp as) :do
           (setf (getf (gethash oid hajautustaulu) :nimi)
@@ -1241,8 +1251,9 @@
 
 
 (defmethod lisää ((oppilas oppilas) &key)
-  (query "INSERT INTO oppilaat (sukunimi, etunimi, lisatiedot) ~
-        VALUES (~A, ~A, ~A)"
+  (query-returning "oid" "INSERT INTO oppilaat ~
+                (sukunimi, etunimi, lisatiedot) ~
+                VALUES (~A, ~A, ~A)"
          (sql-mj (sukunimi oppilas))
          (sql-mj (etunimi oppilas))
          (sql-mj (oppilas-lisätiedot oppilas)))
@@ -1252,13 +1263,14 @@
                                (sql-like-suoja ryhmä))
 
           :unless rid :do
-          (query "INSERT INTO ryhmat (nimi, lisatiedot) VALUES (~A, '')"
-                 (sql-mj ryhmä))
-          (setf rid (query-last-insert-rowid))
+             (query-returning "rid" "INSERT INTO ryhmat ~
+                                (nimi, lisatiedot) VALUES (~A, '')"
+              (sql-mj ryhmä))
+             (setf rid (query-last-insert-rowid))
 
           :do
-          (query "INSERT INTO oppilaat_ryhmat (oid, rid) VALUES (~A, ~A)"
-                 oid rid))
+             (query "INSERT INTO oppilaat_ryhmat (oid, rid) VALUES (~A, ~A)"
+                    oid rid))
     oid))
 
 
@@ -1266,15 +1278,17 @@
   (let ((rid (query-1 "SELECT rid FROM ryhmat WHERE nimi LIKE ~A"
                       (sql-like-suoja (ryhmä suoritus)))))
     (unless rid
-      (query "INSERT INTO ryhmat (nimi) VALUES (~A)" (sql-mj (ryhmä suoritus)))
+      (query-returning "rid" "INSERT INTO ryhmat (nimi) VALUES (~A)"
+                       (sql-mj (ryhmä suoritus)))
       (setf rid (query-last-insert-rowid)))
 
     (setf (rid suoritus) rid)
 
-    (query "INSERT INTO suoritukset (rid, nimi, lyhenne, painokerroin) ~
-                VALUES (~A, ~A, ~A, ~A)"
-           rid (sql-mj (nimi suoritus)) (sql-mj (lyhenne suoritus))
-           (or (painokerroin suoritus) "NULL"))
+    (query-returning "sid" "INSERT INTO suoritukset ~
+                        (rid, nimi, lyhenne, painokerroin) ~
+                        VALUES (~A, ~A, ~A, ~A)"
+                     rid (sql-mj (nimi suoritus)) (sql-mj (lyhenne suoritus))
+                     (or (painokerroin suoritus) "NULL"))
 
     (let* ((uusi-sid (query-last-insert-rowid))
            (sid-lista
@@ -1318,12 +1332,13 @@
                                (sql-like-suoja ryhmä))
 
           :unless rid :do
-          (query "INSERT INTO ryhmat (nimi) VALUES (~A)" (sql-mj ryhmä))
-          (setf rid (query-last-insert-rowid))
+             (query-returning "rid" "INSERT INTO ryhmat (nimi) VALUES (~A)"
+                              (sql-mj ryhmä))
+             (setf rid (query-last-insert-rowid))
 
           :unless (member rid vanha-rid-lista) :do
-          (query "INSERT INTO oppilaat_ryhmat (oid, rid) VALUES (~A, ~A)"
-                 (oid oppilas) rid)
+             (query "INSERT INTO oppilaat_ryhmat (oid, rid) VALUES (~A, ~A)"
+                    (oid oppilas) rid)
 
           :collect rid :into rid-lista
           :finally (setf uusi-rid-lista rid-lista))
@@ -2075,15 +2090,15 @@ luettelon perään. Alla on esimerkkejä suoritusten lisäämisestä.
 
 
 (defun ohjeet-komentorivi ()
-  (viesti "Käyttö: koas [valitsimet] [--] [komennot]
+  (viesti "Käyttö: koas [valitsimet] [--] [komento]
 
 Koas eli kouluarvosanatietokanta. Ohjelma käynnistyy vuorovaikutteiseen
-tilaan, kun sen käynnistää ilman \"komentoja\". Vuorovaikutteisessa
-tilassa saa apua komennolla \"?\".
+tilaan, kun sen käynnistää ilman \"komento\"-argumenttia.
 
 Valitsimet:
 
   --muoto=tulostusmuoto
+
         Vaihtaa ohjelman tulostusmuodon. Tämä valitsin ei vaikuta
         vuorovaikutteisen tilan tulostusmuotoon.
 
@@ -2094,30 +2109,93 @@ Valitsimet:
         taulukon rivit.
 
   --suppea
+
         Tulostaa taulukoiden tiedot suppeammin. Esimerkiksi taulukoiden
         Lisätiedot-sarake jätetään pois. Tämä valitsin ei vaikuta
         vuorovaikutteiseen tilaan.
 
+  --tietokanta=sqlite
+
+        Siirtyy käyttämään SQLite-tietokantaa, joka on tiedostossa
+        \"~A\".
+
+        Sekä ohjelman asetukset että varsinainen kouluarvosanatietokanta
+        tallennetaan edellä mainittuun tiedostoon. Tämän valitsimen
+        asetus tallentuu, eli seuraavilla kerroilla käytetään
+        automaattisesti SQLite-tietokantaa. Tämä on myös ohjelman
+        oletusasetus.
+
+  --tietokanta=postgresql/käyttäjä/salasana/osoite/portti/kanta
+
+        Siirtyy käyttämään erillistä PostgreSQL-tietokantapalvelinta
+        kouluarvosanatietokannan tallentamiseen.
+
+        Komentorivillä annetut asetukset \"käyttäjä\" ja \"salasana\"
+        ovat tietokannan kirjautumistietoja. Asetukset \"osoite\" ja
+        \"portti\" ovat palvelimen verkko-osoitetietoja. Jos
+        tietokantapalvelin toimii samalla tietokoneella, sopiva osoite
+        on \"localhost\". \"portti\"-asetuksen voi jättää tyhjäksi,
+        jolloin käytetään PostgreSQL:n oletusporttia 5432. \"kanta\" on
+        tietokannan nimi, johon kirjaudutaan. Sen täytyy olla valmiiksi
+        olemassa, ja tällä käyttäjällä pitää olla CREATE-oikeus eli
+        oikeus luoda taulukoita yms. Kaikki edellä mainitut asetukset
+        tallentuvat SQLite-tiedostoon, ja niitä käytetään
+        automaattisesti seuraavilla kerroilla. Asetustiedosto on
+        \"~0@*~A\".
+
+        Asetusten erotinmerkkinä on yllä olevassa esimerkissä
+        vinoviiva (/), mutta se voisi olla mikä tahansa muukin merkki.
+        Sanojen \"--tietokanta=postgresql\" jälkeinen merkki määrittää,
+        mikä merkki erottaa asetuskentät toisistaan.
+
+  --tietokanta=postgresql
+
+        Siirtyy käyttämään erillistä PostgreSQL-tietokantapalvelinta
+        kouluarvosanatietokannan tallentamiseen. Tämä asetus tallentuu,
+        ja sitä käytetään automaattisesti seuraavilla kerroilla.
+        PostgreSQL-tietokannan kirjautumistietojen ja verkko-osoitteen
+        täytyy olla jo valmiiksi asetettuna. Katso lisätietoja tätä
+        edeltävän valitsimen kuvauksesta.
+
+  --kopioi-sqlite-postgresql
+
+        Kopioi kouluarvosanatietokannan SQLitesta PostgreSQL:ään.
+        Kohdetietokanta tyhjennetään ennen sitä.
+
+        Kopioinnin jälkeen SQLite-tiedoston voi poistaa. Se tosin
+        luodaan automaattisesti uudelleen ainakin ohjelman asetusten
+        tallentamista varten. Jos käytössä on PostgreSQL-tietokanta eli
+        asetus \"--tietokanta=postgresql\", kouluarvosanatietokantaa ei
+        enää tallenneta SQLite-tiedostoon.
+
+  --kopioi-postgresql-sqlite
+
+        Kopioi kouluarvosanatietokannan PostgreSQL:stä SQLiteen.
+        Kohdetietokanta tyhjennetään ennen sitä. Tätä valitsinta voi
+        käyttää esimerkiksi PostgreSQL-tietokannan varmuuskopiointiin.
+
+  -v, --versio
+
+        Tulostaa ohjelman versio- ja tekijänoikeustietoa.
+
   -h, --ohje[=aihe]
+
         Tulostaa ohjelman ohjeita. Jos ohjeen aihetta ei ole mainittu,
         tulostetaan nämä komentorivin ohjeet. Ohjeen aiheita ovat
         \"komennot\", \"käyttö\" ja \"aloitus\".
 
-  -v, --versio
-        Tulostaa versio- ja tekijänoikeustietoa.
+Kouluarvosanatietokannan komennot saa näkyviin valitsimella
+\"--ohje=komennot\" tai vuorovaikutteisessa tilassa komennolla \"?\".
+Jos komentorivillä annetaan komennoksi vain yhdysmerkki \"-\", luetaan
+komennot standardisyötteestä, niin että yhdellä rivillä on aina yksi
+komento. Muokkauskomennot eivät ole tällöin käytössä.
 
-Ohjelman komennot saa näkyviin valitsimella \"--ohje=komennot\" tai
-vuorovaikutteisessa tilassa komennolla \"?\". Jos komentorivillä
-komentona on vain yhdysmerkki \"-\", luetaan komennot
-standardisyötteestä, niin että yhdellä rivillä on aina yksi komento.
-Muokkauskomennot eivät ole tällöin käytössä.
-
-"))
+" (pathconv:namestring *sqlite-tiedosto*)))
 
 
 (defun ohjeet-versio ()
   (viesti "~
-koas ~A
+Koas versio ~A
 Tekijä:   Teemu Likonen <tlikonen@iki.fi>
 Lisenssi: GNU General Public License 3
           <https://www.gnu.org/licenses/gpl-3.0.html>
@@ -2197,16 +2275,20 @@ Lisenssi: GNU General Public License 3
              (declare (ignore tila))
              (return-from main))))
 
+      (alusta-sqlite-tiedostopolku)
+
       (multiple-value-bind (valitsimet argumentit tuntemattomat)
-          (just-getopt-parser:getopt args '((:help #\h)
-                                            (:help "ohje" :optional)
-                                            (:muoto "muoto" :required)
-                                            (:suppea "suppea")
-                                            (:versio #\v)
-                                            (:versio "versio"))
-                                     :error-on-unknown-option t
-                                     :error-on-argument-missing t
-                                     :error-on-argument-not-allowed t)
+          (just-getopt-parser:getopt
+           args '((:help #\h) (:help "ohje" :optional)
+                  (:tietokanta "tietokanta" :required)
+                  (:muoto "muoto" :required)
+                  (:suppea "suppea")
+                  (:versio #\v) (:versio "versio")
+                  (:sqlite-postgresql "kopioi-sqlite-postgresql")
+                  (:postgresql-sqlite "kopioi-postgresql-sqlite"))
+           :error-on-unknown-option t
+           :error-on-argument-missing t
+           :error-on-argument-not-allowed t)
 
         (when (and tuntemattomat (not (assoc :help valitsimet)))
           (virhe "Ohjeita saa valitsimella \"-h\" tai \"--ohje\"."))
@@ -2230,6 +2312,12 @@ Lisenssi: GNU General Public License 3
           (ohjeet-versio)
           (error 'poistu-ohjelmasta))
 
+        (when (< 1 (count :tietokanta valitsimet :key #'first))
+          (virhe "Käytä valitsinta \"--tietokanta\" korkeintaan kerran."))
+        (when (< 1 (+ (count :sqlite-postgresql valitsimet :key #'first)
+                      (count :postgresql-sqlite valitsimet :key #'first)))
+          (virhe "Käytä \"--kopioi\"-valitsimia korkeintaan kerran."))
+
         (let ((muoto nil))
 
           (when (assoc :muoto valitsimet)
@@ -2237,6 +2325,64 @@ Lisenssi: GNU General Public License 3
             (if (find muoto '("tab" "csv" "org" "latex") :test #'equal)
                 (setf muoto (intern (string-upcase muoto) "KEYWORD"))
                 (virhe "Tuntematon tulostusmuoto \"~A\"." muoto)))
+
+          (when (assoc :tietokanta valitsimet)
+            (let ((arg (cdr (assoc :tietokanta valitsimet))))
+              (cond
+
+                ((string= arg *sqlite-nimi*)
+                 (sqlite-käytössä
+                   (query "UPDATE hallinto SET teksti = ~A ~
+                                WHERE avain = 'tietokanta'"
+                          (sql-mj *sqlite-nimi*))))
+
+                ((string= arg *postgresql-nimi*
+                          :end1 (min (length *postgresql-nimi*)
+                                     (length arg)))
+                 (sqlite-käytössä
+                   (query "UPDATE hallinto SET teksti = ~A ~
+                                        WHERE avain = 'tietokanta'"
+                          (sql-mj *postgresql-nimi*))
+
+                   (let ((asetukset (pilko-erottimella
+                                     (subseq arg (length *postgresql-nimi*)))))
+                     (when asetukset
+                       (unless (= 5 (length asetukset))
+                         (virhe "Virheelliset PostgreSQL-asetukset."))
+                       (flet ((aseta (avain teksti)
+                                (unless (plusp (length teksti))
+                                  (virhe "Virheelliset PostgreSQL-asetukset."))
+                                (query "UPDATE hallinto SET teksti = ~A ~
+                                WHERE avain = ~A"
+                                       (sql-mj teksti)
+                                       (sql-mj avain))))
+
+                         (with-transaction
+                           (aseta "postgresql-user" (nth 0 asetukset))
+                           (aseta "postgresql-password" (nth 1 asetukset))
+                           (aseta "postgresql-host" (nth 2 asetukset))
+                           (let ((portti (nth 3 asetukset)))
+                             (cond ((string= "" portti)
+                                    (setf portti 5432))
+                                   ((and (every #'digit-char-p portti))
+                                    (setf portti (parse-integer portti))))
+                             (unless (and (integerp portti)
+                                          (<= 1 portti 65535))
+                               (virhe "Virheellinen tietoliikenneportti ~
+                                        (yleensä 5432)."))
+                             (query "UPDATE hallinto SET arvo = ~A ~
+                                WHERE avain = 'postgresql-port'" portti))
+                           (aseta "postgresql-database" (nth 4 asetukset))))))))
+
+                (t (virhe "Tuntematon tietokantatyyppi \"~A\"." arg)))))
+
+          (when (assoc :sqlite-postgresql valitsimet)
+            (kopioi-sqlite-postgresql)
+            (error 'poistu-ohjelmasta))
+
+          (when (assoc :postgresql-sqlite valitsimet)
+            (kopioi-postgresql-sqlite)
+            (error 'poistu-ohjelmasta))
 
           (tietokanta-käytössä
             (cond
@@ -2262,9 +2408,10 @@ Lisenssi: GNU General Public License 3
                              (assoc :suppea valitsimet))
                      (virheviesti "(Vuorovaikutteisessa tilassa ei huomioida ~
                         kaikkia valitsimia.)~%"))
+                   (ohjelman-alkuilmoitus)
                    (loop
                      (handler-case
-                         (käsittele-komentorivi (lue-rivi "KOAS> " t))
+                         (käsittele-komentorivi (lue-rivi "Koas> " t))
                        (koas-virhe (tila)
                          (viesti "~A~%" tila)))))))))))))
 
