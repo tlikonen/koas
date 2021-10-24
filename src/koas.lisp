@@ -1986,8 +1986,8 @@
     '("poista numerot" "Poista tietueet.")
     :viiva
     '("?" "Komennot.")
-    '("??" "Käyttöohjeita.")
-    '("???" "Aloitusvinkkejä.")
+    '("käyttö" "Käyttöohjeita.")
+    '("aloitus" "Aloitusvinkkejä.")
     :viiva-loppu)))
 
 
@@ -2237,8 +2237,8 @@ Lisenssi: GNU General Public License 3
          (cond
            ((testaa "") (error 'poistu-ohjelmasta))
            ((testaa "?") (ohjeet-komennot))
-           ((testaa "??") (ohjeet-käyttö))
-           ((testaa "???") (ohjeet-aloitus))
+           ((testaa "käyttö") (ohjeet-käyttö))
+           ((testaa "aloitus") (ohjeet-aloitus))
            ((testaa "poista") (komento-poista arg))
            ((testaa "m") (komento-muokkaa arg))
            ((testaa "ms") (komento-muokkaa-sarjana arg))

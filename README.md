@@ -57,13 +57,13 @@ Käyttö
 ------
 
 Kun ohjelman `koas` käynnistää ensimmäisen kerran, luodaan
-tietokantatiedosto `~/.config/koas.db`. Lisätietoa ohjelmasta saa
-käynnistämällä sen valitsimella `koas -h`.
+tietokantatiedosto `~/.config/koas.db`. Lisätietoa ohjelman
+komentorivikäytöstä saa käynnistämällä sen valitsimella `-h`.
 
 Ohjelman käyttö on yleensä vuorovaikutteista ja perustuu komentojen
 syöttämiseen näppäimistöltä. Kun ohjelma on käynnissä, komentojen kehote
-on `Koas>`, jolloin komentoja voi syöttää. Ohjeita komentoihin ja niiden
-käyttöön saa komennoilla `?`, `??` ja `???`.
+on `Koas>`, jolloin komentoja voi syöttää. Komennolla `?` tulostuu
+ohjeet kaikista ohjelman komennoista.
 
 Useimmat toiminnot ovat käytettävissä myös ei-vuorovaikutteisesti eli
 komentotulkista. Esimerkiksi kaikki tiedonhakukomennot ovat tällaisia.
