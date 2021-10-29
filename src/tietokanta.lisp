@@ -800,28 +800,22 @@
 (defmacro molemmat-tietokannat-käytössä ((&key sqlite-yhteys
                                                postgresql-yhteys)
                                          &body body)
-  (let ((sqlite (gensym "SQLITE"))
-        (postgresql (gensym "POSTGRESQL")))
-    `(let ((*tietokanta* nil)
-           (,sqlite-yhteys nil)
-           (,postgresql-yhteys nil)
-           (,sqlite nil)
-           (,postgresql nil))
-       (declare (ignorable ,sqlite-yhteys ,postgresql-yhteys))
-       (unwind-protect
-            (progn
-              (setf ,sqlite (connect-sqlite))
-              (lue-postgresql-asetukset)
-              (setf ,postgresql (connect-postgresql))
-              (setf ,sqlite-yhteys ,sqlite)
-              (setf ,postgresql-yhteys ,postgresql)
-              (setf *tietokanta* nil)
-              ,@body)
+  `(let ((*tietokanta* nil)
+         (,sqlite-yhteys nil)
+         (,postgresql-yhteys nil))
+     (declare (ignorable ,sqlite-yhteys ,postgresql-yhteys))
+     (unwind-protect
+          (progn
+            (setf ,sqlite-yhteys (connect-sqlite))
+            (lue-postgresql-asetukset)
+            (setf ,postgresql-yhteys (connect-postgresql))
+            (setf *tietokanta* nil)
+            ,@body)
 
-         (let ((*tietokanta* ,postgresql))
-           (disconnect-postgresql))
-         (let ((*tietokanta* ,sqlite))
-           (disconnect-sqlite))))))
+       (let ((*tietokanta* ,postgresql-yhteys))
+         (disconnect-postgresql))
+       (let ((*tietokanta* ,sqlite-yhteys))
+         (disconnect-sqlite)))))
 
 
 (defun kopioi-sqlite-postgresql ()
