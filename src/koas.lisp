@@ -381,8 +381,7 @@
     (loop :with oppilaat := nil
           :with ryhmät := nil
           :for (rivi . loput) :on kysely
-          :for (oid sukunimi etunimi r-nimi lisätiedot)
-             := (substitute nil :null rivi)
+          :for (oid sukunimi etunimi r-nimi lisätiedot) := rivi
           :for seuraava-oid := (caar loput)
           :do
 
@@ -422,8 +421,6 @@
                 (sql-like-suoja ryhmä))))
 
     (when suoritukset
-      (setf suoritukset (loop :for rivi :in suoritukset
-                              :collect (substitute nil :null rivi)))
       (make-instance
        'suoritukset
        :ryhmä (nth 1 (first suoritukset))
@@ -453,9 +450,7 @@
 
       (make-instance
        'ryhmät
-       :ryhmälista (loop :for rivi :in ryhmät
-                         :for (rid nimi lisätiedot)
-                            := (substitute nil :null rivi)
+       :ryhmälista (loop :for (rid nimi lisätiedot) :in ryhmät
                          :collect
                          (make-instance 'ryhmä
                                         :rid rid
@@ -494,7 +489,7 @@
             :for (rivi . loput) :on kysely
             :for (r-nimi nil r-lisätiedot nil sid s-nimi lyhenne painokerroin
                          oid sukunimi etunimi arvosana a-lisätiedot)
-               := (substitute nil :null rivi)
+               := rivi
             :for seuraava-sid := (nth 4 (first loput)) ;s.sid
             :do
 
@@ -549,7 +544,7 @@
           :for (rivi . loput) :on kysely
           :for (oid sukunimi etunimi o-lisätiedot rid r-nimi r-lisätiedot
                     sid s-nimi lyhenne painokerroin arvosana a-lisätiedot)
-             := (substitute nil :null rivi)
+             := rivi
           :for seuraava-oid := (caar loput)
           :for seuraava-rid := (nth 4 (first loput)) ;r.rid
           :do
@@ -607,8 +602,6 @@
                                (sql-like-suoja ryhmä))))
 
     (when suorituslista
-      (setf suorituslista (loop :for rivi :in suorituslista
-                                :collect (substitute nil :null rivi)))
       (let ((kysely
              (query "SELECT sukunimi, etunimi, oid, sija, arvosana ~
                         FROM view_arvosanat ~
@@ -630,8 +623,7 @@
             (loop :with opp := 0
                   :with arv := 0
                   :for (rivi . loput) :on kysely
-                  :for (sukunimi etunimi oid nil arvosana)
-                     := (substitute nil :null rivi)
+                  :for (sukunimi etunimi oid nil arvosana) := rivi
                   :for seuraava-oid := (nth 2 (first loput))
                   :do
                   (setf (aref taulukko opp arv) arvosana)
@@ -670,7 +662,7 @@
                       (if painokerroin
                           "AND painokerroin >= 1"
                           ""))))
-    (loop :for mj :in (substitute nil :null kysely)
+    (loop :for mj :in kysely
           :for as := (lue-numero mj)
           :if (numberp as)
           :do (incf (gethash (tulosta-luku as) hajautustaulu 0)))))
@@ -708,9 +700,8 @@
                 (sql-like-suoja lyhenne t)
                 (if painokerroin "AND painokerroin >= 1" ""))))
 
-    (loop :for rivi :in kysely
-          :for (oid sukunimi etunimi ryhmä arvosana painokerroin)
-             := (substitute nil :null rivi)
+    (loop :for (oid sukunimi etunimi ryhmä arvosana painokerroin)
+          :in kysely
           :for as := (lue-numero arvosana)
           :if (numberp as) :do
           (setf (getf (gethash oid hajautustaulu) :nimi)

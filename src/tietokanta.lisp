@@ -88,6 +88,13 @@
   (ensure-directories-exist *sqlite-tiedosto*))
 
 
+(cl-postgres:def-row-reader postgresql-rivilukija (fields)
+  (loop :while (cl-postgres:next-row)
+        :collect (loop :for field :across fields
+                       :for f := (cl-postgres:next-field field)
+                       :collect (if (eql f :null) nil f))))
+
+
 (defun query (format-string &rest parameters)
   (cond ((sqlite-yhteys-p)
          (sqlite:execute-to-list *tietokanta*
@@ -96,7 +103,7 @@
         ((postgresql-yhteys-p)
          (cl-postgres:exec-query *tietokanta*
                                  (apply #'format nil format-string parameters)
-                                 'cl-postgres:list-row-reader))
+                                 'postgresql-rivilukija))
         (t (virhe "Ei yhteyttä tietokantaan."))))
 
 
@@ -113,7 +120,7 @@
                              (concatenate 'string format-string
                                           " RETURNING " ret)
                              parameters)
-                      'cl-postgres:list-row-reader))))
+                      'postgresql-rivilukija))))
         (t (virhe "Ei yhteyttä tietokantaan."))))
 
 
@@ -826,7 +833,7 @@
            (qkirj (fmt &rest args)
              (cl-postgres:exec-query postgresql
                                      (apply #'format nil fmt args)
-                                     'cl-postgres:list-row-reader)))
+                                     'postgresql-rivilukija)))
 
       (with-transaction-postgresql postgresql
         (qkirj "DELETE FROM oppilaat")
@@ -896,7 +903,7 @@
       (:sqlite-yhteys sqlite :postgresql-yhteys postgresql)
     (flet ((qluku (fmt &rest args)
              (cl-postgres:exec-query postgresql (apply #'format nil fmt args)
-                                     'cl-postgres:list-row-reader))
+                                     'postgresql-rivilukija))
            (qkirj (fmt &rest args)
              (sqlite:execute-to-list sqlite (apply #'format nil fmt args))))
 
@@ -908,11 +915,9 @@
         (qkirj "DELETE FROM arvosanat")
 
         ;; oppilaat
-        (loop :for rivi
+        (loop :for (oid sukunimi etunimi lisätiedot)
               :in (qluku "SELECT oid, sukunimi, etunimi, lisatiedot ~
                                 FROM oppilaat")
-              :for (oid sukunimi etunimi lisätiedot)
-                 := (substitute nil :null rivi)
               :do (qkirj "INSERT INTO oppilaat ~
                         (oid, sukunimi, etunimi, lisatiedot)
                         VALUES (~A, ~A, ~A, ~A)"
@@ -920,9 +925,8 @@
                          (sql-mj lisätiedot)))
 
         ;; ryhmät
-        (loop :for rivi
+        (loop :for (rid nimi lisätiedot)
               :in (qluku "SELECT rid, nimi, lisatiedot FROM ryhmat")
-              :for (rid nimi lisätiedot) := (substitute nil :null rivi)
               :do (qkirj "INSERT INTO ryhmat ~
                         (rid, nimi, lisatiedot)
                         VALUES (~A, ~A, ~A)"
@@ -936,12 +940,10 @@
                          oid rid))
 
         ;; suoritukset
-        (loop :for rivi
+        (loop :for (sid rid sija nimi lyhenne painokerroin)
               :in (qluku "SELECT sid, rid, sija, ~
                                 nimi, lyhenne, painokerroin ~
                                 FROM suoritukset")
-              :for (sid rid sija nimi lyhenne painokerroin)
-                 := (substitute nil :null rivi)
               :do (qkirj "INSERT INTO suoritukset ~
                         (sid, rid, sija, nimi, lyhenne, painokerroin)
                         VALUES (~A, ~A, ~A, ~A, ~A, ~A)"
@@ -950,11 +952,9 @@
                          (or painokerroin "NULL")))
 
         ;; arvosanat
-        (loop :for rivi
+        (loop :for (sid oid arvosana lisatiedot)
               :in (qluku "SELECT sid, oid, arvosana, lisatiedot ~
                                 FROM arvosanat")
-              :for (sid oid arvosana lisatiedot)
-                 := (substitute nil :null rivi)
               :do (qkirj "INSERT INTO arvosanat ~
                         (sid, oid, arvosana, lisatiedot)
                         VALUES (~A, ~A, ~A, ~A)"
