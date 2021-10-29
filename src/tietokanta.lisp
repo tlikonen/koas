@@ -65,7 +65,7 @@
   (typep *tietokanta* 'sqlite:sqlite-handle))
 
 (defun postgresql-yhteys-p ()
-  (typep *tietokanta* 'postmodern:database-connection))
+  (typep *tietokanta* 'cl-postgres:database-connection))
 
 
 (defun ohjelman-alkuilmoitus ()
@@ -94,7 +94,9 @@
                                  (apply #'format nil format-string
                                         parameters)))
         ((postgresql-yhteys-p)
-         (pomo:query (apply #'format nil format-string parameters)))
+         (cl-postgres:exec-query *tietokanta*
+                                 (apply #'format nil format-string parameters)
+                                 'cl-postgres:list-row-reader))
         (t (virhe "Ei yhteyttä tietokantaan."))))
 
 
@@ -105,11 +107,13 @@
                                         parameters)))
         ((postgresql-yhteys-p)
          (setf *postgresql-last-insert-id*
-               (caar (pomo:query
+               (caar (cl-postgres:exec-query
+                      *tietokanta*
                       (apply #'format nil
                              (concatenate 'string format-string
                                           " RETURNING " ret)
-                             parameters)))))
+                             parameters)
+                      'cl-postgres:list-row-reader))))
         (t (virhe "Ei yhteyttä tietokantaan."))))
 
 
@@ -121,11 +125,25 @@
   (caar (apply #'query format-string parameters)))
 
 
+(defmacro with-transaction-postgresql (connection &body body)
+  (let ((db (gensym "DB"))
+        (commit (gensym "COMMIT")))
+    `(let ((,db ,connection)
+           (,commit nil))
+       (cl-postgres:exec-query ,db "BEGIN TRANSACTION")
+       (unwind-protect
+            (multiple-value-prog1 (progn ,@body)
+              (setf ,commit t))
+         (if ,commit
+             (cl-postgres:exec-query ,db "COMMIT TRANSACTION")
+             (cl-postgres:exec-query ,db "ROLLBACK TRANSACTION"))))))
+
+
 (defmacro with-transaction (&body body)
   `(cond ((sqlite-yhteys-p)
           (sqlite:with-transaction *tietokanta* ,@body))
          ((postgresql-yhteys-p)
-          (pomo:with-transaction () ,@body))))
+          (with-transaction-postgresql *tietokanta* ,@body))))
 
 
 (defun query-last-insert-rowid ()
@@ -477,7 +495,7 @@
            (viesti "Päivitetään ~A-tietokanta versioon ~D.~%"
                    (cond ((typep tyyppi 'sqlite:sqlite-handle)
                           "SQLite")
-                         ((typep tyyppi 'pomo:database-connection)
+                         ((typep tyyppi 'cl-postgres:database-connection)
                           "PostgreSQL"))
                    *ohjelman-tietokantaversio*)
            (loop :for kohde :from (1+ versio)
@@ -603,7 +621,7 @@
   (query "PRAGMA case_sensitive_like = ON"))
 
 
-(defmethod alusta-tietokanta ((tyyppi pomo:database-connection))
+(defmethod alusta-tietokanta ((tyyppi cl-postgres:database-connection))
   (if (query-1 "SELECT 1 FROM pg_catalog.pg_tables ~
         WHERE schemaname = 'public' AND tablename = 'hallinto'")
       (tietokannan-versiotarkistus tyyppi)
@@ -719,9 +737,8 @@
                                 (port (port *postgresql-asetukset*)))
 
   (unless (postgresql-yhteys-p)
-    (setf *tietokanta* (pomo:connect database user password host
-                                     :port (or port 5432))
-          pomo:*database* *tietokanta*)
+    (setf *tietokanta* (cl-postgres:open-database database user password host
+                                                  (or port 5432)))
     (query "SET search_path TO public")
     (alusta-tietokanta *tietokanta*)
     *tietokanta*))
@@ -729,9 +746,8 @@
 
 (defun disconnect-postgresql ()
   (when (postgresql-yhteys-p)
-    (pomo:disconnect *tietokanta*)
-    (setf *tietokanta* nil
-          pomo:*database* nil)))
+    (cl-postgres:close-database *tietokanta*)
+    (setf *tietokanta* nil)))
 
 
 (defun lue-postgresql-asetukset ()
@@ -759,8 +775,7 @@
 
 
 (defmacro tietokanta-käytössä (&body body)
-  `(let ((*tietokanta* nil)
-         (pomo:*database* nil))
+  `(let ((*tietokanta* nil))
      (unwind-protect
           (progn
             (connect-sqlite)
@@ -788,7 +803,6 @@
   (let ((sqlite (gensym "SQLITE"))
         (postgresql (gensym "POSTGRESQL")))
     `(let ((*tietokanta* nil)
-           (pomo:*database* nil)
            (,sqlite-yhteys nil)
            (,postgresql-yhteys nil)
            (,sqlite nil)
@@ -801,7 +815,6 @@
               (setf ,postgresql (connect-postgresql))
               (setf ,sqlite-yhteys ,sqlite)
               (setf ,postgresql-yhteys ,postgresql)
-              (setf pomo:*database* ,postgresql-yhteys)
               (setf *tietokanta* nil)
               ,@body)
 
@@ -817,9 +830,11 @@
     (flet ((qluku (fmt &rest args)
              (sqlite:execute-to-list sqlite (apply #'format nil fmt args)))
            (qkirj (fmt &rest args)
-             (pomo:query (apply #'format nil fmt args))))
+             (cl-postgres:exec-query postgresql
+                                     (apply #'format nil fmt args)
+                                     'cl-postgres:list-row-reader)))
 
-      (pomo:with-transaction ()
+      (with-transaction-postgresql postgresql
         (qkirj "DELETE FROM oppilaat")
         (qkirj "DELETE FROM ryhmat")
         (qkirj "DELETE FROM oppilaat_ryhmat")
@@ -886,7 +901,8 @@
   (molemmat-tietokannat-käytössä
       (:sqlite-yhteys sqlite :postgresql-yhteys postgresql)
     (flet ((qluku (fmt &rest args)
-             (pomo:query (apply #'format nil fmt args)))
+             (cl-postgres:exec-query postgresql (apply #'format nil fmt args)
+                                     'cl-postgres:list-row-reader))
            (qkirj (fmt &rest args)
              (sqlite:execute-to-list sqlite (apply #'format nil fmt args))))
 
