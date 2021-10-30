@@ -746,7 +746,6 @@
   (unless (postgresql-yhteys-p)
     (setf *tietokanta* (cl-postgres:open-database database user password host
                                                   (or port 5432)))
-    (query "SET search_path TO public")
     (alusta-tietokanta *tietokanta*)
     *tietokanta*))
 
