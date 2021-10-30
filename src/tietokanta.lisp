@@ -116,29 +116,23 @@
   (apply #'query-perus *tietokanta* format-string parameters))
 
 
-(defun query-returning (ret format-string &rest parameters)
-  (cond ((sqlite-yhteys-p)
-         (sqlite:execute-to-list *tietokanta*
-                                 (apply #'format nil format-string
-                                        parameters)))
-        ((postgresql-yhteys-p)
-         (setf *postgresql-last-insert-id*
-               (caar (cl-postgres:exec-query
-                      *tietokanta*
-                      (apply #'format nil
-                             (concatenate 'string format-string
-                                          " RETURNING " ret)
-                             parameters)
-                      'postgresql-rivilukija))))
-        (t (virhe "Ei yhteyttä tietokantaan."))))
-
-
 (defun query-nconc (format-string &rest parameters)
   (reduce #'nconc (apply #'query format-string parameters)))
 
 
 (defun query-1 (format-string &rest parameters)
   (caar (apply #'query format-string parameters)))
+
+
+(defun query-returning (ret format-string &rest parameters)
+  (cond ((sqlite-yhteys-p)
+         (apply #'query format-string parameters))
+        ((postgresql-yhteys-p)
+         (setf *postgresql-last-insert-id*
+               (apply #'query-1 (concatenate 'string format-string
+                                             " RETURNING " ret)
+                      parameters)))
+        (t (virhe "Ei yhteyttä tietokantaan."))))
 
 
 (defmacro with-transaction-postgresql (connection &body body)
