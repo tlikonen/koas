@@ -135,25 +135,21 @@
         (t (virhe "Ei yhteyttä tietokantaan."))))
 
 
-(defmacro with-transaction-postgresql (connection &body body)
-  (let ((db (gensym "DB"))
+(defmacro with-transaction-perus (tietokanta &body body)
+  (let ((tk (gensym "TIETOKANTA"))
         (commit (gensym "COMMIT")))
-    `(let ((,db ,connection)
+    `(let ((,tk ,tietokanta)
            (,commit nil))
-       (cl-postgres:exec-query ,db "BEGIN TRANSACTION")
-       (unwind-protect
-            (multiple-value-prog1 (progn ,@body)
-              (setf ,commit t))
-         (if ,commit
-             (cl-postgres:exec-query ,db "COMMIT TRANSACTION")
-             (cl-postgres:exec-query ,db "ROLLBACK TRANSACTION"))))))
+       (query-perus ,tk "BEGIN TRANSACTION")
+       (unwind-protect (multiple-value-prog1 (progn ,@body)
+                         (setf ,commit t))
+         (query-perus ,tk (if ,commit
+                              "COMMIT TRANSACTION"
+                              "ROLLBACK TRANSACTION"))))))
 
 
 (defmacro with-transaction (&body body)
-  `(cond ((sqlite-yhteys-p)
-          (sqlite:with-transaction *tietokanta* ,@body))
-         ((postgresql-yhteys-p)
-          (with-transaction-postgresql *tietokanta* ,@body))))
+  `(with-transaction-perus *tietokanta* ,@body))
 
 
 (defun query-last-insert-rowid ()
@@ -835,7 +831,7 @@
            (qkirj (fmt &rest args)
              (apply #'query-perus postgresql fmt args)))
 
-      (with-transaction-postgresql postgresql
+      (with-transaction-perus postgresql
         (qkirj "DELETE FROM oppilaat")
         (qkirj "DELETE FROM ryhmat")
         (qkirj "DELETE FROM oppilaat_ryhmat")
@@ -906,7 +902,7 @@
            (qkirj (fmt &rest args)
              (apply #'query-perus sqlite fmt args)))
 
-      (sqlite:with-transaction sqlite
+      (with-transaction-perus sqlite
         (qkirj "DELETE FROM oppilaat")
         (qkirj "DELETE FROM ryhmat")
         (qkirj "DELETE FROM oppilaat_ryhmat")
