@@ -891,6 +891,7 @@
                          sid oid
                          (if arvosana (sql-mj arvosana) "NULL")
                          (if lisatiedot (sql-mj lisatiedot) "NULL"))))))
+  (qkirj "VACUUM")
   *postgresql-nimi*)
 
 
