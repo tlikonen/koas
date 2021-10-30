@@ -95,16 +95,25 @@
                        :collect (if (eql f :null) nil f))))
 
 
+(defgeneric query-perus (tietokanta format-string &rest parameters))
+
+
+(defmethod query-perus ((tietokanta sqlite:sqlite-handle)
+                        format-string &rest parameters)
+  (sqlite:execute-to-list tietokanta
+                          (apply #'format nil format-string
+                                 parameters)))
+
+
+(defmethod query-perus ((tietokanta cl-postgres:database-connection)
+                        format-string &rest parameters)
+  (cl-postgres:exec-query tietokanta
+                          (apply #'format nil format-string parameters)
+                          'postgresql-rivilukija))
+
+
 (defun query (format-string &rest parameters)
-  (cond ((sqlite-yhteys-p)
-         (sqlite:execute-to-list *tietokanta*
-                                 (apply #'format nil format-string
-                                        parameters)))
-        ((postgresql-yhteys-p)
-         (cl-postgres:exec-query *tietokanta*
-                                 (apply #'format nil format-string parameters)
-                                 'postgresql-rivilukija))
-        (t (virhe "Ei yhteyttä tietokantaan."))))
+  (apply #'query-perus *tietokanta* format-string parameters))
 
 
 (defun query-returning (ret format-string &rest parameters)
@@ -828,11 +837,9 @@
   (molemmat-tietokannat-käytössä
       (:sqlite-yhteys sqlite :postgresql-yhteys postgresql)
     (flet ((qluku (fmt &rest args)
-             (sqlite:execute-to-list sqlite (apply #'format nil fmt args)))
+             (apply #'query-perus sqlite fmt args))
            (qkirj (fmt &rest args)
-             (cl-postgres:exec-query postgresql
-                                     (apply #'format nil fmt args)
-                                     'postgresql-rivilukija)))
+             (apply #'query-perus postgresql fmt args)))
 
       (with-transaction-postgresql postgresql
         (qkirj "DELETE FROM oppilaat")
@@ -901,10 +908,9 @@
   (molemmat-tietokannat-käytössä
       (:sqlite-yhteys sqlite :postgresql-yhteys postgresql)
     (flet ((qluku (fmt &rest args)
-             (cl-postgres:exec-query postgresql (apply #'format nil fmt args)
-                                     'postgresql-rivilukija))
+             (apply #'query-perus postgresql fmt args))
            (qkirj (fmt &rest args)
-             (sqlite:execute-to-list sqlite (apply #'format nil fmt args))))
+             (apply #'query-perus sqlite fmt args)))
 
       (sqlite:with-transaction sqlite
         (qkirj "DELETE FROM oppilaat")
