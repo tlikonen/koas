@@ -721,7 +721,7 @@
                 LEFT JOIN arvosanat AS a ON o.oid = a.oid AND s.sid = a.sid"))))
 
 
-(defun connect-sqlite ()
+(defun yhdistä-sqlite ()
   (unless (sqlite-yhteys-p)
     (sb-posix:umask #o0077)
     (alusta-sqlite-tiedostopolku)
@@ -731,13 +731,7 @@
     *tietokanta*))
 
 
-(defun disconnect-sqlite ()
-  (when (sqlite-yhteys-p)
-    (prog1 (sqlite:disconnect *tietokanta*)
-      (setf *tietokanta* nil))))
-
-
-(defun connect-postgresql (&key (user (user *postgresql-asetukset*))
+(defun yhdistä-postgresql (&key (user (user *postgresql-asetukset*))
                                 (password (password *postgresql-asetukset*))
                                 (database (database *postgresql-asetukset*))
                                 (host (host *postgresql-asetukset*))
@@ -750,9 +744,18 @@
     *tietokanta*))
 
 
-(defun disconnect-postgresql ()
-  (when (postgresql-yhteys-p)
-    (cl-postgres:close-database *tietokanta*)
+(defgeneric katkaise-yhteys (tietokanta))
+
+(defmethod katkaise-yhteys ((tietokanta sqlite:sqlite-handle))
+  (sqlite:disconnect tietokanta)
+  (call-next-method))
+
+(defmethod katkaise-yhteys ((tietokanta cl-postgres:database-connection))
+  (cl-postgres:close-database tietokanta)
+  (call-next-method))
+
+(defmethod katkaise-yhteys ((tietokanta t))
+  (prog1 *tietokanta*
     (setf *tietokanta* nil)))
 
 
@@ -784,23 +787,22 @@
   `(let ((*tietokanta* nil))
      (unwind-protect
           (progn
-            (connect-sqlite)
+            (yhdistä-sqlite)
             (when (equal *postgresql-nimi*
                          (query-1 "SELECT teksti FROM hallinto ~
                                 WHERE avain = 'tietokanta'"))
               (lue-postgresql-asetukset)
-              (disconnect-sqlite)
-              (connect-postgresql))
+              (katkaise-yhteys *tietokanta*)
+              (yhdistä-postgresql))
             ,@body)
 
-       (disconnect-postgresql)
-       (disconnect-sqlite))))
+       (katkaise-yhteys *tietokanta*))))
 
 
 (defmacro sqlite-käytössä (&body body)
   `(let ((*tietokanta* nil))
-     (unwind-protect (progn (connect-sqlite) ,@body)
-       (disconnect-sqlite))))
+     (unwind-protect (progn (yhdistä-sqlite) ,@body)
+       (katkaise-yhteys *tietokanta*))))
 
 
 (defmacro molemmat-tietokannat-käytössä ((&key sqlite-yhteys
@@ -812,16 +814,14 @@
      (declare (ignorable ,sqlite-yhteys ,postgresql-yhteys))
      (unwind-protect
           (progn
-            (setf ,sqlite-yhteys (connect-sqlite))
+            (setf ,sqlite-yhteys (yhdistä-sqlite))
             (lue-postgresql-asetukset)
-            (setf ,postgresql-yhteys (connect-postgresql))
+            (setf ,postgresql-yhteys (yhdistä-postgresql))
             (setf *tietokanta* nil)
             ,@body)
 
-       (let ((*tietokanta* ,postgresql-yhteys))
-         (disconnect-postgresql))
-       (let ((*tietokanta* ,sqlite-yhteys))
-         (disconnect-sqlite)))))
+       (katkaise-yhteys ,sqlite-yhteys)
+       (katkaise-yhteys ,postgresql-yhteys))))
 
 
 (defun kopioi-sqlite-postgresql ()
