@@ -628,8 +628,7 @@
 
 
 (defmethod alusta-tietokanta ((tyyppi cl-postgres:database-connection))
-  (if (query-1 "SELECT 1 FROM pg_catalog.pg_tables ~
-        WHERE schemaname = 'public' AND tablename = 'hallinto'")
+  (if (query-1 "SELECT 1 FROM pg_tables WHERE tablename = 'hallinto'")
       (tietokannan-versiotarkistus tyyppi)
 
       ;; Tietokanta puuttuu
