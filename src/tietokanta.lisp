@@ -892,7 +892,8 @@
                          (if arvosana (sql-mj arvosana) "NULL")
                          (if lisatiedot (sql-mj lisatiedot) "NULL"))))
 
-      (qkirj "VACUUM")))
+      (qkirj "VACUUM FULL hallinto, oppilaat, oppilaat_ryhmat, ryhmat, ~
+                suoritukset, arvosanat")))
   *postgresql-nimi*)
 
 
