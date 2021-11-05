@@ -1,4 +1,4 @@
-versio = 2021.10.23
+versio = 2021.11
 bindir = /usr/local/bin
 sbcl = sbcl
 src = src/*.asd src/*.lisp
