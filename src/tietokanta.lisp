@@ -81,10 +81,16 @@
 
 (defun alusta-sqlite-tiedostopolku ()
   (unless *sqlite-tiedosto*
-    (setf *sqlite-tiedosto*
-          (merge-pathnames (make-pathname :directory '(:relative ".config")
-                                          :name "koas" :type "db")
-                           (user-homedir-pathname))))
+    (let ((xdg-config-home (sb-posix:getenv "XDG_CONFIG_HOME")))
+      (setf *sqlite-tiedosto*
+            (if xdg-config-home
+                (merge-pathnames (make-pathname :name "koas" :type "db")
+                                 (pathconv:pathname xdg-config-home
+                                                    :type :directory))
+                (merge-pathnames (make-pathname
+                                  :directory '(:relative ".config")
+                                  :name "koas" :type "db")
+                                 (user-homedir-pathname))))))
   (ensure-directories-exist *sqlite-tiedosto*))
 
 
