@@ -74,14 +74,14 @@ Tekijä ja tekijänoikeus
 -----------------------
 
 Ohjelman tekijä on Teemu Likonen <<tlikonen@iki.fi>> (OpenPGP-avain:
-[4E10 55DC 84E9 DFF6 13D7 8557 719D 69D3 2453 9450][PGP]), ja ohjelmaa
-levitetään [The GNU General Public License][GPL] -nimisellä lisenssillä.
-Lisenssin teksti on linkin takana englanninkielisenä. Lisenssin
-ajatuksena on, että ohjelmaa saa käyttää ja levittää vapaasti. Ohjelmaan
-saa myös vapaasti tehdä omia muutoksia, mutta jos levittää omaa
-muunneltua versiota, täytyy ohjelman muunneltu lähdekoodi antaa muiden
-käyttöön. Muunnellut versiot täytyy jakaa tällä samalla
-ohjelmistolisenssillä (tai sen uudemmalla versiolla).
+[6965F03973F0D4CA22B9410F0F2CAE0E07608462][PGP]), ja ohjelmaa levitetään
+[The GNU General Public License][GPL] -nimisellä lisenssillä. Lisenssin
+teksti on linkin takana englanninkielisenä. Lisenssin ajatuksena on,
+että ohjelmaa saa käyttää ja levittää vapaasti. Ohjelmaan saa myös
+vapaasti tehdä omia muutoksia, mutta jos levittää omaa muunneltua
+versiota, täytyy ohjelman muunneltu lähdekoodi antaa muiden käyttöön.
+Muunnellut versiot täytyy jakaa tällä samalla ohjelmistolisenssillä (tai
+sen uudemmalla versiolla).
 
 Ohjelmaa levitetään siinä toivossa, että siitä on hyötyä muille.
 Ohjelman tekijä ei kuitenkaan anna mitään takuita ohjelmalle, ei edes
@@ -96,7 +96,7 @@ Copyright and Licence
 
 Copyright (C) 2013-2021 Teemu Likonen <<tlikonen@iki.fi>>
 
-OpenPGP key: [4E10 55DC 84E9 DFF6 13D7 8557 719D 69D3 2453 9450][PGP]
+OpenPGP key: [6965F03973F0D4CA22B9410F0F2CAE0E07608462][PGP]
 
 This program is free software: you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the
