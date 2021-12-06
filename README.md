@@ -12,7 +12,8 @@ Tietokannasta voi hakea tietoja esimerkiksi seuraavilla tavoilla:
 
   * tietyn oppilaan kaikki suoritukset ja arvosanat
   * tietyn suorituksen arvosanat koko opetusryhmältä
-  * opetusryhmän kaikki arvosanat koottuna.
+  * opetusryhmän kaikki arvosanat koottuna
+  * jakaumia ja paremmuusjärjestyksiä.
 
 Ohjelma myös laskee suoritusten keskiarvot automaattisesti ja hyödyntää
 laskemisessa käyttäjän määrittämiä painokertoimia. Ohjelmassa on
