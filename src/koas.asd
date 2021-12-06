@@ -7,9 +7,11 @@
   :components
   ((:file "koas" :depends-on ("yhteinen" "pathconv" "tietokanta"))
    (:file "tietokanta"
-    :depends-on ("yhteinen" "pathconv" "string-io" "xdg-dirs" "fstools"))
+    :depends-on ("yhteinen" "pathconv" "string-io" "xdg-dirs" "fstools"
+                            "pgsql"))
    (:file "yhteinen")
    (:file "pathconv")
    (:file "string-io")
    (:file "xdg-dirs" :depends-on ("pathconv"))
-   (:file "fstools" :depends-on ("pathconv"))))
+   (:file "fstools" :depends-on ("pathconv"))
+   (:file "pgsql")))

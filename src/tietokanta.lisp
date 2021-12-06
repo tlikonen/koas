@@ -64,7 +64,7 @@
   (typep *tietokanta* 'sqlite:sqlite-handle))
 
 (defun postgresql-yhteys-p ()
-  (typep *tietokanta* 'cl-postgres:database-connection))
+  (pgsql:connectionp *tietokanta*))
 
 
 (defun ohjelman-alkuilmoitus ()
@@ -95,13 +95,6 @@
           (fstools:move-file vanha *sqlite-tiedosto*)))))
 
 
-(cl-postgres:def-row-reader postgresql-rivilukija (fields)
-  (loop :while (cl-postgres:next-row)
-        :collect (loop :for field :across fields
-                       :for f := (cl-postgres:next-field field)
-                       :collect (if (eql f :null) nil f))))
-
-
 (defgeneric query-perus (tietokanta format-string &rest parameters))
 
 
@@ -112,11 +105,9 @@
                                  parameters)))
 
 
-(defmethod query-perus ((tietokanta cl-postgres:database-connection)
+(defmethod query-perus ((tietokanta pgsql:database-connection)
                         format-string &rest parameters)
-  (cl-postgres:exec-query tietokanta
-                          (apply #'format nil format-string parameters)
-                          'postgresql-rivilukija))
+  (pgsql:query tietokanta (apply #'format nil format-string parameters)))
 
 
 (defun query (format-string &rest parameters)
@@ -508,7 +499,7 @@
            (viesti "Päivitetään ~A-tietokanta versioon ~D.~%"
                    (cond ((typep tyyppi 'sqlite:sqlite-handle)
                           "SQLite")
-                         ((typep tyyppi 'cl-postgres:database-connection)
+                         ((typep tyyppi 'pgsql:database-connection)
                           "PostgreSQL"))
                    *ohjelman-tietokantaversio*)
            (loop :for kohde :from (1+ versio)
@@ -634,7 +625,7 @@
   (query "PRAGMA case_sensitive_like = ON"))
 
 
-(defmethod alusta-tietokanta ((tyyppi cl-postgres:database-connection))
+(defmethod alusta-tietokanta ((tyyppi pgsql:database-connection))
   (if (query-1 "SELECT 1 FROM pg_tables WHERE tablename = 'hallinto'")
       (tietokannan-versiotarkistus tyyppi)
 
@@ -743,8 +734,8 @@
                                 (port (port *postgresql-asetukset*)))
 
   (unless (postgresql-yhteys-p)
-    (setf *tietokanta* (cl-postgres:open-database database user password host
-                                                  (or port 5432)))
+    (setf *tietokanta* (pgsql:connect database user password host
+                                      :port port))
     (alusta-tietokanta *tietokanta*)
     *tietokanta*))
 
@@ -755,8 +746,8 @@
   (sqlite:disconnect tietokanta)
   (call-next-method))
 
-(defmethod katkaise-yhteys ((tietokanta cl-postgres:database-connection))
-  (cl-postgres:close-database tietokanta)
+(defmethod katkaise-yhteys ((tietokanta pgsql:database-connection))
+  (pgsql:disconnect tietokanta)
   (call-next-method))
 
 (defmethod katkaise-yhteys ((tietokanta t))
