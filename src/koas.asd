@@ -6,9 +6,10 @@
                "decimals" "split-sequence" "just-getopt-parser")
   :components
   ((:file "koas" :depends-on ("yhteinen" "pathconv" "tietokanta"))
-   (:file "tietokanta" :depends-on ("yhteinen" "pathconv" "string-io"
-                                               "xdg-dirs"))
+   (:file "tietokanta"
+    :depends-on ("yhteinen" "pathconv" "string-io" "xdg-dirs" "fstools"))
    (:file "yhteinen")
    (:file "pathconv")
    (:file "string-io")
-   (:file "xdg-dirs" :depends-on ("pathconv"))))
+   (:file "xdg-dirs" :depends-on ("pathconv"))
+   (:file "fstools" :depends-on ("pathconv"))))

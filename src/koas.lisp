@@ -2239,6 +2239,8 @@ Lisenssi: GNU General Public License 3
              (character (format nil "-~C" valitsin))
              (string (format nil "--~A" valitsin)))))
 
+    (setf *sqlite-tiedosto* nil)
+
     (handler-bind
         ((just-getopt-parser:unknown-option
            (lambda (tila)

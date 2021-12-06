@@ -19,7 +19,7 @@
 (defpackage #:tietokanta
   (:use #:cl #:yhteinen)
   (:export
-   #:*sqlite-nimi* #:*postgresql-nimi*
+   #:*sqlite-nimi* #:*postgresql-nimi* #:*sqlite-tiedosto*
    #:query-last-insert-rowid
    #:lisää-muokkauslaskuriin
    #:tietokanta-käytössä #:sqlite-käytössä
@@ -79,10 +79,20 @@
 
 
 (defun alusta-sqlite-tiedostopolku ()
-  (unless *sqlite-tiedosto*
-    (setf *sqlite-tiedosto*
-          (xdg-dirs:config-home (make-pathname :name "koas" :type "db"))))
-  (ensure-directories-exist *sqlite-tiedosto*))
+  (if *sqlite-tiedosto*
+      (ensure-directories-exist *sqlite-tiedosto*)
+      (let ((vanha (xdg-dirs:config-home
+                    (make-pathname :name "koas" :type "db"))))
+        (setf *sqlite-tiedosto* (xdg-dirs:data-home
+                                 (make-pathname :name "koas" :type "sqlite")))
+        (ensure-directories-exist *sqlite-tiedosto*)
+
+        (when (and (probe-file vanha)
+                   (not (probe-file *sqlite-tiedosto*)))
+          (virheviesti "Siirretään asetus- ja tietokantatiedosto ~
+                        uuteen paikkaan:~%~A~%"
+                       (pathconv:namestring *sqlite-tiedosto*))
+          (fstools:move-file vanha *sqlite-tiedosto*)))))
 
 
 (cl-postgres:def-row-reader postgresql-rivilukija (fields)

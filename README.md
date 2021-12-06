@@ -62,8 +62,8 @@ voi syöttää. Komennolla `?` tulostuu ohjeet kaikista ohjelman
 komennoista.
 
 Ensimmäisellä käynnistyskerralla luodaan automaattisesti
-SQLite-tietokantatiedosto `~/.config/koas.db`, johon ohjelman asetukset
-ja tietokanta oletuksena tallentuu.
+SQLite-tietokantatiedosto, johon ohjelman asetukset ja tietokanta
+oletuksena tallentuvat.
 
 Ohjelmassa on myös toimintoja ja asetuksia, joita käytetään vain
 komentoriviargumenttien kautta. Niistä saa lisätietoa, kun ohjelman
