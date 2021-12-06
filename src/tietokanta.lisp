@@ -19,7 +19,6 @@
 (defpackage #:tietokanta
   (:use #:cl #:yhteinen)
   (:export
-   #:alusta-sqlite-tiedostopolku #:*sqlite-tiedosto*
    #:*sqlite-nimi* #:*postgresql-nimi*
    #:query-last-insert-rowid
    #:lisää-muokkauslaskuriin

@@ -2107,14 +2107,11 @@ Valitsimet:
 
   --tietokanta=sqlite
 
-        Siirtyy käyttämään SQLite-tietokantaa, joka on tiedostossa
-        \"~A\".
-
-        Sekä ohjelman asetukset että varsinainen kouluarvosanatietokanta
-        tallennetaan edellä mainittuun tiedostoon. Tämän valitsimen
-        asetus tallentuu, eli seuraavilla kerroilla käytetään
-        automaattisesti SQLite-tietokantaa. Tämä on myös ohjelman
-        oletusasetus.
+        Siirtyy käyttämään SQLite-tietokantaa. Sekä ohjelman asetukset
+        että varsinainen kouluarvosanatietokanta tallennetaan
+        tietokantaan. Tämän valitsimen asetus tallentuu, eli seuraavilla
+        kerroilla käytetään automaattisesti SQLite-tietokantaa. Tämä on
+        myös ohjelman oletusasetus.
 
   --tietokanta=postgresql/käyttäjä/salasana/osoite/portti/kanta
 
@@ -2130,9 +2127,8 @@ Valitsimet:
         tietokannan nimi, johon kirjaudutaan. Sen täytyy olla valmiiksi
         olemassa, ja tällä käyttäjällä pitää olla CREATE-oikeus eli
         oikeus luoda taulukoita yms. Kaikki edellä mainitut asetukset
-        tallentuvat SQLite-tiedostoon, ja niitä käytetään
-        automaattisesti seuraavilla kerroilla. Asetustiedosto on
-        \"~0@*~A\".
+        tallentuvat SQLite-tietokantaan, ja niitä käytetään
+        automaattisesti seuraavilla kerroilla.
 
         Asetusten erotinmerkkinä on yllä olevassa esimerkissä
         vinoviiva (/), mutta se voisi olla mikä tahansa muukin merkki.
@@ -2181,7 +2177,7 @@ Jos komentorivillä annetaan komennoksi vain yhdysmerkki \"-\", luetaan
 komennot standardisyötteestä, niin että yhdellä rivillä on aina yksi
 komento. Muokkauskomennot eivät ole tällöin käytössä.
 
-" (pathconv:namestring *sqlite-tiedosto*)))
+"))
 
 
 (defun ohjeet-versio ()
@@ -2265,8 +2261,6 @@ Lisenssi: GNU General Public License 3
            (lambda (tila)
              (declare (ignore tila))
              (return-from main))))
-
-      (alusta-sqlite-tiedostopolku)
 
       (multiple-value-bind (valitsimet argumentit tuntemattomat)
           (just-getopt-parser:getopt
