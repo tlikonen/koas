@@ -5,8 +5,6 @@ src = src/*.asd src/*.lisp
 
 -include config.mk
 
-all: koas
-
 koas: quicklisp/setup.lisp $(src) versio.txt
 	$(sbcl) --script make.lisp
 
@@ -46,4 +44,4 @@ distclean: clean
 	rm -fr quicklisp
 	rm -f config.mk
 
-.PHONY: all install uninstall clean distclean
+.PHONY: install uninstall clean distclean
