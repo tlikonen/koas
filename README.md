@@ -95,7 +95,7 @@ lupausta, että se sopii johonkin tiettyyn käyttötarkoitukseen.
 Copyright and Licence
 ---------------------
 
-Copyright (C) 2013-2021 Teemu Likonen <<tlikonen@iki.fi>>
+Copyright (C) 2013-2022 Teemu Likonen <<tlikonen@iki.fi>>
 
 OpenPGP key: [6965F03973F0D4CA22B9410F0F2CAE0E07608462][PGP]
 
