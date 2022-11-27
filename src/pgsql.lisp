@@ -11,6 +11,7 @@
    #:database-connection
    #:query #:query-1 #:query-nconc
    #:with-connection #:with-transaction
+   #:*query-reader* #:line-reader #:line-reader-null
    ))
 
 (in-package #:pgsql)
@@ -30,16 +31,24 @@
 (defun connectionp (connection)
   (typep connection 'cl-postgres:database-connection))
 
-(cl-postgres:def-row-reader pgsql-lines (fields)
+(cl-postgres:def-row-reader line-reader (fields)
   (loop :while (cl-postgres:next-row)
         :collect (loop :for field :across fields
                        :for f := (cl-postgres:next-field field)
                        :collect (if (eql f :null) nil f))))
 
-(defmethod query (connection fmt &rest args)
+(cl-postgres:def-row-reader line-reader-null (fields)
+  (loop :while (cl-postgres:next-row)
+        :collect (loop :for field :across fields
+                       :for f := (cl-postgres:next-field field)
+                       :collect f)))
+
+(defvar *query-reader* 'line-reader)
+
+(defun query (connection fmt &rest args)
   (cl-postgres:exec-query connection
                           (apply #'format nil fmt args)
-                          'pgsql-lines))
+                          *query-reader*))
 
 (defun query-1 (connection fmt &rest args)
   (caar (apply #'query connection fmt args)))
