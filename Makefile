@@ -1,4 +1,3 @@
-versio = 2022
 bindir = /usr/local/bin
 sbcl = sbcl
 src = src/*.asd src/*.lisp
@@ -26,7 +25,7 @@ config.mk:
 versio.txt:
 	if v=$$(git describe --always --dirty); \
 		then echo "$$v" > $@; \
-		else echo "$(versio)" > $@; \
+		else echo "tuntematon" > $@; \
 		fi
 
 install:
