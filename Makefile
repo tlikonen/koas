@@ -23,10 +23,7 @@ config.mk:
 	@cat $@
 
 versio.txt:
-	if v=$$(git describe --always --dirty); \
-		then echo "$$v" > $@; \
-		else echo "tuntematon" > $@; \
-		fi
+	v=$$(git describe --always --dirty) || v=tuntematon; echo "$$v" > $@
 
 install:
 	install -d -m 755 "$(bindir)"
