@@ -1,0 +1,13 @@
+[package]
+name = "kastk"
+description = "Kouluarvosanatietokanta"
+version = "0.1.0"
+edition = "2024"
+authors = ["Teemu Likonen <tlikonen@iki.fi>"]
+license = "GPL-3.0-or-later"
+publish = false
+
+[dependencies]
+just-getopt = { git = "https://github.com/tlikonen/just-getopt.git", branch = "main" }
+libc = "0.2.171"
+xdg = "2.5.2"
