@@ -1,4 +1,4 @@
-use just_getopt::{Args, OptSpecs, OptValue};
+use just_getopt::{Args, OptFlags, OptSpecs, OptValue};
 use std::path::PathBuf;
 use std::process::ExitCode;
 
@@ -10,10 +10,10 @@ const CONFIG_FILE: &str = env!("CARGO_BIN_NAME");
 
 fn main() -> ExitCode {
     let args = OptSpecs::new()
-        .option("tietokanta", "tietokanta", OptValue::RequiredNonEmpty)
+        .option("postgresql", "postgresql", OptValue::RequiredNonEmpty)
         .option("help", "h", OptValue::None)
         .option("version", "versio", OptValue::None)
-        .option("version", "version", OptValue::None)
+        .flag(OptFlags::PrefixMatchLongOptions)
         .getopt(std::env::args().skip(1));
 
     if !args.unknown.is_empty() {
@@ -65,6 +65,26 @@ fn print_usage() {
 
 Valitsimet
 
+  --postgresql=/käyttäjä/salasana/osoite/portti/kanta
+        Asettaa PostgreSQL-tietokantapalvelimen yhteysasetukset.
+
+        Komentorivillä annetut asetukset ”käyttäjä” ja ”salasana” ovat
+        tietokannan kirjautumistietoja. Asetukset ”osoite” ja ”portti”
+        ovat palvelimen verkko-osoitetietoja. Jos tietokantapalvelin
+        toimii samalla tietokoneella, sopiva osoite on ”localhost”.
+        ”portti”-asetuksen voi jättää tyhjäksi, jolloin käytetään
+        PostgreSQL:n oletusporttia 5432. ”kanta” on tietokannan nimi,
+        johon kirjaudutaan. Sen täytyy olla valmiiksi olemassa, ja tällä
+        käyttäjällä pitää olla CREATE-oikeus eli oikeus luoda taulukoita
+        yms. Kaikki edellä mainitut asetukset tallentuvat
+        asetustiedostoon, ja niitä käytetään automaattisesti seuraavilla
+        kerroilla.
+
+        Asetusten erotinmerkkinä on yllä olevassa esimerkissä vinoviiva
+        (/), mutta se voisi olla mikä tahansa muukin merkki. Valitsimen
+        arvon ensimmäinen merkki määrittää, mikä merkki erottaa
+        asetuskentät toisistaan.
+
   -h    Tulostaa tämän ohjeen.
 
   --versio
@@ -82,7 +102,7 @@ fn run(_args: Args) -> Result<(), String> {
     if !config_file.exists() {
         return Err(format!(
             "Asetustiedostoa ”{}” ei ole vielä olemassa.\n\
-             Luo se käyttämällä valitsinta ”--tietokanta=...”. \
+             Luo se käyttämällä valitsinta ”--postgresql=...”. \
              Valitsin ”-h” tulostaa apua.",
             config_str()
         ));
