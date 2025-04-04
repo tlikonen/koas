@@ -1,13 +1,10 @@
-use just_getopt::{Args, OptFlags, OptSpecs, OptValue};
-use std::fs;
-use std::path::{Path, PathBuf};
+use just_getopt::{OptFlags, OptSpecs, OptValue};
 use std::process::ExitCode;
 
 const PROGRAM_NAME: &str = env!("CARGO_BIN_NAME");
 const PROGRAM_VERSION: &str = env!("CARGO_PKG_VERSION");
 const PROGRAM_AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
 const PROGRAM_LICENSE: &str = env!("CARGO_PKG_LICENSE");
-const CONFIG_FILE: &str = env!("CARGO_BIN_NAME");
 
 fn main() -> ExitCode {
     let args = OptSpecs::new()
@@ -51,7 +48,7 @@ fn main() -> ExitCode {
         return ExitCode::SUCCESS;
     }
 
-    match run(args) {
+    match kastk::run(args) {
         Ok(_) => ExitCode::SUCCESS,
         Err(e) => {
             eprintln!("{}", e);
@@ -95,86 +92,4 @@ Valitsimet
         Tulostaa ohjelman versionumeron ja lisenssin.\n",
         name = PROGRAM_NAME
     )
-}
-
-fn run(args: Args) -> Result<(), String> {
-    let config_file = init_config_file(CONFIG_FILE)?;
-
-    umask(0o077);
-
-    if args.option_exists("postgresql") {
-        eprintln!("puuttuu --postgresql-valitsimen käsittely.");
-    } else if config_file.exists() {
-        eprintln!("Puuttuu asetustiedoston lukeminen");
-    } else {
-        write_config_file(&config_file, &Default::default())?;
-        return Err(format!(
-            "Asetustiedosto ”{}” on luotu.\n\
-             Muokkaa sen asetukset joko valitsimella ”--postgresql” tai tekstieditorilla.\n\
-             Valitsin ”-h” tulostaa apua.",
-            config_file.to_string_lossy()
-        ));
-    }
-
-    Ok(())
-}
-
-fn init_config_file(name: &str) -> Result<PathBuf, String> {
-    xdg::BaseDirectories::new()
-        .map_err(|_| "Asetustiedoston alustus epäonnistui.".to_string())?
-        .place_config_file(name)
-        .map_err(|e| format!("Asetustiedoston alustus epäonnistui: {}", e.kind()))
-}
-
-fn umask(mask: u32) -> u32 {
-    unsafe { libc::umask(mask) }
-}
-
-struct Config {
-    system: String,
-    host: String,
-    port: u16,
-    database: String,
-    user: String,
-    password: String,
-}
-
-impl Default for Config {
-    fn default() -> Self {
-        Self {
-            system: "postgresql".to_string(),
-            host: "localhost".to_string(),
-            port: 5432,
-            database: "".to_string(),
-            user: "".to_string(),
-            password: "".to_string(),
-        }
-    }
-}
-
-fn write_config_file(path: &Path, config: &Config) -> Result<(), String> {
-    fs::write(
-        path,
-        format!(
-            "järjestelmä={system}\n\
-             osoite={host}\n\
-             portti={port}\n\
-             kanta={db}\n\
-             käyttäjä={user}\n\
-             salasana={pw}\n",
-            system = config.system,
-            host = config.host,
-            port = config.port,
-            db = config.database,
-            user = config.user,
-            pw = config.password,
-        ),
-    )
-    .map_err(|e| {
-        format!(
-            "Asetustiedoston ”{}” kirjoittaminen epäonnistui: {}",
-            path.to_string_lossy(),
-            e.kind()
-        )
-    })
 }
