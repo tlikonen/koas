@@ -26,9 +26,9 @@ impl Default for Config {
             system: "postgresql".to_string(),
             host: "localhost".to_string(),
             port: 5432,
-            database: "".to_string(),
-            user: "".to_string(),
-            password: "".to_string(),
+            database: String::new(),
+            user: String::new(),
+            password: String::new(),
         }
     }
 }
