@@ -1,5 +1,5 @@
-mod config;
-mod tools;
+pub mod config;
+pub mod tools;
 
 use just_getopt as jg;
 
