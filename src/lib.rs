@@ -1,6 +1,6 @@
-use just_getopt::Args;
-
 mod config;
+
+use just_getopt::Args;
 
 pub fn run(args: Args) -> Result<(), String> {
     let config_file = config::init_config_file()?;
