@@ -4,7 +4,7 @@ mod tools;
 use just_getopt as jg;
 
 pub fn run(args: jg::Args) -> Result<(), String> {
-    let config_file = config::init_config_file()?;
+    let config_file = config::init()?;
 
     umask(0o077);
 
@@ -13,7 +13,7 @@ pub fn run(args: jg::Args) -> Result<(), String> {
     } else if config_file.exists() {
         eprintln!("Puuttuu asetustiedoston lukeminen");
     } else {
-        config::write_config_file(&config_file, &Default::default())?;
+        config::write(&config_file, &Default::default())?;
         return Err(format!(
             "Asetustiedosto ”{}” on luotu.\n\
              Muokkaa sen asetukset joko valitsimella ”--postgresql” tai tekstieditorilla.\n\

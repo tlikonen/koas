@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 
 const CONFIG_FILE: &str = env!("CARGO_PKG_NAME");
 
-pub fn init_config_file() -> Result<PathBuf, String> {
+pub fn init() -> Result<PathBuf, String> {
     xdg::BaseDirectories::new()
         .map_err(|_| "Asetustiedoston alustus epäonnistui.".to_string())?
         .place_config_file(CONFIG_FILE)
@@ -32,7 +32,7 @@ impl Default for Config {
     }
 }
 
-pub fn write_config_file(path: &Path, config: &Config) -> Result<(), String> {
+pub fn write(path: &Path, config: &Config) -> Result<(), String> {
     fs::write(
         path,
         format!(
