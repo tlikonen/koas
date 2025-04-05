@@ -9,7 +9,13 @@ pub fn run(args: jg::Args) -> Result<(), String> {
     umask(0o077);
 
     if args.option_exists("postgresql") {
-        eprintln!("puuttuu --postgresql-valitsimen käsittely.");
+        let value = args
+            .options_value_last("postgresql")
+            .expect("valitsimella pitäisi olla arvo");
+        let fields = tools::split_sep(value);
+        for i in fields {
+            println!("{i:?}");
+        }
     } else if config_file.exists() {
         eprintln!("Puuttuu asetustiedoston lukeminen");
     } else {
