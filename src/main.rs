@@ -63,17 +63,17 @@ fn print_usage() {
 
 Valitsimet
 
-  --postgresql=/käyttäjä/salasana/osoite/portti/kanta
+  --postgresql=/käyttäjä/salasana/kanta/osoite/portti
         Asettaa PostgreSQL-tietokantapalvelimen yhteysasetukset.
 
         Komentorivillä annetut asetukset ”käyttäjä” ja ”salasana” ovat
-        tietokannan kirjautumistietoja. Asetukset ”osoite” ja ”portti”
-        ovat palvelimen verkko-osoitetietoja. Jos tietokantapalvelin
-        toimii samalla tietokoneella, sopiva osoite on ”localhost”. Sitä
-        käytetään oletuksena, jos osoitteen jättää tyhjäksi. Myös
-        ”portti”-asetuksen voi jättää tyhjäksi, jolloin käytetään
-        PostgreSQL:n oletusporttia 5432. ”kanta” on tietokannan nimi,
-        johon kirjaudutaan.
+        käyttäjän tunnistamistietoja, ja ”kanta” on tietokannan nimi,
+        johon kirjaudutaan. Nämä asetukset ovat pakollisia.
+
+        Asetukset ”osoite” ja ”portti” ovat palvelimen verkko-
+        osoitetietoja. Jos osoitetta ei ole annettu, käytetään osoitetta
+        ”localhost”. Myös ”portti”-asetuksen voi jättää tyhjäksi,
+        jolloin käytetään PostgreSQL:n oletusporttia 5432.
 
         Tietokannan täytyy olla valmiiksi olemassa, ja tällä käyttäjällä
         pitää olla CREATE-oikeus eli oikeus luoda taulukoita yms. Kaikki
