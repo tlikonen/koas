@@ -1,8 +1,8 @@
 mod config;
 
-use just_getopt::Args;
+use just_getopt as jg;
 
-pub fn run(args: Args) -> Result<(), String> {
+pub fn run(args: jg::Args) -> Result<(), String> {
     let config_file = config::init_config_file()?;
 
     umask(0o077);
