@@ -1,11 +1,6 @@
-pub fn split_sep(s: &str) -> Vec<String> {
-    let mut chars = s.chars();
-    let sep = chars.next().expect("Tyhjä merkkijono");
-    chars
-        .collect::<String>()
-        .split(sep)
-        .map(|i| i.to_string())
-        .collect()
+pub fn split_sep(s: &str) -> impl Iterator<Item = &str> {
+    let sep = s.chars().next().unwrap_or('/');
+    s.split(sep).skip(1)
 }
 
 #[cfg(test)]
@@ -14,7 +9,34 @@ mod tests {
 
     #[test]
     fn t_split_sep() {
-        assert_eq!(vec!["eka", "toka"], split_sep("/eka/toka"));
-        assert_eq!(vec![""], split_sep("/"));
+        assert_eq!(
+            vec!["eka", "toka"],
+            split_sep("/eka/toka").collect::<Vec<&str>>()
+        );
+        assert_eq!(
+            vec!["äiti", "öljy", ""],
+            split_sep("/äiti/öljy/").collect::<Vec<&str>>()
+        );
+        assert_eq!(
+            vec!["äiti", "", "öljy"],
+            split_sep("/äiti//öljy").collect::<Vec<&str>>()
+        );
+        assert_eq!(
+            vec!["äiti", "", "öljy"],
+            split_sep("–äiti––öljy").collect::<Vec<&str>>()
+        );
+        assert_eq!(None, split_sep("").next());
+        assert_eq!(vec![""], split_sep("/").collect::<Vec<&str>>());
+        assert_eq!(vec![""], split_sep("–").collect::<Vec<&str>>());
+        assert_eq!(vec!["", "", ""], split_sep("///").collect::<Vec<&str>>());
+        assert_eq!(vec!["", "", ""], split_sep("–––").collect::<Vec<&str>>());
+        assert_eq!(
+            vec![" ", "  ", " "],
+            split_sep("/ /  / ").collect::<Vec<&str>>()
+        );
+        assert_eq!(
+            vec![" ", "  ", " "],
+            split_sep("– –  – ").collect::<Vec<&str>>()
+        );
     }
 }
