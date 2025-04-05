@@ -1,6 +1,6 @@
 pub fn split_sep(s: &str) -> Vec<String> {
     let mut chars = s.chars();
-    let sep = chars.nth(0).expect("Tyhjä merkkijono");
+    let sep = chars.next().expect("Tyhjä merkkijono");
     chars
         .collect::<String>()
         .split(sep)

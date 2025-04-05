@@ -1,5 +1,5 @@
-use std::path::{Path, PathBuf};
 use std::fs;
+use std::path::{Path, PathBuf};
 
 const CONFIG_FILE: &str = env!("CARGO_PKG_NAME");
 
@@ -9,7 +9,6 @@ pub fn init_config_file() -> Result<PathBuf, String> {
         .place_config_file(CONFIG_FILE)
         .map_err(|e| format!("Asetustiedoston alustus epäonnistui: {}", e.kind()))
 }
-
 
 pub struct Config {
     pub system: String,
