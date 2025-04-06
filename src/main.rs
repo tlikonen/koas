@@ -15,18 +15,19 @@ fn main() -> ExitCode {
         .flag(jg::OptFlags::PrefixMatchLongOptions)
         .getopt(std::env::args().skip(1));
 
-    if !args.unknown.is_empty() {
-        for u in &args.unknown {
-            eprintln!("Tuntematon valitsin ”{}”.", u);
-        }
-        eprintln!("Valitsin ”-h” tulostaa apua.");
-        return ExitCode::FAILURE;
+    let mut error = false;
+
+    for u in &args.unknown {
+        eprintln!("Tuntematon valitsin ”{}”.", u);
+        error = true;
     }
 
-    if args.required_value_missing().next().is_some() {
-        for o in args.required_value_missing() {
-            eprintln!("Valitsimelle ”{}” täytyy antaa arvo.", o.name);
-        }
+    for o in args.required_value_missing() {
+        eprintln!("Valitsimelle ”{}” täytyy antaa arvo.", o.name);
+        error = true;
+    }
+
+    if error {
         eprintln!("Valitsin ”-h” tulostaa apua.");
         return ExitCode::FAILURE;
     }
