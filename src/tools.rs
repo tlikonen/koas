@@ -3,6 +3,14 @@ pub fn split_sep(s: &str) -> impl Iterator<Item = &str> {
     s.split(sep).skip(1)
 }
 
+pub fn split_first(s: &str) -> (&str, &str) {
+    let trimmed = s.trim_start();
+    match trimmed.split_once(' ') {
+        Some((first, rest)) => (first, rest.trim_start()),
+        None => (trimmed, ""),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -38,5 +46,14 @@ mod tests {
             vec![" ", "  ", " "],
             split_sep("– –  – ").collect::<Vec<&str>>()
         );
+    }
+
+    #[test]
+    fn t_split_first() {
+        assert_eq!(("ainoa", ""), split_first(" ainoa "));
+        assert_eq!(("eka", "toka kolmas"), split_first("eka toka kolmas"));
+        assert_eq!(("eka", "toka kolmas"), split_first(" eka  toka kolmas"));
+        assert_eq!(("eka", "toka  kolmas "), split_first("eka  toka  kolmas "));
+        assert_eq!(("€äö", "€äö  €äö "), split_first("€äö  €äö  €äö "));
     }
 }
