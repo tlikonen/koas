@@ -121,10 +121,10 @@ fn run(args: jg::Args) -> Result<(), String> {
     }
 
     if args.other.len() == 1 && args.other[0] == "-" {
-        Err("Standardisyötteen käsittely puuttuu.".to_string())
+        kastk::standard_input()
     } else if !args.other.is_empty() {
-        Err("Komentorivin komentojen käsittely puuttuu.".to_string())
+        kastk::single_command(args)
     } else {
-        Err("Vuorovaikutteinen tila puuttuu.".to_string())
+        kastk::interactive()
     }
 }
