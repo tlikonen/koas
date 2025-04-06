@@ -11,6 +11,10 @@ pub fn split_first(s: &str) -> (&str, &str) {
     }
 }
 
+pub fn umask(mask: u32) -> u32 {
+    unsafe { libc::umask(mask) }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

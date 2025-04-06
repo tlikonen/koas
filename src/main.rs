@@ -1,4 +1,5 @@
-use just_getopt::{OptFlags, OptSpecs, OptValue};
+use just_getopt as jg;
+use kastk::{config, tools};
 use std::process::ExitCode;
 
 const PROGRAM_NAME: &str = env!("CARGO_BIN_NAME");
@@ -7,11 +8,11 @@ const PROGRAM_AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
 const PROGRAM_LICENSE: &str = env!("CARGO_PKG_LICENSE");
 
 fn main() -> ExitCode {
-    let args = OptSpecs::new()
-        .option("postgresql", "postgresql", OptValue::RequiredNonEmpty)
-        .option("help", "h", OptValue::None)
-        .option("version", "versio", OptValue::None)
-        .flag(OptFlags::PrefixMatchLongOptions)
+    let args = jg::OptSpecs::new()
+        .option("postgresql", "postgresql", jg::OptValue::RequiredNonEmpty)
+        .option("help", "h", jg::OptValue::None)
+        .option("version", "versio", jg::OptValue::None)
+        .flag(jg::OptFlags::PrefixMatchLongOptions)
         .getopt(std::env::args().skip(1));
 
     if !args.unknown.is_empty() {
@@ -48,7 +49,7 @@ fn main() -> ExitCode {
         return ExitCode::SUCCESS;
     }
 
-    match kastk::run(args) {
+    match run(args) {
         Ok(_) => ExitCode::SUCCESS,
         Err(e) => {
             eprintln!("{}", e);
@@ -92,4 +93,38 @@ Valitsimet
         Tulostaa ohjelman versionumeron ja lisenssin.\n",
         name = PROGRAM_NAME
     )
+}
+
+fn run(args: jg::Args) -> Result<(), String> {
+    let config_file = config::init()?;
+
+    tools::umask(0o077);
+
+    if args.option_exists("postgresql") {
+        let value = args
+            .options_value_last("postgresql")
+            .expect("valitsimella pitäisi olla arvo");
+        let fields = tools::split_sep(value);
+        for i in fields {
+            println!("{i:?}");
+        }
+    } else if config_file.exists() {
+        eprintln!("Puuttuu asetustiedoston lukeminen");
+    } else {
+        config::write(&config_file, &Default::default())?;
+        return Err(format!(
+            "Asetustiedosto ”{}” on luotu.\n\
+             Muokkaa sen asetukset joko valitsimella ”--postgresql” tai tekstieditorilla.\n\
+             Valitsin ”-h” tulostaa apua.",
+            config_file.to_string_lossy()
+        ));
+    }
+
+    if args.other.len() == 1 && args.other[0] == "-" {
+        Err("Standardisyötteen käsittely puuttuu.".to_string())
+    } else if !args.other.is_empty() {
+        Err("Komentorivin komentojen käsittely puuttuu.".to_string())
+    } else {
+        Err("Vuorovaikutteinen tila puuttuu.".to_string())
+    }
 }
