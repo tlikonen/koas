@@ -1,6 +1,8 @@
 pub mod config;
 pub mod tools;
 
+use config::Config;
+
 pub enum Mode {
     Interactive,
     Single(String),
@@ -18,7 +20,7 @@ pub enum Output {
     // Latex,
 }
 
-pub fn connect_stage(mode: Mode, _output: Output) -> Result<(), String> {
+pub fn connect_stage(mode: Mode, _config: Config, _output: Output) -> Result<(), String> {
     match mode {
         Mode::Interactive => Err("Vuorovaikutteinen tila puuttuu.".to_string()),
         Mode::Single(c) => {

@@ -1,5 +1,5 @@
 use just_getopt as jg;
-use kastk::{Mode, config, tools};
+use kastk::{Mode, config, config::Config, tools};
 use std::process::ExitCode;
 
 const PROGRAM_NAME: &str = env!("CARGO_BIN_NAME");
@@ -98,6 +98,7 @@ Valitsimet
 
 fn config_stage(args: jg::Args) -> Result<(), String> {
     let config_file = config::init()?;
+    let mut config: Config = Default::default();
 
     tools::umask(0o077);
 
@@ -105,10 +106,60 @@ fn config_stage(args: jg::Args) -> Result<(), String> {
         let value = args
             .options_value_last("postgresql")
             .expect("valitsimella pitäisi olla arvo");
-        let fields = tools::split_sep(value);
-        for i in fields {
-            println!("{i:?}");
-        }
+
+        let mut fields = tools::split_sep(value);
+        let err = |field: &str| {
+            format!(
+                "Valitsimelle ”--postgresql” täytyy antaa kenttä ”{}”.",
+                field
+            )
+        };
+
+        let system = config.system;
+
+        let user = fields
+            .next()
+            .filter(|x| !x.is_empty())
+            .ok_or(err("käyttäjä"))?;
+
+        let password = fields
+            .next()
+            .filter(|x| !x.is_empty())
+            .ok_or(err("salasana"))?;
+
+        let database = fields
+            .next()
+            .filter(|x| !x.is_empty())
+            .ok_or(err("kanta"))?;
+
+        let host = fields
+            .next()
+            .filter(|x| !x.is_empty())
+            .unwrap_or(&config.host);
+
+        let port = match fields.next().filter(|x| !x.is_empty()) {
+            None => config.port,
+            Some(field) => field.parse::<u16>().map_err(|_| {
+                "Valitsimen ”--postgresql” kenttään ”portti” \
+                 pitää antaa portin numero (esim. 5432)."
+                    .to_string()
+            })?,
+        };
+
+        config = Config {
+            system,
+            user: user.to_string(),
+            password: password.to_string(),
+            database: database.to_string(),
+            host: host.to_string(),
+            port,
+        };
+
+        config::write(&config_file, &config)?;
+        println!(
+            "Tietokannan yhteysasetukset tallennettu tiedostoon ”{}”.",
+            config_file.to_string_lossy()
+        );
     } else if config_file.exists() {
         eprintln!("Puuttuu asetustiedoston lukeminen");
     } else {
@@ -122,10 +173,14 @@ fn config_stage(args: jg::Args) -> Result<(), String> {
     }
 
     if args.other.len() == 1 && args.other[0] == "-" {
-        kastk::connect_stage(Mode::Stdin, Default::default())
+        kastk::connect_stage(Mode::Stdin, config, Default::default())
     } else if !args.other.is_empty() {
-        kastk::connect_stage(Mode::Single(args.other.join(" ")), Default::default())
+        kastk::connect_stage(
+            Mode::Single(args.other.join(" ")),
+            config,
+            Default::default(),
+        )
     } else {
-        kastk::connect_stage(Mode::Interactive, Default::default())
+        kastk::connect_stage(Mode::Interactive, config, Default::default())
     }
 }

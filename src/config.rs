@@ -10,6 +10,7 @@ pub fn init() -> Result<PathBuf, String> {
         .map_err(|e| format!("Asetustiedoston alustus epäonnistui: {}", e.kind()))
 }
 
+#[derive(Debug)]
 pub struct Config {
     pub system: String,
     pub host: String,
@@ -37,11 +38,11 @@ pub fn write(path: &Path, config: &Config) -> Result<(), String> {
         path,
         format!(
             "järjestelmä={system}\n\
-             osoite={host}\n\
-             portti={port}\n\
-             kanta={db}\n\
              käyttäjä={user}\n\
-             salasana={pw}\n",
+             salasana={pw}\n\
+             kanta={db}\n\
+             osoite={host}\n\
+             portti={port}\n",
             system = config.system,
             host = config.host,
             port = config.port,
