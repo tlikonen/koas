@@ -20,7 +20,7 @@ pub enum Output {
     // Latex,
 }
 
-pub fn connect_stage(mode: Mode, _config: Config, _output: Output) -> Result<(), String> {
+pub fn command_stage(mode: Mode, _config: Config, _output: Output) -> Result<(), String> {
     match mode {
         Mode::Interactive => Err("Vuorovaikutteinen tila puuttuu.".to_string()),
         Mode::Single(c) => {

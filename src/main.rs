@@ -173,14 +173,14 @@ fn config_stage(args: jg::Args) -> Result<(), String> {
     }
 
     if args.other.len() == 1 && args.other[0] == "-" {
-        kastk::connect_stage(Mode::Stdin, config, Default::default())
+        kastk::command_stage(Mode::Stdin, config, Default::default())
     } else if !args.other.is_empty() {
-        kastk::connect_stage(
+        kastk::command_stage(
             Mode::Single(args.other.join(" ")),
             config,
             Default::default(),
         )
     } else {
-        kastk::connect_stage(Mode::Interactive, config, Default::default())
+        kastk::command_stage(Mode::Interactive, config, Default::default())
     }
 }
