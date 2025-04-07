@@ -1,5 +1,5 @@
 use just_getopt as jg;
-use kastk::{config, tools};
+use kastk::{Mode, config, tools};
 use std::process::ExitCode;
 
 const PROGRAM_NAME: &str = env!("CARGO_BIN_NAME");
@@ -50,7 +50,7 @@ fn main() -> ExitCode {
         return ExitCode::SUCCESS;
     }
 
-    match run(args) {
+    match config_stage(args) {
         Ok(_) => ExitCode::SUCCESS,
         Err(e) => {
             eprintln!("{}", e);
@@ -96,7 +96,7 @@ Valitsimet
     )
 }
 
-fn run(args: jg::Args) -> Result<(), String> {
+fn config_stage(args: jg::Args) -> Result<(), String> {
     let config_file = config::init()?;
 
     tools::umask(0o077);
@@ -122,10 +122,10 @@ fn run(args: jg::Args) -> Result<(), String> {
     }
 
     if args.other.len() == 1 && args.other[0] == "-" {
-        kastk::standard_input()
+        kastk::connect_stage(Mode::Stdin, Default::default())
     } else if !args.other.is_empty() {
-        kastk::single_command(args)
+        kastk::connect_stage(Mode::Single(args.other.join(" ")), Default::default())
     } else {
-        kastk::interactive()
+        kastk::connect_stage(Mode::Interactive, Default::default())
     }
 }

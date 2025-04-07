@@ -1,16 +1,30 @@
 pub mod config;
 pub mod tools;
 
-use just_getopt as jg;
-
-pub fn interactive() -> Result<(), String> {
-    Err("Vuorovaikutteinen tila puuttuu.".to_string())
+pub enum Mode {
+    Interactive,
+    Single(String),
+    Stdin,
 }
 
-pub fn single_command(_args: jg::Args) -> Result<(), String> {
-    Err("Komentorivin komentojen käsittely puuttuu.".to_string())
+#[non_exhaustive]
+#[derive(Default)]
+pub enum Output {
+    #[default]
+    Normal,
+    // Tab,
+    // Csv,
+    // Org,
+    // Latex,
 }
 
-pub fn standard_input() -> Result<(), String> {
-    Err("Standardisyötteen käsittely puuttuu.".to_string())
+pub fn connect_stage(mode: Mode, _output: Output) -> Result<(), String> {
+    match mode {
+        Mode::Interactive => Err("Vuorovaikutteinen tila puuttuu.".to_string()),
+        Mode::Single(c) => {
+            println!("command = {c:?}");
+            Err("Komentorivin komentojen käsittely puuttuu.".to_string())
+        }
+        Mode::Stdin => Err("Standardisyötteen käsittely puuttuu.".to_string()),
+    }
 }
