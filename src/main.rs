@@ -1,5 +1,5 @@
 use just_getopt as jg;
-use kastk::{Mode, config, config::Config, tools};
+use kastk::{Mode, Output, config, config::Config, tools};
 use std::process::ExitCode;
 
 const PROGRAM_NAME: &str = env!("CARGO_BIN_NAME");
@@ -98,13 +98,18 @@ Valitsimet
 
 fn config_stage(args: jg::Args) -> Result<(), String> {
     let config_file = config::init()?;
-    let mut config: Config = Default::default();
+    let default: Config = Default::default();
+    let config: Config;
+    let output: Output = Default::default();
 
     tools::umask(0o077);
 
+    // Database configuration.
     if args.option_exists("postgresql") {
+        let system = "postgresql";
+
         let value = args
-            .options_value_last("postgresql")
+            .options_value_last(system)
             .expect("valitsimella pitäisi olla arvo");
 
         let mut fields = tools::split_sep(value);
@@ -114,8 +119,6 @@ fn config_stage(args: jg::Args) -> Result<(), String> {
                 field
             )
         };
-
-        let system = config.system;
 
         let user = fields
             .next()
@@ -135,10 +138,10 @@ fn config_stage(args: jg::Args) -> Result<(), String> {
         let host = fields
             .next()
             .filter(|x| !x.is_empty())
-            .unwrap_or(&config.host);
+            .unwrap_or(&default.host);
 
         let port = match fields.next().filter(|x| !x.is_empty()) {
-            None => config.port,
+            None => default.port,
             Some(field) => field.parse::<u16>().map_err(|_| {
                 "Valitsimen ”--postgresql” kenttään ”portti” \
                  pitää antaa portin numero (esim. 5432)."
@@ -147,7 +150,7 @@ fn config_stage(args: jg::Args) -> Result<(), String> {
         };
 
         config = Config {
-            system,
+            system: system.to_string(),
             user: user.to_string(),
             password: password.to_string(),
             database: database.to_string(),
@@ -162,8 +165,9 @@ fn config_stage(args: jg::Args) -> Result<(), String> {
         );
     } else if config_file.exists() {
         eprintln!("Puuttuu asetustiedoston lukeminen");
+        config = Default::default(); // Korjattava
     } else {
-        config::write(&config_file, &Default::default())?;
+        config::write(&config_file, &default)?;
         return Err(format!(
             "Asetustiedosto ”{}” on luotu.\n\
              Muokkaa sen asetukset joko valitsimella ”--postgresql” tai tekstieditorilla.\n\
@@ -172,14 +176,11 @@ fn config_stage(args: jg::Args) -> Result<(), String> {
         ));
     }
 
+    // Choose the command stage: stdin, single or interactive.
     if args.other.len() == 1 && args.other[0] == "-" {
-        kastk::command_stage(Mode::Stdin, config, Default::default())
+        kastk::command_stage(Mode::Stdin, config, output)
     } else if !args.other.is_empty() {
-        kastk::command_stage(
-            Mode::Single(args.other.join(" ")),
-            config,
-            Default::default(),
-        )
+        kastk::command_stage(Mode::Single(args.other.join(" ")), config, output)
     } else {
         kastk::command_stage(Mode::Interactive, config, Default::default())
     }
