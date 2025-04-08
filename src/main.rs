@@ -164,8 +164,7 @@ fn config_stage(args: jg::Args) -> Result<(), String> {
             config_file.to_string_lossy()
         );
     } else if config_file.exists() {
-        eprintln!("Puuttuu asetustiedoston lukeminen");
-        config = Default::default(); // Korjattava
+        config = config::read(&config_file)?;
     } else {
         config::write(&config_file, &default)?;
         return Err(format!(

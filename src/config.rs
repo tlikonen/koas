@@ -2,6 +2,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 const CONFIG_FILE: &str = env!("CARGO_PKG_NAME");
+const DATABASE_SYSTEMS: [&str; 1] = ["postgresql"];
 
 pub fn init() -> Result<PathBuf, String> {
     xdg::BaseDirectories::new()
@@ -58,4 +59,34 @@ pub fn write(path: &Path, config: &Config) -> Result<(), String> {
             e.kind()
         )
     })
+}
+
+pub fn read(path: &Path) -> Result<Config, String> {
+    let contents = fs::read_to_string(path).map_err(|e| {
+        format!(
+            "Asetustiedoston ”{}” lukeminen epäonnistui: {}",
+            path.to_string_lossy(),
+            e.kind()
+        )
+    })?;
+
+    let max = 6;
+    for (n, line) in contents.lines().take(max + 1).enumerate() {
+        if n == max {
+            eprintln!("Asetustiedostosta käsitellään vain ensimmäiset {max} riviä.");
+            break;
+        }
+
+        let (key, value) = match line.split_once('=') {
+            Some(kv) => kv,
+            None => {
+                eprintln!("Rivi {} asetustiedostossa on sopimaton: hylätään.", n + 1);
+                continue;
+            }
+        };
+
+        println!("{key}={value}");
+    }
+
+    Ok(Default::default()) // Korjattava
 }
