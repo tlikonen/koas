@@ -22,7 +22,21 @@ pub enum Output {
 
 pub fn command_stage(mode: Mode, _config: Config, _output: Output) -> Result<(), String> {
     match mode {
-        Mode::Interactive => Err("Vuorovaikutteinen tila puuttuu.".to_string()),
+        Mode::Interactive => {
+            let mut rl = rustyline::DefaultEditor::new()
+                .map_err(|_| "Komentorivimuokkaimen asetus epäonnistui.".to_string())?;
+
+            let prompt = env!("CARGO_PKG_NAME").to_string() + "> ";
+
+            while let Ok(line) = rl.readline(&prompt) {
+                if line.is_empty() {
+                    break;
+                }
+                let _ = rl.add_history_entry(&line);
+                println!("Rivi: {line:?}");
+            }
+            Ok(())
+        }
         Mode::Single(c) => {
             println!("command = {c:?}");
             Err("Komentorivin komentojen käsittely puuttuu.".to_string())

@@ -10,4 +10,5 @@ publish = false
 [dependencies]
 just-getopt = { git = "https://github.com/tlikonen/just-getopt.git", branch = "main" }
 libc = "0.2.171"
+rustyline = "15.0.0"
 xdg = "2.5.2"
