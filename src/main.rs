@@ -66,7 +66,9 @@ fn print_usage() {
 Valitsimet
 
   --postgresql=/käyttäjä/salasana/kanta/osoite/portti
-        Asettaa PostgreSQL-tietokantapalvelimen yhteysasetukset.
+        Asettaa PostgreSQL-tietokantapalvelimen yhteysasetukset ja
+        tallentaa ne asetustiedostoon. Tätä valitsinta ei enää tarvita,
+        jos asetukset pysyvät samana.
 
         Komentorivillä annetut asetukset ”käyttäjä” ja ”salasana” ovat
         käyttäjän tunnistamistietoja, ja ”kanta” on tietokannan nimi,
@@ -166,10 +168,9 @@ fn config_stage(args: jg::Args) -> Result<(), String> {
     } else if config_file.exists() {
         config = config::read(&config_file)?;
     } else {
-        config::write(&config_file, &default)?;
         return Err(format!(
-            "Asetustiedosto ”{}” on luotu.\n\
-             Muokkaa sen asetukset joko valitsimella ”--postgresql” tai tekstieditorilla.\n\
+            "Asetustiedosto ”{}” puuttuu. \
+             Luo se käyttämällä valitsinta ”--postgresql”.\n\
              Valitsin ”-h” tulostaa apua.",
             config_file.to_string_lossy()
         ));
