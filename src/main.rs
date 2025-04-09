@@ -53,7 +53,7 @@ fn main() -> ExitCode {
     match config_stage(args) {
         Ok(_) => ExitCode::SUCCESS,
         Err(e) => {
-            eprintln!("{}", e);
+            eprintln!("{}", e); // Voiko tehdä ilman uuden merkkijonon luomista?
             ExitCode::FAILURE
         }
     }
