@@ -80,10 +80,7 @@ Valitsimet
         jolloin käytetään PostgreSQL:n oletusporttia 5432.
 
         Tietokannan täytyy olla valmiiksi olemassa, ja tällä käyttäjällä
-        pitää olla CREATE-oikeus eli oikeus luoda taulukoita yms. Kaikki
-        edellä mainitut asetukset tallentuvat asetustiedostoon, ja niitä
-        käytetään automaattisesti seuraavilla kerroilla, ellei tätä
-        valitsinta ole annettu.
+        pitää olla CREATE-oikeus eli oikeus luoda taulukoita yms.
 
         Asetusten erotinmerkkinä on yllä olevassa esimerkissä vinoviiva
         (/), mutta se voisi olla mikä tahansa muukin merkki. Valitsimen
