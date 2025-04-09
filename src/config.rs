@@ -1,8 +1,8 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-const CONFIG_FILE: &str = env!("CARGO_PKG_NAME");
-const DATABASE_SYSTEMS: [&str; 1] = ["postgresql"];
+static CONFIG_FILE: &str = env!("CARGO_PKG_NAME");
+static DATABASE_SYSTEMS: [&str; 1] = ["postgresql"];
 
 pub fn init() -> Result<PathBuf, String> {
     xdg::BaseDirectories::new()

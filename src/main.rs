@@ -2,10 +2,10 @@ use just_getopt as jg;
 use kastk::{Mode, Output, config, config::Config, tools};
 use std::process::ExitCode;
 
-const PROGRAM_NAME: &str = env!("CARGO_BIN_NAME");
-const PROGRAM_VERSION: &str = env!("CARGO_PKG_VERSION");
-const PROGRAM_AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
-const PROGRAM_LICENSE: &str = env!("CARGO_PKG_LICENSE");
+static PROGRAM_NAME: &str = env!("CARGO_BIN_NAME");
+static PROGRAM_VERSION: &str = env!("CARGO_PKG_VERSION");
+static PROGRAM_AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
+static PROGRAM_LICENSE: &str = env!("CARGO_PKG_LICENSE");
 
 fn main() -> ExitCode {
     let args = jg::OptSpecs::new()
