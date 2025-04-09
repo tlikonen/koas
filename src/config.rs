@@ -21,6 +21,19 @@ pub struct Config {
     pub password: String,
 }
 
+impl Config {
+    pub fn empty() -> Self {
+        Self {
+            system: String::new(),
+            user: String::new(),
+            password: String::new(),
+            database: String::new(),
+            host: String::new(),
+            port: 0,
+        }
+    }
+}
+
 impl Default for Config {
     fn default() -> Self {
         Self {
@@ -70,14 +83,7 @@ pub fn read(path: &Path) -> Result<Config, String> {
         )
     })?;
 
-    let mut config = Config {
-        system: String::new(),
-        user: String::new(),
-        password: String::new(),
-        database: String::new(),
-        host: String::new(),
-        port: 0,
-    };
+    let mut config = Config::empty();
 
     let mut port = false;
     let max = 10;
@@ -99,17 +105,30 @@ pub fn read(path: &Path) -> Result<Config, String> {
         match key {
             "järjestelmä" => {
                 if DATABASE_SYSTEMS.contains(&value) {
-                    config.system = value.to_string();
+                    config.system.clear();
+                    config.system.push_str(value);
                 } else {
                     return Err(format!(
                         "Asetustiedostossa sopimaton kentän ”järjestelmä” arvo: ”{value}”."
                     ));
                 }
             }
-            "käyttäjä" => config.user = value.to_string(),
-            "salasana" => config.password = value.to_string(),
-            "kanta" => config.database = value.to_string(),
-            "osoite" => config.host = value.to_string(),
+            "käyttäjä" => {
+                config.user.clear();
+                config.user.push_str(value);
+            }
+            "salasana" => {
+                config.password.clear();
+                config.password.push_str(value);
+            }
+            "kanta" => {
+                config.database.clear();
+                config.database.push_str(value);
+            }
+            "osoite" => {
+                config.host.clear();
+                config.host.push_str(value);
+            }
             "portti" => {
                 config.port = value.parse::<u16>().map_err(|_| {
                     format!(
