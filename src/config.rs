@@ -70,7 +70,17 @@ pub fn read(path: &Path) -> Result<Config, String> {
         )
     })?;
 
+    let mut config = Config {
+        system: String::new(),
+        user: String::new(),
+        password: String::new(),
+        database: String::new(),
+        host: String::new(),
+        port: 0,
+    };
+
     let max = 10;
+
     for (n, line) in contents.lines().enumerate() {
         if n >= max {
             eprintln!("Asetustiedostosta käsitellään vain ensimmäiset {max} riviä.");
@@ -85,8 +95,48 @@ pub fn read(path: &Path) -> Result<Config, String> {
             }
         };
 
-        println!("{key}={value}");
+        match key {
+            "järjestelmä" => {
+                if DATABASE_SYSTEMS.contains(&value) {
+                    config.system = value.to_string();
+                } else {
+                    return Err(format!(
+                        "Asetustiedostossa sopimaton kentän ”järjestelmä” arvo: ”{value}”."
+                    ));
+                }
+            }
+            "käyttäjä" => config.user = value.to_string(),
+            "salasana" => config.password = value.to_string(),
+            "kanta" => config.database = value.to_string(),
+            "osoite" => config.host = value.to_string(),
+            "portti" => {
+                config.port = value.parse::<u16>().map_err(|_| {
+                    format!(
+                        "Asetustiedostossa kentän ”portti” arvo ”{value}” ei ole \
+                         sopiva tietoliikenneportiksi."
+                    )
+                })?
+            }
+            _ => return Err(format!("Asetustiedostossa sopimaton kenttä ”{key}”.")),
+        }
+
+        if value.is_empty() {
+            return Err(format!("Asetustiedostossa kentän ”{key}” arvo puuttuu."));
+        }
     }
 
-    Ok(Default::default()) // Korjattava
+    if config.system.is_empty()
+        || config.user.is_empty()
+        || config.password.is_empty()
+        || config.database.is_empty()
+        || config.host.is_empty()
+    {
+        return Err(
+            "Asetustiedostosta puuttuu kenttiä. Korjaa asetukset käyttämällä \
+             valitsinta ”--postgresql”."
+                .to_string(),
+        );
+    }
+
+    Ok(config)
 }
