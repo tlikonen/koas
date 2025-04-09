@@ -79,6 +79,7 @@ pub fn read(path: &Path) -> Result<Config, String> {
         port: 0,
     };
 
+    let mut port = false;
     let max = 10;
 
     for (n, line) in contents.lines().enumerate() {
@@ -115,7 +116,8 @@ pub fn read(path: &Path) -> Result<Config, String> {
                         "Asetustiedostossa kentän ”portti” arvo ”{value}” ei ole \
                          sopiva tietoliikenneportiksi."
                     )
-                })?
+                })?;
+                port = true;
             }
             _ => return Err(format!("Asetustiedostossa sopimaton kenttä ”{key}”.")),
         }
@@ -125,11 +127,12 @@ pub fn read(path: &Path) -> Result<Config, String> {
         }
     }
 
-    if config.system.is_empty()
-        || config.user.is_empty()
-        || config.password.is_empty()
-        || config.database.is_empty()
-        || config.host.is_empty()
+    if config.system == "postgresql"
+        && (config.user.is_empty()
+            || config.password.is_empty()
+            || config.database.is_empty()
+            || config.host.is_empty()
+            || !port)
     {
         return Err(
             "Asetustiedostosta puuttuu kenttiä. Korjaa asetukset käyttämällä \
