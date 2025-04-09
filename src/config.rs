@@ -70,9 +70,9 @@ pub fn read(path: &Path) -> Result<Config, String> {
         )
     })?;
 
-    let max = 6;
-    for (n, line) in contents.lines().take(max + 1).enumerate() {
-        if n == max {
+    let max = 10;
+    for (n, line) in contents.lines().enumerate() {
+        if n >= max {
             eprintln!("Asetustiedostosta käsitellään vain ensimmäiset {max} riviä.");
             break;
         }
