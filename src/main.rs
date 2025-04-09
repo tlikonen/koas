@@ -112,12 +112,8 @@ fn config_stage(args: jg::Args) -> Result<(), String> {
             .expect("valitsimella pitäisi olla arvo");
 
         let mut fields = tools::split_sep(value);
-        let err = |field: &str| {
-            format!(
-                "Valitsimelle ”--postgresql” täytyy antaa kenttä ”{}”.",
-                field
-            )
-        };
+        let err =
+            |field: &str| format!("Valitsimelle ”--postgresql” täytyy antaa kenttä ”{field}”.");
 
         let user = fields
             .next()
