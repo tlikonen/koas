@@ -2,7 +2,6 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 static CONFIG_FILE: &str = env!("CARGO_PKG_NAME");
-static DATABASE_SYSTEMS: [&str; 1] = ["postgresql"];
 
 pub fn init() -> Result<PathBuf, String> {
     xdg::BaseDirectories::new()
@@ -84,7 +83,6 @@ pub fn read(path: &Path) -> Result<Config, String> {
     })?;
 
     let mut config = Config::empty();
-
     let mut port = false;
     let max = 10;
 
@@ -97,21 +95,15 @@ pub fn read(path: &Path) -> Result<Config, String> {
         let (key, value) = match line.split_once('=') {
             Some(kv) => kv,
             None => {
-                eprintln!("Rivi {} asetustiedostossa on sopimaton: hylätään.", n + 1);
+                eprintln!("Asetustiedoston rivi {} on sopimaton.", n + 1);
                 continue;
             }
         };
 
         match key {
             "järjestelmä" => {
-                if DATABASE_SYSTEMS.contains(&value) {
-                    config.system.clear();
-                    config.system.push_str(value);
-                } else {
-                    return Err(format!(
-                        "Asetustiedostossa sopimaton kentän ”järjestelmä” arvo: ”{value}”."
-                    ));
-                }
+                config.system.clear();
+                config.system.push_str(value);
             }
             "käyttäjä" => {
                 config.user.clear();
@@ -132,32 +124,36 @@ pub fn read(path: &Path) -> Result<Config, String> {
             "portti" => {
                 config.port = value.parse::<u16>().map_err(|_| {
                     format!(
-                        "Asetustiedostossa kentän ”portti” arvo ”{value}” ei ole \
-                         sopiva tietoliikenneportiksi."
+                        "Asetustiedostossa kentän ”portti” arvo ”{value}” on \
+                         sopimaton tietoliikenneportiksi."
                     )
                 })?;
                 port = true;
             }
             _ => return Err(format!("Asetustiedostossa sopimaton kenttä ”{key}”.")),
         }
-
-        if value.is_empty() {
-            return Err(format!("Asetustiedostossa kentän ”{key}” arvo puuttuu."));
-        }
     }
 
-    if config.system == "postgresql"
-        && (config.user.is_empty()
-            || config.password.is_empty()
-            || config.database.is_empty()
-            || config.host.is_empty()
-            || !port)
-    {
-        return Err(
-            "Asetustiedostosta puuttuu kenttiä. Korjaa asetukset käyttämällä \
-             valitsinta ”--postgresql”."
-                .to_string(),
-        );
+    match config.system.as_str() {
+        "postgresql" => {
+            if config.user.is_empty()
+                || config.password.is_empty()
+                || config.database.is_empty()
+                || config.host.is_empty()
+                || !port
+            {
+                return Err(
+                    "Asetustiedostosta puuttuu kenttiä. Korjaa asetukset käyttämällä \
+                     valitsinta ”--postgresql”."
+                        .to_string(),
+                );
+            }
+        }
+        _ => {
+            return Err("Asetustiedostossa kenttä ”järjestelmä” puuttuu \
+                        tai arvo on sopimaton."
+                .to_string());
+        }
     }
 
     Ok(config)
