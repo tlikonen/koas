@@ -142,9 +142,10 @@ fn config_stage(args: jg::Args) -> Result<(), String> {
         let port = match fields.next().filter(|x| !x.is_empty()) {
             None => default.port,
             Some(field) => field.parse::<u16>().map_err(|_| {
-                "Valitsimen ”--postgresql” kenttään ”portti” \
-                 pitää antaa portin numero (esim. 5432)."
-                    .to_string()
+                format!(
+                    "Valitsimen ”--postgresql” kentän ”portti” arvo ”{field}” on \
+                     sopimaton tietoliikenneportiksi."
+                )
             })?,
         };
 
@@ -159,7 +160,7 @@ fn config_stage(args: jg::Args) -> Result<(), String> {
 
         config::write(&config_file, &config)?;
         println!(
-            "Tietokannan yhteysasetukset tallennettu tiedostoon ”{}”.",
+            "Tietokannan yhteysasetukset tallennettu asetustiedostoon ”{}”.",
             config_file.to_string_lossy()
         );
     } else if config_file.exists() {
