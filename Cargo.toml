@@ -8,7 +8,10 @@ license = "GPL-3.0-or-later"
 publish = false
 
 [dependencies]
+futures = "0.3.31"
 just-getopt = { git = "https://github.com/tlikonen/just-getopt.git", branch = "main" }
 libc = "0.2.171"
 rustyline = "15.0.0"
+sqlx = { version = "0.8.3", features = ["runtime-tokio", "postgres", "tls-native-tls"] }
+tokio = { version = "1.44.2", features = ["full"] }
 xdg = "2.5.2"
