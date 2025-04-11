@@ -12,7 +12,6 @@ pub fn init() -> Result<PathBuf, String> {
 
 #[derive(Debug)]
 pub struct Config {
-    pub system: String,
     pub host: String,
     pub port: u16,
     pub database: String,
@@ -23,7 +22,6 @@ pub struct Config {
 impl Config {
     pub fn empty() -> Self {
         Self {
-            system: String::new(),
             user: String::new(),
             password: String::new(),
             database: String::new(),
@@ -36,7 +34,6 @@ impl Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            system: "postgresql".to_string(),
             host: "localhost".to_string(),
             port: 5432,
             database: String::new(),
@@ -50,13 +47,11 @@ pub fn write(path: &Path, config: &Config) -> Result<(), String> {
     fs::write(
         path,
         format!(
-            "järjestelmä={system}\n\
-             käyttäjä={user}\n\
+            "käyttäjä={user}\n\
              salasana={pw}\n\
              kanta={db}\n\
              osoite={host}\n\
              portti={port}\n",
-            system = config.system,
             host = config.host,
             port = config.port,
             db = config.database,
@@ -101,10 +96,6 @@ pub fn read(path: &Path) -> Result<Config, String> {
         };
 
         match key {
-            "järjestelmä" => {
-                config.system.clear();
-                config.system.push_str(value);
-            }
             "käyttäjä" => {
                 config.user.clear();
                 config.user.push_str(value);
@@ -134,26 +125,17 @@ pub fn read(path: &Path) -> Result<Config, String> {
         }
     }
 
-    match config.system.as_str() {
-        "postgresql" => {
-            if config.user.is_empty()
-                || config.password.is_empty()
-                || config.database.is_empty()
-                || config.host.is_empty()
-                || !port
-            {
-                return Err(
-                    "Asetustiedostosta puuttuu kenttiä. Korjaa asetukset käyttämällä \
-                     valitsinta ”--postgresql”."
-                        .to_string(),
-                );
-            }
-        }
-        _ => {
-            return Err("Asetustiedostossa kenttä ”järjestelmä” puuttuu \
-                        tai arvo on sopimaton."
-                .to_string());
-        }
+    if config.user.is_empty()
+        || config.password.is_empty()
+        || config.database.is_empty()
+        || config.host.is_empty()
+        || !port
+    {
+        return Err(
+            "Asetustiedostosta puuttuu kenttiä. Korjaa asetukset käyttämällä \
+             valitsinta ”--postgresql”."
+                .to_string(),
+        );
     }
 
     Ok(config)

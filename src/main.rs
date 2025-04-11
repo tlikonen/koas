@@ -7,7 +7,8 @@ static PROGRAM_VERSION: &str = env!("CARGO_PKG_VERSION");
 static PROGRAM_AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
 static PROGRAM_LICENSE: &str = env!("CARGO_PKG_LICENSE");
 
-fn main() -> ExitCode {
+#[tokio::main]
+async fn main() -> ExitCode {
     let args = jg::OptSpecs::new()
         .option("postgresql", "postgresql", jg::OptValue::RequiredNonEmpty)
         .option("help", "h", jg::OptValue::None)
@@ -50,7 +51,7 @@ fn main() -> ExitCode {
         return ExitCode::SUCCESS;
     }
 
-    match config_stage(args) {
+    match config_stage(args).await {
         Ok(_) => ExitCode::SUCCESS,
         Err(e) => {
             eprintln!("{}", e); // Voiko tehdä ilman uuden merkkijonon luomista?
@@ -95,7 +96,7 @@ Valitsimet
     )
 }
 
-fn config_stage(args: jg::Args) -> Result<(), String> {
+async fn config_stage(args: jg::Args) -> Result<(), String> {
     let config_file = config::init()?;
     let default: Config = Default::default();
     let config: Config;
@@ -105,10 +106,8 @@ fn config_stage(args: jg::Args) -> Result<(), String> {
 
     // Database configuration.
     if args.option_exists("postgresql") {
-        let system = "postgresql";
-
         let value = args
-            .options_value_last(system)
+            .options_value_last("postgresql")
             .expect("valitsimella pitäisi olla arvo");
 
         let mut fields = tools::split_sep(value);
@@ -146,7 +145,6 @@ fn config_stage(args: jg::Args) -> Result<(), String> {
         };
 
         config = Config {
-            system: system.to_string(),
             user: user.to_string(),
             password: password.to_string(),
             database: database.to_string(),
@@ -172,10 +170,10 @@ fn config_stage(args: jg::Args) -> Result<(), String> {
 
     // Choose the command stage: stdin, single or interactive.
     if args.other.len() == 1 && args.other[0] == "-" {
-        kastk::command_stage(Mode::Stdin, config, output)
+        kastk::command_stage(Mode::Stdin, config, output).await
     } else if !args.other.is_empty() {
-        kastk::command_stage(Mode::Single(args.other.join(" ")), config, output)
+        kastk::command_stage(Mode::Single(args.other.join(" ")), config, output).await
     } else {
-        kastk::command_stage(Mode::Interactive, config, Default::default())
+        kastk::command_stage(Mode::Interactive, config, Default::default()).await
     }
 }
