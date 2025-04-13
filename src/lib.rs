@@ -4,7 +4,7 @@ pub mod database;
 pub mod tools;
 
 use crate::{commands as cmd, config::Config, database as db};
-use sqlx::PgConnection as DB;
+use sqlx::{Connection, PgConnection as DB};
 use std::io;
 
 pub enum Mode {
@@ -79,29 +79,29 @@ pub async fn command_stage(modes: Modes, config: Config) -> Result<(), String> {
         }
         Mode::Stdin => {
             let err = |e| format!("{e}");
-            db::begin_transaction(&mut db).await.map_err(err)?;
+            let abort_msg = || eprintln!("Perutaan muokkauskomentojen vaikutukset.");
+            let mut ta = db.begin().await.map_err(err)?;
+
             for item in io::stdin().lines() {
                 match item {
                     Ok(line) => {
                         if !line.is_empty() {
-                            match command_line_stdin(&modes, &mut db, &line).await {
+                            match command_line_stdin(&modes, &mut ta, &line).await {
                                 Ok(_) => (),
                                 Err(e) => {
-                                    db::rollback_transaction(&mut db).await.map_err(err)?;
-                                    eprintln!("Peruttiin muokkauskomentojen vaikutukset.");
+                                    abort_msg();
                                     return Err(e);
                                 }
                             }
                         }
                     }
                     Err(_) => {
-                        db::rollback_transaction(&mut db).await.map_err(err)?;
-                        eprintln!("Peruttiin muokkauskomentojen vaikutukset.");
+                        abort_msg();
                         return Err("Rivin lukeminen standardisyötteestä epäonnistui.".to_string());
                     }
                 }
             }
-            db::commit_transaction(&mut db).await.map_err(err)?;
+            ta.commit().await.map_err(err)?;
         }
     }
     Ok(())
@@ -137,6 +137,24 @@ pub async fn command_line_stdin(modes: &Modes, db: &mut DB, line: &str) -> Resul
     let (cmd, _args) = tools::split_first(line);
     match cmd {
         "tk" => cmd::stats(modes, db).await?,
+        // "lisää" => {
+        //     let (avain, loput) = tools::split_first(args);
+        //     let (arvo, _) = tools::split_first(loput);
+        //     sqlx::query("INSERT INTO hallinto (avain, teksti) VALUES ($1, $2)")
+        //         .bind(avain)
+        //         .bind(arvo)
+        //         .execute(db)
+        //         .await
+        //         .map_err(|e| format!("{e}"))?;
+        // }
+        // "poista" => {
+        //     let (avain, _) = tools::split_first(args);
+        //     sqlx::query("DELETE FROM hallinto WHERE avain = $1")
+        //         .bind(avain)
+        //         .execute(db)
+        //         .await
+        //         .map_err(|e| format!("{e}"))?;
+        // }
         _ => {
             return Err(format!(
                 "Tuntematon komento ”{cmd}”. Apua saa valitsimella ”--ohje”."

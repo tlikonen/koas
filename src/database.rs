@@ -1,6 +1,6 @@
 use crate::{Output, config::Config};
 // use futures::TryStreamExt; // STREAM.try_next()
-use sqlx::{Connection, Executor, PgConnection as DB, Row};
+use sqlx::{Connection, PgConnection as DB, Row};
 
 pub async fn connect(config: &Config) -> Result<DB, String> {
     let client = DB::connect(
@@ -18,21 +18,6 @@ pub async fn connect(config: &Config) -> Result<DB, String> {
     .map_err(|e| format!("{e}"))?;
 
     Ok(client)
-}
-
-pub async fn begin_transaction(db: &mut DB) -> Result<(), sqlx::Error> {
-    db.execute("BEGIN").await?;
-    Ok(())
-}
-
-pub async fn commit_transaction(db: &mut DB) -> Result<(), sqlx::Error> {
-    db.execute("COMMIT").await?;
-    Ok(())
-}
-
-pub async fn rollback_transaction(db: &mut DB) -> Result<(), sqlx::Error> {
-    db.execute("ROLLBACK").await?;
-    Ok(())
 }
 
 // pub async fn test(db: &mut DB, line: &str) -> Result<(), sqlx::Error> {
