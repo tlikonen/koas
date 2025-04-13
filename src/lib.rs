@@ -4,7 +4,7 @@ pub mod database;
 pub mod tools;
 
 use crate::{commands as cmd, config::Config, database as db};
-use sqlx::{Connection, PgConnection as DB};
+use sqlx::{Connection, PgConnection};
 use std::io;
 
 pub enum Mode {
@@ -109,7 +109,7 @@ pub async fn command_stage(modes: Modes, config: Config) -> Result<(), String> {
 
 pub async fn command_line_interactive(
     modes: &Modes,
-    db: &mut DB,
+    db: &mut PgConnection,
     line: &str,
 ) -> Result<(), String> {
     let (cmd, _args) = tools::split_first(line);
@@ -120,7 +120,11 @@ pub async fn command_line_interactive(
     Ok(())
 }
 
-pub async fn command_line_single(modes: &Modes, db: &mut DB, line: &str) -> Result<(), String> {
+pub async fn command_line_single(
+    modes: &Modes,
+    db: &mut PgConnection,
+    line: &str,
+) -> Result<(), String> {
     let (cmd, _args) = tools::split_first(line);
     match cmd {
         "tk" => cmd::stats(modes, db).await?,
@@ -133,7 +137,11 @@ pub async fn command_line_single(modes: &Modes, db: &mut DB, line: &str) -> Resu
     Ok(())
 }
 
-pub async fn command_line_stdin(modes: &Modes, db: &mut DB, line: &str) -> Result<(), String> {
+pub async fn command_line_stdin(
+    modes: &Modes,
+    db: &mut PgConnection,
+    line: &str,
+) -> Result<(), String> {
     let (cmd, _args) = tools::split_first(line);
     match cmd {
         "tk" => cmd::stats(modes, db).await?,

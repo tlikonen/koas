@@ -1,9 +1,9 @@
 use crate::{Output, config::Config};
 // use futures::TryStreamExt; // STREAM.try_next()
-use sqlx::{Connection, PgConnection as DB, Row};
+use sqlx::{Connection, PgConnection, Row};
 
-pub async fn connect(config: &Config) -> Result<DB, String> {
-    let client = DB::connect(
+pub async fn connect(config: &Config) -> Result<PgConnection, String> {
+    let client = PgConnection::connect(
         format!(
             "postgres://{user}:{password}@{host}:{port}/{db}",
             user = config.user,
@@ -20,7 +20,7 @@ pub async fn connect(config: &Config) -> Result<DB, String> {
     Ok(client)
 }
 
-// pub async fn test(db: &mut DB, line: &str) -> Result<(), sqlx::Error> {
+// pub async fn test(db: &mut PgConnection, line: &str) -> Result<(), sqlx::Error> {
 //     let mut rows = sqlx::query("SELECT id, arvo FROM foo WHERE arvo LIKE $1")
 //         .bind(format!("%{line}%"))
 //         .fetch(db);
@@ -54,7 +54,7 @@ impl Stats {
     }
 }
 
-pub async fn stats(db: &mut DB) -> Result<Stats, sqlx::Error> {
+pub async fn stats(db: &mut PgConnection) -> Result<Stats, sqlx::Error> {
     let row = sqlx::query(
         "SELECT \
          (SELECT count(*) FROM oppilaat) oppilaat, \
