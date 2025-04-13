@@ -1,5 +1,5 @@
 use just_getopt as jg;
-use kastk::{Mode, Output, config, config::Config, tools};
+use kastk::{Mode, Modes, Output, config, config::Config, tools};
 use std::process::ExitCode;
 
 static PROGRAM_NAME: &str = env!("CARGO_BIN_NAME");
@@ -169,11 +169,18 @@ async fn config_stage(args: jg::Args) -> Result<(), String> {
     }
 
     // Choose the command stage: stdin, single or interactive.
+    let mut modes: Modes = Default::default();
     if args.other.len() == 1 && args.other[0] == "-" {
-        kastk::command_stage(Mode::Stdin, config, output).await
+        modes.set_mode(Mode::Stdin);
+        modes.set_output(output);
+        kastk::command_stage(modes, config).await
     } else if !args.other.is_empty() {
-        kastk::command_stage(Mode::Single(args.other.join(" ")), config, output).await
+        modes.set_mode(Mode::Single(args.other.join(" ")));
+        modes.set_output(output);
+        kastk::command_stage(modes, config).await
     } else {
-        kastk::command_stage(Mode::Interactive, config, Default::default()).await
+        modes.set_mode(Mode::Interactive);
+        modes.set_output(Default::default());
+        kastk::command_stage(modes, config).await
     }
 }
