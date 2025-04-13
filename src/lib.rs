@@ -5,7 +5,7 @@ pub mod tools;
 
 use crate::{commands as cmd, config::Config, database as db};
 use sqlx::{Connection, PgConnection};
-use std::io;
+use std::{error::Error, io};
 
 pub enum Mode {
     Interactive,
@@ -48,7 +48,7 @@ impl Modes {
     }
 }
 
-pub async fn command_stage(modes: Modes, config: Config) -> Result<(), String> {
+pub async fn command_stage(modes: Modes, config: Config) -> Result<(), Box<dyn Error>> {
     let mut db = db::connect(&config).await?;
 
     match modes.mode() {
@@ -62,8 +62,7 @@ pub async fn command_stage(modes: Modes, config: Config) -> Result<(), String> {
             );
 
             let prompt = format!("{}> ", env!("CARGO_PKG_NAME"));
-            let mut rl = rustyline::DefaultEditor::new()
-                .map_err(|_| "Komentorivimuokkaimen asetus epäonnistui.".to_string())?;
+            let mut rl = rustyline::DefaultEditor::new()?;
 
             while let Ok(line) = rl.readline(&prompt) {
                 if line.is_empty() {
@@ -78,9 +77,9 @@ pub async fn command_stage(modes: Modes, config: Config) -> Result<(), String> {
             command_line_single(&modes, &mut db, line).await?;
         }
         Mode::Stdin => {
-            let err = |e| format!("{e}");
+            //let err = |e| format!("{e}");
             let abort_msg = || eprintln!("Perutaan muokkauskomentojen vaikutukset.");
-            let mut ta = db.begin().await.map_err(err)?;
+            let mut ta = db.begin().await?;
 
             for item in io::stdin().lines() {
                 match item {
@@ -90,18 +89,18 @@ pub async fn command_stage(modes: Modes, config: Config) -> Result<(), String> {
                                 Ok(_) => (),
                                 Err(e) => {
                                     abort_msg();
-                                    return Err(e);
+                                    Err(e)?;
                                 }
                             }
                         }
                     }
                     Err(_) => {
                         abort_msg();
-                        return Err("Rivin lukeminen standardisyötteestä epäonnistui.".to_string());
+                        Err("Rivin lukeminen standardisyötteestä epäonnistui.")?;
                     }
                 }
             }
-            ta.commit().await.map_err(err)?;
+            ta.commit().await?;
         }
     }
     Ok(())
@@ -111,7 +110,7 @@ pub async fn command_line_interactive(
     modes: &Modes,
     db: &mut PgConnection,
     line: &str,
-) -> Result<(), String> {
+) -> Result<(), Box<dyn Error>> {
     let (cmd, _args) = tools::split_first(line);
     match cmd {
         "tk" => cmd::stats(modes, db).await?,
@@ -124,14 +123,14 @@ pub async fn command_line_single(
     modes: &Modes,
     db: &mut PgConnection,
     line: &str,
-) -> Result<(), String> {
+) -> Result<(), Box<dyn Error>> {
     let (cmd, _args) = tools::split_first(line);
     match cmd {
         "tk" => cmd::stats(modes, db).await?,
         _ => {
-            return Err(format!(
+            Err(format!(
                 "Tuntematon komento ”{cmd}”. Apua saa valitsimella ”--ohje”."
-            ));
+            ))?;
         }
     }
     Ok(())
@@ -141,7 +140,7 @@ pub async fn command_line_stdin(
     modes: &Modes,
     db: &mut PgConnection,
     line: &str,
-) -> Result<(), String> {
+) -> Result<(), Box<dyn Error>> {
     let (cmd, _args) = tools::split_first(line);
     match cmd {
         "tk" => cmd::stats(modes, db).await?,
@@ -152,21 +151,19 @@ pub async fn command_line_stdin(
         //         .bind(avain)
         //         .bind(arvo)
         //         .execute(db)
-        //         .await
-        //         .map_err(|e| format!("{e}"))?;
+        //         .await?;
         // }
         // "poista" => {
         //     let (avain, _) = tools::split_first(args);
         //     sqlx::query("DELETE FROM hallinto WHERE avain = $1")
         //         .bind(avain)
         //         .execute(db)
-        //         .await
-        //         .map_err(|e| format!("{e}"))?;
+        //         .await?;
         // }
         _ => {
-            return Err(format!(
+            Err(format!(
                 "Tuntematon komento ”{cmd}”. Apua saa valitsimella ”--ohje”."
-            ));
+            ))?;
         }
     }
     Ok(())

@@ -1,6 +1,6 @@
 use just_getopt as jg;
 use kastk::{Mode, Modes, Output, config, config::Config, tools};
-use std::process::ExitCode;
+use std::{error::Error, process::ExitCode};
 
 static PROGRAM_NAME: &str = env!("CARGO_BIN_NAME");
 static PROGRAM_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -19,7 +19,7 @@ async fn main() -> ExitCode {
     let mut error = false;
 
     for u in &args.unknown {
-        eprintln!("Tuntematon valitsin ”{}”.", u);
+        eprintln!("Tuntematon valitsin ”{u}”.");
         error = true;
     }
 
@@ -54,7 +54,7 @@ async fn main() -> ExitCode {
     match config_stage(args).await {
         Ok(_) => ExitCode::SUCCESS,
         Err(e) => {
-            eprintln!("{}", e); // Voiko tehdä ilman uuden merkkijonon luomista?
+            eprintln!("{e}");
             ExitCode::FAILURE
         }
     }
@@ -96,7 +96,7 @@ Valitsimet
     )
 }
 
-async fn config_stage(args: jg::Args) -> Result<(), String> {
+async fn config_stage(args: jg::Args) -> Result<(), Box<dyn Error>> {
     let config_file = config::init()?;
     let default: Config = Default::default();
     let config: Config;
@@ -165,7 +165,8 @@ async fn config_stage(args: jg::Args) -> Result<(), String> {
              Luo se käyttämällä valitsinta ”--postgresql”.\n\
              Valitsin ”-h” tulostaa apua.",
             config_file.to_string_lossy()
-        ));
+        )
+        .into());
     }
 
     // Choose the command stage: stdin, single or interactive.

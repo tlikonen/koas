@@ -1,8 +1,9 @@
 use crate::{Output, config::Config};
 // use futures::TryStreamExt; // STREAM.try_next()
 use sqlx::{Connection, PgConnection, Row};
+use std::error::Error;
 
-pub async fn connect(config: &Config) -> Result<PgConnection, String> {
+pub async fn connect(config: &Config) -> Result<PgConnection, Box<dyn Error>> {
     let client = PgConnection::connect(
         format!(
             "postgres://{user}:{password}@{host}:{port}/{db}",
@@ -14,8 +15,7 @@ pub async fn connect(config: &Config) -> Result<PgConnection, String> {
         )
         .as_str(),
     )
-    .await
-    .map_err(|e| format!("{e}"))?;
+    .await?;
 
     Ok(client)
 }
@@ -54,7 +54,7 @@ impl Stats {
     }
 }
 
-pub async fn stats(db: &mut PgConnection) -> Result<Stats, sqlx::Error> {
+pub async fn stats(db: &mut PgConnection) -> Result<Stats, Box<dyn Error>> {
     let row = sqlx::query(
         "SELECT \
          (SELECT count(*) FROM oppilaat) oppilaat, \
