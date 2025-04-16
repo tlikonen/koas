@@ -106,7 +106,7 @@ pub async fn command_stage(modes: Modes, config: Config) -> Result<(), Box<dyn E
     Ok(())
 }
 
-pub async fn command_line_interactive(
+async fn command_line_interactive(
     modes: &Modes,
     db: &mut PgConnection,
     line: &str,
@@ -119,7 +119,7 @@ pub async fn command_line_interactive(
     Ok(())
 }
 
-pub async fn command_line_single(
+async fn command_line_single(
     modes: &Modes,
     db: &mut PgConnection,
     line: &str,
@@ -136,7 +136,7 @@ pub async fn command_line_single(
     Ok(())
 }
 
-pub async fn command_line_stdin(
+async fn command_line_stdin(
     modes: &Modes,
     db: &mut PgConnection,
     line: &str,
