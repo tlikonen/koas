@@ -15,6 +15,26 @@ pub fn umask(mask: u32) -> u32 {
     unsafe { libc::umask(mask) }
 }
 
+pub fn like_esc(string: &str, wild: bool) -> String {
+    let mut str = String::new();
+    if wild {
+        str.push('%');
+    }
+
+    for c in string.chars() {
+        if "_%\\".contains(c) {
+            str.push('\\');
+        }
+        str.push(c);
+    }
+
+    if wild {
+        str.push('%');
+    }
+
+    str
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -59,5 +79,13 @@ mod tests {
         assert_eq!(("eka", "toka kolmas"), split_first(" eka  toka kolmas"));
         assert_eq!(("eka", "toka  kolmas "), split_first("eka  toka  kolmas "));
         assert_eq!(("€äö", "€äö  €äö "), split_first("€äö  €äö  €äö "));
+    }
+
+    #[test]
+    fn t_like_exc() {
+        assert_eq!("abcd", like_esc("abcd", false));
+        assert_eq!("a\\%b\\_cd", like_esc("a%b_cd", false));
+        assert_eq!("ab\\\\cd", like_esc("ab\\cd", false));
+        assert_eq!("%abcd%", like_esc("abcd", true));
     }
 }
