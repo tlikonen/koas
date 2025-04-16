@@ -1,4 +1,4 @@
-use crate::{Output, config::Config};
+use crate::config::Config;
 // use futures::TryStreamExt; // STREAM.try_next()
 use sqlx::{Connection, PgConnection, Row};
 use std::error::Error;
@@ -57,4 +57,37 @@ pub async fn stats(db: &mut PgConnection) -> Result<Stats, Box<dyn Error>> {
         assignments: row.try_get("suoritukset")?,
         scores: row.try_get("arvosanat")?,
     })
+}
+
+fn like_esc(string: &str, wild: bool) -> String {
+    let mut str = String::new();
+    if wild {
+        str.push('%');
+    }
+
+    for c in string.chars() {
+        if "_%\\".contains(c) {
+            str.push('\\');
+        }
+        str.push(c);
+    }
+
+    if wild {
+        str.push('%');
+    }
+
+    str
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn t_like_exc() {
+        assert_eq!("abcd", like_esc("abcd", false));
+        assert_eq!("a\\%b\\_cd", like_esc("a%b_cd", false));
+        assert_eq!("ab\\\\cd", like_esc("ab\\cd", false));
+        assert_eq!("%abcd%", like_esc("abcd", true));
+    }
 }
