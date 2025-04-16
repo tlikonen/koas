@@ -32,26 +32,12 @@ pub async fn connect(config: &Config) -> Result<PgConnection, Box<dyn Error>> {
 //     Ok(())
 // }
 
+#[derive(Debug)]
 pub struct Stats {
     pub students: i64,
     pub groups: i64,
     pub assignments: i64,
     pub scores: i64,
-}
-
-impl Stats {
-    pub fn print(&self, _output: &Output) {
-        println!(
-            "Oppilaita:   {o}\n\
-             Ryhmiä:      {r}\n\
-             Suorituksia: {s}\n\
-             Arvosanoja:  {a}",
-            o = self.students,
-            r = self.groups,
-            s = self.assignments,
-            a = self.scores,
-        );
-    }
 }
 
 pub async fn stats(db: &mut PgConnection) -> Result<Stats, Box<dyn Error>> {
