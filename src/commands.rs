@@ -4,7 +4,14 @@ use std::error::Error;
 
 pub async fn stats(_modes: &Modes, db: &mut PgConnection) -> Result<(), Box<dyn Error>> {
     let stats = db::stats(db).await?;
-    println!("{:?}", stats);
+    let width = 5;
+    println!(
+        "Oppilaita:   {:width$}\n\
+         Ryhmiä:      {:width$}\n\
+         Suorituksia: {:width$}\n\
+         Arvosanoja:  {:width$}",
+        stats.students, stats.groups, stats.assignments, stats.scores
+    );
     Ok(())
 }
 
@@ -23,7 +30,9 @@ pub async fn groups(
     let desc = split.next().unwrap_or("");
 
     let groups = db::groups(db, group, desc).await?;
-    println!("{:?}", groups);
+    for g in groups.list {
+        println!("{:14} {}", g.name, g.description);
+    }
     Ok(())
 }
 

@@ -20,7 +20,6 @@ pub async fn connect(config: &Config) -> Result<PgConnection, Box<dyn Error>> {
     Ok(client)
 }
 
-#[derive(Debug)]
 pub struct Stats {
     pub students: i64,
     pub groups: i64,
@@ -47,12 +46,10 @@ pub async fn stats(db: &mut PgConnection) -> Result<Stats, Box<dyn Error>> {
     })
 }
 
-#[derive(Debug)]
 pub struct Groups {
     pub list: Vec<Group>,
 }
 
-#[derive(Debug)]
 pub struct Group {
     pub rid: i32,
     pub name: String,
