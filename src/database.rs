@@ -81,6 +81,8 @@ pub async fn groups(
     Ok(Groups { list })
 }
 
+const LIKE_ESC_CHARS: &str = "_%\\";
+
 fn like_esc(string: &str, wild: bool) -> String {
     let mut str = String::new();
     if wild {
@@ -88,7 +90,7 @@ fn like_esc(string: &str, wild: bool) -> String {
     }
 
     for c in string.chars() {
-        if "_%\\".contains(c) {
+        if LIKE_ESC_CHARS.contains(c) {
             str.push('\\');
         }
         str.push(c);
@@ -111,5 +113,6 @@ mod tests {
         assert_eq!("a\\%b\\_cd", like_esc("a%b_cd", false));
         assert_eq!("ab\\\\cd", like_esc("ab\\cd", false));
         assert_eq!("%abcd%", like_esc("abcd", true));
+        assert_eq!("\\_\\%\\\\", like_esc(LIKE_ESC_CHARS, false));
     }
 }
