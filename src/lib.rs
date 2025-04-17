@@ -111,9 +111,10 @@ async fn command_line_interactive(
     db: &mut PgConnection,
     line: &str,
 ) -> Result<(), Box<dyn Error>> {
-    let (cmd, _args) = tools::split_first(line);
+    let (cmd, args) = tools::split_first(line);
     match cmd {
         "tk" => cmd::stats(modes, db).await?,
+        "hr" => cmd::groups(modes, db, args).await?,
         _ => println!("Tuntematon komento ”{cmd}”. Apua saa ?:llä."),
     }
     Ok(())
@@ -124,9 +125,10 @@ async fn command_line_single(
     db: &mut PgConnection,
     line: &str,
 ) -> Result<(), Box<dyn Error>> {
-    let (cmd, _args) = tools::split_first(line);
+    let (cmd, args) = tools::split_first(line);
     match cmd {
         "tk" => cmd::stats(modes, db).await?,
+        "hr" => cmd::groups(modes, db, args).await?,
         _ => {
             Err(format!(
                 "Tuntematon komento ”{cmd}”. Apua saa valitsimella ”--ohje”."
@@ -141,9 +143,10 @@ async fn command_line_stdin(
     db: &mut PgConnection,
     line: &str,
 ) -> Result<(), Box<dyn Error>> {
-    let (cmd, _args) = tools::split_first(line);
+    let (cmd, args) = tools::split_first(line);
     match cmd {
         "tk" => cmd::stats(modes, db).await?,
+        "hr" => cmd::groups(modes, db, args).await?,
         // "lisää" => {
         //     let (avain, loput) = tools::split_first(args);
         //     let (arvo, _) = tools::split_first(loput);

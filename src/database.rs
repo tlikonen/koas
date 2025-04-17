@@ -1,5 +1,5 @@
 use crate::config::Config;
-// use futures::TryStreamExt; // STREAM.try_next()
+use futures::TryStreamExt; // STREAM.try_next()
 use sqlx::{Connection, PgConnection, Row};
 use std::error::Error;
 
@@ -19,18 +19,6 @@ pub async fn connect(config: &Config) -> Result<PgConnection, Box<dyn Error>> {
 
     Ok(client)
 }
-
-// pub async fn test(db: &mut PgConnection, line: &str) -> Result<(), sqlx::Error> {
-//     let mut rows = sqlx::query("SELECT id, arvo FROM foo WHERE arvo LIKE $1")
-//         .bind(format!("%{line}%"))
-//         .fetch(db);
-//     while let Some(row) = rows.try_next().await? {
-//         let id: i32 = row.try_get("id")?;
-//         let arvo: &str = row.try_get("arvo")?;
-//         println!("{id} {arvo}");
-//     }
-//     Ok(())
-// }
 
 #[derive(Debug)]
 pub struct Stats {
@@ -57,6 +45,43 @@ pub async fn stats(db: &mut PgConnection) -> Result<Stats, Box<dyn Error>> {
         assignments: row.try_get("suoritukset")?,
         scores: row.try_get("arvosanat")?,
     })
+}
+
+#[derive(Debug)]
+pub struct Groups {
+    pub list: Vec<Group>,
+}
+
+#[derive(Debug)]
+pub struct Group {
+    pub rid: i32,
+    pub name: String,
+    pub description: String,
+}
+
+pub async fn groups(
+    db: &mut PgConnection,
+    group: &str,
+    desc: &str,
+) -> Result<Groups, Box<dyn Error>> {
+    let mut rows = sqlx::query(
+        "SELECT rid, nimi, lisatiedot FROM ryhmat \
+         WHERE nimi LIKE $1 AND lisatiedot LIKE $2 \
+         ORDER BY nimi, lisatiedot, rid",
+    )
+    .bind(like_esc(group, true))
+    .bind(like_esc(desc, true))
+    .fetch(db);
+
+    let mut list: Vec<Group> = Vec::new();
+    while let Some(row) = rows.try_next().await? {
+        list.push(Group {
+            rid: row.try_get("rid")?,
+            name: row.try_get("nimi")?,
+            description: row.try_get("lisatiedot")?,
+        });
+    }
+    Ok(Groups { list })
 }
 
 fn like_esc(string: &str, wild: bool) -> String {
