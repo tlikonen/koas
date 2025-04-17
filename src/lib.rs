@@ -1,7 +1,6 @@
 pub mod commands;
 pub mod config;
 pub mod database;
-pub mod tools;
 
 use crate::{commands as cmd, config::Config, database as db};
 use sqlx::{Connection, PgConnection};
@@ -111,7 +110,7 @@ async fn command_line_interactive(
     db: &mut PgConnection,
     line: &str,
 ) -> Result<(), Box<dyn Error>> {
-    let (cmd, args) = tools::split_first(line);
+    let (cmd, args) = cmd::split_first(line);
     match cmd {
         "tk" => cmd::stats(modes, db).await?,
         "hr" => cmd::groups(modes, db, args).await?,
@@ -125,7 +124,7 @@ async fn command_line_single(
     db: &mut PgConnection,
     line: &str,
 ) -> Result<(), Box<dyn Error>> {
-    let (cmd, args) = tools::split_first(line);
+    let (cmd, args) = cmd::split_first(line);
     match cmd {
         "tk" => cmd::stats(modes, db).await?,
         "hr" => cmd::groups(modes, db, args).await?,
@@ -143,13 +142,13 @@ async fn command_line_stdin(
     db: &mut PgConnection,
     line: &str,
 ) -> Result<(), Box<dyn Error>> {
-    let (cmd, args) = tools::split_first(line);
+    let (cmd, args) = cmd::split_first(line);
     match cmd {
         "tk" => cmd::stats(modes, db).await?,
         "hr" => cmd::groups(modes, db, args).await?,
         // "lisää" => {
-        //     let (avain, loput) = tools::split_first(args);
-        //     let (arvo, _) = tools::split_first(loput);
+        //     let (avain, loput) = cmd::split_first(args);
+        //     let (arvo, _) = cmd::split_first(loput);
         //     sqlx::query("INSERT INTO hallinto (avain, teksti) VALUES ($1, $2)")
         //         .bind(avain)
         //         .bind(arvo)
@@ -157,7 +156,7 @@ async fn command_line_stdin(
         //         .await?;
         // }
         // "poista" => {
-        //     let (avain, _) = tools::split_first(args);
+        //     let (avain, _) = cmd::split_first(args);
         //     sqlx::query("DELETE FROM hallinto WHERE avain = $1")
         //         .bind(avain)
         //         .execute(db)
