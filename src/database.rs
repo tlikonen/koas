@@ -70,7 +70,7 @@ pub async fn groups(
     .bind(like_esc(desc, true))
     .fetch(db);
 
-    let mut list: Vec<Group> = Vec::new();
+    let mut list = Vec::new();
     while let Some(row) = rows.try_next().await? {
         list.push(Group {
             rid: row.try_get("rid")?,
