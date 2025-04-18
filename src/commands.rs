@@ -2,21 +2,14 @@ use crate::{Modes, database as db};
 use sqlx::PgConnection;
 use std::error::Error;
 
-pub async fn stats(_modes: &Modes, db: &mut PgConnection) -> Result<(), Box<dyn Error>> {
+pub async fn stats(modes: &Modes, db: &mut PgConnection) -> Result<(), Box<dyn Error>> {
     let stats = db::stats(db).await?;
-    let width = 5;
-    println!(
-        "Oppilaita:   {:width$}\n\
-         Ryhmiä:      {:width$}\n\
-         Suorituksia: {:width$}\n\
-         Arvosanoja:  {:width$}",
-        stats.students, stats.groups, stats.assignments, stats.scores
-    );
+    stats.table().print(modes.output());
     Ok(())
 }
 
 pub async fn groups(
-    _modes: &Modes,
+    modes: &Modes,
     db: &mut PgConnection,
     mut args: &str,
 ) -> Result<(), Box<dyn Error>> {
@@ -30,10 +23,8 @@ pub async fn groups(
     let desc = split.next().unwrap_or("");
 
     let groups = db::groups(db, group, desc).await?;
-    for g in &groups.list {
-        println!("{:14} {}", g.name, g.description);
-    }
-    println!("{:?}", groups.table());
+    groups.found()?;
+    groups.table().print(modes.output());
     Ok(())
 }
 

@@ -1,4 +1,7 @@
-use super::*;
+use crate::{
+    Output,
+    database::{Groups, Stats},
+};
 
 #[derive(Debug)]
 pub struct Table {
@@ -23,6 +26,39 @@ impl Table {
             }
         }
         if vec.is_empty() { None } else { Some(vec) }
+    }
+
+    pub fn print(&self, output: &Output) {
+        match output {
+            Output::Normal => print_normal(self),
+        }
+    }
+}
+
+fn print_normal(tbl: &Table) {
+    let widths = tbl.widths().expect("Taulukko vaatii dataa.");
+    for row in &tbl.rows {
+        match row {
+            Row::Toprule | Row::Midrule | Row::Bottomrule => {
+                print!("+");
+                for w in &widths {
+                    print!("-{:-<w$}-+", "");
+                }
+                println!();
+            }
+            Row::Data(v) | Row::Head(v) | Row::Total(v) => {
+                print!("|");
+                for (w, cell) in v.iter().enumerate() {
+                    let width = widths[w];
+                    match cell {
+                        Cell::Left(s) => print!(" {s:<width$} |"),
+                        Cell::Right(s) => print!(" {s:>width$} |"),
+                        _ => todo!(),
+                    }
+                }
+                println!();
+            }
+        }
     }
 }
 
@@ -78,9 +114,36 @@ impl Cell {
     }
 }
 
+impl Stats {
+    pub fn table(&self) -> Table {
+        let rows = vec![
+            Row::Toprule,
+            Row::Data(vec![
+                Cell::Left("Oppilaita:".to_string()),
+                Cell::Right(self.students.to_string()),
+            ]),
+            Row::Data(vec![
+                Cell::Left("Ryhmiä:".to_string()),
+                Cell::Right(self.groups.to_string()),
+            ]),
+            Row::Data(vec![
+                Cell::Left("Suorituksia:".to_string()),
+                Cell::Right(self.assignments.to_string()),
+            ]),
+            Row::Data(vec![
+                Cell::Left("Arvosanoja:".to_string()),
+                Cell::Right(self.scores.to_string()),
+            ]),
+            Row::Bottomrule,
+        ];
+
+        Table { rows }
+    }
+}
+
 impl Groups {
     pub fn table(&self) -> Table {
-        let mut rows: Vec<Row> = Vec::new();
+        let mut rows = Vec::new();
 
         rows.push(Row::Toprule);
         rows.push(Row::Head(vec![
