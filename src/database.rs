@@ -58,20 +58,6 @@ pub struct Group {
     pub description: String,
 }
 
-impl Groups {
-    pub fn found(&self) -> Result<(), String> {
-        if self.list.is_empty() {
-            Err(not_found())
-        } else {
-            Ok(())
-        }
-    }
-}
-
-fn not_found() -> String {
-    "Ei löytynyt.".to_string()
-}
-
 pub async fn groups(
     db: &mut PgConnection,
     group: &str,
@@ -94,7 +80,12 @@ pub async fn groups(
             description: row.try_get("lisatiedot")?,
         });
     }
-    Ok(Groups { list })
+
+    if list.is_empty() {
+        Err("Ryhmiä ei löytynyt.".into())
+    } else {
+        Ok(Groups { list })
+    }
 }
 
 const LIKE_ESC_CHARS: &str = "_%\\";

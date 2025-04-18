@@ -23,7 +23,6 @@ pub async fn groups(
     let desc = split.next().unwrap_or("");
 
     let groups = db::groups(db, group, desc).await?;
-    groups.found()?;
     groups.table().print(modes.output());
     Ok(())
 }
