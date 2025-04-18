@@ -88,6 +88,12 @@ pub async fn groups(
     }
 }
 
+// Oppilashaku
+// SELECT DISTINCT view_oppilaat.oid, sukunimi, etunimi, ryhmat, olt FROM view_oppilaat
+// JOIN (SELECT oid, string_agg(ryhma, ' ' ORDER BY ryhma) ryhmat FROM view_oppilaat GROUP BY oid)
+// ryhmat ON view_oppilaat.oid = ryhmat.oid
+// WHERE ryhma LIKE '2024:%' ORDER BY sukunimi, etunimi, oid;
+
 const LIKE_ESC_CHARS: &str = "_%\\";
 
 fn like_esc(string: &str, wild: bool) -> String {
