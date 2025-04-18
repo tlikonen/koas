@@ -58,12 +58,6 @@ pub struct Group {
     pub description: String,
 }
 
-impl Groups {
-    pub fn is_empty(&self) -> bool {
-        self.list.is_empty()
-    }
-}
-
 pub async fn groups(
     db: &mut PgConnection,
     group: &str,

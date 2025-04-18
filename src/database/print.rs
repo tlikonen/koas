@@ -186,6 +186,10 @@ impl Stats {
 }
 
 impl Groups {
+    pub fn is_empty(&self) -> bool {
+        self.list.is_empty()
+    }
+
     pub fn table(&self) -> Table {
         const DESCRIPTION_WIDTH: usize = 70;
 
