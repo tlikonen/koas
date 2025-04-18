@@ -28,6 +28,20 @@ impl Table {
         vec
     }
 
+    pub fn numbering(&mut self) {
+        let mut n = 1;
+        for row in &mut self.rows {
+            match row {
+                Row::Head(v) | Row::Total(v) => v.insert(0, Cell::Empty),
+                Row::Data(v) => {
+                    v.insert(0, Cell::Right(n.to_string()));
+                    n += 1;
+                }
+                _ => (),
+            }
+        }
+    }
+
     pub fn print(&self, output: &Output) {
         if self.rows.is_empty() {
             return;

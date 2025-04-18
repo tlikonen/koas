@@ -1,4 +1,4 @@
-use crate::{Modes, database as db};
+use crate::{Mode, Modes, database as db};
 use sqlx::PgConnection;
 use std::error::Error;
 
@@ -23,7 +23,11 @@ pub async fn groups(
     let desc = split.next().unwrap_or("");
 
     let groups = db::groups(db, group, desc).await?;
-    groups.table().print(modes.output());
+    let mut table = groups.table();
+    if let Mode::Interactive = modes.mode() {
+        table.numbering();
+    }
+    table.print(modes.output());
     Ok(())
 }
 
