@@ -23,6 +23,11 @@ pub async fn groups(
     let desc = split.next().unwrap_or("");
 
     let groups = db::groups(db, group, desc).await?;
+    if groups.is_empty() {
+        eprintln!("Ryhmiä ei löytynyt.");
+        return Ok(());
+    }
+
     let mut table = groups.table();
     if let Mode::Interactive = modes.mode() {
         table.numbering();

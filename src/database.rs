@@ -58,6 +58,12 @@ pub struct Group {
     pub description: String,
 }
 
+impl Groups {
+    pub fn is_empty(&self) -> bool {
+        self.list.is_empty()
+    }
+}
+
 pub async fn groups(
     db: &mut PgConnection,
     group: &str,
@@ -81,11 +87,7 @@ pub async fn groups(
         });
     }
 
-    if list.is_empty() {
-        Err("Ryhmiä ei löytynyt.".into())
-    } else {
-        Ok(Groups { list })
-    }
+    Ok(Groups { list })
 }
 
 // Oppilashaku
