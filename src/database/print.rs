@@ -302,19 +302,19 @@ mod tests {
 
     #[test]
     fn t_multi_split() {
-        for i in 0..=7 {
+        for i in 0..8 {
             assert_eq!(
-                vec!["eka", "toka", "kolmas"],
-                multi_split("eka toka kolmas", i)
+                vec!["€ka", "tøka", "kølmas"],
+                multi_split("€ka tøka kølmas", i)
             );
         }
 
-        for i in 8..=14 {
+        for i in 8..15 {
             assert_eq!(
-                vec!["eka toka", "kolmas"],
-                multi_split("eka toka kolmas", i)
+                vec!["€ka tøka", "kølmas"],
+                multi_split("€ka tøka kølmas", i)
             );
         }
-        assert_eq!(vec!["eka toka kolmas"], multi_split("eka toka kolmas", 15));
+        assert_eq!(vec!["€ka tøka kølmas"], multi_split("€ka tøka kølmas", 15));
     }
 }
