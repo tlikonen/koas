@@ -222,8 +222,7 @@ fn multi_split(s: &str, max: usize) -> Vec<String> {
         }
 
         if line.is_empty() || line.join(" ").chars().count() + words[i].chars().count() < max {
-            let word = words[i];
-            line.push(word);
+            line.push(words[i]);
             if words.get(i + 1).is_none() {
                 lines.push(line.join(" "));
             }
