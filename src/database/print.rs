@@ -50,16 +50,43 @@ fn print_normal(tbl: &Table) {
                 println!();
             }
             Row::Data(v) | Row::Head(v) | Row::Total(v) => {
-                print!("|");
-                for (w, cell) in v.iter().enumerate() {
-                    let width = widths[w];
-                    match cell {
-                        Cell::Left(s) => print!(" {s:<width$} |"),
-                        Cell::Right(s) => print!(" {s:>width$} |"),
-                        _ => todo!(),
+                let empty_cell = |w| print!(" {:<w$} |", "");
+                let mut multi_max = 0;
+                let mut multi = 0;
+                loop {
+                    print!("|");
+                    for (w, cell) in v.iter().enumerate() {
+                        let width = widths[w];
+                        match multi {
+                            0 => match cell {
+                                Cell::Empty => empty_cell(width),
+                                Cell::Left(s) => print!(" {s:<width$} |"),
+                                Cell::Right(s) => print!(" {s:>width$} |"),
+                                Cell::Multi(v) => {
+                                    print!(" {:<width$} |", v[multi]);
+                                    if v.len() > multi_max {
+                                        multi_max = v.len();
+                                    }
+                                }
+                            },
+                            _ => match cell {
+                                Cell::Multi(v) => {
+                                    if let Some(s) = v.get(multi) {
+                                        print!(" {:<width$} |", s);
+                                    } else {
+                                        empty_cell(width);
+                                    }
+                                }
+                                _ => empty_cell(width),
+                            },
+                        }
+                    }
+                    println!();
+                    multi += 1;
+                    if multi >= multi_max {
+                        break;
                     }
                 }
-                println!();
             }
         }
     }
@@ -146,6 +173,8 @@ impl Stats {
 
 impl Groups {
     pub fn table(&self) -> Table {
+        const DESCRIPTION_WIDTH: usize = 70;
+
         let mut rows = vec![
             Row::Toprule,
             Row::Head(vec![
@@ -158,7 +187,7 @@ impl Groups {
         for group in &self.list {
             rows.push(Row::Data(vec![
                 Cell::Left(group.name.clone()),
-                Cell::Left(group.description.clone()),
+                Cell::Multi(multi_split(&group.description.clone(), DESCRIPTION_WIDTH)),
             ]));
         }
 
@@ -178,7 +207,7 @@ fn multi_split(s: &str, max: usize) -> Vec<String> {
             break;
         }
 
-        if line.is_empty() || line.join(" ").chars().count() + words[i].chars().count() + 1 <= max {
+        if line.is_empty() || line.join(" ").chars().count() + words[i].chars().count() < max {
             let word = words[i];
             line.push(word);
             if words.get(i + 1).is_none() {
