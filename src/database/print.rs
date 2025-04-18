@@ -143,15 +143,14 @@ impl Stats {
 
 impl Groups {
     pub fn table(&self) -> Table {
-        let mut rows = Vec::new();
-
-        rows.push(Row::Toprule);
-        rows.push(Row::Head(vec![
-            Cell::Left("Nimi".to_string()),
-            Cell::Left("Lisätiedot".to_string()),
-        ]));
-
-        rows.push(Row::Midrule);
+        let mut rows = vec![
+            Row::Toprule,
+            Row::Head(vec![
+                Cell::Left("Nimi".to_string()),
+                Cell::Left("Lisätiedot".to_string()),
+            ]),
+            Row::Midrule,
+        ];
 
         for group in &self.list {
             rows.push(Row::Data(vec![
@@ -161,7 +160,6 @@ impl Groups {
         }
 
         rows.push(Row::Bottomrule);
-
         Table { rows }
     }
 }
