@@ -51,7 +51,7 @@ pub struct Groups {
 }
 
 pub struct Group {
-    pub rid: i32,
+    rid: i32,
     pub name: String,
     pub description: String,
 }
