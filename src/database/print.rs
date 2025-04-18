@@ -12,15 +12,11 @@ impl Table {
             match row.widths() {
                 None => continue,
                 Some(widths) => {
-                    if vec.is_empty() {
-                        for e in widths {
-                            vec.push(e);
-                        }
-                    } else {
-                        for (i, e) in widths.iter().enumerate() {
-                            if *e > vec[i] {
-                                vec[i] = *e;
-                            }
+                    for (i, e) in widths.iter().enumerate() {
+                        if vec.get(i).is_none() {
+                            vec.push(*e);
+                        } else if *e > vec[i] {
+                            vec[i] = *e;
                         }
                     }
                 }
