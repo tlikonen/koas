@@ -10,7 +10,6 @@ pub fn init() -> Result<PathBuf, String> {
         .map_err(|e| format!("Asetustiedoston alustus epäonnistui: {}", e.kind()))
 }
 
-#[derive(Debug)]
 pub struct Config {
     pub host: String,
     pub port: u16,

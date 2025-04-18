@@ -3,9 +3,8 @@ use crate::{
     database::{Groups, Stats},
 };
 
-#[derive(Debug)]
 pub struct Table {
-    pub rows: Vec<Row>,
+    rows: Vec<Row>,
 }
 
 impl Table {
@@ -106,8 +105,7 @@ fn print_normal(tbl: &Table) {
     }
 }
 
-#[derive(Debug)]
-pub enum Row {
+enum Row {
     Toprule,
     Midrule,
     Bottomrule,
@@ -131,8 +129,7 @@ impl Row {
     }
 }
 
-#[derive(Debug)]
-pub enum Cell {
+enum Cell {
     Empty,
     Left(String),
     Right(String),
