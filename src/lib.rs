@@ -77,7 +77,6 @@ pub async fn command_stage(modes: Modes, config: Config) -> Result<(), Box<dyn E
             command_line_single(&modes, &mut db, line).await?;
         }
         Mode::Stdin => {
-            //let err = |e| format!("{e}");
             let abort_msg = || eprintln!("Perutaan muokkauskomentojen vaikutukset.");
             let mut ta = db.begin().await?;
 
@@ -147,22 +146,6 @@ async fn command_line_stdin(
     match cmd {
         "tk" => cmd::stats(modes, db).await?,
         "hr" => cmd::groups(modes, db, args).await?,
-        // "lisää" => {
-        //     let (avain, loput) = cmd::split_first(args);
-        //     let (arvo, _) = cmd::split_first(loput);
-        //     sqlx::query("INSERT INTO hallinto (avain, teksti) VALUES ($1, $2)")
-        //         .bind(avain)
-        //         .bind(arvo)
-        //         .execute(db)
-        //         .await?;
-        // }
-        // "poista" => {
-        //     let (avain, _) = cmd::split_first(args);
-        //     sqlx::query("DELETE FROM hallinto WHERE avain = $1")
-        //         .bind(avain)
-        //         .execute(db)
-        //         .await?;
-        // }
         _ => {
             Err(format!(
                 "Tuntematon komento ”{cmd}”. Apua saa valitsimella ”--ohje”."
