@@ -24,7 +24,7 @@ pub async fn groups(
 
     let groups = db::groups(db, group, desc).await?;
     if groups.is_empty() {
-        eprintln!("Ryhmiä ei löytynyt.");
+        print_not_found();
         return Ok(());
     }
 
@@ -34,6 +34,10 @@ pub async fn groups(
     }
     table.print(modes.output());
     Ok(())
+}
+
+fn print_not_found() {
+    eprintln!("Ei löytynyt.");
 }
 
 pub fn split_sep(s: &str) -> impl Iterator<Item = &str> {
