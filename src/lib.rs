@@ -1,6 +1,7 @@
 pub mod commands;
 pub mod config;
-pub mod database;
+mod database;
+mod print;
 
 use crate::{commands as cmd, config::Config, database as db};
 use sqlx::{Connection, PgConnection};
