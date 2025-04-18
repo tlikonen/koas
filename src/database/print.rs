@@ -9,7 +9,7 @@ pub struct Table {
 }
 
 impl Table {
-    fn widths(&self) -> Option<Vec<usize>> {
+    fn widths(&self) -> Vec<usize> {
         let mut vec = Vec::new();
         for row in &self.rows {
             match row.widths() {
@@ -25,10 +25,13 @@ impl Table {
                 }
             }
         }
-        if vec.is_empty() { None } else { Some(vec) }
+        vec
     }
 
     pub fn print(&self, output: &Output) {
+        if self.rows.is_empty() {
+            return;
+        }
         match output {
             Output::Normal => print_normal(self),
         }
@@ -36,7 +39,7 @@ impl Table {
 }
 
 fn print_normal(tbl: &Table) {
-    let widths = tbl.widths().expect("Taulukko vaatii dataa.");
+    let widths = tbl.widths();
     for row in &tbl.rows {
         match row {
             Row::Toprule | Row::Midrule | Row::Bottomrule => {
@@ -227,7 +230,7 @@ mod tests {
             ],
         };
 
-        assert_eq!(vec![2, 3, 4], table.widths().unwrap());
+        assert_eq!(vec![2, 3, 4], table.widths());
     }
 
     #[test]
