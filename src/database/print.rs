@@ -201,7 +201,7 @@ impl Groups {
         for group in &self.list {
             rows.push(Row::Data(vec![
                 Cell::Left(group.name.clone()),
-                Cell::Multi(multi_split(&group.description.clone(), DESCRIPTION_WIDTH)),
+                Cell::Multi(multi_split(&group.description, DESCRIPTION_WIDTH)),
             ]));
         }
 
