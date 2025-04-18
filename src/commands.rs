@@ -30,9 +30,10 @@ pub async fn groups(
     let desc = split.next().unwrap_or("");
 
     let groups = db::groups(db, group, desc).await?;
-    for g in groups.list {
+    for g in &groups.list {
         println!("{:14} {}", g.name, g.description);
     }
+    println!("{:?}", groups.table());
     Ok(())
 }
 
