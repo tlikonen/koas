@@ -1,6 +1,6 @@
 use crate::config::Config;
 use futures::TryStreamExt; // STREAM.try_next()
-use sqlx::{Connection, PgConnection, Row};
+use sqlx::{Connection, PgConnection, Row as SqlxRow};
 use std::error::Error;
 
 pub async fn connect(config: &Config) -> Result<PgConnection, Box<dyn Error>> {
