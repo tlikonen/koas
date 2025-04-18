@@ -167,6 +167,33 @@ impl Groups {
     }
 }
 
+fn multi_split(s: &str, max: usize) -> Vec<String> {
+    let words: Vec<&str> = s.split(' ').filter(|x| !x.is_empty()).collect();
+    let mut lines = Vec::new();
+    let mut line = Vec::new();
+    let mut i = 0;
+
+    loop {
+        if words.get(i).is_none() {
+            break;
+        }
+
+        if line.is_empty() || line.join(" ").chars().count() + words[i].chars().count() + 1 <= max {
+            let word = words[i];
+            line.push(word);
+            if words.get(i + 1).is_none() {
+                lines.push(line.join(" "));
+            }
+            i += 1;
+        } else {
+            lines.push(line.join(" "));
+            line.clear();
+        }
+    }
+
+    lines
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -242,5 +269,23 @@ mod tests {
             5,
             Cell::Multi(vec!["123".to_string(), "12345".to_string()]).width()
         );
+    }
+
+    #[test]
+    fn t_multi_split() {
+        for i in 0..=7 {
+            assert_eq!(
+                vec!["eka", "toka", "kolmas"],
+                multi_split("eka toka kolmas", i)
+            );
+        }
+
+        for i in 8..=14 {
+            assert_eq!(
+                vec!["eka toka", "kolmas"],
+                multi_split("eka toka kolmas", i)
+            );
+        }
+        assert_eq!(vec!["eka toka kolmas"], multi_split("eka toka kolmas", 15));
     }
 }
