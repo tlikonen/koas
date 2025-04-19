@@ -2,6 +2,7 @@ pub mod commands;
 pub mod config;
 mod database;
 mod print;
+pub mod tools;
 
 use crate::{config::Config, database::Editable};
 use sqlx::{Connection, PgConnection};
@@ -77,7 +78,7 @@ pub async fn command_stage(modes: Modes, config: Config) -> Result<(), Box<dyn E
                 }
                 rl.add_history_entry(&line)?;
 
-                let (cmd, args) = commands::split_first(&line);
+                let (cmd, args) = tools::split_first(&line);
                 if !match_query_commands(&modes, &mut db, &mut editable, cmd, args).await?
                     && !match_help_commands(&mut editable, cmd, args)?
                 {
@@ -86,7 +87,7 @@ pub async fn command_stage(modes: Modes, config: Config) -> Result<(), Box<dyn E
             }
         }
         Mode::Single(line) => {
-            let (cmd, args) = commands::split_first(line);
+            let (cmd, args) = tools::split_first(line);
             if !match_query_commands(&modes, &mut db, &mut editable, cmd, args).await? {
                 Err(format!(
                     "Tuntematon komento ”{cmd}”. Apua saa valitsimella ”--ohje”."
@@ -98,7 +99,7 @@ pub async fn command_stage(modes: Modes, config: Config) -> Result<(), Box<dyn E
             for item in io::stdin().lines() {
                 let line = item?;
                 if !line.is_empty() {
-                    let (cmd, args) = commands::split_first(&line);
+                    let (cmd, args) = tools::split_first(&line);
                     if !match_query_commands(&modes, &mut ta, &mut editable, cmd, args).await? {
                         Err(format!(
                             "Tuntematon komento ”{cmd}”. Apua saa valitsimella ”--ohje”."

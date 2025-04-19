@@ -1,5 +1,5 @@
 use just_getopt as jg;
-use kastk::{Mode, Modes, Output, commands, config::Config};
+use kastk::{Mode, Modes, Output, config::Config, tools};
 use std::{error::Error, process::ExitCode};
 
 static PROGRAM_NAME: &str = env!("CARGO_BIN_NAME");
@@ -101,7 +101,7 @@ async fn config_stage(args: jg::Args) -> Result<(), Box<dyn Error>> {
     let config: Config;
     let output: Output = Default::default();
 
-    umask(0o077);
+    tools::umask(0o077);
 
     // Database configuration.
     if args.option_exists("postgresql") {
@@ -109,7 +109,7 @@ async fn config_stage(args: jg::Args) -> Result<(), Box<dyn Error>> {
             .options_value_last("postgresql")
             .expect("valitsimella pitäisi olla arvo");
 
-        let mut fields = commands::split_sep(value);
+        let mut fields = tools::split_sep(value);
         let err =
             |field: &str| format!("Valitsimelle ”--postgresql” täytyy antaa kenttä ”{field}”.");
         let default: Config = Default::default();
@@ -184,8 +184,4 @@ async fn config_stage(args: jg::Args) -> Result<(), Box<dyn Error>> {
         modes.set_output(Default::default());
         kastk::command_stage(modes, config).await
     }
-}
-
-pub fn umask(mask: u32) -> u32 {
-    unsafe { libc::umask(mask) }
 }
