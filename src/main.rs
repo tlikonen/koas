@@ -1,5 +1,5 @@
 use just_getopt as jg;
-use kastk::{Mode, Modes, Output, commands, config, config::Config};
+use kastk::{Mode, Modes, Output, commands, config::Config};
 use std::{error::Error, process::ExitCode};
 
 static PROGRAM_NAME: &str = env!("CARGO_BIN_NAME");
@@ -97,8 +97,7 @@ Valitsimet
 }
 
 async fn config_stage(args: jg::Args) -> Result<(), Box<dyn Error>> {
-    let config_file = config::init()?;
-    let default: Config = Default::default();
+    let config_file = Config::file()?;
     let config: Config;
     let output: Output = Default::default();
 
@@ -113,6 +112,7 @@ async fn config_stage(args: jg::Args) -> Result<(), Box<dyn Error>> {
         let mut fields = commands::split_sep(value);
         let err =
             |field: &str| format!("Valitsimelle ”--postgresql” täytyy antaa kenttä ”{field}”.");
+        let default: Config = Default::default();
 
         let user = fields
             .next()
@@ -152,13 +152,13 @@ async fn config_stage(args: jg::Args) -> Result<(), Box<dyn Error>> {
             port,
         };
 
-        config::write(&config_file, &config)?;
+        config.write(&config_file)?;
         println!(
             "Tietokannan yhteysasetukset tallennettu asetustiedostoon ”{}”.",
             config_file.to_string_lossy()
         );
     } else if config_file.exists() {
-        config = config::read(&config_file)?;
+        config = Config::read(&config_file)?;
     } else {
         return Err(format!(
             "Asetustiedosto ”{}” puuttuu. \
