@@ -75,32 +75,32 @@ pub async fn command_stage(modes: Modes, config: Config) -> Result<(), Box<dyn E
                 }
                 let _ = rl.add_history_entry(&line);
 
-                command_line_interactive(&modes, &mut db, &mut editable, &line).await?;
+                let (cmd, args) = commands::split_first(&line);
+                if !match_query_commands(&modes, &mut db, &mut editable, cmd, args).await?
+                    && !match_help_commands(&mut editable, cmd, args)?
+                {
+                    eprintln!("Tuntematon komento ”{cmd}”. Apua saa ?:llä.");
+                }
             }
         }
         Mode::Single(line) => {
-            command_line_single(&modes, &mut db, &mut editable, line).await?;
+            let (cmd, args) = commands::split_first(line);
+            if !match_query_commands(&modes, &mut db, &mut editable, cmd, args).await? {
+                Err(format!(
+                    "Tuntematon komento ”{cmd}”. Apua saa valitsimella ”--ohje”."
+                ))?;
+            }
         }
         Mode::Stdin => {
-            let abort_msg = || eprintln!("Perutaan muokkauskomentojen vaikutukset.");
             let mut ta = db.begin().await?;
-
             for item in io::stdin().lines() {
-                match item {
-                    Ok(line) => {
-                        if !line.is_empty() {
-                            match command_line_stdin(&modes, &mut ta, &mut editable, &line).await {
-                                Ok(_) => (),
-                                Err(e) => {
-                                    abort_msg();
-                                    Err(e)?;
-                                }
-                            }
-                        }
-                    }
-                    Err(_) => {
-                        abort_msg();
-                        Err("Rivin lukeminen standardisyötteestä epäonnistui.")?;
+                let line = item?;
+                if !line.is_empty() {
+                    let (cmd, args) = commands::split_first(&line);
+                    if !match_query_commands(&modes, &mut ta, &mut editable, cmd, args).await? {
+                        Err(format!(
+                            "Tuntematon komento ”{cmd}”. Apua saa valitsimella ”--ohje”."
+                        ))?;
                     }
                 }
             }
@@ -110,52 +110,7 @@ pub async fn command_stage(modes: Modes, config: Config) -> Result<(), Box<dyn E
     Ok(())
 }
 
-async fn command_line_interactive(
-    modes: &Modes,
-    db: &mut PgConnection,
-    editable: &mut Editable,
-    line: &str,
-) -> Result<(), Box<dyn Error>> {
-    let (cmd, args) = commands::split_first(line);
-    if !commands_query(modes, db, editable, cmd, args).await?
-        && !commands_help(editable, cmd, args)?
-    {
-        eprintln!("Tuntematon komento ”{cmd}”. Apua saa ?:llä.");
-    }
-    Ok(())
-}
-
-async fn command_line_single(
-    modes: &Modes,
-    db: &mut PgConnection,
-    editable: &mut Editable,
-    line: &str,
-) -> Result<(), Box<dyn Error>> {
-    let (cmd, args) = commands::split_first(line);
-    if !commands_query(modes, db, editable, cmd, args).await? {
-        Err(format!(
-            "Tuntematon komento ”{cmd}”. Apua saa valitsimella ”--ohje”."
-        ))?;
-    }
-    Ok(())
-}
-
-async fn command_line_stdin(
-    modes: &Modes,
-    db: &mut PgConnection,
-    editable: &mut Editable,
-    line: &str,
-) -> Result<(), Box<dyn Error>> {
-    let (cmd, args) = commands::split_first(line);
-    if !commands_query(modes, db, editable, cmd, args).await? {
-        Err(format!(
-            "Tuntematon komento ”{cmd}”. Apua saa valitsimella ”--ohje”."
-        ))?;
-    }
-    Ok(())
-}
-
-async fn commands_query(
+async fn match_query_commands(
     modes: &Modes,
     db: &mut PgConnection,
     editable: &mut Editable,
@@ -171,7 +126,11 @@ async fn commands_query(
     Ok(true)
 }
 
-fn commands_help(editable: &mut Editable, cmd: &str, args: &str) -> Result<bool, Box<dyn Error>> {
+fn match_help_commands(
+    editable: &mut Editable,
+    cmd: &str,
+    args: &str,
+) -> Result<bool, Box<dyn Error>> {
     editable.clear();
     match cmd {
         "?" => commands::help(args),
