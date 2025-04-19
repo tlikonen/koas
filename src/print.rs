@@ -53,44 +53,44 @@ impl Table {
     }
 }
 
-static BOX_UNICODE: [[char; 4]; 4] = [
-    ['╒', '═', '╤', '╕'],
-    ['├', '─', '┼', '┤'],
-    ['╘', '═', '╧', '╛'],
-    ['│', ' ', ' ', ' '],
+static BOX_UNICODE: [char; 13] = [
+    '╒', '═', '╤', '╕', // top
+    '├', '─', '┼', '┤', // mid
+    '╘', '═', '╧', '╛', // bottom
+    '│', // vert
 ];
 
-static BOX_ASCII: [[char; 4]; 4] = [
-    ['+', '-', '+', '+'],
-    ['+', '-', '+', '+'],
-    ['+', '-', '+', '+'],
-    ['|', ' ', ' ', ' '],
+static BOX_ASCII: [char; 13] = [
+    '+', '-', '+', '+', // top
+    '+', '-', '+', '+', // mid
+    '+', '-', '+', '+', // bottom
+    '|', // vert
 ];
 
-static BOX_ORGMODE: [[char; 4]; 4] = [
-    ['|', '-', '+', '|'],
-    ['|', '-', '+', '|'],
-    ['|', '-', '+', '|'],
-    ['|', ' ', ' ', ' '],
+static BOX_ORGMODE: [char; 13] = [
+    '|', '-', '+', '|', // top
+    '|', '-', '+', '|', // mid
+    '|', '-', '+', '|', // bottom
+    '|', // vert
 ];
 
-fn print_table(tbl: &Table, boxes: [[char; 4]; 4]) {
-    let top_left = boxes[0][0];
-    let top_line = boxes[0][1];
-    let top_mid = boxes[0][2];
-    let top_right = boxes[0][3];
+fn print_table(tbl: &Table, boxes: [char; 13]) {
+    let top_left = boxes[0];
+    let top_line = boxes[1];
+    let top_mid = boxes[2];
+    let top_right = boxes[3];
 
-    let mid_left = boxes[1][0];
-    let mid_line = boxes[1][1];
-    let mid_mid = boxes[1][2];
-    let mid_right = boxes[1][3];
+    let mid_left = boxes[4];
+    let mid_line = boxes[5];
+    let mid_mid = boxes[6];
+    let mid_right = boxes[7];
 
-    let bottom_left = boxes[2][0];
-    let bottom_line = boxes[2][1];
-    let bottom_mid = boxes[2][2];
-    let bottom_right = boxes[2][3];
+    let bottom_left = boxes[8];
+    let bottom_line = boxes[9];
+    let bottom_mid = boxes[10];
+    let bottom_right = boxes[11];
 
-    let vert_line = boxes[3][0];
+    let vert_line = boxes[12];
 
     let series = |c, n| {
         for _ in 0..(n + 2) {
