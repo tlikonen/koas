@@ -70,11 +70,12 @@ pub async fn command_stage(modes: Modes, config: Config) -> Result<(), Box<dyn E
             let prompt = format!("{}> ", env!("CARGO_PKG_NAME"));
             let mut rl = rustyline::DefaultEditor::new()?;
 
-            while let Ok(line) = rl.readline(&prompt) {
+            loop {
+                let line = rl.readline(&prompt)?;
                 if line.is_empty() {
                     break;
                 }
-                let _ = rl.add_history_entry(&line);
+                rl.add_history_entry(&line)?;
 
                 let (cmd, args) = commands::split_first(&line);
                 if !match_query_commands(&modes, &mut db, &mut editable, cmd, args).await?
