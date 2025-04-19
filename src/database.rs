@@ -27,23 +27,25 @@ pub struct Stats {
     pub scores: i64,
 }
 
-pub async fn stats(db: &mut PgConnection) -> Result<Stats, Box<dyn Error>> {
-    let row = sqlx::query(
-        "SELECT \
-         (SELECT count(*) FROM oppilaat) oppilaat, \
-         (SELECT count(*) FROM ryhmat) ryhmat, \
-         (SELECT count(*) FROM suoritukset) suoritukset, \
-         (SELECT count(*) FROM arvosanat WHERE arvosana LIKE '_%') arvosanat",
-    )
-    .fetch_one(db)
-    .await?;
+impl Stats {
+    pub async fn query(db: &mut PgConnection) -> Result<Stats, Box<dyn Error>> {
+        let row = sqlx::query(
+            "SELECT \
+             (SELECT count(*) FROM oppilaat) oppilaat, \
+             (SELECT count(*) FROM ryhmat) ryhmat, \
+             (SELECT count(*) FROM suoritukset) suoritukset, \
+             (SELECT count(*) FROM arvosanat WHERE arvosana LIKE '_%') arvosanat",
+        )
+        .fetch_one(db)
+        .await?;
 
-    Ok(Stats {
-        students: row.try_get("oppilaat")?,
-        groups: row.try_get("ryhmat")?,
-        assignments: row.try_get("suoritukset")?,
-        scores: row.try_get("arvosanat")?,
-    })
+        Ok(Stats {
+            students: row.try_get("oppilaat")?,
+            groups: row.try_get("ryhmat")?,
+            assignments: row.try_get("suoritukset")?,
+            scores: row.try_get("arvosanat")?,
+        })
+    }
 }
 
 pub struct Groups {
@@ -56,30 +58,36 @@ pub struct Group {
     pub description: String,
 }
 
-pub async fn groups(
-    db: &mut PgConnection,
-    group: &str,
-    desc: &str,
-) -> Result<Groups, Box<dyn Error>> {
-    let mut rows = sqlx::query(
-        "SELECT rid, nimi, lisatiedot FROM ryhmat \
-         WHERE nimi LIKE $1 AND lisatiedot LIKE $2 \
-         ORDER BY nimi, lisatiedot, rid",
-    )
-    .bind(like_esc(group, true))
-    .bind(like_esc(desc, true))
-    .fetch(db);
+impl Groups {
+    pub async fn query(
+        db: &mut PgConnection,
+        group: &str,
+        desc: &str,
+    ) -> Result<Groups, Box<dyn Error>> {
+        let mut rows = sqlx::query(
+            "SELECT rid, nimi, lisatiedot FROM ryhmat \
+             WHERE nimi LIKE $1 AND lisatiedot LIKE $2 \
+             ORDER BY nimi, lisatiedot, rid",
+        )
+        .bind(like_esc(group, true))
+        .bind(like_esc(desc, true))
+        .fetch(db);
 
-    let mut list = Vec::new();
-    while let Some(row) = rows.try_next().await? {
-        list.push(Group {
-            rid: row.try_get("rid")?,
-            name: row.try_get("nimi")?,
-            description: row.try_get("lisatiedot")?,
-        });
+        let mut list = Vec::new();
+        while let Some(row) = rows.try_next().await? {
+            list.push(Group {
+                rid: row.try_get("rid")?,
+                name: row.try_get("nimi")?,
+                description: row.try_get("lisatiedot")?,
+            });
+        }
+
+        Ok(Groups { list })
     }
 
-    Ok(Groups { list })
+    pub fn is_empty(&self) -> bool {
+        self.list.is_empty()
+    }
 }
 
 // Oppilashaku

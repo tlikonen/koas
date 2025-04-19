@@ -1,9 +1,12 @@
-use crate::{Mode, Modes, database as db};
+use crate::{
+    Mode, Modes,
+    database::{Groups, Stats},
+};
 use sqlx::PgConnection;
 use std::error::Error;
 
 pub async fn stats(modes: &Modes, db: &mut PgConnection) -> Result<(), Box<dyn Error>> {
-    let stats = db::stats(db).await?;
+    let stats = Stats::query(db).await?;
     stats.table().print(modes.output());
     Ok(())
 }
@@ -22,7 +25,7 @@ pub async fn groups(
     let group = split.next().unwrap_or("");
     let desc = split.next().unwrap_or("");
 
-    let groups = db::groups(db, group, desc).await?;
+    let groups = Groups::query(db, group, desc).await?;
     if groups.is_empty() {
         print_not_found();
         return Ok(());
