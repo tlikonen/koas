@@ -1,5 +1,5 @@
 use just_getopt as jg;
-use kastk::{Mode, Modes, Output, commands as cmd, config, config::Config};
+use kastk::{Mode, Modes, Output, commands, config, config::Config};
 use std::{error::Error, process::ExitCode};
 
 static PROGRAM_NAME: &str = env!("CARGO_BIN_NAME");
@@ -110,7 +110,7 @@ async fn config_stage(args: jg::Args) -> Result<(), Box<dyn Error>> {
             .options_value_last("postgresql")
             .expect("valitsimella pitäisi olla arvo");
 
-        let mut fields = cmd::split_sep(value);
+        let mut fields = commands::split_sep(value);
         let err =
             |field: &str| format!("Valitsimelle ”--postgresql” täytyy antaa kenttä ”{field}”.");
 

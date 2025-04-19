@@ -3,7 +3,7 @@ pub mod config;
 mod database;
 mod print;
 
-use crate::{commands as cmd, config::Config, database as db};
+use crate::config::Config;
 use sqlx::{Connection, PgConnection};
 use std::{error::Error, io};
 
@@ -49,7 +49,7 @@ impl Modes {
 }
 
 pub async fn command_stage(modes: Modes, config: Config) -> Result<(), Box<dyn Error>> {
-    let mut db = db::connect(&config).await?;
+    let mut db = database::connect(&config).await?;
 
     match modes.mode() {
         Mode::Interactive => {
@@ -110,10 +110,10 @@ async fn command_line_interactive(
     db: &mut PgConnection,
     line: &str,
 ) -> Result<(), Box<dyn Error>> {
-    let (cmd, args) = cmd::split_first(line);
+    let (cmd, args) = commands::split_first(line);
     match cmd {
-        "tk" => cmd::stats(modes, db).await?,
-        "hr" => cmd::groups(modes, db, args).await?,
+        "tk" => commands::stats(modes, db).await?,
+        "hr" => commands::groups(modes, db, args).await?,
         _ => println!("Tuntematon komento ”{cmd}”. Apua saa ?:llä."),
     }
     Ok(())
@@ -124,10 +124,10 @@ async fn command_line_single(
     db: &mut PgConnection,
     line: &str,
 ) -> Result<(), Box<dyn Error>> {
-    let (cmd, args) = cmd::split_first(line);
+    let (cmd, args) = commands::split_first(line);
     match cmd {
-        "tk" => cmd::stats(modes, db).await?,
-        "hr" => cmd::groups(modes, db, args).await?,
+        "tk" => commands::stats(modes, db).await?,
+        "hr" => commands::groups(modes, db, args).await?,
         _ => {
             Err(format!(
                 "Tuntematon komento ”{cmd}”. Apua saa valitsimella ”--ohje”."
@@ -142,10 +142,10 @@ async fn command_line_stdin(
     db: &mut PgConnection,
     line: &str,
 ) -> Result<(), Box<dyn Error>> {
-    let (cmd, args) = cmd::split_first(line);
+    let (cmd, args) = commands::split_first(line);
     match cmd {
-        "tk" => cmd::stats(modes, db).await?,
-        "hr" => cmd::groups(modes, db, args).await?,
+        "tk" => commands::stats(modes, db).await?,
+        "hr" => commands::groups(modes, db, args).await?,
         _ => {
             Err(format!(
                 "Tuntematon komento ”{cmd}”. Apua saa valitsimella ”--ohje”."
