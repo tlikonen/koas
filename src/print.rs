@@ -276,7 +276,7 @@ impl Groups {
         for group in &self.list {
             rows.push(Row::Data(vec![
                 Cell::Left(group.name.clone()),
-                Cell::Multi(multi_split(&group.description, DESCRIPTION_WIDTH)),
+                Cell::Multi(line_split(&group.description, DESCRIPTION_WIDTH)),
             ]));
         }
 
@@ -285,7 +285,7 @@ impl Groups {
     }
 }
 
-fn multi_split(s: &str, max: usize) -> Vec<String> {
+fn line_split(s: &str, max: usize) -> Vec<String> {
     let words: Vec<&str> = s.split(' ').filter(|x| !x.is_empty()).collect();
     let mut lines = Vec::new();
     let mut line = Vec::new();
@@ -389,20 +389,17 @@ mod tests {
     }
 
     #[test]
-    fn t_multi_split() {
+    fn t_line_split() {
         for i in 0..8 {
             assert_eq!(
                 vec!["€ka", "tøka", "kølmas"],
-                multi_split("€ka tøka kølmas", i)
+                line_split("€ka tøka kølmas", i)
             );
         }
 
         for i in 8..15 {
-            assert_eq!(
-                vec!["€ka tøka", "kølmas"],
-                multi_split("€ka tøka kølmas", i)
-            );
+            assert_eq!(vec!["€ka tøka", "kølmas"], line_split("€ka tøka kølmas", i));
         }
-        assert_eq!(vec!["€ka tøka kølmas"], multi_split("€ka tøka kølmas", 15));
+        assert_eq!(vec!["€ka tøka kølmas"], line_split("€ka tøka kølmas", 15));
     }
 }
