@@ -24,14 +24,12 @@ pub trait Edit {}
 
 #[derive(Default)]
 pub struct Editable {
-    list: Vec<Box<dyn Edit>>,
-    active: Vec<bool>,
+    list: Vec<Option<Box<dyn Edit>>>,
 }
 
 impl Editable {
     pub fn clear(&mut self) {
         self.list.clear();
-        self.active.clear();
     }
 
     pub fn print_fields(&self, fields: &[&str]) {
@@ -126,15 +124,13 @@ impl Groups {
 
     // pub fn copy_to(&self, ed: &mut Editable) {
     //     for group in &self.list {
-    //         ed.list.push(Box::new(group.clone()));
-    //         ed.active.push(true);
+    //         ed.list.push(Some(Box::new(group.clone())));
     //     }
     // }
 
     pub fn move_to(self, ed: &mut Editable) {
         for group in self.list {
-            ed.list.push(Box::new(group));
-            ed.active.push(true);
+            ed.list.push(Some(Box::new(group)));
         }
     }
 }
