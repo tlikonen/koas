@@ -104,8 +104,8 @@ impl Groups {
              WHERE nimi LIKE $1 AND lisatiedot LIKE $2 \
              ORDER BY nimi, lisatiedot, rid",
         )
-        .bind(like_esc(group, true))
-        .bind(like_esc(desc, true))
+        .bind(like_esc_wild(group))
+        .bind(like_esc_wild(desc))
         .fetch(db);
 
         let mut list = Vec::new();
@@ -147,11 +147,9 @@ impl Groups {
 
 const LIKE_ESC_CHARS: &str = "_%\\";
 
-fn like_esc(string: &str, wild: bool) -> String {
-    let mut str = String::new();
-    if wild {
-        str.push('%');
-    }
+fn like_esc_wild(string: &str) -> String {
+    let mut str = String::with_capacity(string.len() + 2);
+    str.push('%');
 
     for c in string.chars() {
         if LIKE_ESC_CHARS.contains(c) {
@@ -160,10 +158,7 @@ fn like_esc(string: &str, wild: bool) -> String {
         str.push(c);
     }
 
-    if wild {
-        str.push('%');
-    }
-
+    str.push('%');
     str
 }
 
@@ -172,11 +167,11 @@ mod tests {
     use super::*;
 
     #[test]
-    fn t_like_exc() {
-        assert_eq!("abcd", like_esc("abcd", false));
-        assert_eq!("a\\%b\\_cd", like_esc("a%b_cd", false));
-        assert_eq!("ab\\\\cd", like_esc("ab\\cd", false));
-        assert_eq!("%abcd%", like_esc("abcd", true));
-        assert_eq!("\\_\\%\\\\", like_esc(LIKE_ESC_CHARS, false));
+    fn t_like_esc_wild() {
+        assert_eq!("%abcd%", like_esc_wild("abcd"));
+        assert_eq!("%a\\%b\\_cd%", like_esc_wild("a%b_cd"));
+        assert_eq!("%ab\\\\cd%", like_esc_wild("ab\\cd"));
+        assert_eq!("%abcd%", like_esc_wild("abcd"));
+        assert_eq!("%\\_\\%\\\\%", like_esc_wild(LIKE_ESC_CHARS));
     }
 }
