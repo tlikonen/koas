@@ -1,6 +1,6 @@
 use crate::{
-    Mode, Modes,
-    database::{Groups, Stats},
+    Modes,
+    database::{Editable, Groups, Stats},
 };
 use sqlx::PgConnection;
 use std::error::Error;
@@ -14,13 +14,14 @@ pub async fn stats(modes: &Modes, db: &mut PgConnection) -> Result<(), Box<dyn E
 pub async fn groups(
     modes: &Modes,
     db: &mut PgConnection,
+    editable: &mut Editable,
     mut args: &str,
 ) -> Result<(), Box<dyn Error>> {
-    // args: /ryhmä/lisätiedot
     if args.is_empty() {
         args = "/";
     }
 
+    // /ryhmä/lisätiedot
     let mut split = split_sep(args);
     let group = split.next().unwrap_or("");
     let desc = split.next().unwrap_or("");
@@ -32,11 +33,17 @@ pub async fn groups(
     }
 
     let mut table = groups.table();
-    if let Mode::Interactive = modes.mode() {
+    if modes.is_interactive() {
         table.numbering();
+        groups.move_to(editable);
     }
     table.print(modes.output());
+    editable.print_fields(&["nimi", "lisätiedot"]);
     Ok(())
+}
+
+pub fn help(args: &str) {
+    println!("Tähän jotain apua: {args}");
 }
 
 fn print_not_found() {

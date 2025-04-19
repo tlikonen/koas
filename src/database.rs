@@ -20,6 +20,29 @@ pub async fn connect(config: &Config) -> Result<PgConnection, Box<dyn Error>> {
     Ok(client)
 }
 
+pub trait Edit {}
+
+#[derive(Default)]
+pub struct Editable {
+    list: Vec<Box<dyn Edit>>,
+    active: Vec<bool>,
+}
+
+impl Editable {
+    pub fn clear(&mut self) {
+        self.list.clear();
+        self.active.clear();
+    }
+
+    pub fn print_fields(&self, fields: &[&str]) {
+        match self.list.len() {
+            0 => (),
+            1 => println!("Tietue: 1. Kentät: /{}", fields.join("/")),
+            n => println!("Tietueet: 1-{}. Kentät: /{}", n, fields.join("/")),
+        }
+    }
+}
+
 pub struct Stats {
     pub students: i64,
     pub groups: i64,
@@ -58,6 +81,18 @@ pub struct Group {
     pub description: String,
 }
 
+impl Edit for Group {}
+
+// impl Clone for Group {
+//     fn clone(&self) -> Self {
+//         Self {
+//             rid: self.rid,
+//             name: self.name.clone(),
+//             description: self.description.clone(),
+//         }
+//     }
+// }
+
 impl Groups {
     pub async fn query(
         db: &mut PgConnection,
@@ -87,6 +122,20 @@ impl Groups {
 
     pub fn is_empty(&self) -> bool {
         self.list.is_empty()
+    }
+
+    // pub fn copy_to(&self, ed: &mut Editable) {
+    //     for group in &self.list {
+    //         ed.list.push(Box::new(group.clone()));
+    //         ed.active.push(true);
+    //     }
+    // }
+
+    pub fn move_to(self, ed: &mut Editable) {
+        for group in self.list {
+            ed.list.push(Box::new(group));
+            ed.active.push(true);
+        }
     }
 }
 
