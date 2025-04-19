@@ -36,7 +36,7 @@ impl Editable {
         match self.list.len() {
             0 => (),
             1 => println!("Tietue: 1. Kentät: /{}", fields.join("/")),
-            n => println!("Tietueet: 1-{}. Kentät: /{}", n, fields.join("/")),
+            n => println!("Tietueet: 1–{}. Kentät: /{}", n, fields.join("/")),
         }
     }
 }

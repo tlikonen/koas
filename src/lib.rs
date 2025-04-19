@@ -17,10 +17,11 @@ pub enum Mode {
 #[derive(Default)]
 pub enum Output {
     #[default]
-    Normal,
+    Unicode,
+    Ascii,
+    Orgmode,
     // Tab,
     // Csv,
-    // Org,
     // Latex,
 }
 

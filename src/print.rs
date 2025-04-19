@@ -46,37 +46,112 @@ impl Table {
             return;
         }
         match output {
-            Output::Normal => print_normal(self),
+            Output::Unicode => print_table(self, BOX_UNICODE),
+            Output::Ascii => print_table(self, BOX_ASCII),
+            Output::Orgmode => print_table(self, BOX_ORGMODE),
         }
     }
 }
 
-fn print_normal(tbl: &Table) {
+static BOX_UNICODE: [[char; 4]; 4] = [
+    ['╒', '═', '╤', '╕'],
+    ['├', '─', '┼', '┤'],
+    ['╘', '═', '╧', '╛'],
+    ['│', ' ', ' ', ' '],
+];
+
+static BOX_ASCII: [[char; 4]; 4] = [
+    ['+', '-', '+', '+'],
+    ['+', '-', '+', '+'],
+    ['+', '-', '+', '+'],
+    ['|', ' ', ' ', ' '],
+];
+
+static BOX_ORGMODE: [[char; 4]; 4] = [
+    ['|', '-', '+', '|'],
+    ['|', '-', '+', '|'],
+    ['|', '-', '+', '|'],
+    ['|', ' ', ' ', ' '],
+];
+
+fn print_table(tbl: &Table, boxes: [[char; 4]; 4]) {
+    let top_left = boxes[0][0];
+    let top_line = boxes[0][1];
+    let top_mid = boxes[0][2];
+    let top_right = boxes[0][3];
+
+    let mid_left = boxes[1][0];
+    let mid_line = boxes[1][1];
+    let mid_mid = boxes[1][2];
+    let mid_right = boxes[1][3];
+
+    let bottom_left = boxes[2][0];
+    let bottom_line = boxes[2][1];
+    let bottom_mid = boxes[2][2];
+    let bottom_right = boxes[2][3];
+
+    let vert_line = boxes[3][0];
+
+    let series = |c, n| {
+        for _ in 0..(n + 2) {
+            print!("{c}");
+        }
+    };
+
     let widths = tbl.widths();
     for row in &tbl.rows {
         match row {
-            Row::Toprule | Row::Midrule | Row::Bottomrule => {
-                print!("+");
-                for w in &widths {
-                    print!("-{:-<w$}-+", "");
+            Row::Toprule => {
+                print!("{top_left}");
+                for i in 0..widths.len() {
+                    series(top_line, widths[i]);
+                    if widths.get(i + 1).is_some() {
+                        print!("{top_mid}");
+                    } else {
+                        print!("{top_right}");
+                    }
+                }
+                println!();
+            }
+            Row::Midrule => {
+                print!("{mid_left}");
+                for i in 0..widths.len() {
+                    series(mid_line, widths[i]);
+                    if widths.get(i + 1).is_some() {
+                        print!("{mid_mid}");
+                    } else {
+                        print!("{mid_right}");
+                    }
+                }
+                println!();
+            }
+            Row::Bottomrule => {
+                print!("{bottom_left}");
+                for i in 0..widths.len() {
+                    series(bottom_line, widths[i]);
+                    if widths.get(i + 1).is_some() {
+                        print!("{bottom_mid}");
+                    } else {
+                        print!("{bottom_right}");
+                    }
                 }
                 println!();
             }
             Row::Data(v) | Row::Head(v) | Row::Total(v) => {
-                let empty_cell = |w| print!(" {:<w$} |", "");
+                let empty_cell = |w| print!(" {:<w$} {vert_line}", "");
                 let mut multi_max = 0;
                 let mut multi = 0;
                 loop {
-                    print!("|");
+                    print!("{vert_line}");
                     for (w, cell) in v.iter().enumerate() {
                         let width = widths[w];
                         match multi {
                             0 => match cell {
                                 Cell::Empty => empty_cell(width),
-                                Cell::Left(s) => print!(" {s:<width$} |"),
-                                Cell::Right(s) => print!(" {s:>width$} |"),
+                                Cell::Left(s) => print!(" {s:<width$} {vert_line}"),
+                                Cell::Right(s) => print!(" {s:>width$} {vert_line}"),
                                 Cell::Multi(v) => {
-                                    print!(" {:<width$} |", v[multi]);
+                                    print!(" {:<width$} {vert_line}", v[multi]);
                                     if v.len() > multi_max {
                                         multi_max = v.len();
                                     }
@@ -85,7 +160,7 @@ fn print_normal(tbl: &Table) {
                             _ => match cell {
                                 Cell::Multi(v) => {
                                     if let Some(s) = v.get(multi) {
-                                        print!(" {:<width$} |", s);
+                                        print!(" {s:<width$} {vert_line}");
                                     } else {
                                         empty_cell(width);
                                     }
