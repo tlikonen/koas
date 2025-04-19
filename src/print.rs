@@ -31,7 +31,7 @@ impl Table {
         let mut n = 1;
         for row in &mut self.rows {
             match row {
-                Row::Head(v) | Row::Total(v) => v.insert(0, Cell::Empty),
+                Row::Head(v) | Row::Foot(v) => v.insert(0, Cell::Empty),
                 Row::Data(v) => {
                     v.insert(0, Cell::Right(n.to_string()));
                     n += 1;
@@ -137,7 +137,7 @@ fn print_table(tbl: &Table, boxes: [char; 13]) {
                 }
                 println!();
             }
-            Row::Data(v) | Row::Head(v) | Row::Total(v) => {
+            Row::Data(v) | Row::Head(v) | Row::Foot(v) => {
                 let empty_cell = |w| {
                     series(' ', w);
                     print!("{vert_line}");
@@ -189,14 +189,14 @@ enum Row {
     Bottomrule,
     Head(Vec<Cell>),
     Data(Vec<Cell>),
-    Total(Vec<Cell>),
+    Foot(Vec<Cell>),
 }
 
 impl Row {
     fn widths(&self) -> Option<Vec<usize>> {
         let mut vec = Vec::new();
         match self {
-            Row::Head(v) | Row::Data(v) | Row::Total(v) => {
+            Row::Head(v) | Row::Data(v) | Row::Foot(v) => {
                 for cell in v {
                     vec.push(cell.width());
                 }
