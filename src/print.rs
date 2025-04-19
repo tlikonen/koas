@@ -138,7 +138,10 @@ fn print_table(tbl: &Table, boxes: [char; 13]) {
                 println!();
             }
             Row::Data(v) | Row::Head(v) | Row::Total(v) => {
-                let empty_cell = |w| print!(" {:<w$} {vert_line}", "");
+                let empty_cell = |w| {
+                    series(' ', w);
+                    print!("{vert_line}");
+                };
                 let mut multi_max = 0;
                 let mut multi = 0;
                 loop {
