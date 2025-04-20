@@ -5,7 +5,7 @@ fn parse_number_list(s: &str) -> Result<Vec<usize>, Box<dyn Error>> {
     let errmsg = |v| format!("Sopimaton numero: ”{v}”.");
     let is_all_digits = |it: &str| it.chars().all(|c| c.is_ascii_digit());
 
-    for part in s.split(',') {
+    for part in s.split(',').filter(|e| !e.is_empty()) {
         if is_all_digits(part) {
             let num = part.parse::<usize>()?;
             if num == 0 {
@@ -227,6 +227,7 @@ mod tests {
         assert_eq!(false, parse_number_list(" 3").is_ok());
         assert_eq!(false, parse_number_list("1,2,0").is_ok());
         assert_eq!(vec![1, 2, 3], parse_number_list("1,2,3").unwrap());
+        assert_eq!(vec![1, 2, 3], parse_number_list(",1,,,2,3,").unwrap());
         assert_eq!(false, parse_number_list("1,+2,3").is_ok());
         assert_eq!(false, parse_number_list("1,2,x").is_ok());
         assert_eq!(vec![1, 2, 3], parse_number_list("1-3").unwrap());
