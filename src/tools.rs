@@ -54,7 +54,7 @@ fn parse_number_list(s: &str) -> Result<Vec<usize>, Box<dyn Error>> {
     Ok(vec)
 }
 
-fn is_within_limits(limit: usize, list: &Vec<usize>) -> bool {
+fn is_within_limits(limit: usize, list: &[usize]) -> bool {
     list.iter().all(|n| *n <= limit)
 }
 
@@ -247,8 +247,8 @@ mod tests {
 
     #[test]
     fn t_is_within_limits() {
-        assert_eq!(true, is_within_limits(10, &vec![3, 10, 4]));
-        assert_eq!(false, is_within_limits(10, &vec![3, 11, 10, 4]));
-        assert_eq!(true, is_within_limits(11, &vec![3, 11, 10, 4]));
+        assert_eq!(true, is_within_limits(10, &[3, 10, 4]));
+        assert_eq!(false, is_within_limits(10, &[3, 11, 10, 4]));
+        assert_eq!(true, is_within_limits(11, &[3, 11, 10, 4]));
     }
 }
