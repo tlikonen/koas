@@ -314,7 +314,7 @@ fn print_table_latex(tbl: &Table) {
         match row {
             Row::Head(v) | Row::Data(v) | Row::Foot(v) => {
                 print!("\\rivi");
-                for (col, cell) in v.iter().enumerate() {
+                for cell in v {
                     match cell {
                         Cell::Empty => print!("{{}}"),
                         Cell::Left(s) | Cell::Right(s) => print!("{{{s}}}"),
