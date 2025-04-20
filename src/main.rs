@@ -11,6 +11,7 @@ static PROGRAM_LICENSE: &str = env!("CARGO_PKG_LICENSE");
 async fn main() -> ExitCode {
     let args = jg::OptSpecs::new()
         .option("postgresql", "postgresql", jg::OptValue::RequiredNonEmpty)
+        .option("muoto", "muoto", jg::OptValue::RequiredNonEmpty)
         .option("help", "h", jg::OptValue::None)
         .option("version", "versio", jg::OptValue::None)
         .flag(jg::OptFlags::PrefixMatchLongOptions)
@@ -66,6 +67,10 @@ fn print_usage() {
 
 Valitsimet
 
+  --muoto=taulukkomuoto
+        Taulukoiden muoto no oletuksena ”unicode”, mutta muita
+        vaihtoehtoja ovat ”ascii” tai ”org-mode”.
+
   --postgresql=/käyttäjä/salasana/kanta/osoite/portti
         Asettaa PostgreSQL-tietokantapalvelimen yhteysasetukset ja
         tallentaa ne asetustiedostoon. Tätä valitsinta ei enää tarvita,
@@ -99,9 +104,25 @@ Valitsimet
 async fn config_stage(args: jg::Args) -> Result<(), Box<dyn Error>> {
     let config_file = Config::file()?;
     let config: Config;
-    let output: Output = Default::default();
+    let mut output: Output = Default::default();
 
     tools::umask(0o077);
+
+    // Print format.
+    if args.option_exists("muoto") {
+        let value = args
+            .options_value_last("muoto")
+            .expect("valitsimella pitäisi olla arvo");
+
+        match value.to_lowercase().as_str() {
+            "unicode" => output = Output::Unicode,
+            "ascii" => output = Output::Ascii,
+            "org-mode" => output = Output::Orgmode,
+            _ => {
+                Err(format!("Sopimaton arvo ”{value}” valitsimelle ”--muoto”."))?;
+            }
+        }
+    }
 
     // Database configuration.
     if args.option_exists("postgresql") {
@@ -171,17 +192,15 @@ async fn config_stage(args: jg::Args) -> Result<(), Box<dyn Error>> {
 
     // Choose the command stage: stdin, single or interactive.
     let mut modes: Modes = Default::default();
+    modes.set_output(output);
     if args.other.len() == 1 && args.other[0] == "-" {
         modes.set_mode(Mode::Stdin);
-        modes.set_output(output);
         kastk::command_stage(modes, config).await
     } else if !args.other.is_empty() {
         modes.set_mode(Mode::Single(args.other.join(" ")));
-        modes.set_output(output);
         kastk::command_stage(modes, config).await
     } else {
         modes.set_mode(Mode::Interactive);
-        modes.set_output(Default::default());
         kastk::command_stage(modes, config).await
     }
 }
