@@ -54,6 +54,10 @@ fn parse_number_list(s: &str) -> Result<Vec<usize>, Box<dyn Error>> {
     Ok(vec)
 }
 
+fn is_within_limits(limit: usize, list: &Vec<usize>) -> bool {
+    list.iter().all(|n| *n <= limit)
+}
+
 fn parse_float(s: &str) -> Option<f64> {
     use std::cmp::max;
     const MINUS_CHARS: &str = "-–−";
@@ -239,5 +243,12 @@ mod tests {
             vec![3, 4, 5, 6, 7, 10, 15, 14, 13, 12],
             parse_number_list("3-7,10,15-12").unwrap()
         );
+    }
+
+    #[test]
+    fn t_is_within_limits() {
+        assert_eq!(true, is_within_limits(10, &vec![3, 10, 4]));
+        assert_eq!(false, is_within_limits(10, &vec![3, 11, 10, 4]));
+        assert_eq!(true, is_within_limits(11, &vec![3, 11, 10, 4]));
     }
 }
