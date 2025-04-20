@@ -54,6 +54,108 @@ impl Table {
     }
 }
 
+enum Row {
+    Toprule,
+    Midrule,
+    Bottomrule,
+    Head(Vec<Cell>),
+    Data(Vec<Cell>),
+    Foot(Vec<Cell>),
+}
+
+impl Row {
+    fn widths(&self) -> Option<Vec<usize>> {
+        let mut vec = Vec::new();
+        match self {
+            Row::Head(v) | Row::Data(v) | Row::Foot(v) => {
+                for cell in v {
+                    vec.push(cell.width());
+                }
+                Some(vec)
+            }
+            _ => None,
+        }
+    }
+}
+
+enum Cell {
+    Empty,
+    Left(String),
+    Right(String),
+    Multi(Vec<String>),
+}
+
+impl Cell {
+    fn width(&self) -> usize {
+        match &self {
+            Cell::Empty => 0,
+            Cell::Left(s) | Cell::Right(s) => s.chars().count(),
+            Cell::Multi(v) => {
+                let mut width = 0;
+                for s in v {
+                    let count = s.chars().count();
+                    if count > width {
+                        width = count;
+                    }
+                }
+                width
+            }
+        }
+    }
+}
+
+impl Stats {
+    pub fn table(&self) -> Table {
+        let rows = vec![
+            Row::Toprule,
+            Row::Data(vec![
+                Cell::Left("Oppilaita:".to_string()),
+                Cell::Right(self.students.to_string()),
+            ]),
+            Row::Data(vec![
+                Cell::Left("Ryhmiä:".to_string()),
+                Cell::Right(self.groups.to_string()),
+            ]),
+            Row::Data(vec![
+                Cell::Left("Suorituksia:".to_string()),
+                Cell::Right(self.assignments.to_string()),
+            ]),
+            Row::Data(vec![
+                Cell::Left("Arvosanoja:".to_string()),
+                Cell::Right(self.scores.to_string()),
+            ]),
+            Row::Bottomrule,
+        ];
+
+        Table { rows }
+    }
+}
+
+impl Groups {
+    pub fn table(&self) -> Table {
+        const DESCRIPTION_WIDTH: usize = 70;
+
+        let mut rows = vec![
+            Row::Toprule,
+            Row::Head(vec![
+                Cell::Left("Nimi".to_string()),
+                Cell::Left("Lisätiedot".to_string()),
+            ]),
+            Row::Midrule,
+        ];
+
+        for group in &self.list {
+            rows.push(Row::Data(vec![
+                Cell::Left(group.name.clone()),
+                Cell::Multi(line_split(&group.description, DESCRIPTION_WIDTH)),
+            ]));
+        }
+
+        rows.push(Row::Bottomrule);
+        Table { rows }
+    }
+}
+
 static BOX_UNICODE: [char; 13] = [
     '╒', '═', '╤', '╕', // top
     '├', '─', '┼', '┤', // mid
@@ -202,108 +304,6 @@ fn print_table_tab(tbl: &Table) {
             }
             _ => (),
         }
-    }
-}
-
-enum Row {
-    Toprule,
-    Midrule,
-    Bottomrule,
-    Head(Vec<Cell>),
-    Data(Vec<Cell>),
-    Foot(Vec<Cell>),
-}
-
-impl Row {
-    fn widths(&self) -> Option<Vec<usize>> {
-        let mut vec = Vec::new();
-        match self {
-            Row::Head(v) | Row::Data(v) | Row::Foot(v) => {
-                for cell in v {
-                    vec.push(cell.width());
-                }
-                Some(vec)
-            }
-            _ => None,
-        }
-    }
-}
-
-enum Cell {
-    Empty,
-    Left(String),
-    Right(String),
-    Multi(Vec<String>),
-}
-
-impl Cell {
-    fn width(&self) -> usize {
-        match &self {
-            Cell::Empty => 0,
-            Cell::Left(s) | Cell::Right(s) => s.chars().count(),
-            Cell::Multi(v) => {
-                let mut width = 0;
-                for s in v {
-                    let count = s.chars().count();
-                    if count > width {
-                        width = count;
-                    }
-                }
-                width
-            }
-        }
-    }
-}
-
-impl Stats {
-    pub fn table(&self) -> Table {
-        let rows = vec![
-            Row::Toprule,
-            Row::Data(vec![
-                Cell::Left("Oppilaita:".to_string()),
-                Cell::Right(self.students.to_string()),
-            ]),
-            Row::Data(vec![
-                Cell::Left("Ryhmiä:".to_string()),
-                Cell::Right(self.groups.to_string()),
-            ]),
-            Row::Data(vec![
-                Cell::Left("Suorituksia:".to_string()),
-                Cell::Right(self.assignments.to_string()),
-            ]),
-            Row::Data(vec![
-                Cell::Left("Arvosanoja:".to_string()),
-                Cell::Right(self.scores.to_string()),
-            ]),
-            Row::Bottomrule,
-        ];
-
-        Table { rows }
-    }
-}
-
-impl Groups {
-    pub fn table(&self) -> Table {
-        const DESCRIPTION_WIDTH: usize = 70;
-
-        let mut rows = vec![
-            Row::Toprule,
-            Row::Head(vec![
-                Cell::Left("Nimi".to_string()),
-                Cell::Left("Lisätiedot".to_string()),
-            ]),
-            Row::Midrule,
-        ];
-
-        for group in &self.list {
-            rows.push(Row::Data(vec![
-                Cell::Left(group.name.clone()),
-                Cell::Multi(line_split(&group.description, DESCRIPTION_WIDTH)),
-            ]));
-        }
-
-        rows.push(Row::Bottomrule);
-        Table { rows }
     }
 }
 
