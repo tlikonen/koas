@@ -1,58 +1,17 @@
 pub mod commands;
 pub mod config;
 mod database;
+pub mod modes;
 mod print;
 pub mod tools;
 
-use crate::{config::Config, database::Editable};
+pub use crate::{
+    config::Config,
+    database::Editable,
+    modes::{Mode, Modes, Output},
+};
 use sqlx::{Connection, PgConnection};
 use std::{error::Error, io};
-
-pub enum Mode {
-    Interactive,
-    Single(String),
-    Stdin,
-}
-
-#[non_exhaustive]
-#[derive(Default)]
-pub enum Output {
-    #[default]
-    Unicode,
-    Ascii,
-    Orgmode,
-    // Tab,
-    // Csv,
-    // Latex,
-}
-
-#[derive(Default)]
-pub struct Modes {
-    mode: Option<Mode>,
-    output: Option<Output>,
-}
-
-impl Modes {
-    pub fn output(&self) -> &Output {
-        self.output.as_ref().expect("Uninitialized Modes::output.")
-    }
-
-    pub fn set_output(&mut self, v: Output) {
-        self.output = Some(v);
-    }
-
-    pub fn mode(&self) -> &Mode {
-        self.mode.as_ref().expect("Uninitialized Modes::mode.")
-    }
-
-    pub fn set_mode(&mut self, v: Mode) {
-        self.mode = Some(v);
-    }
-
-    pub fn is_interactive(&self) -> bool {
-        matches!(self.mode(), Mode::Interactive)
-    }
-}
 
 pub async fn command_stage(modes: Modes, config: Config) -> Result<(), Box<dyn Error>> {
     let mut db = database::connect(&config).await?;

@@ -1,5 +1,5 @@
 use just_getopt as jg;
-use kastk::{Mode, Modes, Output, config::Config, tools};
+use kastk::{Config, Mode, Modes, Output, tools};
 use std::{error::Error, process::ExitCode};
 
 static PROGRAM_NAME: &str = env!("CARGO_BIN_NAME");
