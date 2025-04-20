@@ -82,7 +82,7 @@ async fn match_query_commands(
 ) -> Result<bool, Box<dyn Error>> {
     editable.clear();
     match cmd {
-        "tk" => commands::stats(modes, db).await?,
+        "tk" => commands::stats(modes, db, args).await?,
         "hr" => commands::groups(modes, db, editable, args).await?,
         _ => return Ok(false),
     }
