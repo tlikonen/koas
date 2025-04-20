@@ -201,6 +201,11 @@ fn print_table(tbl: &Table, boxes: [char; 13]) {
         }
     };
 
+    let empty_cell = |w| {
+        series(' ', w);
+        print!("{vert_line}");
+    };
+
     let widths = tbl.widths();
     for row in &tbl.rows {
         match row {
@@ -241,16 +246,12 @@ fn print_table(tbl: &Table, boxes: [char; 13]) {
                 println!();
             }
             Row::Data(v) | Row::Head(v) | Row::Foot(v) => {
-                let empty_cell = |w| {
-                    series(' ', w);
-                    print!("{vert_line}");
-                };
                 let mut multi_max = 0;
                 let mut multi = 0;
                 loop {
                     print!("{vert_line}");
-                    for (w, cell) in v.iter().enumerate() {
-                        let width = widths[w];
+                    for (col, cell) in v.iter().enumerate() {
+                        let width = widths[col];
                         match multi {
                             0 => match cell {
                                 Cell::Empty => empty_cell(width),
@@ -290,8 +291,8 @@ fn print_table_tab(tbl: &Table) {
     for row in &tbl.rows {
         match row {
             Row::Head(v) | Row::Data(v) | Row::Foot(v) => {
-                for (n, cell) in v.iter().enumerate() {
-                    if n > 0 {
+                for (col, cell) in v.iter().enumerate() {
+                    if col > 0 {
                         print!("\t");
                     }
                     match cell {
