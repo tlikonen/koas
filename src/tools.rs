@@ -80,6 +80,10 @@ pub fn split_first(s: &str) -> (&str, &str) {
     }
 }
 
+pub fn umask(mask: u32) -> u32 {
+    unsafe { libc::umask(mask) }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -156,8 +160,4 @@ mod tests {
         assert_eq!(None, parse_float("-85+"));
         assert_eq!(None, parse_float("-85½"));
     }
-}
-
-pub fn umask(mask: u32) -> u32 {
-    unsafe { libc::umask(mask) }
 }
