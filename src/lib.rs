@@ -15,6 +15,7 @@ use std::{error::Error, io};
 
 pub async fn command_stage(modes: Modes, config: Config) -> Result<(), Box<dyn Error>> {
     let mut db = database::connect(&config).await?;
+    // database::init()?;    // Check and create database item here.
     let mut editable: Editable = Default::default();
 
     match modes.mode() {
