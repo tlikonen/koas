@@ -1,4 +1,60 @@
-pub fn parse_float(s: &str) -> Option<f64> {
+use std::error::Error;
+
+fn parse_number_list(s: &str) -> Result<Vec<usize>, Box<dyn Error>> {
+    let mut vec: Vec<usize> = Vec::new();
+    let errmsg = |v| format!("Sopimaton numero: ”{v}”.").into();
+    let is_all_digits = |it: &str| it.chars().all(|c| c.is_ascii_digit());
+
+    for part in s.split(',') {
+        if is_all_digits(part) {
+            let num = part.parse::<usize>()?;
+            if num == 0 {
+                return Err(errmsg(part));
+            }
+            vec.push(num);
+            continue;
+        }
+
+        let (start, end) = match part.split_once('-') {
+            None => return Err(errmsg(part)),
+            Some((s, e)) => {
+                if !is_all_digits(s) {
+                    return Err(errmsg(s));
+                }
+                if !is_all_digits(e) {
+                    return Err(errmsg(e));
+                }
+                (s.parse::<usize>()?, e.parse::<usize>()?)
+            }
+        };
+
+        if start == 0 || end == 0 {
+            return Err(errmsg("0"));
+        }
+
+        if start == end {
+            vec.push(start);
+            continue;
+        }
+
+        let inc = start < end;
+        let mut i = start;
+        loop {
+            vec.push(i);
+            if i == end {
+                break;
+            }
+            if inc {
+                i += 1;
+            } else {
+                i -= 1;
+            }
+        }
+    }
+    Ok(vec)
+}
+
+fn parse_float(s: &str) -> Option<f64> {
     use std::cmp::max;
     const MINUS_CHARS: &str = "-–−";
 
@@ -159,5 +215,29 @@ mod tests {
         assert_eq!(None, parse_float("-85-"));
         assert_eq!(None, parse_float("-85+"));
         assert_eq!(None, parse_float("-85½"));
+    }
+
+    #[test]
+    fn t_parse_number_list() {
+        assert_eq!(false, parse_number_list("0").is_ok());
+        assert_eq!(false, parse_number_list(" 3").is_ok());
+        assert_eq!(false, parse_number_list("1,2,0").is_ok());
+        assert_eq!(vec![1, 2, 3], parse_number_list("1,2,3").unwrap());
+        assert_eq!(false, parse_number_list("1,+2,3").is_ok());
+        assert_eq!(false, parse_number_list("1,2,x").is_ok());
+        assert_eq!(vec![1, 2, 3], parse_number_list("1-3").unwrap());
+        assert_eq!(vec![1, 2, 3], parse_number_list("01-003").unwrap());
+        assert_eq!(vec![3, 2, 1], parse_number_list("3-1").unwrap());
+        assert_eq!(
+            vec![1, 2, 3, 3, 2, 1],
+            parse_number_list("1-3,3-1").unwrap()
+        );
+        assert_eq!(false, parse_number_list("0-5").is_ok());
+        assert_eq!(false, parse_number_list("000-5").is_ok());
+        assert_eq!(false, parse_number_list("5-0").is_ok());
+        assert_eq!(
+            vec![3, 4, 5, 6, 7, 10, 15, 14, 13, 12],
+            parse_number_list("3-7,10,15-12").unwrap()
+        );
     }
 }
