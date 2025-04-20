@@ -230,6 +230,9 @@ mod tests {
         assert_eq!(vec![1, 2, 3], parse_number_list(",1,,,2,3,").unwrap());
         assert_eq!(false, parse_number_list("1,+2,3").is_ok());
         assert_eq!(false, parse_number_list("1,2,x").is_ok());
+        assert_eq!(false, parse_number_list("1,2,a-b").is_ok());
+        assert_eq!(false, parse_number_list("1,2,3-").is_ok());
+        assert_eq!(false, parse_number_list("1,2,-3").is_ok());
         assert_eq!(vec![1, 2, 3], parse_number_list("1-3").unwrap());
         assert_eq!(vec![1, 2, 3], parse_number_list("01-003").unwrap());
         assert_eq!(vec![3, 2, 1], parse_number_list("3-1").unwrap());
@@ -240,6 +243,7 @@ mod tests {
         assert_eq!(false, parse_number_list("0-5").is_ok());
         assert_eq!(false, parse_number_list("000-5").is_ok());
         assert_eq!(false, parse_number_list("5-0").is_ok());
+        assert_eq!(false, parse_number_list("2-5-6").is_ok());
         assert_eq!(
             vec![3, 4, 5, 6, 7, 10, 15, 14, 13, 12],
             parse_number_list("3-7,10,15-12").unwrap()
