@@ -2,34 +2,34 @@ use std::error::Error;
 
 fn parse_number_list(s: &str) -> Result<Vec<usize>, Box<dyn Error>> {
     let mut vec: Vec<usize> = Vec::new();
-    let errmsg = |v| format!("Sopimaton numero: ”{v}”.").into();
+    let errmsg = |v| format!("Sopimaton numero: ”{v}”.");
     let is_all_digits = |it: &str| it.chars().all(|c| c.is_ascii_digit());
 
     for part in s.split(',') {
         if is_all_digits(part) {
             let num = part.parse::<usize>()?;
             if num == 0 {
-                return Err(errmsg(part));
+                Err(errmsg(part))?;
             }
             vec.push(num);
             continue;
         }
 
         let (start, end) = match part.split_once('-') {
-            None => return Err(errmsg(part)),
+            None => Err(errmsg(part))?,
             Some((s, e)) => {
                 if !is_all_digits(s) {
-                    return Err(errmsg(s));
+                    Err(errmsg(s))?;
                 }
                 if !is_all_digits(e) {
-                    return Err(errmsg(e));
+                    Err(errmsg(e))?;
                 }
                 (s.parse::<usize>()?, e.parse::<usize>()?)
             }
         };
 
         if start == 0 || end == 0 {
-            return Err(errmsg("0"));
+            Err(errmsg("0"))?;
         }
 
         if start == end {
