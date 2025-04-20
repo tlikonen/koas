@@ -11,7 +11,7 @@ pub enum Output {
     Unicode,
     Ascii,
     Orgmode,
-    // Tab,
+    Tab,
     // Csv,
     // Latex,
 }

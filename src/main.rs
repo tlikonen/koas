@@ -69,7 +69,7 @@ Valitsimet
 
   --muoto=taulukkomuoto
         Taulukoiden muoto no oletuksena ”unicode”, mutta muita
-        vaihtoehtoja ovat ”ascii” tai ”org-mode”.
+        vaihtoehtoja ovat ”ascii”, ”org-mode” ja ”tab”.
 
   --postgresql=/käyttäjä/salasana/kanta/osoite/portti
         Asettaa PostgreSQL-tietokantapalvelimen yhteysasetukset ja
@@ -118,6 +118,7 @@ async fn config_stage(args: jg::Args) -> Result<(), Box<dyn Error>> {
             "unicode" => output = Output::Unicode,
             "ascii" => output = Output::Ascii,
             "org-mode" => output = Output::Orgmode,
+            "tab" => output = Output::Tab,
             _ => {
                 Err(format!("Sopimaton arvo ”{value}” valitsimelle ”--muoto”."))?;
             }

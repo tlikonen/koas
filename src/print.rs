@@ -49,6 +49,7 @@ impl Table {
             Output::Unicode => print_table(self, BOX_UNICODE),
             Output::Ascii => print_table(self, BOX_ASCII),
             Output::Orgmode => print_table(self, BOX_ORGMODE),
+            Output::Tab => print_table_tab(self),
         }
     }
 }
@@ -179,6 +180,27 @@ fn print_table(tbl: &Table, boxes: [char; 13]) {
                     }
                 }
             }
+        }
+    }
+}
+
+fn print_table_tab(tbl: &Table) {
+    for row in &tbl.rows {
+        match row {
+            Row::Head(v) | Row::Data(v) | Row::Foot(v) => {
+                for (n, cell) in v.iter().enumerate() {
+                    if n > 0 {
+                        print!("\t");
+                    }
+                    match cell {
+                        Cell::Left(s) | Cell::Right(s) => print!("{s}"),
+                        Cell::Multi(v) => print!("{}", v.join(" ")),
+                        _ => (),
+                    }
+                }
+                println!();
+            }
+            _ => (),
         }
     }
 }
