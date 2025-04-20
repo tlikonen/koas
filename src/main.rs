@@ -68,8 +68,8 @@ fn print_usage() {
 Valitsimet
 
   --muoto=taulukkomuoto
-        Taulukoiden muoto no oletuksena ”unicode”, mutta muita
-        vaihtoehtoja ovat ”ascii”, ”org-mode” ja ”tab”.
+        Taulukoiden tulostusmuoto no oletuksena ”unicode”, mutta muita
+        vaihtoehtoja ovat ”ascii”, ”org-mode”, ”tab” ja ”latex”.
 
   --postgresql=/käyttäjä/salasana/kanta/osoite/portti
         Asettaa PostgreSQL-tietokantapalvelimen yhteysasetukset ja
@@ -119,6 +119,7 @@ async fn config_stage(args: jg::Args) -> Result<(), Box<dyn Error>> {
             "ascii" => output = Output::Ascii,
             "org-mode" => output = Output::Orgmode,
             "tab" => output = Output::Tab,
+            "latex" => output = Output::Latex,
             _ => {
                 Err(format!("Sopimaton arvo ”{value}” valitsimelle ”--muoto”."))?;
             }

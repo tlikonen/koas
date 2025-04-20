@@ -50,6 +50,7 @@ impl Table {
             Output::Ascii => print_table(self, BOX_ASCII),
             Output::Orgmode => print_table(self, BOX_ORGMODE),
             Output::Tab => print_table_tab(self),
+            Output::Latex => print_table_latex(self),
         }
     }
 }
@@ -299,6 +300,25 @@ fn print_table_tab(tbl: &Table) {
                         Cell::Left(s) | Cell::Right(s) => print!("{s}"),
                         Cell::Multi(v) => print!("{}", v.join(" ")),
                         _ => (),
+                    }
+                }
+                println!();
+            }
+            _ => (),
+        }
+    }
+}
+
+fn print_table_latex(tbl: &Table) {
+    for row in &tbl.rows {
+        match row {
+            Row::Head(v) | Row::Data(v) | Row::Foot(v) => {
+                print!("\\rivi");
+                for (col, cell) in v.iter().enumerate() {
+                    match cell {
+                        Cell::Empty => print!("{{}}"),
+                        Cell::Left(s) | Cell::Right(s) => print!("{{{s}}}"),
+                        Cell::Multi(v) => print!("{{{}}}", v.join(" ")),
                     }
                 }
                 println!();

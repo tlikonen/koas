@@ -12,8 +12,8 @@ pub enum Output {
     Ascii,
     Orgmode,
     Tab,
+    Latex,
     // Csv,
-    // Latex,
 }
 
 #[derive(Default)]
