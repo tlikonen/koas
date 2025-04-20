@@ -135,6 +135,15 @@ impl Groups {
     }
 }
 
+// if sqlx::query("SELECT 1 FROM ryhmat WHERE nimi = $1")
+//     .bind("2024:suk:9a")
+//     .fetch_optional(db)
+//     .await?
+//     .is_some()
+// {
+//     println!("Rivi löytyi");
+// }
+
 // Oppilashaku
 // SELECT DISTINCT view_oppilaat.oid, sukunimi, etunimi, ryhmat, olt FROM view_oppilaat
 // JOIN (SELECT oid, string_agg(ryhma, ' ' ORDER BY ryhma) ryhmat FROM view_oppilaat GROUP BY oid)
