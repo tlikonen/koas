@@ -68,10 +68,12 @@ fn print_usage() {
 Valitsimet
 
   --muoto=taulukkomuoto
+
         Taulukoiden tulostusmuoto no oletuksena ”unicode”, mutta muita
         vaihtoehtoja ovat ”ascii”, ”org-mode”, ”tab” ja ”latex”.
 
   --postgresql=/käyttäjä/salasana/kanta/osoite/portti
+
         Asettaa PostgreSQL-tietokantapalvelimen yhteysasetukset ja
         tallentaa ne asetustiedostoon. Tätä valitsinta ei enää tarvita,
         jos asetukset pysyvät samana.
