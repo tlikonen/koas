@@ -20,28 +20,52 @@ pub async fn connect(config: &Config) -> Result<PgConnection, Box<dyn Error>> {
     Ok(client)
 }
 
-pub trait Edit {}
+pub enum EditableItem {
+    None,
+    Students,
+    Groups(Vec<Option<Group>>),
+    Assignments,
+    Scores,
+}
 
-#[derive(Default)]
 pub struct Editable {
-    list: Vec<Option<Box<dyn Edit>>>,
+    item: EditableItem,
+}
+
+impl Default for Editable {
+    fn default() -> Self {
+        Self {
+            item: EditableItem::None,
+        }
+    }
 }
 
 impl Editable {
     pub fn clear(&mut self) {
-        self.list.clear();
+        self.item = EditableItem::None;
     }
 
-    pub fn is_empty(&self) -> bool {
-        self.list.is_empty()
+    pub fn is_none(&self) -> bool {
+        matches!(self.item, EditableItem::None)
     }
+
+    // pub fn is_some(&self) -> bool {
+    //     !self.is_none()
+    // }
 
     pub fn count(&self) -> usize {
-        self.list.len()
+        match &self.item {
+            EditableItem::Groups(v) => v.len(),
+            _ => 0,
+        }
+    }
+
+    pub fn item_as_mut(&mut self) -> &mut EditableItem {
+        &mut self.item
     }
 
     pub fn print_fields(&self, fields: &[&str]) {
-        match self.list.len() {
+        match self.count() {
             0 => (),
             1 => println!("Tietue: 1. Kentät: /{}", fields.join("/")),
             n => println!("Tietueet: 1–{}. Kentät: /{}", n, fields.join("/")),
@@ -81,13 +105,12 @@ pub struct Groups {
     pub list: Vec<Group>,
 }
 
+#[derive(Debug)]
 pub struct Group {
-    rid: i32,
+    pub rid: i32,
     pub name: String,
     pub description: String,
 }
-
-impl Edit for Group {}
 
 // impl Clone for Group {
 //     fn clone(&self) -> Self {
@@ -130,16 +153,13 @@ impl Groups {
         self.list.is_empty()
     }
 
-    // pub fn copy_to(&self, ed: &mut Editable) {
-    //     for group in &self.list {
-    //         ed.list.push(Some(Box::new(group.clone())));
-    //     }
-    // }
-
     pub fn move_to(self, ed: &mut Editable) {
-        for group in self.list {
-            ed.list.push(Some(Box::new(group)));
-        }
+        ed.item = EditableItem::Groups(self.list.into_iter().map(Some).collect());
+        // let mut v = Vec::new();
+        // for group in self.list {
+        //     v.push(Some(group));
+        // }
+        // ed.item = EditableItem::Groups(v);
     }
 }
 

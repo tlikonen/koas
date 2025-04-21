@@ -7,7 +7,7 @@ pub mod tools;
 
 pub use crate::{
     config::Config,
-    database::Editable,
+    database::{Editable, EditableItem},
     modes::{Mode, Modes, Output},
 };
 use sqlx::{Connection, PgConnection};

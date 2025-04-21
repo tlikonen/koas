@@ -1,9 +1,9 @@
 use crate::{
     Modes,
-    database::{Editable, Groups, Stats},
+    database::{Editable, EditableItem, Group, Groups, Stats},
     tools,
 };
-use sqlx::PgConnection;
+use sqlx::{Connection, PgConnection};
 use std::error::Error;
 
 pub async fn stats(
@@ -62,32 +62,51 @@ pub async fn edit(
     editable: &mut Editable,
     args: &str,
 ) -> Result<(), Box<dyn Error>> {
-    eprintln!("editable lkm: {}", editable.count());
-    if editable.is_empty() {
+    if editable.is_none() {
         Err("Edellinen komento ei sisällä muokattavia tietueita.".to_string())?;
     }
 
     if args.is_empty() {
-        Err("Pitää antaa tietueiden numerot ja muokattavat kentät.".to_string())?;
+        Err("Puuttuu tietueiden numerot ja muokattavat kentät.".to_string())?;
     }
 
-    let (numbers, fields) = {
+    let (indexes, fields) = {
         let (first, rest) = tools::split_first(args);
         let n = tools::parse_number_list(first)?;
-        let f = tools::split_sep(rest);
+        let f = tools::split_sep(rest); //.collect::<Vec<&str>>();
         (n, f)
     };
 
-    eprintln!("Numerolista: {numbers:?}");
-    eprintln!("Kentät: {:?}", fields.collect::<Vec<&str>>());
-
     {
         let max = editable.count();
-        if !tools::is_within_limits(max, &numbers) {
+        if !tools::is_within_limits(max, &indexes) {
             Err(format!("Suurin muokattava tietue on {max}."))?;
         }
     }
 
+    let mut ta = db.begin().await?;
+    match editable.item_as_mut() {
+        EditableItem::Groups(groups) => {
+            edit_groups(&mut ta, indexes, groups, fields).await?;
+        }
+        _ => (),
+    }
+    ta.commit().await?;
+    Ok(())
+}
+
+async fn edit_groups(
+    _db: &mut PgConnection,
+    indexes: Vec<usize>,
+    groups: &mut [Option<Group>],
+    // _fields: &[&str],
+    _fields: impl Iterator<Item = &str>,
+) -> Result<(), Box<dyn Error>> {
+    for i in indexes {
+        let group = &mut groups[i - 1];
+        eprintln!("{:?}", group);
+        *group = None;
+    }
     Ok(())
 }
 
