@@ -1,9 +1,9 @@
 use std::error::Error;
 
-fn parse_number_list(s: &str) -> Result<Vec<usize>, Box<dyn Error>> {
+pub fn parse_number_list(s: &str) -> Result<Vec<usize>, Box<dyn Error>> {
     let mut vec: Vec<usize> = Vec::new();
     let errmsg = |v| format!("Sopimaton numero: ”{v}”.");
-    let is_all_digits = |it: &str| it.chars().all(|c| c.is_ascii_digit());
+    let is_all_digits = |it: &str| !it.is_empty() && it.chars().all(|c| c.is_ascii_digit());
 
     for part in s.split(',').filter(|e| !e.is_empty()) {
         if is_all_digits(part) {
@@ -18,11 +18,8 @@ fn parse_number_list(s: &str) -> Result<Vec<usize>, Box<dyn Error>> {
         let (start, end) = match part.split_once('-') {
             None => Err(errmsg(part))?,
             Some((s, e)) => {
-                if !is_all_digits(s) {
-                    Err(errmsg(s))?;
-                }
-                if !is_all_digits(e) {
-                    Err(errmsg(e))?;
+                if !is_all_digits(s) || !is_all_digits(e) {
+                    Err(format!("Sopimaton numerosarja: ”{s}-{e}”."))?;
                 }
                 (s.parse::<usize>()?, e.parse::<usize>()?)
             }
