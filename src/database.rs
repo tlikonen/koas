@@ -32,6 +32,14 @@ impl Editable {
         self.list.clear();
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.list.is_empty()
+    }
+
+    pub fn count(&self) -> usize {
+        self.list.len()
+    }
+
     pub fn print_fields(&self, fields: &[&str]) {
         match self.list.len() {
             0 => (),
