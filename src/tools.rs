@@ -51,11 +51,11 @@ pub fn parse_number_list(s: &str) -> Result<Vec<usize>, Box<dyn Error>> {
     Ok(vec)
 }
 
-fn is_within_limits(limit: usize, list: &[usize]) -> bool {
+pub fn is_within_limits(limit: usize, list: &[usize]) -> bool {
     list.iter().all(|n| *n <= limit)
 }
 
-fn parse_float(s: &str) -> Option<f64> {
+pub fn parse_float(s: &str) -> Option<f64> {
     use std::cmp::max;
     const MINUS_CHARS: &str = "-–−";
 
