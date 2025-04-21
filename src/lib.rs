@@ -39,16 +39,17 @@ pub async fn command_stage(modes: Modes, config: Config) -> Result<(), Box<dyn E
                 rl.add_history_entry(&line)?;
 
                 let (cmd, args) = tools::split_first(&line);
-                if !match_query_commands(&modes, &mut db, &mut editable, cmd, args).await?
-                    && !match_help_commands(&mut editable, cmd, args)?
-                {
-                    eprintln!("Tuntematon komento ”{cmd}”. Apua saa ?:llä.");
+
+                match interactive_commands(&modes, &mut db, &mut editable, cmd, args).await {
+                    Ok(true) => (),
+                    Ok(false) => eprintln!("Tuntematon komento ”{cmd}”. Apua saa ?:llä."),
+                    Err(e) => eprintln!("{e}"),
                 }
             }
         }
         Mode::Single(line) => {
             let (cmd, args) = tools::split_first(line);
-            if !match_query_commands(&modes, &mut db, &mut editable, cmd, args).await? {
+            if !query_commands(&modes, &mut db, &mut editable, cmd, args).await? {
                 Err(format!(
                     "Tuntematon komento ”{cmd}”. Apua saa valitsimella ”--ohje”."
                 ))?;
@@ -60,7 +61,7 @@ pub async fn command_stage(modes: Modes, config: Config) -> Result<(), Box<dyn E
                 let line = item?;
                 if !line.is_empty() {
                     let (cmd, args) = tools::split_first(&line);
-                    if !match_query_commands(&modes, &mut ta, &mut editable, cmd, args).await? {
+                    if !stdin_commands(&modes, &mut ta, &mut editable, cmd, args).await? {
                         Err(format!(
                             "Tuntematon komento ”{cmd}”. Apua saa valitsimella ”--ohje”."
                         ))?;
@@ -73,30 +74,61 @@ pub async fn command_stage(modes: Modes, config: Config) -> Result<(), Box<dyn E
     Ok(())
 }
 
-async fn match_query_commands(
+async fn interactive_commands(
     modes: &Modes,
     db: &mut PgConnection,
     editable: &mut Editable,
     cmd: &str,
     args: &str,
 ) -> Result<bool, Box<dyn Error>> {
-    editable.clear();
+    let result = query_commands(modes, db, editable, cmd, args).await?
+        || edit_commands(db, editable, cmd, args).await?
+        || help_commands(editable, cmd, args)?;
+    Ok(result)
+}
+
+async fn stdin_commands(
+    modes: &Modes,
+    db: &mut PgConnection,
+    editable: &mut Editable,
+    cmd: &str,
+    args: &str,
+) -> Result<bool, Box<dyn Error>> {
+    let result = query_commands(modes, db, editable, cmd, args).await?;
+    Ok(result)
+}
+
+async fn query_commands(
+    modes: &Modes,
+    db: &mut PgConnection,
+    editable: &mut Editable,
+    cmd: &str,
+    args: &str,
+) -> Result<bool, Box<dyn Error>> {
     match cmd {
-        "tk" => commands::stats(modes, db, args).await?,
+        "tk" => commands::stats(modes, db, editable, args).await?,
         "hr" => commands::groups(modes, db, editable, args).await?,
         _ => return Ok(false),
     }
     Ok(true)
 }
 
-fn match_help_commands(
+async fn edit_commands(
+    db: &mut PgConnection,
     editable: &mut Editable,
     cmd: &str,
     args: &str,
 ) -> Result<bool, Box<dyn Error>> {
-    editable.clear();
     match cmd {
-        "?" => commands::help(args),
+        "m" => commands::edit(db, editable, args).await?,
+        _ => return Ok(false),
+    }
+    Ok(true)
+}
+
+fn help_commands(editable: &mut Editable, cmd: &str, args: &str) -> Result<bool, Box<dyn Error>> {
+    match cmd {
+        "?" => commands::help(editable, args),
         _ => return Ok(false),
     }
     Ok(true)
