@@ -112,6 +112,18 @@ pub struct Group {
     pub description: String,
 }
 
+impl Group {
+    pub async fn edit(&self, db: &mut PgConnection) -> Result<(), Box<dyn Error>> {
+        sqlx::query("UPDATE ryhmat SET nimi = $1, lisatiedot = $2 WHERE rid = $3")
+            .bind(&self.name)
+            .bind(&self.description)
+            .bind(&self.rid)
+            .execute(db)
+            .await?;
+        Ok(())
+    }
+}
+
 // impl Clone for Group {
 //     fn clone(&self) -> Self {
 //         Self {

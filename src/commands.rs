@@ -98,7 +98,7 @@ pub async fn edit(
 }
 
 async fn edit_groups(
-    _db: &mut PgConnection,
+    db: &mut PgConnection,
     indexes: Vec<usize>,
     groups: &mut [Group],
     mut fields: impl Iterator<Item = &str>,
@@ -138,8 +138,7 @@ async fn edit_groups(
         if desc_set {
             group.description = desc.clone();
         }
-        eprintln!("{:?}", group);
-        // group.edit();
+        group.edit(db).await?;
     }
     Ok(())
 }
