@@ -351,7 +351,11 @@ fn line_split(s: &str, max: usize) -> Vec<String> {
         }
     }
 
-    lines
+    if lines.is_empty() {
+        vec!["".to_string()]
+    } else {
+        lines
+    }
 }
 
 #[cfg(test)]
@@ -444,5 +448,6 @@ mod tests {
             assert_eq!(vec!["€ka tøka", "kølmas"], line_split("€ka tøka kølmas", i));
         }
         assert_eq!(vec!["€ka tøka kølmas"], line_split("€ka tøka kølmas", 15));
+        assert_eq!(vec![""], line_split("", 15));
     }
 }
