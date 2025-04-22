@@ -133,6 +133,13 @@ async fn edit_groups(
     let desc = tools::normalize_str(desc);
 
     for i in indexes {
+        // Ehkä ei pitäisi välittää Group.structin name- ja
+        // description-kentistä mitään, koska ne eivät välttämättä ole
+        // tahdissa tietokannan kanssa. Ne saattavat virheiden jälkeen
+        // sisältää muuta ja myöhemmillä m-komennoilla vasta tulevat
+        // voimaan. Pitäisi ehkä muokata suoraan tietokantaa ilman
+        // Group::edit-metodia, koska virhetilanteessa muokkaukset
+        // perutaan.
         let index = i - 1;
         let group = &mut groups[index];
         if name_set {
