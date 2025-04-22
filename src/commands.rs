@@ -89,7 +89,10 @@ pub async fn edit(
         EditableItem::Groups(groups) => {
             edit_groups(&mut ta, indexes, groups, fields).await?;
         }
-        _ => (),
+        EditableItem::Students => todo!(),
+        EditableItem::Assignments => todo!(),
+        EditableItem::Scores => todo!(),
+        EditableItem::None => panic!("EditableItem::None"),
     }
     ta.commit().await?;
     Ok(())
