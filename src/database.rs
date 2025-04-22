@@ -113,6 +113,15 @@ pub struct Group {
 }
 
 impl Group {
+    pub async fn exists(db: &mut PgConnection, name: &str) -> Result<bool, Box<dyn Error>> {
+        let result = sqlx::query("SELECT 1 FROM ryhmat WHERE nimi = $1")
+            .bind(name)
+            .fetch_optional(db)
+            .await?
+            .is_some();
+        Ok(result)
+    }
+
     pub async fn edit(&self, db: &mut PgConnection) -> Result<(), Box<dyn Error>> {
         sqlx::query("UPDATE ryhmat SET nimi = $1, lisatiedot = $2 WHERE rid = $3")
             .bind(&self.name)
@@ -169,15 +178,6 @@ impl Groups {
         ed.item = EditableItem::Groups(self.list);
     }
 }
-
-// if sqlx::query("SELECT 1 FROM ryhmat WHERE nimi = $1")
-//     .bind("2024:suk:9a")
-//     .fetch_optional(db)
-//     .await?
-//     .is_some()
-// {
-//     println!("Rivi löytyi");
-// }
 
 // Oppilashaku
 // SELECT DISTINCT view_oppilaat.oid, sukunimi, etunimi, ryhmat, olt FROM view_oppilaat

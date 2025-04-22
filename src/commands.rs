@@ -115,6 +115,9 @@ async fn edit_groups(
     if !name.is_empty() {
         let (first, rest) = tools::split_first(name);
         if tools::has_content(first) && rest.is_empty() {
+            if indexes.len() > 1 {
+                Err("Kahdelle ryhmälle ei voi antaa samaa nimeä.".to_string())?;
+            }
             name = first;
             name_set = true;
         } else {
@@ -133,7 +136,11 @@ async fn edit_groups(
         let index = i - 1;
         let group = &mut groups[index];
         if name_set {
-            group.name = name.to_string();
+            if Group::exists(db, name).await? {
+                Err(format!("Ryhmä ”{name}” on jo olemassa."))?;
+            } else {
+                group.name = name.to_string();
+            }
         }
         if desc_set {
             group.description = desc.clone();
