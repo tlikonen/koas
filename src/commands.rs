@@ -115,8 +115,6 @@ async fn edit_groups(
     if !name.is_empty() {
         let (first, rest) = tools::split_first(name);
         if tools::has_content(first) && rest.is_empty() {
-            // Mahdollisesti tarkistetaan, onko ryhmää jo olemassa.
-            // Toisaalta tietokanta estää sen ja antaa virheilmoituksen.
             name = first;
             name_set = true;
         } else {
