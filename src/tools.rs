@@ -137,6 +137,18 @@ pub fn split_first(s: &str) -> (&str, &str) {
     }
 }
 
+pub fn has_content(s: &str) -> bool {
+    s.chars().any(|c| !c.is_whitespace())
+}
+
+pub fn normalize_str(s: &str) -> String {
+    s.split(' ')
+        .filter(|s| !s.is_empty())
+        .map(|s| s.to_string())
+        .collect::<Vec<String>>()
+        .join(" ")
+}
+
 pub fn umask(mask: u32) -> u32 {
     unsafe { libc::umask(mask) }
 }
@@ -252,5 +264,22 @@ mod tests {
         assert_eq!(true, is_within_limits(10, &[3, 10, 4]));
         assert_eq!(false, is_within_limits(10, &[3, 11, 10, 4]));
         assert_eq!(true, is_within_limits(11, &[3, 11, 10, 4]));
+    }
+
+    #[test]
+    fn t_normalize_str() {
+        assert_eq!("abc 123", normalize_str("  abc   123  "));
+        assert_eq!("abc", normalize_str("abc"));
+        assert_eq!("abc", normalize_str(" abc "));
+    }
+
+    #[test]
+    fn t_has_content() {
+        assert_eq!(true, has_content("  abc   123  "));
+        assert_eq!(true, has_content("abc"));
+        assert_eq!(true, has_content(" abc "));
+        assert_eq!(false, has_content(" "));
+        assert_eq!(false, has_content("  \t  "));
+        assert_eq!(false, has_content(""));
     }
 }
