@@ -98,14 +98,14 @@ pub async fn edit(
 async fn edit_groups(
     _db: &mut PgConnection,
     indexes: Vec<usize>,
-    groups: &mut [Option<Group>],
+    groups: &mut [Group],
     // _fields: &[&str],
     _fields: impl Iterator<Item = &str>,
 ) -> Result<(), Box<dyn Error>> {
     for i in indexes {
-        let group = &mut groups[i - 1];
+        let index = i - 1;
+        let group = &mut groups[index];
         eprintln!("{:?}", group);
-        *group = None;
     }
     Ok(())
 }

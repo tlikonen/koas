@@ -23,7 +23,7 @@ pub async fn connect(config: &Config) -> Result<PgConnection, Box<dyn Error>> {
 pub enum EditableItem {
     None,
     Students,
-    Groups(Vec<Option<Group>>),
+    Groups(Vec<Group>),
     Assignments,
     Scores,
 }
@@ -154,12 +154,7 @@ impl Groups {
     }
 
     pub fn move_to(self, ed: &mut Editable) {
-        ed.item = EditableItem::Groups(self.list.into_iter().map(Some).collect());
-        // let mut v = Vec::new();
-        // for group in self.list {
-        //     v.push(Some(group));
-        // }
-        // ed.item = EditableItem::Groups(v);
+        ed.item = EditableItem::Groups(self.list);
     }
 }
 
