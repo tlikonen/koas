@@ -122,11 +122,33 @@ impl Group {
         Ok(result)
     }
 
-    pub async fn edit(&self, db: &mut PgConnection) -> Result<(), Box<dyn Error>> {
-        sqlx::query("UPDATE ryhmat SET nimi = $1, lisatiedot = $2 WHERE rid = $3")
-            .bind(&self.name)
-            .bind(&self.description)
-            .bind(&self.rid)
+    // pub async fn edit(&self, db: &mut PgConnection) -> Result<(), Box<dyn Error>> {
+    //     sqlx::query("UPDATE ryhmat SET nimi = $1, lisatiedot = $2 WHERE rid = $3")
+    //         .bind(&self.name)
+    //         .bind(&self.description)
+    //         .bind(&self.rid)
+    //         .execute(db)
+    //         .await?;
+    //     Ok(())
+    // }
+
+    pub async fn edit_name(&self, db: &mut PgConnection, name: &str) -> Result<(), Box<dyn Error>> {
+        sqlx::query("UPDATE ryhmat SET nimi = $1 WHERE rid = $2")
+            .bind(name)
+            .bind(self.rid)
+            .execute(db)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn edit_description(
+        &self,
+        db: &mut PgConnection,
+        desc: &str,
+    ) -> Result<(), Box<dyn Error>> {
+        sqlx::query("UPDATE ryhmat SET lisatiedot = $1 WHERE rid = $2")
+            .bind(desc)
+            .bind(self.rid)
             .execute(db)
             .await?;
         Ok(())

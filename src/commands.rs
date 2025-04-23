@@ -133,26 +133,18 @@ async fn edit_groups(
     let desc = tools::normalize_str(desc);
 
     for i in indexes {
-        // Ehkä ei pitäisi välittää Group.structin name- ja
-        // description-kentistä mitään, koska ne eivät välttämättä ole
-        // tahdissa tietokannan kanssa. Ne saattavat virheiden jälkeen
-        // sisältää muuta ja myöhemmillä m-komennoilla vasta tulevat
-        // voimaan. Pitäisi ehkä muokata suoraan tietokantaa ilman
-        // Group::edit-metodia, koska virhetilanteessa muokkaukset
-        // perutaan.
         let index = i - 1;
         let group = &mut groups[index];
         if name_set {
-            if Group::exists(db, name).await? {
-                Err(format!("Ryhmä ”{name}” on jo olemassa."))?;
-            } else {
-                group.name = name.to_string();
-            }
+            // if Group::exists(db, name).await? {
+            //     Err(format!("Ryhmä ”{name}” on jo olemassa."))?;
+            // } else {
+            // }
+            group.edit_name(db, name).await?;
         }
         if desc_set {
-            group.description = desc.clone();
+            group.edit_description(db, &desc).await?;
         }
-        group.edit(db).await?;
     }
     Ok(())
 }
