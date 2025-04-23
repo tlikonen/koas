@@ -352,10 +352,9 @@ fn line_split(s: &str, max: usize) -> Vec<String> {
     }
 
     if lines.is_empty() {
-        vec!["".to_string()]
-    } else {
-        lines
+        lines.push("".to_string());
     }
+    lines
 }
 
 #[cfg(test)]
