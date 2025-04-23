@@ -56,8 +56,8 @@ impl Editable {
         }
     }
 
-    pub fn item_as_mut(&mut self) -> &mut EditableItem {
-        &mut self.item
+    pub fn item(&self) -> &EditableItem {
+        &self.item
     }
 
     pub fn print_fields(&self, fields: &[&str]) {

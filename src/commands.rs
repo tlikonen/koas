@@ -84,7 +84,7 @@ pub async fn edit(
     }
 
     let mut ta = db.begin().await?;
-    match editable.item_as_mut() {
+    match editable.item() {
         EditableItem::Groups(groups) => {
             edit_groups(&mut ta, indexes, groups, fields).await?;
         }
@@ -100,7 +100,7 @@ pub async fn edit(
 async fn edit_groups(
     db: &mut PgConnection,
     indexes: Vec<usize>,
-    groups: &mut [Group],
+    groups: &[Group],
     mut fields: impl Iterator<Item = &str>,
 ) -> Result<(), Box<dyn Error>> {
     let mut name = fields.next().unwrap_or(""); // nimi
@@ -134,7 +134,7 @@ async fn edit_groups(
 
     for i in indexes {
         let index = i - 1;
-        let group = &mut groups[index];
+        let group = &groups[index];
         if name_set {
             group.edit_name(db, name).await?;
         }
