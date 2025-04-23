@@ -116,7 +116,7 @@ async fn edit_groups(
         let (first, rest) = tools::split_first(name);
         if tools::has_content(first) && rest.is_empty() {
             if indexes.len() > 1 {
-                Err("Kahdelle ryhmälle ei voi antaa samaa nimeä.".to_string())?;
+                Err("Usealle ryhmälle ei voi antaa samaa nimeä.".to_string())?;
             }
             name = first;
             name_set = true;
