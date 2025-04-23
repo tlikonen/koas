@@ -259,7 +259,11 @@ fn print_table(tbl: &Table, boxes: [char; 13]) {
                                 Cell::Left(s) => print!(" {s:<width$} {vert_line}"),
                                 Cell::Right(s) => print!(" {s:>width$} {vert_line}"),
                                 Cell::Multi(v) => {
-                                    print!(" {:<width$} {vert_line}", v[multi]);
+                                    if let Some(s) = v.get(multi) {
+                                        print!(" {s:<width$} {vert_line}");
+                                    } else {
+                                        empty_cell(width);
+                                    }
                                     if v.len() > multi_max {
                                         multi_max = v.len();
                                     }
