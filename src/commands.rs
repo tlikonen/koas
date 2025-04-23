@@ -145,6 +145,52 @@ async fn edit_groups(
     Ok(())
 }
 
+pub async fn delete(
+    db: &mut PgConnection,
+    editable: &mut Editable,
+    args: &str,
+) -> Result<(), Box<dyn Error>> {
+    if editable.is_none() {
+        Err("Edellinen komento ei sisällä poistettavia tietueita.".to_string())?;
+    }
+
+    if args.is_empty() {
+        Err("Puuttuu tietueiden numerot.".to_string())?;
+    }
+
+    let indexes = {
+        let (first, rest) = tools::split_first(args);
+        let n = tools::parse_number_list(first)?;
+        let mut f = tools::split_sep(rest);
+        if let Some(s) = f.next() {
+            print_unnecessary_arguments(s);
+        }
+        n
+    };
+
+    {
+        let max = editable.count();
+        if !tools::is_within_limits(max, &indexes) {
+            Err(format!("Suurin muokattava tietue on {max}."))?;
+        }
+    }
+
+    let mut ta = db.begin().await?;
+    match editable.item() {
+        EditableItem::Groups(_) => {
+            Err("Ryhmiä ei voi poistaa näin. Ryhmä poistuu itsestään,\n\
+                 kun siltä poistaa kaikki oppilaat ja suoritukset."
+                .to_string())?;
+        }
+        EditableItem::Students => todo!(),
+        EditableItem::Assignments => todo!(),
+        EditableItem::Scores => todo!(),
+        EditableItem::None => panic!("EditableItem::None"),
+    }
+    ta.commit().await?;
+    Ok(())
+}
+
 fn print_not_found() {
     eprintln!("Ei löytynyt.");
 }

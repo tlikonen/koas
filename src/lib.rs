@@ -121,6 +121,7 @@ async fn edit_commands(
 ) -> Result<bool, Box<dyn Error>> {
     match cmd {
         "m" => commands::edit(db, editable, args).await?,
+        "poista" => commands::delete(db, editable, args).await?,
         _ => return Ok(false),
     }
     Ok(true)
