@@ -72,7 +72,7 @@ pub async fn edit(
     let (indexes, fields) = {
         let (first, rest) = tools::split_first(args);
         let n = tools::parse_number_list(first)?;
-        let f = tools::split_sep(rest); //.collect::<Vec<&str>>();
+        let f = tools::split_sep(rest);
         (n, f)
     };
 
