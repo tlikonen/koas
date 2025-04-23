@@ -49,10 +49,6 @@ impl Editable {
         matches!(self.item, EditableItem::None)
     }
 
-    // pub fn is_some(&self) -> bool {
-    //     !self.is_none()
-    // }
-
     pub fn count(&self) -> usize {
         match &self.item {
             EditableItem::Groups(v) => v.len(),
@@ -122,16 +118,6 @@ impl Group {
         Ok(result)
     }
 
-    // pub async fn edit(&self, db: &mut PgConnection) -> Result<(), Box<dyn Error>> {
-    //     sqlx::query("UPDATE ryhmat SET nimi = $1, lisatiedot = $2 WHERE rid = $3")
-    //         .bind(&self.name)
-    //         .bind(&self.description)
-    //         .bind(&self.rid)
-    //         .execute(db)
-    //         .await?;
-    //     Ok(())
-    // }
-
     pub async fn edit_name(&self, db: &mut PgConnection, name: &str) -> Result<(), Box<dyn Error>> {
         sqlx::query("UPDATE ryhmat SET nimi = $1 WHERE rid = $2")
             .bind(name)
@@ -154,16 +140,6 @@ impl Group {
         Ok(())
     }
 }
-
-// impl Clone for Group {
-//     fn clone(&self) -> Self {
-//         Self {
-//             rid: self.rid,
-//             name: self.name.clone(),
-//             description: self.description.clone(),
-//         }
-//     }
-// }
 
 impl Groups {
     pub async fn query(
