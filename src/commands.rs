@@ -13,8 +13,8 @@ pub async fn stats(
 ) -> Result<(), Box<dyn Error>> {
     editable.clear();
 
-    let stats = Stats::query(db).await?;
-    stats.table().print(modes.output());
+    let query = Stats::query(db).await?;
+    query.table().print(modes.output());
     Ok(())
 }
 
@@ -33,16 +33,16 @@ pub async fn groups(
     let name = fields.next().unwrap_or(""); // nimi
     let desc = fields.next().unwrap_or(""); // lisätiedot
 
-    let groups = Groups::query(db, name, desc).await?;
-    if groups.is_empty() {
+    let query = Groups::query(db, name, desc).await?;
+    if query.is_empty() {
         print_not_found();
         return Ok(());
     }
 
-    let mut table = groups.table();
+    let mut table = query.table();
     if modes.is_interactive() {
         table.numbering();
-        groups.move_to(editable);
+        query.move_to(editable);
     }
     table.print(modes.output());
     editable.print_fields(&["nimi", "lisätiedot"]);
