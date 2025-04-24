@@ -148,7 +148,7 @@ async fn edit_groups(
 }
 
 pub async fn delete(
-    db: &mut PgConnection,
+    _db: &mut PgConnection,
     editable: &mut Editable,
     args: &str,
 ) -> Result<(), Box<dyn Error>> {
@@ -177,7 +177,7 @@ pub async fn delete(
         }
     }
 
-    let mut ta = db.begin().await?;
+    //let mut ta = db.begin().await?;
     match editable.item() {
         EditableItem::Groups(_) => {
             Err("Ryhmiä ei voi poistaa näin. Ryhmä poistuu itsestään,\n\
@@ -189,7 +189,7 @@ pub async fn delete(
         EditableItem::Scores => todo!(),
         EditableItem::None => panic!("EditableItem::None"),
     }
-    ta.commit().await?;
+    //ta.commit().await?;
     Ok(())
 }
 
