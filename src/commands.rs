@@ -133,8 +133,10 @@ async fn edit_groups(
     let desc = tools::normalize_str(desc);
 
     for i in indexes {
-        let index = i - 1;
-        let group = &groups[index];
+        let group = match groups.get(i - 1) {
+            None => continue,
+            Some(g) => g,
+        };
         if name_set {
             group.edit_name(db, name).await?;
         }
