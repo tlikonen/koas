@@ -187,28 +187,31 @@ impl Students {
     }
 }
 
-static BOX_UNICODE: [char; 13] = [
-    '╒', '═', '╤', '╕', // top
-    '├', '─', '┼', '┤', // mid
-    '╘', '═', '╧', '╛', // bottom
-    '│', // vert
+#[rustfmt::skip]
+static BOX_UNICODE: [&str; 15] = [
+    "╒═", "═", "═╤═", "═╕", // top
+    "├─", "─", "─┼─", "─┤", // mid
+    "╘═", "═", "═╧═", "═╛", // bottom
+    "│ ", " │ ", " │", // vert: left mid right
 ];
 
-static BOX_ASCII: [char; 13] = [
-    '+', '-', '+', '+', // top
-    '+', '-', '+', '+', // mid
-    '+', '-', '+', '+', // bottom
-    '|', // vert
+#[rustfmt::skip]
+static BOX_ASCII: [&str; 15] = [
+    "+-", "-", "-+-", "-+", // top
+    "+-", "-", "-+-", "-+", // mid
+    "+-", "-", "-+-", "-+", // bottom
+    "| ", " | ", " |", // vert: left mid right
 ];
 
-static BOX_ORGMODE: [char; 13] = [
-    '|', '-', '+', '|', // top
-    '|', '-', '+', '|', // mid
-    '|', '-', '+', '|', // bottom
-    '|', // vert
+#[rustfmt::skip]
+static BOX_ORGMODE: [&str; 15] = [
+    "|-", "-", "-+-", "-|", // top
+    "|-", "-", "-+-", "-|", // mid
+    "|-", "-", "-+-", "-|", // bottom
+    "| ", " | ", " |", // vert: left mid right
 ];
 
-fn print_table(tbl: &Table, boxes: [char; 13]) {
+fn print_table(tbl: &Table, boxes: [&str; 15]) {
     let top_left = boxes[0];
     let top_line = boxes[1];
     let top_mid = boxes[2];
@@ -224,17 +227,18 @@ fn print_table(tbl: &Table, boxes: [char; 13]) {
     let bottom_mid = boxes[10];
     let bottom_right = boxes[11];
 
-    let vert_line = boxes[12];
+    let vert_left = boxes[12];
+    let vert_mid = boxes[13];
+    let vert_right = boxes[14];
 
     let series = |c, n| {
-        for _ in 0..(n + 2) {
+        for _ in 0..n {
             print!("{c}");
         }
     };
 
     let empty_cell = |w| {
-        series(' ', w);
-        print!("{vert_line}");
+        series(" ", w);
     };
 
     let widths = tbl.widths();
@@ -280,17 +284,17 @@ fn print_table(tbl: &Table, boxes: [char; 13]) {
                 let mut multi_max = 0;
                 let mut multi = 0;
                 loop {
-                    print!("{vert_line}");
+                    print!("{vert_left}");
                     for (col, cell) in v.iter().enumerate() {
                         let width = widths[col];
                         match multi {
                             0 => match cell {
                                 Cell::Empty => empty_cell(width),
-                                Cell::Left(s) => print!(" {s:<width$} {vert_line}"),
-                                Cell::Right(s) => print!(" {s:>width$} {vert_line}"),
+                                Cell::Left(s) => print!("{s:<width$}"),
+                                Cell::Right(s) => print!("{s:>width$}"),
                                 Cell::Multi(v) => {
                                     if let Some(s) = v.get(multi) {
-                                        print!(" {s:<width$} {vert_line}");
+                                        print!("{s:<width$}");
                                     } else {
                                         empty_cell(width);
                                     }
@@ -302,13 +306,18 @@ fn print_table(tbl: &Table, boxes: [char; 13]) {
                             _ => match cell {
                                 Cell::Multi(v) => {
                                     if let Some(s) = v.get(multi) {
-                                        print!(" {s:<width$} {vert_line}");
+                                        print!("{s:<width$}");
                                     } else {
                                         empty_cell(width);
                                     }
                                 }
                                 _ => empty_cell(width),
                             },
+                        }
+                        if widths.get(col + 1).is_some() {
+                            print!("{vert_mid}");
+                        } else {
+                            print!("{vert_right}");
                         }
                     }
                     println!();
