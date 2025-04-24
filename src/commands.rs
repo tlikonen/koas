@@ -10,12 +10,8 @@ pub async fn stats(
     modes: &Modes,
     db: &mut PgConnection,
     editable: &mut Editable,
-    args: &str,
 ) -> Result<(), Box<dyn Error>> {
     editable.clear();
-    if let Some(s) = args.split(' ').next() {
-        print_unnecessary_arguments(s);
-    }
 
     let stats = Stats::query(db).await?;
     stats.table().print(modes.output());
@@ -36,9 +32,6 @@ pub async fn groups(
     let mut fields = tools::split_sep(args);
     let name = fields.next().unwrap_or(""); // nimi
     let desc = fields.next().unwrap_or(""); // lisätiedot
-    if let Some(s) = fields.next() {
-        print_unnecessary_arguments(s);
-    }
 
     let groups = Groups::query(db, name, desc).await?;
     if groups.is_empty() {
@@ -105,9 +98,6 @@ async fn edit_groups(
 ) -> Result<(), Box<dyn Error>> {
     let mut name = fields.next().unwrap_or(""); // nimi
     let desc = fields.next().unwrap_or(""); // lisätiedot
-    if let Some(s) = fields.next() {
-        print_unnecessary_arguments(s);
-    }
 
     let mut name_set = false;
     let mut desc_set = false;
@@ -161,12 +151,8 @@ pub async fn delete(
     }
 
     let indexes = {
-        let (first, rest) = tools::split_first(args);
+        let (first, _) = tools::split_first(args);
         let n = tools::parse_number_list(first)?;
-        let mut f = tools::split_sep(rest);
-        if let Some(s) = f.next() {
-            print_unnecessary_arguments(s);
-        }
         n
     };
 
@@ -195,10 +181,6 @@ pub async fn delete(
 
 fn print_not_found() {
     eprintln!("Ei löytynyt.");
-}
-
-fn print_unnecessary_arguments(s: &str) {
-    eprintln!("Turhia argumentteja komennolle: ”{s}” jne.");
 }
 
 pub fn help(editable: &mut Editable, args: &str) {

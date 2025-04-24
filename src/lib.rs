@@ -106,7 +106,7 @@ async fn query_commands(
     args: &str,
 ) -> Result<bool, Box<dyn Error>> {
     match cmd {
-        "tk" => commands::stats(modes, db, editable, args).await?,
+        "tk" => commands::stats(modes, db, editable).await?,
         "hr" => commands::groups(modes, db, editable, args).await?,
         _ => return Ok(false),
     }
