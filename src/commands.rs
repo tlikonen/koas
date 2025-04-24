@@ -1,6 +1,6 @@
 use crate::{
     Modes,
-    database::{Editable, EditableItem, Group, Groups, Stats},
+    database::{Editable, EditableItem, Group, Groups, Stats, Students},
     tools,
 };
 use sqlx::{Connection, PgConnection};
@@ -49,6 +49,39 @@ pub async fn groups(
     Ok(())
 }
 
+pub async fn students(
+    modes: &Modes,
+    db: &mut PgConnection,
+    editable: &mut Editable,
+    mut args: &str,
+) -> Result<(), Box<dyn Error>> {
+    editable.clear();
+    if args.is_empty() {
+        args = "/";
+    }
+
+    let mut fields = tools::split_sep(args);
+    let lastname = fields.next().unwrap_or(""); // sukunimi
+    let firstname = fields.next().unwrap_or(""); // etunimi
+    let group = fields.next().unwrap_or(""); // ryhma
+    let desc = fields.next().unwrap_or(""); // lisätiedot
+
+    let query = Students::query(db, lastname, firstname, group, desc).await?;
+    if query.is_empty() {
+        print_not_found();
+        return Ok(());
+    }
+
+    let mut table = query.table();
+    if modes.is_interactive() {
+        table.numbering();
+        query.move_to(editable);
+    }
+    table.print(modes.output());
+    editable.print_fields(&["sukunimi", "etunimi", "ryhmät", "lisätiedot"]);
+    Ok(())
+}
+
 pub async fn edit(
     db: &mut PgConnection,
     editable: &mut Editable,
@@ -78,10 +111,10 @@ pub async fn edit(
 
     let mut ta = db.begin().await?;
     match editable.item() {
+        EditableItem::Students(_) => todo!(),
         EditableItem::Groups(groups) => {
             edit_groups(&mut ta, indexes, groups, fields).await?;
         }
-        EditableItem::Students => todo!(),
         EditableItem::Assignments => todo!(),
         EditableItem::Scores => todo!(),
         EditableItem::None => panic!("EditableItem::None"),
@@ -152,8 +185,7 @@ pub async fn delete(
 
     let indexes = {
         let (first, _) = tools::split_first(args);
-        let n = tools::parse_number_list(first)?;
-        n
+        tools::parse_number_list(first)?
     };
 
     {
@@ -165,12 +197,12 @@ pub async fn delete(
 
     //let mut ta = db.begin().await?;
     match editable.item() {
+        EditableItem::Students(_) => todo!(),
         EditableItem::Groups(_) => {
             Err("Ryhmiä ei voi poistaa näin. Ryhmä poistuu itsestään,\n\
                  kun siltä poistaa kaikki oppilaat ja suoritukset."
                 .to_string())?;
         }
-        EditableItem::Students => todo!(),
         EditableItem::Assignments => todo!(),
         EditableItem::Scores => todo!(),
         EditableItem::None => panic!("EditableItem::None"),

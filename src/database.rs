@@ -20,9 +20,10 @@ pub async fn connect(config: &Config) -> Result<PgConnection, Box<dyn Error>> {
     Ok(client)
 }
 
+#[derive(Debug)]
 pub enum EditableItem {
     None,
-    Students,
+    Students(Vec<Student>),
     Groups(Vec<Group>),
     Assignments,
     Scores,
@@ -51,8 +52,11 @@ impl Editable {
 
     pub fn count(&self) -> usize {
         match &self.item {
+            EditableItem::None => 0,
+            EditableItem::Students(v) => v.len(),
             EditableItem::Groups(v) => v.len(),
-            _ => 0,
+            EditableItem::Assignments => todo!(),
+            EditableItem::Scores => todo!(),
         }
     }
 
@@ -177,11 +181,63 @@ impl Groups {
     }
 }
 
-// Oppilashaku
-// SELECT DISTINCT view_oppilaat.oid, sukunimi, etunimi, ryhmat, olt FROM view_oppilaat
-// JOIN (SELECT oid, string_agg(ryhma, ' ' ORDER BY ryhma) ryhmat FROM view_oppilaat GROUP BY oid)
-// ryhmat ON view_oppilaat.oid = ryhmat.oid
-// WHERE ryhma LIKE '2024:%' ORDER BY sukunimi, etunimi, oid;
+#[derive(Debug)]
+pub struct Students {
+    pub list: Vec<Student>,
+}
+
+#[derive(Debug)]
+pub struct Student {
+    pub oid: i32,
+    pub lastname: String,
+    pub firstname: String,
+    pub groups: String,
+    pub description: String,
+}
+
+impl Students {
+    pub async fn query(
+        db: &mut PgConnection,
+        lastname: &str,
+        firstname: &str,
+        group: &str,
+        desc: &str,
+    ) -> Result<Students, Box<dyn Error>> {
+        let mut rows = sqlx::query(
+            "SELECT DISTINCT view_oppilaat.oid, sukunimi, etunimi, ryhmat, olt FROM view_oppilaat \
+             JOIN (SELECT oid, string_agg(ryhma, ' ' ORDER BY ryhma) ryhmat \
+             FROM view_oppilaat GROUP BY oid) ryhmat ON view_oppilaat.oid = ryhmat.oid \
+             WHERE sukunimi LIKE $1 AND etunimi LIKE $2 AND ryhmat LIKE $3 and olt LIKE $4
+             ORDER BY sukunimi, etunimi, oid",
+        )
+        .bind(like_esc_wild(lastname))
+        .bind(like_esc_wild(firstname))
+        .bind(like_esc_wild(group))
+        .bind(like_esc_wild(desc))
+        .fetch(db);
+
+        let mut list = Vec::new();
+        while let Some(row) = rows.try_next().await? {
+            list.push(Student {
+                oid: row.try_get("oid")?,
+                lastname: row.try_get("sukunimi")?,
+                firstname: row.try_get("etunimi")?,
+                groups: row.try_get("ryhmat")?,
+                description: row.try_get("olt")?,
+            });
+        }
+
+        Ok(Students { list })
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.list.is_empty()
+    }
+
+    pub fn move_to(self, ed: &mut Editable) {
+        ed.item = EditableItem::Students(self.list);
+    }
+}
 
 const LIKE_ESC_CHARS: &str = "_%\\";
 

@@ -1,6 +1,6 @@
 use crate::{
     Output,
-    database::{Groups, Stats},
+    database::{Groups, Stats, Students},
 };
 
 pub struct Table {
@@ -149,6 +149,36 @@ impl Groups {
             rows.push(Row::Data(vec![
                 Cell::Left(group.name.clone()),
                 Cell::Multi(line_split(&group.description, DESCRIPTION_WIDTH)),
+            ]));
+        }
+
+        rows.push(Row::Bottomrule);
+        Table { rows }
+    }
+}
+
+impl Students {
+    pub fn table(&self) -> Table {
+        const GROUPS_WIDTH: usize = 36;
+        const DESC_WIDTH: usize = 36;
+
+        let mut rows = vec![
+            Row::Toprule,
+            Row::Head(vec![
+                Cell::Left("Sukunimi".to_string()),
+                Cell::Left("Etunimi".to_string()),
+                Cell::Left("Ryhmät".to_string()),
+                Cell::Left("Lisätiedot".to_string()),
+            ]),
+            Row::Midrule,
+        ];
+
+        for student in &self.list {
+            rows.push(Row::Data(vec![
+                Cell::Left(student.lastname.clone()),
+                Cell::Left(student.firstname.clone()),
+                Cell::Multi(line_split(&student.groups, GROUPS_WIDTH)),
+                Cell::Multi(line_split(&student.description, DESC_WIDTH)),
             ]));
         }
 

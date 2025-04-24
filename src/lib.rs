@@ -108,6 +108,7 @@ async fn query_commands(
     match cmd {
         "tk" => commands::stats(modes, db, editable).await?,
         "hr" => commands::groups(modes, db, editable, args).await?,
+        "ho" => commands::students(modes, db, editable, args).await?,
         _ => return Ok(false),
     }
     Ok(true)
