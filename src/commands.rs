@@ -1,6 +1,6 @@
 use crate::{
     Modes,
-    database::{Editable, EditableItem, Group, Groups, Stats, Students},
+    database::{Editable, EditableItem, Group, Groups, Stats, Student, Students},
     tools,
 };
 use sqlx::{Connection, PgConnection};
@@ -111,7 +111,9 @@ pub async fn edit(
 
     let mut ta = db.begin().await?;
     match editable.item() {
-        EditableItem::Students(_) => todo!(),
+        EditableItem::Students(students) => {
+            edit_students(&mut ta, indexes, students, fields).await?;
+        }
         EditableItem::Groups(groups) => {
             edit_groups(&mut ta, indexes, groups, fields).await?;
         }
@@ -120,6 +122,97 @@ pub async fn edit(
         EditableItem::None => panic!("EditableItem::None"),
     }
     ta.commit().await?;
+    Ok(())
+}
+
+async fn edit_students(
+    db: &mut PgConnection,
+    indexes: Vec<usize>,
+    students: &[Student],
+    mut fields: impl Iterator<Item = &str>,
+) -> Result<(), Box<dyn Error>> {
+    let lastname = fields.next().unwrap_or(""); // sukunimi
+    let firstname = fields.next().unwrap_or(""); // etunimi
+    let groups = fields.next().unwrap_or(""); // ryhmät
+    let desc = fields.next().unwrap_or(""); // lisätiedot
+
+    let mut lastname_update = false;
+    let mut firstname_update = false;
+    let mut groups_update = false;
+    let mut desc_update = false;
+
+    if tools::has_content(lastname) {
+        lastname_update = true;
+    }
+
+    if tools::has_content(firstname) {
+        firstname_update = true;
+    }
+
+    if (lastname_update || firstname_update) && indexes.len() > 1 {
+        Err("Usealle henkilölle ei voi muuttaa kerralla samaa nimeä.\n\
+             Muuta yksi kerrallaan, jos se on tarkoituksena.")?;
+    }
+
+    let mut groups_add: Vec<String> = Vec::new();
+    let mut groups_remove: Vec<String> = Vec::new();
+
+    if tools::has_content(groups) {
+        for g in groups.split(' ').filter(|s| !s.is_empty()) {
+            let mut chars = g.chars();
+            match chars.next() {
+                Some('+') => groups_add.push(chars.collect()),
+                Some('-') => groups_remove.push(chars.collect()),
+                _ => Err(
+                    "Kirjoita oppilaan ryhmätunnuksen alkuun merkki ”+” (lisää ryhmä) \
+                     tai ”-” (poista ryhmä).\nErota eri ryhmät välilyönnillä.",
+                )?,
+            }
+        }
+
+        if groups_add.iter().any(|s| s.is_empty()) || groups_remove.iter().any(|s| s.is_empty()) {
+            Err("Ryhmän nimiä puuttuu. Kirjoita merkin ”+” tai ”-” jälkeen ryhmätunnus.")?;
+        }
+
+        groups_update = true;
+    }
+
+    if !desc.is_empty() {
+        desc_update = true;
+    }
+
+    for i in indexes {
+        let student = match students.get(i - 1) {
+            None => Err("Muokattavia oppilaita ei ole.")?,
+            Some(v) => v,
+        };
+
+        if lastname_update {
+            student
+                .edit_lastname(db, &tools::normalize_str(lastname))
+                .await?;
+        }
+
+        if firstname_update {
+            student
+                .edit_firstname(db, &tools::normalize_str(firstname))
+                .await?;
+        }
+
+        if groups_update {
+            // lisää ryhmiin
+            // poista ryhmistä, paitsi ei ainoasta
+        }
+
+        if desc_update {
+            student
+                .edit_description(db, &tools::normalize_str(desc))
+                .await?;
+        }
+    }
+
+    // poistetaan tyhjät ryhmät, jos sellaisia on
+
     Ok(())
 }
 
@@ -132,17 +225,17 @@ async fn edit_groups(
     let mut name = fields.next().unwrap_or(""); // nimi
     let desc = fields.next().unwrap_or(""); // lisätiedot
 
-    let mut name_set = false;
-    let mut desc_set = false;
+    let mut name_update = false;
+    let mut desc_update = false;
 
     if !name.is_empty() {
         let (first, rest) = tools::split_first(name);
         if tools::has_content(first) && rest.is_empty() {
             if indexes.len() > 1 {
-                Err("Usealle ryhmälle ei voi antaa samaa nimeä.".to_string())?;
+                Err("Usealle ryhmälle ei voi antaa samaa nimeä.")?;
             }
             name = first;
-            name_set = true;
+            name_update = true;
         } else {
             Err(format!(
                 "Ryhmätunnus ”{name}” ei kelpaa: pitää olla yksi sana."
@@ -151,19 +244,19 @@ async fn edit_groups(
     }
 
     if !desc.is_empty() {
-        desc_set = true;
+        desc_update = true;
     }
     let desc = tools::normalize_str(desc);
 
     for i in indexes {
         let group = match groups.get(i - 1) {
-            None => continue,
+            None => Err("Muokattavia ryhmiä ei ole.")?,
             Some(g) => g,
         };
-        if name_set {
+        if name_update {
             group.edit_name(db, name).await?;
         }
-        if desc_set {
+        if desc_update {
             group.edit_description(db, &desc).await?;
         }
     }
@@ -176,11 +269,11 @@ pub async fn delete(
     args: &str,
 ) -> Result<(), Box<dyn Error>> {
     if editable.is_none() {
-        Err("Edellinen komento ei sisällä poistettavia tietueita.".to_string())?;
+        Err("Edellinen komento ei sisällä poistettavia tietueita.")?;
     }
 
     if args.is_empty() {
-        Err("Puuttuu tietueiden numerot.".to_string())?;
+        Err("Puuttuu tietueiden numerot.")?;
     }
 
     let indexes = {
@@ -200,8 +293,7 @@ pub async fn delete(
         EditableItem::Students(_) => todo!(),
         EditableItem::Groups(_) => {
             Err("Ryhmiä ei voi poistaa näin. Ryhmä poistuu itsestään,\n\
-                 kun siltä poistaa kaikki oppilaat ja suoritukset."
-                .to_string())?;
+                 kun siltä poistaa kaikki oppilaat ja suoritukset.")?;
         }
         EditableItem::Assignments => todo!(),
         EditableItem::Scores => todo!(),

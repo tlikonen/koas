@@ -102,6 +102,105 @@ impl Stats {
 }
 
 #[derive(Debug)]
+pub struct Student {
+    pub oid: i32,
+    pub lastname: String,
+    pub firstname: String,
+    pub groups: String,
+    pub description: String,
+}
+
+#[derive(Debug)]
+pub struct Students {
+    pub list: Vec<Student>,
+}
+
+impl Student {
+    pub async fn edit_lastname(
+        &self,
+        db: &mut PgConnection,
+        lastname: &str,
+    ) -> Result<(), Box<dyn Error>> {
+        sqlx::query("UPDATE oppilaat SET sukunimi = $1 WHERE oid = $2")
+            .bind(lastname)
+            .bind(self.oid)
+            .execute(db)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn edit_firstname(
+        &self,
+        db: &mut PgConnection,
+        firstname: &str,
+    ) -> Result<(), Box<dyn Error>> {
+        sqlx::query("UPDATE oppilaat SET etunimi = $1 WHERE oid = $2")
+            .bind(firstname)
+            .bind(self.oid)
+            .execute(db)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn edit_description(
+        &self,
+        db: &mut PgConnection,
+        desc: &str,
+    ) -> Result<(), Box<dyn Error>> {
+        sqlx::query("UPDATE oppilaat SET lisatiedot = $1 WHERE oid = $2")
+            .bind(desc)
+            .bind(self.oid)
+            .execute(db)
+            .await?;
+        Ok(())
+    }
+}
+
+impl Students {
+    pub async fn query(
+        db: &mut PgConnection,
+        lastname: &str,
+        firstname: &str,
+        group: &str,
+        desc: &str,
+    ) -> Result<Students, Box<dyn Error>> {
+        let mut rows = sqlx::query(
+            "SELECT DISTINCT view_oppilaat.oid, sukunimi, etunimi, ryhmat, olt FROM view_oppilaat \
+             JOIN (SELECT oid, string_agg(ryhma, ' ' ORDER BY ryhma) ryhmat \
+             FROM view_oppilaat GROUP BY oid) ryhmat ON view_oppilaat.oid = ryhmat.oid \
+             WHERE sukunimi LIKE $1 AND etunimi LIKE $2 AND ryhmat LIKE $3 and olt LIKE $4
+             ORDER BY sukunimi, etunimi, oid",
+        )
+        .bind(like_esc_wild(lastname))
+        .bind(like_esc_wild(firstname))
+        .bind(like_esc_wild(group))
+        .bind(like_esc_wild(desc))
+        .fetch(db);
+
+        let mut list = Vec::new();
+        while let Some(row) = rows.try_next().await? {
+            list.push(Student {
+                oid: row.try_get("oid")?,
+                lastname: row.try_get("sukunimi")?,
+                firstname: row.try_get("etunimi")?,
+                groups: row.try_get("ryhmat")?,
+                description: row.try_get("olt")?,
+            });
+        }
+
+        Ok(Students { list })
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.list.is_empty()
+    }
+
+    pub fn move_to(self, ed: &mut Editable) {
+        ed.item = EditableItem::Students(self.list);
+    }
+}
+
+#[derive(Debug)]
 pub struct Group {
     pub rid: i32,
     pub name: String,
@@ -178,64 +277,6 @@ impl Groups {
 
     pub fn move_to(self, ed: &mut Editable) {
         ed.item = EditableItem::Groups(self.list);
-    }
-}
-
-#[derive(Debug)]
-pub struct Student {
-    pub oid: i32,
-    pub lastname: String,
-    pub firstname: String,
-    pub groups: String,
-    pub description: String,
-}
-
-#[derive(Debug)]
-pub struct Students {
-    pub list: Vec<Student>,
-}
-
-impl Students {
-    pub async fn query(
-        db: &mut PgConnection,
-        lastname: &str,
-        firstname: &str,
-        group: &str,
-        desc: &str,
-    ) -> Result<Students, Box<dyn Error>> {
-        let mut rows = sqlx::query(
-            "SELECT DISTINCT view_oppilaat.oid, sukunimi, etunimi, ryhmat, olt FROM view_oppilaat \
-             JOIN (SELECT oid, string_agg(ryhma, ' ' ORDER BY ryhma) ryhmat \
-             FROM view_oppilaat GROUP BY oid) ryhmat ON view_oppilaat.oid = ryhmat.oid \
-             WHERE sukunimi LIKE $1 AND etunimi LIKE $2 AND ryhmat LIKE $3 and olt LIKE $4
-             ORDER BY sukunimi, etunimi, oid",
-        )
-        .bind(like_esc_wild(lastname))
-        .bind(like_esc_wild(firstname))
-        .bind(like_esc_wild(group))
-        .bind(like_esc_wild(desc))
-        .fetch(db);
-
-        let mut list = Vec::new();
-        while let Some(row) = rows.try_next().await? {
-            list.push(Student {
-                oid: row.try_get("oid")?,
-                lastname: row.try_get("sukunimi")?,
-                firstname: row.try_get("etunimi")?,
-                groups: row.try_get("ryhmat")?,
-                description: row.try_get("olt")?,
-            });
-        }
-
-        Ok(Students { list })
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.list.is_empty()
-    }
-
-    pub fn move_to(self, ed: &mut Editable) {
-        ed.item = EditableItem::Students(self.list);
     }
 }
 
