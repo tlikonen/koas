@@ -20,7 +20,6 @@ pub async fn connect(config: &Config) -> Result<PgConnection, Box<dyn Error>> {
     Ok(client)
 }
 
-#[derive(Debug)]
 pub enum EditableItem {
     None,
     Students(Vec<Student>),
@@ -101,7 +100,6 @@ impl Stats {
     }
 }
 
-#[derive(Debug)]
 pub struct Student {
     pub oid: i32,
     pub lastname: String,
@@ -110,7 +108,6 @@ pub struct Student {
     pub description: String,
 }
 
-#[derive(Debug)]
 pub struct Students {
     pub list: Vec<Student>,
 }
@@ -254,7 +251,6 @@ impl Students {
     }
 }
 
-#[derive(Debug)]
 pub struct Group {
     pub rid: i32,
     pub name: String,
