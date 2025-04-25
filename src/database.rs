@@ -263,12 +263,11 @@ pub struct Groups {
 
 impl Group {
     pub async fn get_id(db: &mut PgConnection, name: &str) -> Result<Option<i32>, Box<dyn Error>> {
-        let row = sqlx::query("SELECT rid FROM ryhmat WHERE nimi = $1")
+        match sqlx::query("SELECT rid FROM ryhmat WHERE nimi = $1")
             .bind(name)
             .fetch_optional(db)
-            .await?;
-
-        match row {
+            .await?
+        {
             None => Ok(None),
             Some(r) => {
                 let id: i32 = r.try_get("rid")?;
