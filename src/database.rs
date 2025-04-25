@@ -199,6 +199,14 @@ impl Student {
             .await?;
         Ok(())
     }
+
+    pub async fn delete(&self, db: &mut PgConnection) -> Result<(), Box<dyn Error>> {
+        sqlx::query("DELETE FROM oppilaat WHERE oid = $1")
+            .bind(self.oid)
+            .execute(db)
+            .await?;
+        Ok(())
+    }
 }
 
 impl Students {

@@ -288,7 +288,7 @@ async fn edit_groups(
 }
 
 pub async fn delete(
-    _db: &mut PgConnection,
+    db: &mut PgConnection,
     editable: &mut Editable,
     args: &str,
 ) -> Result<(), Box<dyn Error>> {
@@ -312,9 +312,11 @@ pub async fn delete(
         }
     }
 
-    //let mut ta = db.begin().await?;
+    let mut ta = db.begin().await?;
     match editable.item() {
-        EditableItem::Students(_) => todo!(),
+        EditableItem::Students(students) => {
+            delete_students(&mut ta, indexes, students).await?;
+        }
         EditableItem::Groups(_) => {
             Err("Ryhmiä ei voi poistaa näin. Ryhmä poistuu itsestään,\n\
                  kun siltä poistaa kaikki oppilaat ja suoritukset.")?;
@@ -323,7 +325,23 @@ pub async fn delete(
         EditableItem::Scores => todo!(),
         EditableItem::None => panic!("EditableItem::None"),
     }
-    //ta.commit().await?;
+    ta.commit().await?;
+    Ok(())
+}
+
+async fn delete_students(
+    db: &mut PgConnection,
+    indexes: Vec<usize>,
+    students: &[Student],
+) -> Result<(), Box<dyn Error>> {
+    for i in indexes {
+        let student = match students.get(i - 1) {
+            None => Err("Poistettavia oppilaita ei ole.")?,
+            Some(v) => v,
+        };
+        student.delete(db).await?;
+    }
+    Groups::delete_empty(db).await?;
     Ok(())
 }
 
