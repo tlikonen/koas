@@ -101,15 +101,15 @@ impl Stats {
     }
 }
 
-pub struct Groups {
-    pub list: Vec<Group>,
-}
-
 #[derive(Debug)]
 pub struct Group {
     pub rid: i32,
     pub name: String,
     pub description: String,
+}
+
+pub struct Groups {
+    pub list: Vec<Group>,
 }
 
 impl Group {
@@ -182,17 +182,17 @@ impl Groups {
 }
 
 #[derive(Debug)]
-pub struct Students {
-    pub list: Vec<Student>,
-}
-
-#[derive(Debug)]
 pub struct Student {
     pub oid: i32,
     pub lastname: String,
     pub firstname: String,
     pub groups: String,
     pub description: String,
+}
+
+#[derive(Debug)]
+pub struct Students {
+    pub list: Vec<Student>,
 }
 
 impl Students {
