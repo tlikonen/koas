@@ -220,7 +220,8 @@ impl Students {
         let mut rows = sqlx::query(
             "SELECT DISTINCT view_oppilaat.oid, sukunimi, etunimi, ryhmat, olt FROM view_oppilaat \
              JOIN (SELECT oid, string_agg(ryhma, ' ' ORDER BY ryhma) ryhmat \
-             FROM view_oppilaat GROUP BY oid) ryhmat ON view_oppilaat.oid = ryhmat.oid \
+             FROM view_oppilaat GROUP BY oid) ryhmat \
+             ON view_oppilaat.oid = ryhmat.oid \
              WHERE sukunimi LIKE $1 AND etunimi LIKE $2 AND ryhmat LIKE $3 and olt LIKE $4
              ORDER BY sukunimi, etunimi, oid",
         )
