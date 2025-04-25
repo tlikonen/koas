@@ -181,6 +181,10 @@ async fn edit_students(
         desc_update = true;
     }
 
+    let lastname = tools::normalize_str(lastname);
+    let firstname = tools::normalize_str(firstname);
+    let desc = tools::normalize_str(desc);
+
     for i in indexes {
         let student = match students.get(i - 1) {
             None => Err("Muokattavia oppilaita ei ole.")?,
@@ -188,31 +192,51 @@ async fn edit_students(
         };
 
         if lastname_update {
-            student
-                .edit_lastname(db, &tools::normalize_str(lastname))
-                .await?;
+            student.edit_lastname(db, &lastname).await?;
         }
 
         if firstname_update {
-            student
-                .edit_firstname(db, &tools::normalize_str(firstname))
-                .await?;
+            student.edit_firstname(db, &firstname).await?;
         }
 
         if groups_update {
-            // lisää ryhmiin
-            // poista ryhmistä, paitsi ei ainoasta
+            for name in &groups_add {
+                let rid = match Group::get_id(db, name).await? {
+                    Some(id) => id,
+                    None => Group::insert(db, name).await?,
+                };
+
+                if student.in_group(db, rid).await? {
+                    continue;
+                } else {
+                    student.add_to_group(db, rid).await?;
+                }
+            }
+
+            for name in &groups_remove {
+                let rid = match Group::get_id(db, name).await? {
+                    Some(id) => id,
+                    None => continue,
+                };
+
+                if !student.in_group(db, rid).await? {
+                    continue;
+                }
+
+                if student.only_one_group(db).await? {
+                    Err("Oppilaan pitää kuulua vähintään yhteen ryhmään.")?;
+                } else {
+                    student.remove_from_group(db, rid).await?;
+                }
+            }
         }
 
         if desc_update {
-            student
-                .edit_description(db, &tools::normalize_str(desc))
-                .await?;
+            student.edit_description(db, &desc).await?;
         }
     }
 
-    // poistetaan tyhjät ryhmät, jos sellaisia on
-
+    Groups::delete_empty(db).await?;
     Ok(())
 }
 

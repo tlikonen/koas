@@ -116,6 +116,51 @@ pub struct Students {
 }
 
 impl Student {
+    pub async fn in_group(&self, db: &mut PgConnection, rid: i32) -> Result<bool, Box<dyn Error>> {
+        let result = sqlx::query("SELECT 1 FROM oppilaat_ryhmat WHERE oid = $1 AND rid = $2")
+            .bind(self.oid)
+            .bind(rid)
+            .fetch_optional(db)
+            .await?
+            .is_some();
+        Ok(result)
+    }
+
+    pub async fn add_to_group(
+        &self,
+        db: &mut PgConnection,
+        rid: i32,
+    ) -> Result<(), Box<dyn Error>> {
+        sqlx::query("INSERT INTO oppilaat_ryhmat (oid, rid) VALUES ($1, $2)")
+            .bind(self.oid)
+            .bind(rid)
+            .execute(db)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn remove_from_group(
+        &self,
+        db: &mut PgConnection,
+        rid: i32,
+    ) -> Result<(), Box<dyn Error>> {
+        sqlx::query("DELETE FROM oppilaat_ryhmat WHERE oid = $1 AND rid = $2")
+            .bind(self.oid)
+            .bind(rid)
+            .execute(db)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn only_one_group(&self, db: &mut PgConnection) -> Result<bool, Box<dyn Error>> {
+        let row = sqlx::query("SELECT count(*) count FROM oppilaat_ryhmat WHERE oid = $1")
+            .bind(self.oid)
+            .fetch_one(db)
+            .await?;
+        let count: i64 = row.try_get("count")?;
+        Ok(count <= 1)
+    }
+
     pub async fn edit_lastname(
         &self,
         db: &mut PgConnection,
@@ -212,13 +257,29 @@ pub struct Groups {
 }
 
 impl Group {
-    pub async fn exists(db: &mut PgConnection, name: &str) -> Result<bool, Box<dyn Error>> {
-        let result = sqlx::query("SELECT 1 FROM ryhmat WHERE nimi = $1")
+    pub async fn get_id(db: &mut PgConnection, name: &str) -> Result<Option<i32>, Box<dyn Error>> {
+        let row = sqlx::query("SELECT rid FROM ryhmat WHERE nimi = $1")
             .bind(name)
             .fetch_optional(db)
-            .await?
-            .is_some();
-        Ok(result)
+            .await?;
+
+        match row {
+            None => Ok(None),
+            Some(r) => {
+                let id: i32 = r.try_get("rid")?;
+                Ok(Some(id))
+            }
+        }
+    }
+
+    pub async fn insert(db: &mut PgConnection, name: &str) -> Result<i32, Box<dyn Error>> {
+        let row = sqlx::query("INSERT INTO ryhmat (nimi) VALUES ($1) RETURNING rid")
+            .bind(name)
+            .fetch_one(db)
+            .await?;
+
+        let id: i32 = row.try_get("rid")?;
+        Ok(id)
     }
 
     pub async fn edit_name(&self, db: &mut PgConnection, name: &str) -> Result<(), Box<dyn Error>> {
@@ -277,6 +338,19 @@ impl Groups {
 
     pub fn move_to(self, ed: &mut Editable) {
         ed.item = EditableItem::Groups(self.list);
+    }
+
+    pub async fn delete_empty(db: &mut PgConnection) -> Result<(), Box<dyn Error>> {
+        sqlx::query(
+            "DELETE FROM ryhmat WHERE rid IN \
+             (SELECT r.rid FROM ryhmat AS r \
+             LEFT JOIN oppilaat_ryhmat AS j ON r.rid = j.rid \
+             LEFT JOIN suoritukset AS s ON s.rid = r.rid \
+             WHERE j.rid IS NULL AND s.rid IS NULL)",
+        )
+        .execute(db)
+        .await?;
+        Ok(())
     }
 }
 
