@@ -198,24 +198,19 @@ impl Student {
         Ok(())
     }
 
-    pub async fn insert(
-        db: &mut PgConnection,
-        lastname: &str,
-        firstname: &str,
-        desc: &str,
-    ) -> Result<i32, Box<dyn Error>> {
+    pub async fn insert(&mut self, db: &mut PgConnection) -> Result<(), Box<dyn Error>> {
         let row = sqlx::query(
             "INSERT INTO oppilaat (sukunimi, etunimi, lisatiedot) \
              VALUES ($1, $2, $3) RETURNING oid",
         )
-        .bind(lastname)
-        .bind(firstname)
-        .bind(desc)
+        .bind(&self.lastname)
+        .bind(&self.firstname)
+        .bind(&self.description)
         .fetch_one(db)
         .await?;
 
-        let id: i32 = row.try_get("oid")?;
-        Ok(id)
+        self.oid = row.try_get("oid")?;
+        Ok(())
     }
 
     pub async fn delete(&self, db: &mut PgConnection) -> Result<(), Box<dyn Error>> {

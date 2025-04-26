@@ -306,18 +306,15 @@ pub async fn insert_student(
         Err("Pitää antaa vähintään sukunimi, etunimi ja ryhmä.")?;
     }
 
-    let mut ta = db.begin().await?;
-
-    let student = Student {
-        oid: Student::insert(
-            &mut ta,
-            &tools::normalize_str(lastname),
-            &tools::normalize_str(firstname),
-            &tools::normalize_str(desc),
-        )
-        .await?,
-        ..Default::default() // Vain oid-kentällä on merkitystä tässä.
+    let mut student = Student {
+        lastname: tools::normalize_str(lastname),
+        firstname: tools::normalize_str(firstname),
+        description: tools::normalize_str(desc),
+        ..Default::default()
     };
+
+    let mut ta = db.begin().await?;
+    student.insert(&mut ta).await?;
 
     for g in groups.split(' ').filter(|s| !s.is_empty()) {
         let rid = Group::get_or_create(&mut ta, g).await?;
