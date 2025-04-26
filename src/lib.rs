@@ -83,6 +83,7 @@ async fn interactive_commands(
 ) -> Result<bool, Box<dyn Error>> {
     let result = query_commands(modes, db, editable, cmd, args).await?
         || edit_commands(db, editable, cmd, args).await?
+        || insert_commands(db, editable, cmd, args).await?
         || help_commands(editable, cmd, args)?;
     Ok(result)
 }
@@ -94,7 +95,8 @@ async fn stdin_commands(
     cmd: &str,
     args: &str,
 ) -> Result<bool, Box<dyn Error>> {
-    let result = query_commands(modes, db, editable, cmd, args).await?;
+    let result = query_commands(modes, db, editable, cmd, args).await?
+        || insert_commands(db, editable, cmd, args).await?;
     Ok(result)
 }
 
@@ -123,6 +125,19 @@ async fn edit_commands(
     match cmd {
         "m" => commands::edit(db, editable, args).await?,
         "poista" => commands::delete(db, editable, args).await?,
+        _ => return Ok(false),
+    }
+    Ok(true)
+}
+
+async fn insert_commands(
+    db: &mut PgConnection,
+    editable: &mut Editable,
+    cmd: &str,
+    args: &str,
+) -> Result<bool, Box<dyn Error>> {
+    match cmd {
+        "lo" => commands::insert_student(db, editable, args).await?,
         _ => return Ok(false),
     }
     Ok(true)

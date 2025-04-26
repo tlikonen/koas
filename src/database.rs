@@ -100,6 +100,7 @@ impl Stats {
     }
 }
 
+#[derive(Default)]
 pub struct Student {
     pub oid: i32,
     pub lastname: String,
@@ -195,6 +196,26 @@ impl Student {
             .execute(db)
             .await?;
         Ok(())
+    }
+
+    pub async fn insert(
+        db: &mut PgConnection,
+        lastname: &str,
+        firstname: &str,
+        desc: &str,
+    ) -> Result<i32, Box<dyn Error>> {
+        let row = sqlx::query(
+            "INSERT INTO oppilaat (sukunimi, etunimi, lisatiedot) \
+             VALUES ($1, $2, $3) RETURNING oid",
+        )
+        .bind(lastname)
+        .bind(firstname)
+        .bind(desc)
+        .fetch_one(db)
+        .await?;
+
+        let id: i32 = row.try_get("oid")?;
+        Ok(id)
     }
 
     pub async fn delete(&self, db: &mut PgConnection) -> Result<(), Box<dyn Error>> {

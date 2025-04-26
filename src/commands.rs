@@ -283,6 +283,51 @@ async fn edit_groups(
     Ok(())
 }
 
+pub async fn insert_student(
+    db: &mut PgConnection,
+    editable: &mut Editable,
+    mut args: &str,
+) -> Result<(), Box<dyn Error>> {
+    editable.clear();
+    if args.is_empty() {
+        args = "/";
+    }
+
+    let mut fields = tools::split_sep(args);
+    let lastname = fields.next().unwrap_or(""); // sukunimi
+    let firstname = fields.next().unwrap_or(""); // etunimi
+    let groups = fields.next().unwrap_or(""); // ryhmat
+    let desc = fields.next().unwrap_or(""); // lisätiedot
+
+    if !tools::has_content(lastname)
+        || !tools::has_content(firstname)
+        || !tools::has_content(groups)
+    {
+        Err("Pitää antaa vähintään sukunimi, etunimi ja ryhmä.")?;
+    }
+
+    let mut ta = db.begin().await?;
+
+    let student = Student {
+        oid: Student::insert(
+            &mut ta,
+            &tools::normalize_str(lastname),
+            &tools::normalize_str(firstname),
+            &tools::normalize_str(desc),
+        )
+        .await?,
+        ..Default::default() // Vain oid-kentällä on merkitystä tässä.
+    };
+
+    for g in groups.split(' ').filter(|s| !s.is_empty()) {
+        let rid = Group::get_or_create(&mut ta, g).await?;
+        student.add_to_group(&mut ta, rid).await?;
+    }
+
+    ta.commit().await?;
+    Ok(())
+}
+
 pub async fn delete(
     db: &mut PgConnection,
     editable: &mut Editable,
