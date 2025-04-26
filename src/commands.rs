@@ -4,7 +4,7 @@ use crate::{
     tools,
 };
 use sqlx::{Connection, PgConnection};
-use std::error::Error;
+use std::{error::Error, io};
 
 pub async fn stats(
     modes: &Modes,
@@ -122,6 +122,55 @@ pub async fn edit(
         EditableItem::None => panic!("EditableItem::None"),
     }
     ta.commit().await?;
+    Ok(())
+}
+
+pub async fn edit_series(
+    db: &mut PgConnection,
+    editable: &mut Editable,
+    args: &str,
+) -> Result<(), Box<dyn Error>> {
+    if editable.is_none() {
+        Err("Edellinen komento ei sisällä muokattavia tietueita.")?;
+    }
+
+    if args.is_empty() {
+        Err("Tietueiden numerot ja kentän numero puuttuvat.")?;
+    }
+
+    let (indexes, field_num) = {
+        let (first, rest) = tools::split_first(args);
+        if rest.is_empty() {
+            Err("Kentän numero puuttuu.")?;
+        }
+        let i = tools::parse_number_list(first)?;
+        let (n, _) = tools::split_first(rest);
+        let n = n
+            .parse::<usize>()
+            .map_err(|_| "Kentän numeron pitää olla positiivinen kokonaisluku.")?;
+        (i, n)
+    };
+
+    {
+        let max = editable.count();
+        if !tools::is_within_limits(max, &indexes) {
+            Err(format!("Suurin muokattava tietue on {max}."))?;
+        }
+    }
+
+    println!(
+        "Syötä kenttien arvot riveittäin. Ctrl-d lopettaa. Vain {} rivi(ä) huomioidaan.",
+        indexes.len()
+    );
+
+    let mut values: Vec<String> = Vec::new();
+    for (i, item) in io::stdin().lines().enumerate() {
+        let line = item?;
+        if i < indexes.len() {
+            values.push(tools::normalize_str(&line));
+        }
+    }
+
     Ok(())
 }
 
