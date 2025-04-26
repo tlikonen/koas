@@ -174,10 +174,9 @@ pub async fn edit_series(
     };
 
     println!(
-        "Tietueet: {i}\n\
-         Syötä kentän {f} arvot riveittäin.\n\
-         Pelkkä välilyönti poistaa kentän arvon (paitsi eräitä pakollisia).\n\
-         Tyhjä rivi jättää kentän ennalleen. Ctrl-d lopettaa.\n–––––",
+        "Syötä kentän {f} arvot riveittäin. Pelkkä välilyönti poistaa kentän arvon\n\
+         (paitsi eräitä pakollisia). Tyhjä rivi jättää kentän ennalleen. Ctrl-d lopettaa.\n\
+         Tietueet: {i}\n–––––",
         i = indexes
             .iter()
             .map(|x| x.to_string())
@@ -187,11 +186,23 @@ pub async fn edit_series(
     );
 
     let mut values: Vec<String> = Vec::new();
-    for (i, item) in io::stdin().lines().enumerate() {
-        let line = item?;
+    let mut input = io::stdin().lines();
+    let mut i = 0;
+
+    loop {
+        if i >= indexes.len() {
+            println!("Kaikki tiedot kerätty. Lopeta Ctrl-d:llä.");
+        }
+
+        let line = match input.next() {
+            None => break,
+            Some(v) => v?,
+        };
+
         if i < indexes.len() {
             values.push(line);
         }
+        i += 1;
     }
 
     if values.iter().all(|x| x.is_empty()) {
