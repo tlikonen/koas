@@ -141,6 +141,10 @@ async fn edit_students(
     let mut groups_update = false;
     let mut desc_update = false;
 
+    if lastname.is_empty() && firstname.is_empty() && groups.is_empty() && desc.is_empty() {
+        Err("Argumentiksi täytyy antaa muokattavia kenttiä.")?;
+    }
+
     if tools::has_content(lastname) {
         lastname_update = true;
     }
@@ -247,6 +251,10 @@ async fn edit_groups(
 
     let mut name_update = false;
     let mut desc_update = false;
+
+    if name.is_empty() && desc.is_empty() {
+        Err("Argumentiksi täytyy antaa muokattavia kenttiä.")?;
+    }
 
     if !name.is_empty() {
         let (first, rest) = tools::split_first(name);
