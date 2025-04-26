@@ -18,37 +18,6 @@ pub async fn stats(
     Ok(())
 }
 
-pub async fn groups(
-    modes: &Modes,
-    db: &mut PgConnection,
-    editable: &mut Editable,
-    mut args: &str,
-) -> Result<(), Box<dyn Error>> {
-    editable.clear();
-    if args.is_empty() {
-        args = "/";
-    }
-
-    let mut fields = tools::split_sep(args);
-    let name = fields.next().unwrap_or(""); // nimi
-    let desc = fields.next().unwrap_or(""); // lisätiedot
-
-    let query = Groups::query(db, name, desc).await?;
-    if query.is_empty() {
-        print_not_found();
-        return Ok(());
-    }
-
-    let mut table = query.table();
-    if modes.is_interactive() {
-        table.numbering();
-        query.move_to(editable);
-    }
-    table.print(modes.output());
-    editable.print_fields(&["nimi", "lisätiedot"]);
-    Ok(())
-}
-
 pub async fn students(
     modes: &Modes,
     db: &mut PgConnection,
@@ -79,6 +48,37 @@ pub async fn students(
     }
     table.print(modes.output());
     editable.print_fields(&["sukunimi", "etunimi", "ryhmät", "lisätiedot"]);
+    Ok(())
+}
+
+pub async fn groups(
+    modes: &Modes,
+    db: &mut PgConnection,
+    editable: &mut Editable,
+    mut args: &str,
+) -> Result<(), Box<dyn Error>> {
+    editable.clear();
+    if args.is_empty() {
+        args = "/";
+    }
+
+    let mut fields = tools::split_sep(args);
+    let name = fields.next().unwrap_or(""); // nimi
+    let desc = fields.next().unwrap_or(""); // lisätiedot
+
+    let query = Groups::query(db, name, desc).await?;
+    if query.is_empty() {
+        print_not_found();
+        return Ok(());
+    }
+
+    let mut table = query.table();
+    if modes.is_interactive() {
+        table.numbering();
+        query.move_to(editable);
+    }
+    table.print(modes.output());
+    editable.print_fields(&["nimi", "lisätiedot"]);
     Ok(())
 }
 
