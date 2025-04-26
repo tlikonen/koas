@@ -88,11 +88,11 @@ pub async fn edit(
     args: &str,
 ) -> Result<(), Box<dyn Error>> {
     if editable.is_none() {
-        Err("Edellinen komento ei sisällä muokattavia tietueita.".to_string())?;
+        Err("Edellinen komento ei sisällä muokattavia tietueita.")?;
     }
 
     if args.is_empty() {
-        Err("Puuttuu tietueiden numerot ja muokattavat kentät.".to_string())?;
+        Err("Puuttuu tietueiden numerot ja muokattavat kentät.")?;
     }
 
     let (indexes, fields) = {
