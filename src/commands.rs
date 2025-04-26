@@ -201,11 +201,7 @@ async fn edit_students(
 
         if groups_update {
             for name in &groups_add {
-                let rid = match Group::get_id(db, name).await? {
-                    Some(id) => id,
-                    None => Group::insert(db, name).await?,
-                };
-
+                let rid = Group::get_or_create(db, name).await?;
                 if student.in_group(db, rid).await? {
                     continue;
                 } else {

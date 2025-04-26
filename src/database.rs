@@ -262,6 +262,14 @@ pub struct Groups {
 }
 
 impl Group {
+    pub async fn get_or_create(db: &mut PgConnection, name: &str) -> Result<i32, Box<dyn Error>> {
+        let rid = match Self::get_id(db, name).await? {
+            Some(id) => id,
+            None => Self::create(db, name).await?,
+        };
+        Ok(rid)
+    }
+
     pub async fn get_id(db: &mut PgConnection, name: &str) -> Result<Option<i32>, Box<dyn Error>> {
         match sqlx::query("SELECT rid FROM ryhmat WHERE nimi = $1")
             .bind(name)
@@ -276,7 +284,7 @@ impl Group {
         }
     }
 
-    pub async fn insert(db: &mut PgConnection, name: &str) -> Result<i32, Box<dyn Error>> {
+    async fn create(db: &mut PgConnection, name: &str) -> Result<i32, Box<dyn Error>> {
         let row = sqlx::query("INSERT INTO ryhmat (nimi) VALUES ($1) RETURNING rid")
             .bind(name)
             .fetch_one(db)
