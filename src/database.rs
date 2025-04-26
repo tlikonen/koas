@@ -265,7 +265,14 @@ impl Group {
     pub async fn get_or_create(db: &mut PgConnection, name: &str) -> Result<i32, Box<dyn Error>> {
         let rid = match Self::get_id(db, name).await? {
             Some(id) => id,
-            None => Self::create(db, name).await?,
+            None => {
+                let row = sqlx::query("INSERT INTO ryhmat (nimi) VALUES ($1) RETURNING rid")
+                    .bind(name)
+                    .fetch_one(db)
+                    .await?;
+                let id: i32 = row.try_get("rid")?;
+                id
+            }
         };
         Ok(rid)
     }
@@ -282,16 +289,6 @@ impl Group {
                 Ok(Some(id))
             }
         }
-    }
-
-    async fn create(db: &mut PgConnection, name: &str) -> Result<i32, Box<dyn Error>> {
-        let row = sqlx::query("INSERT INTO ryhmat (nimi) VALUES ($1) RETURNING rid")
-            .bind(name)
-            .fetch_one(db)
-            .await?;
-
-        let id: i32 = row.try_get("rid")?;
-        Ok(id)
     }
 
     pub async fn edit_name(&self, db: &mut PgConnection, name: &str) -> Result<(), Box<dyn Error>> {
