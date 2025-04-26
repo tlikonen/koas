@@ -138,39 +138,100 @@ pub async fn edit_series(
         Err("Tietueiden numerot ja kentän numero puuttuvat.")?;
     }
 
+    let field_num_max = match editable.item() {
+        EditableItem::Students(_) => 4,
+        EditableItem::Groups(_) => 2,
+        EditableItem::Assignments => todo!(),
+        EditableItem::Scores => todo!(),
+        EditableItem::None => panic!("EditableItem::None"),
+    };
+
+    let field_num_err = || {
+        format!(
+            "Kentän numeron täytyy olla kokonaisluku 1–{}.",
+            field_num_max
+        )
+    };
+
     let (indexes, field_num) = {
         let (first, rest) = tools::split_first(args);
         if rest.is_empty() {
             Err("Kentän numero puuttuu.")?;
         }
         let i = tools::parse_number_list(first)?;
+
+        let max = editable.count();
+        if !tools::is_within_limits(max, &i) {
+            Err(format!("Suurin muokattava tietue on {max}."))?;
+        }
+
         let (n, _) = tools::split_first(rest);
-        let n = n
-            .parse::<usize>()
-            .map_err(|_| "Kentän numeron pitää olla positiivinen kokonaisluku.")?;
+        let n = n.parse::<usize>().map_err(|_| field_num_err())?;
+        if n < 1 || n > field_num_max {
+            Err(field_num_err())?;
+        }
+
         (i, n)
     };
 
-    {
-        let max = editable.count();
-        if !tools::is_within_limits(max, &indexes) {
-            Err(format!("Suurin muokattava tietue on {max}."))?;
-        }
-    }
-
     println!(
-        "Syötä kenttien arvot riveittäin. Ctrl-d lopettaa. Vain {} rivi(ä) huomioidaan.",
-        indexes.len()
+        "Tietueet: {i}\n\
+         Syötä kentän {f} arvot riveittäin. Pelkkä välilyönti poistaa kentän arvon.\n\
+         Tyhjä rivi jättää kentän ennalleen. Ctrl-d lopettaa.\n–––––",
+        i = indexes
+            .iter()
+            .map(|x| x.to_string())
+            .collect::<Vec<String>>()
+            .join(" "),
+        f = field_num,
     );
 
     let mut values: Vec<String> = Vec::new();
     for (i, item) in io::stdin().lines().enumerate() {
         let line = item?;
         if i < indexes.len() {
-            values.push(tools::normalize_str(&line));
+            values.push(line);
         }
     }
 
+    if values.iter().all(|x| x.is_empty()) {
+        Err("Ei tehty muutoksia.")?;
+    }
+
+    let mut ta = db.begin().await?;
+
+    for (n, i) in indexes.into_iter().enumerate() {
+        let index = vec![i];
+
+        let value = match values.get(n) {
+            None => break,
+            Some(v) => v,
+        };
+
+        if value.is_empty() {
+            continue;
+        }
+
+        let fields = {
+            let mut v = vec![""; field_num - 1];
+            v.push(value);
+            v.into_iter()
+        };
+
+        match editable.item() {
+            EditableItem::Students(students) => {
+                edit_students(&mut ta, index, students, fields).await?;
+            }
+            EditableItem::Groups(groups) => {
+                edit_groups(&mut ta, index, groups, fields).await?;
+            }
+            EditableItem::Assignments => todo!(),
+            EditableItem::Scores => todo!(),
+            EditableItem::None => panic!("EditableItem::None"),
+        }
+    }
+
+    ta.commit().await?;
     Ok(())
 }
 
