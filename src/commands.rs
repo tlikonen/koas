@@ -99,15 +99,14 @@ pub async fn edit(
         let (first, rest) = tools::split_first(args);
         let n = tools::parse_number_list(first)?;
         let f = tools::split_sep(rest);
-        (n, f)
-    };
 
-    {
         let max = editable.count();
-        if !tools::is_within_limits(max, &indexes) {
+        if !tools::is_within_limits(max, &n) {
             Err(format!("Suurin muokattava tietue on {max}."))?;
         }
-    }
+
+        (n, f)
+    };
 
     let mut ta = db.begin().await?;
     match editable.item() {
@@ -176,7 +175,8 @@ pub async fn edit_series(
 
     println!(
         "Tietueet: {i}\n\
-         Syötä kentän {f} arvot riveittäin. Pelkkä välilyönti poistaa kentän arvon.\n\
+         Syötä kentän {f} arvot riveittäin.\n\
+         Pelkkä välilyönti poistaa kentän arvon (paitsi eräitä pakollisia).\n\
          Tyhjä rivi jättää kentän ennalleen. Ctrl-d lopettaa.\n–––––",
         i = indexes
             .iter()
@@ -252,7 +252,7 @@ async fn edit_students(
     let mut desc_update = false;
 
     if lastname.is_empty() && firstname.is_empty() && groups.is_empty() && desc.is_empty() {
-        Err("Argumentiksi täytyy antaa muokattavia kenttiä.")?;
+        Err("Ei muokattavia kenttiä.")?;
     }
 
     if tools::has_content(lastname) {
@@ -301,7 +301,7 @@ async fn edit_students(
 
     for i in indexes {
         let student = match students.get(i - 1) {
-            None => Err("Muokattavia oppilaita ei ole.")?,
+            None => Err("Ei muokattavia oppilaita.")?,
             Some(v) => v,
         };
 
@@ -363,12 +363,12 @@ async fn edit_groups(
     let mut desc_update = false;
 
     if name.is_empty() && desc.is_empty() {
-        Err("Argumentiksi täytyy antaa muokattavia kenttiä.")?;
+        Err("Ei muokattavia kenttiä.")?;
     }
 
-    if !name.is_empty() {
+    if tools::has_content(name) {
         let (first, rest) = tools::split_first(name);
-        if tools::has_content(first) && rest.is_empty() {
+        if rest.is_empty() {
             if indexes.len() > 1 {
                 Err("Usealle ryhmälle ei voi antaa samaa nimeä.")?;
             }
