@@ -106,20 +106,14 @@ async fn config_stage(args: jg::Args) -> Result<(), Box<dyn Error>> {
         ))?;
     }
 
-    // Print format.
+    // Table-printing format.
     if !config.tables.is_empty() {
         output = config::select_table_format(&config.tables).unwrap_or_default();
     }
 
-    if args.option_exists("taulukot") {
-        let value = args
-            .options_value_last("taulukot")
-            .expect("valitsimella pitäisi olla arvo");
-
-        output = match config::select_table_format(value) {
-            Ok(f) => f,
-            Err(e) => Err(format!("Sopimaton arvo valitsimelle ”--taulukot={e}”."))?,
-        };
+    if let Some(value) = args.options_value_last("taulukot") {
+        output = config::select_table_format(value)
+            .map_err(|e| format!("Sopimaton arvo valitsimelle: ”--taulukot={e}”."))?;
     }
 
     // Choose the command stage: stdin, single or interactive.
