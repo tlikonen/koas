@@ -1,5 +1,5 @@
 use just_getopt as jg;
-use kastk::{Config, Mode, Modes, Output, tools};
+use kastk::{Config, Mode, Modes, Output, config, tools};
 use std::{error::Error, process::ExitCode};
 
 static PROGRAM_NAME: &str = env!("CARGO_BIN_NAME");
@@ -10,7 +10,7 @@ static PROGRAM_LICENSE: &str = env!("CARGO_PKG_LICENSE");
 #[tokio::main]
 async fn main() -> ExitCode {
     let args = jg::OptSpecs::new()
-        .option("muoto", "muoto", jg::OptValue::RequiredNonEmpty)
+        .option("taulukot", "taulukot", jg::OptValue::RequiredNonEmpty)
         .option("help", "h", jg::OptValue::None)
         .option("version", "versio", jg::OptValue::None)
         .flag(jg::OptFlags::PrefixMatchLongOptions)
@@ -66,7 +66,7 @@ fn print_usage() {
 
 Valitsimet
 
-  --muoto=taulukkomuoto
+  --taulukot=taulukkomuoto
 
         Taulukoiden tulostusmuoto no oletuksena ”unicode”, mutta muita
         vaihtoehtoja ovat ”ascii”, ”org-mode”, ”tab” ja ”latex”.
@@ -100,24 +100,19 @@ async fn config_stage(args: jg::Args) -> Result<(), Box<dyn Error>> {
     }
 
     // Print format.
-    if !config.format.is_empty() {
-        output = match select_output_format(&config.format) {
-            Ok(f) => f,
-            Err(e) => {
-                eprintln!(
-                    "{e}\nTarkista asetustiedosto ”{}”.",
-                    config_file.to_string_lossy()
-                );
-                Default::default()
-            }
-        };
+    if !config.tables.is_empty() {
+        output = config::select_table_format(&config.tables).unwrap_or_default();
     }
 
-    if args.option_exists("muoto") {
+    if args.option_exists("taulukot") {
         let value = args
-            .options_value_last("muoto")
+            .options_value_last("taulukot")
             .expect("valitsimella pitäisi olla arvo");
-        output = select_output_format(value)?;
+
+        output = match config::select_table_format(value) {
+            Ok(f) => f,
+            Err(e) => Err(format!("Sopimaton arvo valitsimelle ”--taulukot={e}”."))?,
+        };
     }
 
     // Choose the command stage: stdin, single or interactive.
@@ -133,16 +128,4 @@ async fn config_stage(args: jg::Args) -> Result<(), Box<dyn Error>> {
         modes.set_mode(Mode::Interactive);
         kastk::command_stage(modes, config).await
     }
-}
-
-fn select_output_format(value: &str) -> Result<Output, Box<dyn Error>> {
-    let out = match value.to_lowercase().as_str() {
-        "unicode" => Output::Unicode,
-        "ascii" => Output::Ascii,
-        "org-mode" => Output::Orgmode,
-        "tab" => Output::Tab,
-        "latex" => Output::Latex,
-        _ => Err(format!("Sopimaton tulostusmuoto ”{value}”."))?,
-    };
-    Ok(out)
 }

@@ -1,3 +1,4 @@
+use crate::modes::Output;
 use std::{
     error::Error,
     fs,
@@ -12,7 +13,7 @@ pub struct Config {
     pub database: String,
     pub user: String,
     pub password: String,
-    pub format: String,
+    pub tables: String,
 }
 
 impl Config {
@@ -25,10 +26,11 @@ impl Config {
     }
 
     pub fn read(path: &Path) -> Result<Config, String> {
+        let path_str = || path.to_string_lossy();
         let contents = fs::read_to_string(path).map_err(|e| {
             format!(
                 "Asetustiedoston ”{}” lukeminen epäonnistui: {}",
-                path.to_string_lossy(),
+                path_str(),
                 e.kind()
             )
         })?;
@@ -39,21 +41,32 @@ impl Config {
             database: String::new(),
             host: String::new(),
             port: 0,
-            format: String::new(),
+            tables: String::new(),
         };
         let mut port = false;
         let max = 10;
 
         for (n, line) in contents.lines().enumerate() {
             if n >= max {
-                eprintln!("Asetustiedostosta käsitellään vain ensimmäiset {max} riviä.");
+                eprintln!(
+                    "Asetustiedostosta ”{}” käsitellään vain ensimmäiset {max} riviä.",
+                    path_str()
+                );
                 break;
+            }
+
+            if line.chars().all(|c| c.is_whitespace()) {
+                continue;
             }
 
             let (key, value) = match line.split_once('=') {
                 Some(kv) => kv,
                 None => {
-                    eprintln!("Asetustiedoston rivi {} on sopimaton.", n + 1);
+                    eprintln!(
+                        "Asetustiedoston ”{}” rivi {} on sopimaton.",
+                        path_str(),
+                        n + 1
+                    );
                     continue;
                 }
             };
@@ -78,17 +91,21 @@ impl Config {
                 "portti" => {
                     config.port = value.parse::<u16>().map_err(|_| {
                         format!(
-                            "Asetustiedostossa kentän ”portti” arvo ”{value}” on \
-                             sopimaton tietoliikenneportiksi."
+                            "Asetustiedostossa ”{}” kentän ”portti” arvo on\n\
+                             sopimaton tietoliikenneportiksi.",
+                            path_str()
                         )
                     })?;
                     port = true;
                 }
-                "tulostusmuoto" => {
-                    config.format.clear();
-                    config.format.push_str(value);
+                "taulukot" => {
+                    config.tables.clear();
+                    config.tables.push_str(value);
                 }
-                _ => eprintln!("Asetustiedostossa tuntematon kenttä ”{key}”."),
+                _ => eprintln!(
+                    "Asetustiedostossa ”{}” tuntematon kenttä ”{key}”.",
+                    path_str()
+                ),
             }
         }
 
@@ -99,10 +116,16 @@ impl Config {
             || !port
         {
             Err(format!(
-                "Asetustiedostosta ”{}” puuttuu tärkeitä asetuksia.\n\
-                 Ohjeita saa valitsimella ”-h”.",
-                path.to_string_lossy(),
+                "Asetustiedostosta ”{}” puuttuu tärkeitä asetuksia. Tarkista ohjeet.",
+                path_str(),
             ))?;
+        }
+
+        if !config.tables.is_empty() && select_table_format(&config.tables).is_err() {
+            eprintln!(
+                "Asetustiedostossa ”{}” sopimaton kentän ”taulukot” arvo.",
+                path_str()
+            );
         }
 
         Ok(config)
@@ -117,13 +140,13 @@ impl Config {
                  kanta={db}\n\
                  osoite={host}\n\
                  portti={port}\n\
-                 tulostusmuoto={format}\n",
+                 taulukot={tables}\n",
                 host = self.host,
                 port = self.port,
                 db = self.database,
                 user = self.user,
                 pw = self.password,
-                format = self.format,
+                tables = self.tables,
             ),
         )
         .map_err(|e| {
@@ -145,7 +168,19 @@ impl Default for Config {
             database: String::new(),
             user: String::new(),
             password: String::new(),
-            format: "unicode".to_string(),
+            tables: "unicode".to_string(),
         }
     }
+}
+
+pub fn select_table_format(value: &str) -> Result<Output, Box<dyn Error>> {
+    let out = match value.to_lowercase().as_str() {
+        "unicode" => Output::Unicode,
+        "ascii" => Output::Ascii,
+        "org-mode" => Output::Orgmode,
+        "tab" => Output::Tab,
+        "latex" => Output::Latex,
+        _ => Err(value.to_string())?,
+    };
+    Ok(out)
 }
