@@ -131,7 +131,7 @@ pub fn split_sep(s: &str) -> impl Iterator<Item = &str> {
 
 pub fn split_first(s: &str) -> (&str, &str) {
     let trimmed = s.trim_start();
-    match trimmed.split_once(' ') {
+    match trimmed.split_once(|c: char| c.is_whitespace()) {
         Some((first, rest)) => (first, rest.trim_start()),
         None => (trimmed, ""),
     }
@@ -141,9 +141,14 @@ pub fn has_content(s: &str) -> bool {
     s.chars().any(|c| !c.is_whitespace())
 }
 
+pub fn words_iter(s: &str) -> impl Iterator<Item = &str> {
+    s.split(|c: char| c.is_whitespace())
+        .filter(|s| !s.is_empty())
+}
+
 pub fn normalize_str(s: &str) -> String {
     let mut new = String::new();
-    for (n, word) in s.split(' ').filter(|s| !s.is_empty()).enumerate() {
+    for (n, word) in words_iter(s).enumerate() {
         if n > 0 {
             new.push(' ');
         }
@@ -285,5 +290,14 @@ mod tests {
         assert_eq!(false, has_content(" "));
         assert_eq!(false, has_content("  \t  "));
         assert_eq!(false, has_content(""));
+    }
+
+    #[test]
+    fn t_words_iter() {
+        assert_eq!(
+            vec!["abc", "123"],
+            words_iter("  \t abc\t  \t123\t  ").collect::<Vec<&str>>()
+        );
+        assert_eq!(0, words_iter("  \t  \t").count());
     }
 }

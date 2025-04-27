@@ -1,6 +1,7 @@
 use crate::{
     Output,
     database::{Groups, Stats, Students},
+    tools,
 };
 
 pub struct Table {
@@ -372,7 +373,7 @@ fn print_table_latex(tbl: &Table) {
 }
 
 fn line_split(s: &str, max: usize) -> Vec<String> {
-    let words: Vec<&str> = s.split(' ').filter(|x| !x.is_empty()).collect();
+    let words: Vec<&str> = tools::words_iter(s).collect();
     let mut lines = Vec::new();
     let mut line = Vec::new();
     let mut i = 0;

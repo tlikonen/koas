@@ -286,7 +286,7 @@ async fn edit_students(
     let mut groups_remove: Vec<String> = Vec::new();
 
     if tools::has_content(groups) {
-        for g in groups.split(' ').filter(|s| !s.is_empty()) {
+        for g in tools::words_iter(groups) {
             let mut chars = g.chars();
             match chars.next() {
                 Some('+') => groups_add.push(chars.collect()),
@@ -448,7 +448,7 @@ pub async fn insert_student(
     let mut ta = db.begin().await?;
     student.insert(&mut ta).await?;
 
-    for g in groups.split(' ').filter(|s| !s.is_empty()) {
+    for g in tools::words_iter(groups) {
         let rid = Group::get_or_insert(&mut ta, g).await?;
         student.add_to_group(&mut ta, rid).await?;
     }
