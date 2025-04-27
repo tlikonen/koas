@@ -325,16 +325,16 @@ async fn edit_students(
         };
 
         if lastname_update {
-            student.edit_lastname(db, &lastname).await?;
+            student.update_lastname(db, &lastname).await?;
         }
 
         if firstname_update {
-            student.edit_firstname(db, &firstname).await?;
+            student.update_firstname(db, &firstname).await?;
         }
 
         if groups_update {
             for name in &groups_add {
-                let rid = Group::get_or_create(db, name).await?;
+                let rid = Group::get_or_insert(db, name).await?;
                 if student.in_group(db, rid).await? {
                     continue;
                 } else {
@@ -361,7 +361,7 @@ async fn edit_students(
         }
 
         if desc_update {
-            student.edit_description(db, &desc).await?;
+            student.update_description(db, &desc).await?;
         }
     }
 
@@ -411,10 +411,10 @@ async fn edit_groups(
             Some(g) => g,
         };
         if name_update {
-            group.edit_name(db, name).await?;
+            group.update_name(db, name).await?;
         }
         if desc_update {
-            group.edit_description(db, &desc).await?;
+            group.update_description(db, &desc).await?;
         }
     }
     Ok(())
@@ -454,7 +454,7 @@ pub async fn insert_student(
     student.insert(&mut ta).await?;
 
     for g in groups.split(' ').filter(|s| !s.is_empty()) {
-        let rid = Group::get_or_create(&mut ta, g).await?;
+        let rid = Group::get_or_insert(&mut ta, g).await?;
         student.add_to_group(&mut ta, rid).await?;
     }
 

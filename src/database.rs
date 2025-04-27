@@ -159,7 +159,7 @@ impl Student {
         Ok(count <= 1)
     }
 
-    pub async fn edit_lastname(
+    pub async fn update_lastname(
         &self,
         db: &mut PgConnection,
         lastname: &str,
@@ -172,7 +172,7 @@ impl Student {
         Ok(())
     }
 
-    pub async fn edit_firstname(
+    pub async fn update_firstname(
         &self,
         db: &mut PgConnection,
         firstname: &str,
@@ -185,7 +185,7 @@ impl Student {
         Ok(())
     }
 
-    pub async fn edit_description(
+    pub async fn update_description(
         &self,
         db: &mut PgConnection,
         desc: &str,
@@ -278,7 +278,7 @@ pub struct Groups {
 }
 
 impl Group {
-    pub async fn get_or_create(db: &mut PgConnection, name: &str) -> Result<i32, Box<dyn Error>> {
+    pub async fn get_or_insert(db: &mut PgConnection, name: &str) -> Result<i32, Box<dyn Error>> {
         let rid = match Self::get_id(db, name).await? {
             Some(id) => id,
             None => {
@@ -307,7 +307,11 @@ impl Group {
         }
     }
 
-    pub async fn edit_name(&self, db: &mut PgConnection, name: &str) -> Result<(), Box<dyn Error>> {
+    pub async fn update_name(
+        &self,
+        db: &mut PgConnection,
+        name: &str,
+    ) -> Result<(), Box<dyn Error>> {
         sqlx::query("UPDATE ryhmat SET nimi = $1 WHERE rid = $2")
             .bind(name)
             .bind(self.rid)
@@ -316,7 +320,7 @@ impl Group {
         Ok(())
     }
 
-    pub async fn edit_description(
+    pub async fn update_description(
         &self,
         db: &mut PgConnection,
         desc: &str,
