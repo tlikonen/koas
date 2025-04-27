@@ -118,7 +118,7 @@ pub async fn edit(
         }
         EditableItem::Assignments => todo!(),
         EditableItem::Scores => todo!(),
-        EditableItem::None => panic!("EditableItem::None"),
+        EditableItem::None => panic!(),
     }
     ta.commit().await?;
     Ok(())
@@ -142,7 +142,7 @@ pub async fn edit_series(
         EditableItem::Groups(_) => 2,
         EditableItem::Assignments => todo!(),
         EditableItem::Scores => todo!(),
-        EditableItem::None => panic!("EditableItem::None"),
+        EditableItem::None => panic!(),
     };
 
     let field_num_err = || format!("Kentän numeron täytyy olla kokonaisluku 1–{field_num_max}.");
@@ -241,7 +241,7 @@ pub async fn edit_series(
             }
             EditableItem::Assignments => todo!(),
             EditableItem::Scores => todo!(),
-            EditableItem::None => panic!("EditableItem::None"),
+            EditableItem::None => panic!(),
         }
     }
 
@@ -493,7 +493,7 @@ pub async fn delete(
         }
         EditableItem::Assignments => todo!(),
         EditableItem::Scores => todo!(),
-        EditableItem::None => panic!("EditableItem::None"),
+        EditableItem::None => panic!(),
     }
     ta.commit().await?;
     Ok(())
