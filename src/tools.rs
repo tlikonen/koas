@@ -142,11 +142,14 @@ pub fn has_content(s: &str) -> bool {
 }
 
 pub fn normalize_str(s: &str) -> String {
-    s.split(' ')
-        .filter(|s| !s.is_empty())
-        .map(|s| s.to_string())
-        .collect::<Vec<String>>()
-        .join(" ")
+    let mut new = String::new();
+    for (n, word) in s.split(' ').filter(|s| !s.is_empty()).enumerate() {
+        if n > 0 {
+            new.push(' ');
+        }
+        new.push_str(word);
+    }
+    new
 }
 
 pub fn umask(mask: u32) -> u32 {
@@ -271,6 +274,7 @@ mod tests {
         assert_eq!("abc 123", normalize_str("  abc   123  "));
         assert_eq!("abc", normalize_str("abc"));
         assert_eq!("abc", normalize_str(" abc "));
+        assert_eq!("€– –€ö", normalize_str(" €–   –€ö   "));
     }
 
     #[test]
