@@ -145,12 +145,7 @@ pub async fn edit_series(
         EditableItem::None => panic!("EditableItem::None"),
     };
 
-    let field_num_err = || {
-        format!(
-            "Kentän numeron täytyy olla kokonaisluku 1–{}.",
-            field_num_max
-        )
-    };
+    let field_num_err = || format!("Kentän numeron täytyy olla kokonaisluku 1–{field_num_max}.");
 
     let (indexes, rest) = {
         let (first, rest) = tools::split_first(args);
