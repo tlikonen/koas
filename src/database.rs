@@ -64,10 +64,14 @@ impl Editable {
     }
 
     pub fn print_fields(&self, fields: &[&str]) {
+        let mut s = String::new();
+        for (n, f) in fields.iter().enumerate() {
+            s.push_str(&format!(" / {}:{}", n + 1, f));
+        }
         match self.count() {
             0 => (),
-            1 => println!("Tietue: 1. Kentät: /{}", fields.join("/")),
-            n => println!("Tietueet: 1–{}. Kentät: /{}", n, fields.join("/")),
+            1 => println!("Tietue: 1. Kentät: {s}"),
+            n => println!("Tietueet: 1–{n}. Kentät: {s}"),
         }
     }
 }
