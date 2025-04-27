@@ -152,7 +152,7 @@ pub async fn edit_series(
         )
     };
 
-    let (indexes, field_num) = {
+    let (indexes, rest) = {
         let (first, rest) = tools::split_first(args);
         if rest.is_empty() {
             Err("Kentän numero puuttuu.")?;
@@ -164,45 +164,53 @@ pub async fn edit_series(
             Err(format!("Suurin muokattava tietue on {max}."))?;
         }
 
-        let (n, _) = tools::split_first(rest);
+        (i, rest)
+    };
+
+    let (field_num, rest) = {
+        let (n, rest) = tools::split_first(rest);
         let n = n.parse::<usize>().map_err(|_| field_num_err())?;
         if n < 1 || n > field_num_max {
             Err(field_num_err())?;
         }
-
-        (i, n)
+        (n, rest)
     };
 
-    println!(
-        "Syötä kentän {f} arvot riveittäin. Pelkkä välilyönti poistaa kentän arvon\n\
-         (paitsi eräitä pakollisia). Tyhjä rivi jättää kentän ennalleen. Ctrl-d lopettaa.\n\
-         Tietueet: {i}\n–––––",
-        i = indexes
-            .iter()
-            .map(|x| x.to_string())
-            .collect::<Vec<String>>()
-            .join(" "),
-        f = field_num,
-    );
-
     let mut values: Vec<String> = Vec::new();
-    let mut input = io::stdin().lines();
-    let mut i = 0;
-
-    loop {
-        if i >= indexes.len() {
-            println!("Kaikki tiedot kerätty. Lopeta Ctrl-d:llä.");
+    if tools::has_content(rest) {
+        for s in tools::split_sep(rest).map(|s| s.to_string()) {
+            values.push(s);
         }
-
-        let line = match input.next() {
-            None => break,
-            Some(v) => v?,
-        };
-
-        if i < indexes.len() {
-            values.push(line);
+    } else {
+        print!(
+            "Syötä kentän {f} arvot riveittäin. Pelkkä välilyönti poistaa kentän arvon\n\
+             (paitsi eräitä pakollisia). Tyhjä rivi jättää kentän ennalleen. Ctrl-d lopettaa.\n\
+             Tietueet:",
+            f = field_num,
+        );
+        for i in &indexes {
+            print!(" {i}");
         }
-        i += 1;
+        println!("\n---");
+
+        let mut input = io::stdin().lines();
+        let mut i = 0;
+
+        loop {
+            if i >= indexes.len() {
+                println!("Kaikki tiedot kerätty. Lopeta Ctrl-d:llä.");
+            }
+
+            let line = match input.next() {
+                None => break,
+                Some(v) => v?,
+            };
+
+            if i < indexes.len() {
+                values.push(line);
+            }
+            i += 1;
+        }
     }
 
     if values.iter().all(|x| x.is_empty()) {
