@@ -11,6 +11,7 @@ static PROGRAM_LICENSE: &str = env!("CARGO_PKG_LICENSE");
 async fn main() -> ExitCode {
     let args = jg::OptSpecs::new()
         .option("taulukot", "taulukot", jg::OptValue::RequiredNonEmpty)
+        .option("ohje", "ohje", jg::OptValue::Optional)
         .option("help", "h", jg::OptValue::None)
         .option("version", "versio", jg::OptValue::None)
         .flag(jg::OptFlags::PrefixMatchLongOptions)
@@ -31,6 +32,10 @@ async fn main() -> ExitCode {
     if error {
         eprintln!("Valitsin ”-h” tulostaa apua.");
         return ExitCode::FAILURE;
+    }
+
+    if args.option_exists("ohje") {
+        todo!();
     }
 
     if args.option_exists("help") {
@@ -66,10 +71,12 @@ fn print_usage() {
 
 Valitsimet
 
-  --taulukot=taulukkomuoto
-
+  --taulukot=tulostusmuoto
         Taulukoiden tulostusmuoto no oletuksena ”unicode”, mutta muita
         vaihtoehtoja ovat ”ascii”, ”org-mode”, ”tab” ja ”latex”.
+
+  --ohje, --ohje=tyyppi
+        Tulostaa ohjelman ohjeita. (Ei ole toteutettu vielä.)
 
   -h    Tulostaa tämän ohjeen.
 
