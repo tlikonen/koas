@@ -10,7 +10,6 @@ static PROGRAM_LICENSE: &str = env!("CARGO_PKG_LICENSE");
 #[tokio::main]
 async fn main() -> ExitCode {
     let args = jg::OptSpecs::new()
-        .option("postgresql", "postgresql", jg::OptValue::RequiredNonEmpty)
         .option("muoto", "muoto", jg::OptValue::RequiredNonEmpty)
         .option("help", "h", jg::OptValue::None)
         .option("version", "versio", jg::OptValue::None)
@@ -72,29 +71,6 @@ Valitsimet
         Taulukoiden tulostusmuoto no oletuksena ”unicode”, mutta muita
         vaihtoehtoja ovat ”ascii”, ”org-mode”, ”tab” ja ”latex”.
 
-  --postgresql=/käyttäjä/salasana/kanta/osoite/portti
-
-        Asettaa PostgreSQL-tietokantapalvelimen yhteysasetukset ja
-        tallentaa ne asetustiedostoon. Tätä valitsinta ei enää tarvita,
-        jos asetukset pysyvät samana.
-
-        Komentorivillä annetut asetukset ”käyttäjä” ja ”salasana” ovat
-        käyttäjän tunnistamistietoja, ja ”kanta” on tietokannan nimi,
-        johon kirjaudutaan. Nämä asetukset ovat pakollisia.
-
-        Asetukset ”osoite” ja ”portti” ovat palvelimen verkko-
-        osoitetietoja. Jos osoitetta ei ole annettu, käytetään osoitetta
-        ”localhost”. Myös ”portti”-asetuksen voi jättää tyhjäksi,
-        jolloin käytetään PostgreSQL:n oletusporttia 5432.
-
-        Tietokannan täytyy olla valmiiksi olemassa, ja tällä käyttäjällä
-        pitää olla CREATE-oikeus eli oikeus luoda taulukoita yms.
-
-        Asetusten erotinmerkkinä on yllä olevassa esimerkissä vinoviiva
-        (/), mutta se voisi olla mikä tahansa muukin merkki. Valitsimen
-        arvon ensimmäinen merkki määrittää, mikä merkki erottaa
-        asetuskentät toisistaan.
-
   -h    Tulostaa tämän ohjeen.
 
   --versio
@@ -110,88 +86,38 @@ async fn config_stage(args: jg::Args) -> Result<(), Box<dyn Error>> {
 
     tools::umask(0o077);
 
+    if config_file.exists() {
+        config = Config::read(&config_file)?;
+    } else {
+        config = Default::default();
+        config.write(&config_file)?;
+        Err(format!(
+            "Luotiin asetustiedosto ”{}”.\n\
+             Muokkaa tiedostossa tietokannan yhteysasetukset kuntoon tekstieditorilla.\n\
+             Valitsin ”--ohje” tulostaa apua.",
+            config_file.to_string_lossy()
+        ))?;
+    }
+
     // Print format.
+    if !config.format.is_empty() {
+        output = match select_output_format(&config.format) {
+            Ok(f) => f,
+            Err(e) => {
+                eprintln!(
+                    "{e}\nTarkista asetustiedosto ”{}”.",
+                    config_file.to_string_lossy()
+                );
+                Default::default()
+            }
+        };
+    }
+
     if args.option_exists("muoto") {
         let value = args
             .options_value_last("muoto")
             .expect("valitsimella pitäisi olla arvo");
-
-        match value.to_lowercase().as_str() {
-            "unicode" => output = Output::Unicode,
-            "ascii" => output = Output::Ascii,
-            "org-mode" => output = Output::Orgmode,
-            "tab" => output = Output::Tab,
-            "latex" => output = Output::Latex,
-            _ => {
-                Err(format!("Sopimaton arvo ”{value}” valitsimelle ”--muoto”."))?;
-            }
-        }
-    }
-
-    // Database configuration.
-    if args.option_exists("postgresql") {
-        let value = args
-            .options_value_last("postgresql")
-            .expect("valitsimella pitäisi olla arvo");
-
-        let mut fields = tools::split_sep(value);
-        let err =
-            |field: &str| format!("Valitsimelle ”--postgresql” täytyy antaa kenttä ”{field}”.");
-        let default: Config = Default::default();
-
-        let user = fields
-            .next()
-            .filter(|x| !x.is_empty())
-            .ok_or(err("käyttäjä"))?;
-
-        let password = fields
-            .next()
-            .filter(|x| !x.is_empty())
-            .ok_or(err("salasana"))?;
-
-        let database = fields
-            .next()
-            .filter(|x| !x.is_empty())
-            .ok_or(err("kanta"))?;
-
-        let host = fields
-            .next()
-            .filter(|x| !x.is_empty())
-            .unwrap_or(&default.host);
-
-        let port = match fields.next().filter(|x| !x.is_empty()) {
-            None => default.port,
-            Some(field) => field.parse::<u16>().map_err(|_| {
-                format!(
-                    "Valitsimen ”--postgresql” kentän ”portti” arvo ”{field}” on \
-                     sopimaton tietoliikenneportiksi."
-                )
-            })?,
-        };
-
-        config = Config {
-            user: user.to_string(),
-            password: password.to_string(),
-            database: database.to_string(),
-            host: host.to_string(),
-            port,
-        };
-
-        config.write(&config_file)?;
-        println!(
-            "Tietokannan yhteysasetukset tallennettu asetustiedostoon ”{}”.",
-            config_file.to_string_lossy()
-        );
-    } else if config_file.exists() {
-        config = Config::read(&config_file)?;
-    } else {
-        return Err(format!(
-            "Asetustiedosto ”{}” puuttuu. \
-             Luo se käyttämällä valitsinta ”--postgresql”.\n\
-             Valitsin ”-h” tulostaa apua.",
-            config_file.to_string_lossy()
-        )
-        .into());
+        output = select_output_format(value)?;
     }
 
     // Choose the command stage: stdin, single or interactive.
@@ -207,4 +133,16 @@ async fn config_stage(args: jg::Args) -> Result<(), Box<dyn Error>> {
         modes.set_mode(Mode::Interactive);
         kastk::command_stage(modes, config).await
     }
+}
+
+fn select_output_format(value: &str) -> Result<Output, Box<dyn Error>> {
+    let out = match value.to_lowercase().as_str() {
+        "unicode" => Output::Unicode,
+        "ascii" => Output::Ascii,
+        "org-mode" => Output::Orgmode,
+        "tab" => Output::Tab,
+        "latex" => Output::Latex,
+        _ => Err(format!("Sopimaton tulostusmuoto ”{value}”."))?,
+    };
+    Ok(out)
 }
