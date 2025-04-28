@@ -373,22 +373,21 @@ fn print_table_latex(tbl: &Table) {
 }
 
 fn line_split(s: &str, max: usize) -> Vec<String> {
-    let words: Vec<&str> = tools::words_iter(s).collect();
+    let mut words = tools::words_iter(s).peekable();
     let mut lines = Vec::new();
     let mut line = Vec::new();
-    let mut i = 0;
 
     loop {
-        if words.get(i).is_none() {
-            break;
-        }
+        let word = match words.peek() {
+            None => break,
+            Some(v) => v,
+        };
 
-        if line.is_empty() || line.join(" ").chars().count() + words[i].chars().count() < max {
-            line.push(words[i]);
-            if words.get(i + 1).is_none() {
+        if line.is_empty() || line.join(" ").chars().count() + word.chars().count() < max {
+            line.push(words.next().unwrap_or_default());
+            if words.peek().is_none() {
                 lines.push(line.join(" "));
             }
-            i += 1;
         } else {
             lines.push(line.join(" "));
             line.clear();
