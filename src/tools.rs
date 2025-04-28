@@ -1,7 +1,7 @@
 use std::error::Error;
 
 pub fn parse_number_list(s: &str) -> Result<Vec<usize>, Box<dyn Error>> {
-    let mut vec: Vec<usize> = Vec::new();
+    let mut vec: Vec<usize> = Vec::with_capacity(25);
     let errmsg = |v| format!("Sopimaton tietueen numero: ”{v}”.");
     let is_all_digits = |it: &str| !it.is_empty() && it.chars().all(|c| c.is_ascii_digit());
 
@@ -147,7 +147,7 @@ pub fn words_iter(s: &str) -> impl Iterator<Item = &str> {
 }
 
 pub fn normalize_str(s: &str) -> String {
-    let mut new = String::new();
+    let mut new = String::with_capacity(60);
     for (n, word) in words_iter(s).enumerate() {
         if n > 0 {
             new.push(' ');
