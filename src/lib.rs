@@ -1,13 +1,13 @@
-pub mod commands;
+mod commands;
 pub mod config;
 mod database;
 pub mod modes;
 mod print;
 pub mod tools;
 
-pub use crate::{
+use crate::{
     config::Config,
-    database::{Editable, EditableItem},
+    database::Editable,
     modes::{Mode, Modes, Output},
 };
 use sqlx::{Connection, PgConnection};

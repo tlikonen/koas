@@ -1,5 +1,9 @@
 use just_getopt as jg;
-use koas::{Config, Mode, Modes, Output, config, tools};
+use koas::{
+    config::{self, Config},
+    modes::{Mode, Modes, Output},
+    tools,
+};
 use std::{error::Error, process::ExitCode};
 
 static PROGRAM_NAME: &str = env!("CARGO_BIN_NAME");
