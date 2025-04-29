@@ -721,7 +721,7 @@ version = "2.0.0"
 source = "git+https://github.com/tlikonen/just-getopt.git?branch=main#2f355df3eeee8eee7c3b5a0c3f34177c0764c972"
 
 [[package]]
-name = "kastk"
+name = "koas"
 version = "0.1.0"
 dependencies = [
  "futures",

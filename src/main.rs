@@ -1,5 +1,5 @@
 use just_getopt as jg;
-use kastk::{Config, Mode, Modes, Output, config, tools};
+use koas::{Config, Mode, Modes, Output, config, tools};
 use std::{error::Error, process::ExitCode};
 
 static PROGRAM_NAME: &str = env!("CARGO_BIN_NAME");
@@ -121,12 +121,12 @@ async fn config_stage(args: jg::Args) -> Result<(), Box<dyn Error>> {
     modes.set_output(output);
     if args.other.len() == 1 && args.other[0] == "-" {
         modes.set_mode(Mode::Stdin);
-        kastk::command_stage(modes, config).await
+        koas::command_stage(modes, config).await
     } else if !args.other.is_empty() {
         modes.set_mode(Mode::Single(args.other.join(" ")));
-        kastk::command_stage(modes, config).await
+        koas::command_stage(modes, config).await
     } else {
         modes.set_mode(Mode::Interactive);
-        kastk::command_stage(modes, config).await
+        koas::command_stage(modes, config).await
     }
 }
