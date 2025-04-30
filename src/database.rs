@@ -387,6 +387,62 @@ impl Groups {
     }
 }
 
+pub struct Score {
+    pub oid: i32,
+    pub lastname: String,
+    pub firstname: String,
+    pub sid: i32,
+    pub assignment: String,
+    pub assignment_short: String,
+    pub weight: i32,
+    pub score: Option<String>,
+    pub score_description: Option<String>,
+}
+
+pub struct ScoresForAssignment {
+    pub assignment: String,
+    pub group: String,
+    pub group_description: String,
+    pub scores: Vec<Score>,
+}
+
+pub struct ScoresForAssignments {
+    pub list: Vec<ScoresForAssignment>,
+}
+
+impl ScoresForAssignments {
+    pub async fn query(
+        db: &mut PgConnection,
+        group: &str,
+        assign: &str,
+        assign_short: &str,
+    ) -> Result<ScoresForAssignments, Box<dyn Error>> {
+        let mut rows = sqlx::query(
+            "SELECT ryhma, rid, rlt, sija, sid, suoritus, lyhenne, painokerroin, \
+             oid, sukunimi, etunimi, arvosana, alt \
+             FROM view_arvosanat \
+             WHERE ryhma LIKE $1 AND suoritus LIKE $2 AND lyhenne LIKE $3 AND oid IS NOT NULL \
+             ORDER BY ryhma, rid, sija, sid, sukunimi, etunimi, oid",
+        )
+        .bind(like_esc_wild(group))
+        .bind(like_esc_wild(assign))
+        .bind(like_esc_wild(assign_short))
+        .fetch(db);
+
+        // Arvosanat (Score) lisätään vektoriin, ja vektori liitetään
+        // suoritukseen ScoresForAssignment aina, kun sid vaihtuu.
+        // Suoritukset lisätään toiseen vektoriin, joka palautetaan
+        // muodossa ScoresForAssignments.
+
+        let mut list = Vec::new();
+        while let Some(row) = rows.try_next().await? {
+            todo!();
+        }
+
+        Ok(ScoresForAssignments { list })
+    }
+}
+
 const LIKE_ESC_CHARS: &str = "_%\\";
 
 fn like_esc_wild(string: &str) -> String {
