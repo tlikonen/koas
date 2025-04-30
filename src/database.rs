@@ -434,8 +434,8 @@ impl ScoresForAssignments {
             None => return Ok(ScoresForAssignments { list: Vec::new() }),
         };
 
-        let mut list: Vec<ScoresForAssignment> = Vec::with_capacity(1);
-        let mut scores: Vec<Score> = Vec::with_capacity(10);
+        let mut list = Vec::with_capacity(1);
+        let mut scores = Vec::with_capacity(10);
 
         loop {
             let sid: i32 = row.try_get("sid")?;
