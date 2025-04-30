@@ -387,7 +387,6 @@ impl Groups {
     }
 }
 
-#[derive(Clone)]
 pub struct Score {
     pub oid: i32,
     pub lastname: String,
