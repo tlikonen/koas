@@ -387,6 +387,7 @@ impl Groups {
     }
 }
 
+#[derive(Clone)]
 pub struct Score {
     pub oid: i32,
     pub lastname: String,
@@ -429,14 +430,54 @@ impl ScoresForAssignments {
         .bind(like_esc_wild(assign_short))
         .fetch(db);
 
-        // Arvosanat (Score) lisätään vektoriin, ja vektori liitetään
-        // suoritukseen ScoresForAssignment aina, kun sid vaihtuu.
-        // Suoritukset lisätään toiseen vektoriin, joka palautetaan
-        // muodossa ScoresForAssignments.
+        let mut row = match rows.try_next().await? {
+            Some(r) => r,
+            None => return Ok(ScoresForAssignments { list: Vec::new() }),
+        };
 
-        let mut list = Vec::new();
-        while let Some(row) = rows.try_next().await? {
-            todo!();
+        let mut list: Vec<ScoresForAssignment> = Vec::with_capacity(1);
+        let mut scores: Vec<Score> = Vec::with_capacity(10);
+
+        loop {
+            let sid: i32 = row.try_get("sid")?;
+
+            scores.push(Score {
+                oid: row.try_get("oid")?,
+                lastname: row.try_get("sukunimi")?,
+                firstname: row.try_get("etunimi")?,
+                sid,
+                assignment: row.try_get("suoritus")?,
+                assignment_short: row.try_get("lyhenne")?,
+                weight: row.try_get("painokerroin")?,
+                score: row.try_get("arvosana")?,
+                score_description: row.try_get("alt")?,
+            });
+
+            row = match rows.try_next().await? {
+                Some(next_row) => {
+                    let next_sid: i32 = next_row.try_get("sid")?;
+                    if next_sid != sid {
+                        let l = scores.len();
+                        list.push(ScoresForAssignment {
+                            assignment: row.try_get("suoritus")?,
+                            group: row.try_get("ryhma")?,
+                            group_description: row.try_get("rlt")?,
+                            scores,
+                        });
+                        scores = Vec::with_capacity(l);
+                    }
+                    next_row
+                }
+                None => {
+                    list.push(ScoresForAssignment {
+                        assignment: row.try_get("suoritus")?,
+                        group: row.try_get("ryhma")?,
+                        group_description: row.try_get("rlt")?,
+                        scores,
+                    });
+                    break;
+                }
+            };
         }
 
         Ok(ScoresForAssignments { list })
