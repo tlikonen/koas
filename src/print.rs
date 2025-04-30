@@ -375,7 +375,7 @@ fn print_table_latex(tbl: &Table) {
 fn line_split(s: &str, max: usize) -> Vec<String> {
     let mut words = tools::words_iter(s);
     let mut lines = Vec::with_capacity(20);
-    let mut line = String::with_capacity(80);
+    let mut line = String::with_capacity(60);
 
     loop {
         let word = match words.next() {
@@ -392,8 +392,9 @@ fn line_split(s: &str, max: usize) -> Vec<String> {
             line.push(' ');
             line.push_str(word);
         } else {
-            lines.push(line.clone());
-            line.clear();
+            let l = line.len();
+            lines.push(line);
+            line = String::with_capacity(l);
             line.push_str(word);
         }
     }
