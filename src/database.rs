@@ -394,7 +394,7 @@ pub struct Score {
     pub sid: i32,
     pub assignment: String,
     pub assignment_short: String,
-    pub weight: i32,
+    pub weight: Option<i32>,
     pub score: Option<String>,
     pub score_description: Option<String>,
 }
