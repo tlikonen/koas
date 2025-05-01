@@ -47,10 +47,10 @@ impl Table {
             return;
         }
         match output {
-            Output::Unicode => print_table(self, BOX_UNICODE),
-            Output::UnicodeOpen => print_table(self, BOX_UNICODE_OPEN),
-            Output::Ascii => print_table(self, BOX_ASCII),
-            Output::Orgmode => print_table(self, BOX_ORGMODE),
+            Output::Unicode => print_table(self, TBL_UNICODE),
+            Output::UnicodeOpen => print_table(self, TBL_UNICODE_OPEN),
+            Output::Ascii => print_table(self, TBL_ASCII),
+            Output::Orgmode => print_table(self, TBL_ORGMODE),
             Output::Tab => print_table_tab(self),
             Output::Latex => print_table_latex(self),
         }
@@ -251,7 +251,7 @@ impl ScoresForAssignment {
 }
 
 #[rustfmt::skip]
-static BOX_UNICODE: [&str; 15] = [
+static TBL_UNICODE: [&str; 15] = [
     "╒═", "═", "═╤═", "═╕", // top
     "├─", "─", "─┼─", "─┤", // mid
     "╘═", "═", "═╧═", "═╛", // bottom
@@ -259,7 +259,7 @@ static BOX_UNICODE: [&str; 15] = [
 ];
 
 #[rustfmt::skip]
-static BOX_UNICODE_OPEN: [&str; 15] = [
+static TBL_UNICODE_OPEN: [&str; 15] = [
     "═", "═", "══", "═", // top
     "─", "─", "──", "─", // mid
     "═", "═", "══", "═", // bottom
@@ -267,7 +267,7 @@ static BOX_UNICODE_OPEN: [&str; 15] = [
 ];
 
 #[rustfmt::skip]
-static BOX_ASCII: [&str; 15] = [
+static TBL_ASCII: [&str; 15] = [
     "+-", "-", "-+-", "-+", // top
     "+-", "-", "-+-", "-+", // mid
     "+-", "-", "-+-", "-+", // bottom
@@ -275,32 +275,32 @@ static BOX_ASCII: [&str; 15] = [
 ];
 
 #[rustfmt::skip]
-static BOX_ORGMODE: [&str; 15] = [
+static TBL_ORGMODE: [&str; 15] = [
     "|-", "-", "-+-", "-|", // top
     "|-", "-", "-+-", "-|", // mid
     "|-", "-", "-+-", "-|", // bottom
     "| ", " | ", " |", // vert: left mid right
 ];
 
-fn print_table(tbl: &Table, boxes: [&str; 15]) {
-    let top_left = boxes[0];
-    let top_line = boxes[1];
-    let top_mid = boxes[2];
-    let top_right = boxes[3];
+fn print_table(tbl: &Table, tbl_chars: [&str; 15]) {
+    let top_left = tbl_chars[0];
+    let top_line = tbl_chars[1];
+    let top_mid = tbl_chars[2];
+    let top_right = tbl_chars[3];
 
-    let mid_left = boxes[4];
-    let mid_line = boxes[5];
-    let mid_mid = boxes[6];
-    let mid_right = boxes[7];
+    let mid_left = tbl_chars[4];
+    let mid_line = tbl_chars[5];
+    let mid_mid = tbl_chars[6];
+    let mid_right = tbl_chars[7];
 
-    let bottom_left = boxes[8];
-    let bottom_line = boxes[9];
-    let bottom_mid = boxes[10];
-    let bottom_right = boxes[11];
+    let bottom_left = tbl_chars[8];
+    let bottom_line = tbl_chars[9];
+    let bottom_mid = tbl_chars[10];
+    let bottom_right = tbl_chars[11];
 
-    let vert_left = boxes[12];
-    let vert_mid = boxes[13];
-    let vert_right = boxes[14];
+    let vert_left = tbl_chars[12];
+    let vert_mid = tbl_chars[13];
+    let vert_right = tbl_chars[14];
 
     let series = |c, n| {
         for _ in 0..n {
