@@ -111,6 +111,7 @@ async fn query_commands(
         "tk" => commands::stats(modes, db, editable).await?,
         "hr" => commands::groups(modes, db, editable, args).await?,
         "ho" => commands::students(modes, db, editable, args).await?,
+        "has" => commands::scores_for_assignments(modes, db, editable, args).await?,
         _ => return Ok(false),
     }
     Ok(true)

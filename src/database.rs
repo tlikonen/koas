@@ -25,7 +25,7 @@ pub enum EditableItem {
     Students(Vec<Student>),
     Groups(Vec<Group>),
     Assignments,
-    Scores,
+    Scores(Vec<Score>),
 }
 
 pub struct Editable {
@@ -55,7 +55,7 @@ impl Editable {
             EditableItem::Students(v) => v.len(),
             EditableItem::Groups(v) => v.len(),
             EditableItem::Assignments => todo!(),
-            EditableItem::Scores => todo!(),
+            EditableItem::Scores(v) => v.len(),
         }
     }
 
@@ -387,6 +387,7 @@ impl Groups {
     }
 }
 
+#[derive(Clone)]
 pub struct Score {
     pub oid: i32,
     pub lastname: String,
@@ -480,6 +481,18 @@ impl ScoresForAssignments {
         }
 
         Ok(ScoresForAssignments { list })
+    }
+
+    pub fn count(&self) -> usize {
+        self.list.len()
+    }
+
+    pub fn get(&self, n: usize) -> &ScoresForAssignment {
+        &self.list[n]
+    }
+
+    pub fn copy_to(self, n: usize, ed: &mut Editable) {
+        ed.item = EditableItem::Scores(self.list[n].scores.clone());
     }
 }
 

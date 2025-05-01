@@ -1,6 +1,8 @@
 use crate::{
     Modes,
-    database::{Editable, EditableItem, Group, Groups, Stats, Student, Students},
+    database::{
+        Editable, EditableItem, Group, Groups, ScoresForAssignments, Stats, Student, Students,
+    },
     tools,
 };
 use sqlx::{Connection, PgConnection};
@@ -82,6 +84,49 @@ pub async fn groups(
     Ok(())
 }
 
+pub async fn scores_for_assignments(
+    modes: &Modes,
+    db: &mut PgConnection,
+    editable: &mut Editable,
+    mut args: &str,
+) -> Result<(), Box<dyn Error>> {
+    editable.clear();
+    if args.is_empty() {
+        args = "/";
+    }
+
+    let mut fields = tools::split_sep(args);
+    let group = fields.next().unwrap_or(""); // ryhmä
+    let assign = fields.next().unwrap_or(""); // suoritus
+    let assign_short = fields.next().unwrap_or(""); // lyhenne
+
+    let query = ScoresForAssignments::query(db, group, assign, assign_short).await?;
+
+    match query.count() {
+        0 => {
+            print_not_found();
+            return Ok(());
+        }
+        1 => {
+            let mut table = query.get(0).table();
+            if modes.is_interactive() {
+                table.numbering();
+                query.copy_to(0, editable);
+            }
+            table.print(modes.output());
+            editable.print_fields(&["arvosana", "lisätiedot"]);
+        }
+        n => {
+            for i in 0..n {
+                let table = query.get(i).table();
+                table.print(modes.output());
+            }
+        }
+    }
+
+    Ok(())
+}
+
 pub async fn edit(
     db: &mut PgConnection,
     editable: &mut Editable,
@@ -117,7 +162,7 @@ pub async fn edit(
             edit_groups(&mut ta, indexes, groups, fields).await?;
         }
         EditableItem::Assignments => todo!(),
-        EditableItem::Scores => todo!(),
+        EditableItem::Scores(_) => todo!(),
         EditableItem::None => panic!(),
     }
     ta.commit().await?;
@@ -141,7 +186,7 @@ pub async fn edit_series(
         EditableItem::Students(_) => 4,
         EditableItem::Groups(_) => 2,
         EditableItem::Assignments => todo!(),
-        EditableItem::Scores => todo!(),
+        EditableItem::Scores(_) => todo!(),
         EditableItem::None => panic!(),
     };
 
@@ -240,7 +285,7 @@ pub async fn edit_series(
                 edit_groups(&mut ta, index, groups, fields).await?;
             }
             EditableItem::Assignments => todo!(),
-            EditableItem::Scores => todo!(),
+            EditableItem::Scores(_) => todo!(),
             EditableItem::None => panic!(),
         }
     }
@@ -492,7 +537,7 @@ pub async fn delete(
                  kun siltä poistaa kaikki oppilaat ja suoritukset.")?;
         }
         EditableItem::Assignments => todo!(),
-        EditableItem::Scores => todo!(),
+        EditableItem::Scores(_) => todo!(),
         EditableItem::None => panic!(),
     }
     ta.commit().await?;

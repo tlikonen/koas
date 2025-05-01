@@ -1,6 +1,6 @@
 use crate::{
     Output,
-    database::{Groups, Stats, Students},
+    database::{Groups, ScoresForAssignment, Stats, Students},
     tools,
 };
 
@@ -57,6 +57,7 @@ impl Table {
 }
 
 enum Row {
+    Title(String),
     Toprule,
     Midrule,
     Bottomrule,
@@ -188,6 +189,66 @@ impl Students {
     }
 }
 
+impl ScoresForAssignment {
+    pub fn table(&self) -> Table {
+        const DESC_WIDTH: usize = 50;
+
+        let mut rows = vec![
+            Row::Title(format!(
+                "\n{r} {l}\n{s}",
+                r = self.group,
+                l = self.group_description,
+                s = self.assignment,
+            )),
+            Row::Toprule,
+            Row::Head(vec![
+                Cell::Left("Oppilas".to_string()),
+                Cell::Left("As".to_string()),
+                Cell::Left("Lisätiedot".to_string()),
+            ]),
+            Row::Midrule,
+        ];
+
+        let mut sum = 0.0;
+        let mut count = 0;
+
+        for score in &self.scores {
+            rows.push(Row::Data(vec![
+                Cell::Left(format!("{}, {}", score.lastname, score.firstname)),
+                match &score.score {
+                    Some(s) => {
+                        if let Some(f) = tools::parse_float(s) {
+                            sum += f;
+                            count += 1;
+                        }
+                        Cell::Left(s.clone())
+                    }
+                    None => Cell::Empty,
+                },
+                match &score.score_description {
+                    Some(s) => Cell::Multi(line_split(&s, DESC_WIDTH)),
+                    None => Cell::Empty,
+                },
+            ]));
+        }
+
+        let average = if count > 0 {
+            Cell::Left(format_decimal(sum / f64::from(count)))
+        } else {
+            Cell::Empty
+        };
+
+        rows.push(Row::Midrule);
+        rows.push(Row::Foot(vec![
+            Cell::Left("Keskiarvo".to_string()),
+            average,
+            Cell::Empty,
+        ]));
+        rows.push(Row::Bottomrule);
+        Table { rows }
+    }
+}
+
 #[rustfmt::skip]
 static BOX_UNICODE: [&str; 15] = [
     "╒═", "═", "═╤═", "═╕", // top
@@ -245,6 +306,7 @@ fn print_table(tbl: &Table, boxes: [&str; 15]) {
     let widths = tbl.widths();
     for row in &tbl.rows {
         match row {
+            Row::Title(s) => println!("{s}\n"),
             Row::Toprule => {
                 print!("{top_left}");
                 for i in 0..widths.len() {
@@ -392,6 +454,11 @@ fn line_split(s: &str, max: usize) -> Vec<String> {
 
     lines.push(line);
     lines
+}
+
+fn format_decimal(num: f64) -> String {
+    const PRECISION: f64 = 100.0;
+    format!("{:.2}", (num * PRECISION).round() / PRECISION).replace(".", ",")
 }
 
 #[cfg(test)]
