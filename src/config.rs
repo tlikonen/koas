@@ -179,7 +179,7 @@ pub fn select_table_format(value: &str) -> Result<Output, Box<dyn Error>> {
         "unicode-avoin" => Output::UnicodeOpen,
         "ascii" => Output::Ascii,
         "ascii-avoin" => Output::AsciiOpen,
-        "org-mode" => Output::Orgmode,
+        "emacs" => Output::Orgmode,
         "tab" => Output::Tab,
         "latex" => Output::Latex,
         _ => Err(value.to_string())?,
