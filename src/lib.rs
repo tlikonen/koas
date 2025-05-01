@@ -14,6 +14,9 @@ use sqlx::{Connection, PgConnection};
 use std::{error::Error, io};
 
 pub async fn command_stage(modes: Modes, config: Config) -> Result<(), Box<dyn Error>> {
+    const PROGRAM_NAME: &str = env!("CARGO_PKG_NAME");
+    const PROGRAM_VERSION: &str = env!("CARGO_PKG_VERSION");
+
     let mut db = database::connect(&config).await?;
     // database::init()?;    // Check and create database item here.
     let mut editable: Editable = Default::default();
@@ -21,7 +24,9 @@ pub async fn command_stage(modes: Modes, config: Config) -> Result<(), Box<dyn E
     match modes.mode() {
         Mode::Interactive => {
             println!(
-                "PostgreSQL (postgres://{user}@{host}:{port}/{db})",
+                "{prg} v{ver} (postgres://{user}@{host}:{port}/{db})",
+                prg = PROGRAM_NAME,
+                ver = PROGRAM_VERSION,
                 user = config.user,
                 host = config.host,
                 port = config.port,
