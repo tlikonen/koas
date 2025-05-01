@@ -373,19 +373,10 @@ fn print_table_latex(tbl: &Table) {
 }
 
 fn line_split(s: &str, max: usize) -> Vec<String> {
-    let mut words = tools::words_iter(s);
     let mut lines = Vec::with_capacity(20);
     let mut line = String::with_capacity(60);
 
-    loop {
-        let word = match words.next() {
-            Some(v) => v,
-            None => {
-                lines.push(line);
-                break;
-            }
-        };
-
+    for word in tools::words_iter(s) {
         if line.is_empty() {
             line.push_str(word);
         } else if line.chars().count() + word.chars().count() < max {
@@ -398,6 +389,8 @@ fn line_split(s: &str, max: usize) -> Vec<String> {
             line.push_str(word);
         }
     }
+
+    lines.push(line);
     lines
 }
 
