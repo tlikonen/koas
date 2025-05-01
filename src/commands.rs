@@ -547,7 +547,7 @@ pub async fn convert_to_score(
                     continue;
                 }
 
-                if let Some(old) = tools::parse_number(&score.score.as_ref().unwrap()) {
+                if let Some(old) = tools::parse_number(score.score.as_ref().unwrap()) {
                     if let Some(new) = tools::float_to_score(old) {
                         score.update_score(&mut ta, &new).await?;
                     }
@@ -596,7 +596,7 @@ pub async fn convert_to_decimal(
                     continue;
                 }
 
-                if let Some(old) = tools::parse_number(&score.score.as_ref().unwrap()) {
+                if let Some(old) = tools::parse_number(score.score.as_ref().unwrap()) {
                     let new = tools::format_decimal(old);
                     score.update_score(&mut ta, &new).await?;
                 }

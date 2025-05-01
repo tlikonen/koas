@@ -222,7 +222,7 @@ impl ScoresForAssignment {
                     None => Cell::Empty,
                 },
                 match &score.score_description {
-                    Some(s) => Cell::Multi(line_split(&s, DESC_WIDTH)),
+                    Some(s) => Cell::Multi(line_split(s, DESC_WIDTH)),
                     None => Cell::Empty,
                 },
             ]));
