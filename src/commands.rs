@@ -1,7 +1,8 @@
 use crate::{
     Modes,
     database::{
-        Editable, EditableItem, Group, Groups, ScoresForAssignments, Stats, Student, Students,
+        Editable, EditableItem, Group, Groups, Score, ScoresForAssignments, Stats, Student,
+        Students,
     },
     tools,
 };
@@ -162,7 +163,9 @@ pub async fn edit(
             edit_groups(&mut ta, indexes, groups, fields).await?;
         }
         EditableItem::Assignments => todo!(),
-        EditableItem::Scores(_) => todo!(),
+        EditableItem::Scores(scores) => {
+            edit_scores(&mut ta, indexes, scores, fields).await?;
+        }
         EditableItem::None => panic!(),
     }
     ta.commit().await?;
@@ -186,7 +189,7 @@ pub async fn edit_series(
         EditableItem::Students(_) => 4,
         EditableItem::Groups(_) => 2,
         EditableItem::Assignments => todo!(),
-        EditableItem::Scores(_) => todo!(),
+        EditableItem::Scores(_) => 2,
         EditableItem::None => panic!(),
     };
 
@@ -285,7 +288,9 @@ pub async fn edit_series(
                 edit_groups(&mut ta, index, groups, fields).await?;
             }
             EditableItem::Assignments => todo!(),
-            EditableItem::Scores(_) => todo!(),
+            EditableItem::Scores(scores) => {
+                edit_scores(&mut ta, index, scores, fields).await?;
+            }
             EditableItem::None => panic!(),
         }
     }
@@ -460,6 +465,52 @@ async fn edit_groups(
     Ok(())
 }
 
+async fn edit_scores(
+    db: &mut PgConnection,
+    indexes: Vec<usize>,
+    scores: &[Score],
+    mut fields: impl Iterator<Item = &str>,
+) -> Result<(), Box<dyn Error>> {
+    let score = fields.next().unwrap_or(""); // arvosana
+    let desc = fields.next().unwrap_or(""); // lisätiedot
+
+    let mut score_update = false;
+    let mut desc_update = false;
+
+    if score.is_empty() && desc.is_empty() {
+        Err("Ei muokattavia kenttiä.")?;
+    }
+
+    if !score.is_empty() {
+        score_update = true;
+    }
+    let new_score = tools::normalize_str(score);
+
+    if !desc.is_empty() {
+        desc_update = true;
+    }
+    let new_desc = tools::normalize_str(desc);
+
+    for i in indexes {
+        let score = match scores.get(i - 1) {
+            None => Err("Muokattavia arvosanoja ei ole.")?,
+            Some(v) => v,
+        };
+
+        if score_update && desc_update && new_score.is_empty() && new_desc.is_empty() {
+            score.delete(db).await?;
+            continue;
+        }
+        if score_update {
+            score.update_score(db, &new_score).await?;
+        }
+        if desc_update {
+            score.update_description(db, &new_desc).await?;
+        }
+    }
+    Ok(())
+}
+
 pub async fn insert_student(
     db: &mut PgConnection,
     editable: &mut Editable,
@@ -537,7 +588,9 @@ pub async fn delete(
                  kun siltä poistaa kaikki oppilaat ja suoritukset.")?;
         }
         EditableItem::Assignments => todo!(),
-        EditableItem::Scores(_) => todo!(),
+        EditableItem::Scores(scores) => {
+            delete_scores(&mut ta, indexes, scores).await?;
+        }
         EditableItem::None => panic!(),
     }
     ta.commit().await?;
@@ -557,6 +610,21 @@ async fn delete_students(
         student.delete(db).await?;
     }
     Groups::delete_empty(db).await?;
+    Ok(())
+}
+
+async fn delete_scores(
+    db: &mut PgConnection,
+    indexes: Vec<usize>,
+    scores: &[Score],
+) -> Result<(), Box<dyn Error>> {
+    for i in indexes {
+        let score = match scores.get(i - 1) {
+            None => Err("Poistettavia arvosanoja ei ole.")?,
+            Some(v) => v,
+        };
+        score.delete(db).await?;
+    }
     Ok(())
 }
 

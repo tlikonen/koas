@@ -411,6 +411,77 @@ pub struct ScoresForAssignments {
     pub list: Vec<ScoresForAssignment>,
 }
 
+impl Score {
+    async fn exists(&self, db: &mut PgConnection) -> Result<bool, Box<dyn Error>> {
+        let result = sqlx::query("SELECT 1 FROM arvosanat WHERE sid = $1 AND oid = $2")
+            .bind(self.sid)
+            .bind(self.oid)
+            .fetch_optional(db)
+            .await?
+            .is_some();
+        Ok(result)
+    }
+
+    pub async fn update_score(
+        &self,
+        db: &mut PgConnection,
+        score: &str,
+    ) -> Result<(), Box<dyn Error>> {
+        let value = if score.is_empty() { None } else { Some(score) };
+
+        if self.exists(db).await? {
+            sqlx::query("UPDATE arvosanat SET arvosana = $1 WHERE sid = $2 AND oid = $3")
+                .bind(value)
+                .bind(self.sid)
+                .bind(self.oid)
+                .execute(db)
+                .await?;
+        } else {
+            sqlx::query("INSERT INTO arvosanat (sid, oid, arvosana) VALUES ($1, $2, $3)")
+                .bind(self.sid)
+                .bind(self.oid)
+                .bind(value)
+                .execute(db)
+                .await?;
+        }
+        Ok(())
+    }
+
+    pub async fn update_description(
+        &self,
+        db: &mut PgConnection,
+        desc: &str,
+    ) -> Result<(), Box<dyn Error>> {
+        let value = if desc.is_empty() { None } else { Some(desc) };
+
+        if self.exists(db).await? {
+            sqlx::query("UPDATE arvosanat SET lisatiedot = $1 WHERE sid = $2 AND oid = $3")
+                .bind(value)
+                .bind(self.sid)
+                .bind(self.oid)
+                .execute(db)
+                .await?;
+        } else {
+            sqlx::query("INSERT INTO arvosanat (sid, oid, lisatiedot) VALUES ($1, $2, $3)")
+                .bind(self.sid)
+                .bind(self.oid)
+                .bind(value)
+                .execute(db)
+                .await?;
+        }
+        Ok(())
+    }
+
+    pub async fn delete(&self, db: &mut PgConnection) -> Result<(), Box<dyn Error>> {
+        sqlx::query("DELETE FROM arvosanat WHERE sid = $1 AND oid = $2")
+            .bind(self.sid)
+            .bind(self.oid)
+            .execute(db)
+            .await?;
+        Ok(())
+    }
+}
+
 impl ScoresForAssignments {
     pub async fn query(
         db: &mut PgConnection,
