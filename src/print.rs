@@ -476,6 +476,7 @@ fn print_table(tbl: &Table, tbl_chars: [&str; 15]) {
 }
 
 fn print_table_tab(tbl: &Table) {
+    println!();
     for row in &tbl.rows {
         match row {
             Row::Head(v) | Row::Data(v) | Row::Foot(v) => {
@@ -497,6 +498,7 @@ fn print_table_tab(tbl: &Table) {
 }
 
 fn print_table_latex(tbl: &Table) {
+    println!();
     for row in &tbl.rows {
         match row {
             Row::Head(v) | Row::Data(v) | Row::Foot(v) => {
