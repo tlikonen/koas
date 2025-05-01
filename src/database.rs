@@ -70,8 +70,8 @@ impl Editable {
         }
         match self.count() {
             0 => (),
-            1 => println!("Tietue: 1. Kentät: {s}"),
-            n => println!("Tietueet: 1–{n}. Kentät: {s}"),
+            1 => println!("Tietue: 1. Kentät:{s}"),
+            n => println!("Tietueet: 1–{n}. Kentät:{s}"),
         }
     }
 }
