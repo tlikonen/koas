@@ -195,7 +195,7 @@ impl ScoresForAssignment {
         const DESC_WIDTH: usize = 50;
 
         let mut rows = vec![
-            Row::Title(format!("\n{s} ({r})", r = self.group, s = self.assignment,)),
+            Row::Title(format!("{s} ({r})", r = self.group, s = self.assignment,)),
             Row::Toprule,
             Row::Head(vec![
                 Cell::Left("Oppilas".to_string()),
@@ -251,7 +251,7 @@ impl ScoresForStudent {
 
         let mut rows = vec![
             Row::Title(format!(
-                "\n{s}, {e} ({r})",
+                "{s}, {e} ({r})",
                 r = self.group,
                 s = self.lastname,
                 e = self.firstname,
@@ -378,7 +378,7 @@ fn print_table(tbl: &Table, tbl_chars: [&str; 15]) {
     let widths = tbl.widths();
     for row in &tbl.rows {
         match row {
-            Row::Title(s) => println!("{s}\n"),
+            Row::Title(s) => println!("\n{s}\n"),
             Row::Toprule => {
                 print!("{top_left}");
                 for i in 0..widths.len() {
