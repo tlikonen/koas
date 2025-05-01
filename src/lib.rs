@@ -126,6 +126,8 @@ async fn edit_commands(
     match cmd {
         "m" => commands::edit(db, editable, args).await?,
         "ms" => commands::edit_series(db, editable, args).await?,
+        "ma" => commands::convert_to_score(db, editable, args).await?,
+        "md" => commands::convert_to_decimal(db, editable, args).await?,
         "poista" => commands::delete(db, editable, args).await?,
         _ => return Ok(false),
     }

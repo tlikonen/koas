@@ -511,6 +511,103 @@ async fn edit_scores(
     Ok(())
 }
 
+pub async fn convert_to_score(
+    db: &mut PgConnection,
+    editable: &mut Editable,
+    args: &str,
+) -> Result<(), Box<dyn Error>> {
+    if editable.is_none() {
+        Err("Edellinen komento ei sisällä muokattavia tietueita.")?;
+    }
+
+    if args.is_empty() {
+        Err("Puuttuu tietueiden numerot.")?;
+    }
+
+    let indexes = {
+        let (first, _) = tools::split_first(args);
+        let i = tools::parse_number_list(first)?;
+        let max = editable.count();
+        if !tools::is_within_limits(max, &i) {
+            Err(format!("Suurin muokattava tietue on {max}."))?;
+        }
+        i
+    };
+
+    let mut ta = db.begin().await?;
+    match editable.item() {
+        EditableItem::Scores(scores) => {
+            for i in indexes {
+                let score = match scores.get(i - 1) {
+                    Some(v) => v,
+                    None => Err("Ei muokattavia tietueita.")?,
+                };
+
+                if score.score.is_none() {
+                    continue;
+                }
+
+                if let Some(old) = tools::parse_number(&score.score.as_ref().unwrap()) {
+                    if let Some(new) = tools::float_to_score(old) {
+                        score.update_score(&mut ta, &new).await?;
+                    }
+                }
+            }
+        }
+        _ => Err("Vain arvosanoja voi muokata tällä komennolla.")?,
+    }
+    ta.commit().await?;
+    Ok(())
+}
+
+pub async fn convert_to_decimal(
+    db: &mut PgConnection,
+    editable: &mut Editable,
+    args: &str,
+) -> Result<(), Box<dyn Error>> {
+    if editable.is_none() {
+        Err("Edellinen komento ei sisällä muokattavia tietueita.")?;
+    }
+
+    if args.is_empty() {
+        Err("Puuttuu tietueiden numerot.")?;
+    }
+
+    let indexes = {
+        let (first, _) = tools::split_first(args);
+        let i = tools::parse_number_list(first)?;
+        let max = editable.count();
+        if !tools::is_within_limits(max, &i) {
+            Err(format!("Suurin muokattava tietue on {max}."))?;
+        }
+        i
+    };
+
+    let mut ta = db.begin().await?;
+    match editable.item() {
+        EditableItem::Scores(scores) => {
+            for i in indexes {
+                let score = match scores.get(i - 1) {
+                    Some(v) => v,
+                    None => Err("Ei muokattavia tietueita.")?,
+                };
+
+                if score.score.is_none() {
+                    continue;
+                }
+
+                if let Some(old) = tools::parse_number(&score.score.as_ref().unwrap()) {
+                    let new = tools::format_decimal(old);
+                    score.update_score(&mut ta, &new).await?;
+                }
+            }
+        }
+        _ => Err("Vain arvosanoja voi muokata tällä komennolla.")?,
+    }
+    ta.commit().await?;
+    Ok(())
+}
+
 pub async fn insert_student(
     db: &mut PgConnection,
     editable: &mut Editable,
