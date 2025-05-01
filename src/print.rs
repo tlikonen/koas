@@ -195,12 +195,7 @@ impl ScoresForAssignment {
         const DESC_WIDTH: usize = 50;
 
         let mut rows = vec![
-            Row::Title(format!(
-                "\n{r} {l}\n{s}",
-                r = self.group,
-                l = self.group_description,
-                s = self.assignment,
-            )),
+            Row::Title(format!("\n{s} ({r})", r = self.group, s = self.assignment,)),
             Row::Toprule,
             Row::Head(vec![
                 Cell::Left("Oppilas".to_string()),
