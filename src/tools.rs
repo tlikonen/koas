@@ -341,4 +341,13 @@ mod tests {
         );
         assert_eq!(0, words_iter("  \t  \t").count());
     }
+
+    #[test]
+    fn t_format_decimal() {
+        assert_eq!("5,00", format_decimal(5.0));
+        assert_eq!("5,25", format_decimal(5.254));
+        assert_eq!("5,26", format_decimal(5.255));
+        assert_eq!("0,01", format_decimal(0.01));
+        assert_eq!("0,00", format_decimal(0.0));
+    }
 }
