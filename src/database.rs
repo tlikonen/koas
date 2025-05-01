@@ -403,7 +403,7 @@ pub struct Score {
 pub struct ScoresForAssignment {
     pub assignment: String,
     pub group: String,
-    pub group_description: String,
+    //pub group_description: String,
     pub scores: Vec<Score>,
 }
 
@@ -412,13 +412,13 @@ pub struct ScoresForAssignments {
 }
 
 pub struct ScoresForStudent {
-    pub oid: i32,
+    //pub oid: i32,
     pub lastname: String,
     pub firstname: String,
-    pub student_description: String,
-    pub rid: i32,
+    //pub student_description: String,
+    //pub rid: i32,
     pub group: String,
-    pub group_description: String,
+    //pub group_description: String,
     pub scores: Vec<Score>,
 }
 
@@ -547,7 +547,7 @@ impl ScoresForAssignments {
                         list.push(ScoresForAssignment {
                             assignment: row.try_get("suoritus")?,
                             group: row.try_get("ryhma")?,
-                            group_description: row.try_get("rlt")?,
+                            //group_description: row.try_get("rlt")?,
                             scores,
                         });
                         scores = Vec::with_capacity(l);
@@ -558,7 +558,7 @@ impl ScoresForAssignments {
                     list.push(ScoresForAssignment {
                         assignment: row.try_get("suoritus")?,
                         group: row.try_get("ryhma")?,
-                        group_description: row.try_get("rlt")?,
+                        //group_description: row.try_get("rlt")?,
                         scores,
                     });
                     break;
@@ -635,13 +635,13 @@ impl ScoresForStudents {
                     if next_oid != oid || next_rid != rid {
                         let l = scores.len();
                         list.push(ScoresForStudent {
-                            oid,
+                            //oid,
                             lastname: row.try_get("sukunimi")?,
                             firstname: row.try_get("etunimi")?,
-                            student_description: row.try_get("olt")?,
-                            rid: row.try_get("rid")?,
+                            //student_description: row.try_get("olt")?,
+                            //rid: row.try_get("rid")?,
                             group: row.try_get("ryhma")?,
-                            group_description: row.try_get("rlt")?,
+                            //group_description: row.try_get("rlt")?,
                             scores,
                         });
                         scores = Vec::with_capacity(l);
@@ -650,13 +650,13 @@ impl ScoresForStudents {
                 }
                 None => {
                     list.push(ScoresForStudent {
-                        oid,
+                        //oid,
                         lastname: row.try_get("sukunimi")?,
                         firstname: row.try_get("etunimi")?,
-                        student_description: row.try_get("olt")?,
-                        rid: row.try_get("rid")?,
+                        //student_description: row.try_get("olt")?,
+                        //rid: row.try_get("rid")?,
                         group: row.try_get("ryhma")?,
-                        group_description: row.try_get("rlt")?,
+                        //group_description: row.try_get("rlt")?,
                         scores,
                     });
                     break;
