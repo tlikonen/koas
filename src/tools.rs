@@ -124,6 +124,29 @@ pub fn parse_number(s: &str) -> Option<f64> {
     }
 }
 
+pub fn float_to_score(float: f64) -> Option<String> {
+    if float < 0.0 {
+        return None;
+    }
+
+    let mut integer = float.trunc();
+    let fractional = float.fract();
+
+    let mut suffix = String::with_capacity(1);
+    match fractional {
+        0.25 => suffix.push('+'),
+        0.5 => suffix.push('½'),
+        0.75 => {
+            integer += 1.0;
+            suffix.push('-');
+        }
+        0.0 => (),
+        _ => return None,
+    }
+
+    Some(format!("{integer:.0}{suffix}"))
+}
+
 pub fn split_sep(s: &str) -> impl Iterator<Item = &str> {
     let sep = s.chars().next().unwrap_or('/');
     s.split(sep).skip(1)
@@ -236,6 +259,19 @@ mod tests {
         assert_eq!(None, parse_number("-85-"));
         assert_eq!(None, parse_number("-85+"));
         assert_eq!(None, parse_number("-85½"));
+    }
+
+    #[test]
+    fn t_float_to_score() {
+        assert_eq!(None, float_to_score(-0.1));
+        assert_eq!(None, float_to_score(-5.0));
+        assert_eq!(None, float_to_score(5.13));
+        assert_eq!(None, float_to_score(8.99));
+        assert_eq!(None, float_to_score(8.26));
+        assert_eq!(Some("8"), float_to_score(8.0).as_deref());
+        assert_eq!(Some("8+"), float_to_score(8.25).as_deref());
+        assert_eq!(Some("8½"), float_to_score(8.5).as_deref());
+        assert_eq!(Some("9-"), float_to_score(8.75).as_deref());
     }
 
     #[test]
