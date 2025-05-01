@@ -50,6 +50,7 @@ impl Table {
             Output::Unicode => print_table(self, TBL_UNICODE),
             Output::UnicodeOpen => print_table(self, TBL_UNICODE_OPEN),
             Output::Ascii => print_table(self, TBL_ASCII),
+            Output::AsciiOpen => print_table(self, TBL_ASCII_OPEN),
             Output::Orgmode => print_table(self, TBL_ORGMODE),
             Output::Tab => print_table_tab(self),
             Output::Latex => print_table_latex(self),
@@ -335,6 +336,14 @@ static TBL_ASCII: [&str; 15] = [
     "+-", "-", "-+-", "-+", // mid
     "+-", "-", "-+-", "-+", // bottom
     "| ", " | ", " |", // vert: left mid right
+];
+
+#[rustfmt::skip]
+static TBL_ASCII_OPEN: [&str; 15] = [
+    "=", "=", "==", "=", // top
+    "-", "-", "--", "-", // mid
+    "=", "=", "==", "=", // bottom
+    " ", "  ", " ", // vert: left mid right
 ];
 
 #[rustfmt::skip]
