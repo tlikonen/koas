@@ -1,6 +1,6 @@
 use crate::{
     Output,
-    database::{Groups, ScoresForAssignment, Stats, Students},
+    database::{Groups, ScoresForAssignment, ScoresForStudent, Stats, Students},
     tools,
 };
 
@@ -238,6 +238,74 @@ impl ScoresForAssignment {
         rows.push(Row::Foot(vec![
             Cell::Left("Keskiarvo".to_string()),
             average,
+            Cell::Empty,
+        ]));
+        rows.push(Row::Bottomrule);
+        Table { rows }
+    }
+}
+
+impl ScoresForStudent {
+    pub fn table(&self) -> Table {
+        const DESC_WIDTH: usize = 50;
+
+        let mut rows = vec![
+            Row::Title(format!(
+                "\n{s}, {e} ({r})",
+                r = self.group,
+                s = self.lastname,
+                e = self.firstname,
+            )),
+            Row::Toprule,
+            Row::Head(vec![
+                Cell::Left("Suoritus".to_string()),
+                Cell::Left("As".to_string()),
+                Cell::Left("K".to_string()),
+                Cell::Left("Lisätiedot".to_string()),
+            ]),
+            Row::Midrule,
+        ];
+
+        let mut sum = 0.0;
+        let mut count = 0;
+
+        for score in &self.scores {
+            rows.push(Row::Data(vec![
+                Cell::Left(score.assignment.clone()),
+                match &score.score {
+                    Some(s) => {
+                        if let Some(f) = tools::parse_number(s) {
+                            if let Some(w) = score.weight {
+                                sum += f * f64::from(w);
+                                count += w;
+                            }
+                        }
+                        Cell::Left(s.clone())
+                    }
+                    None => Cell::Empty,
+                },
+                match &score.weight {
+                    Some(w) => Cell::Left(w.to_string()),
+                    None => Cell::Empty,
+                },
+                match &score.score_description {
+                    Some(s) => Cell::Multi(line_split(s, DESC_WIDTH)),
+                    None => Cell::Empty,
+                },
+            ]));
+        }
+
+        let average = if count > 0 {
+            Cell::Left(tools::format_decimal(sum / f64::from(count)))
+        } else {
+            Cell::Empty
+        };
+
+        rows.push(Row::Midrule);
+        rows.push(Row::Foot(vec![
+            Cell::Left("Keskiarvo".to_string()),
+            average,
+            Cell::Empty,
             Cell::Empty,
         ]));
         rows.push(Row::Bottomrule);

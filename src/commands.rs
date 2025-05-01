@@ -1,8 +1,8 @@
 use crate::{
     Modes,
     database::{
-        Editable, EditableItem, Group, Groups, Score, ScoresForAssignments, Stats, Student,
-        Students,
+        Editable, EditableItem, Group, Groups, Score, ScoresForAssignments, ScoresForStudents,
+        Stats, Student, Students,
     },
     tools,
 };
@@ -102,6 +102,50 @@ pub async fn scores_for_assignments(
     let assign_short = fields.next().unwrap_or(""); // lyhenne
 
     let query = ScoresForAssignments::query(db, group, assign, assign_short).await?;
+
+    match query.count() {
+        0 => {
+            print_not_found();
+            return Ok(());
+        }
+        1 => {
+            let mut table = query.get(0).table();
+            if modes.is_interactive() {
+                table.numbering();
+                query.copy_to(0, editable);
+            }
+            table.print(modes.output());
+            editable.print_fields(&["arvosana", "lisätiedot"]);
+        }
+        n => {
+            for i in 0..n {
+                let table = query.get(i).table();
+                table.print(modes.output());
+            }
+        }
+    }
+
+    Ok(())
+}
+
+pub async fn scores_for_students(
+    modes: &Modes,
+    db: &mut PgConnection,
+    editable: &mut Editable,
+    mut args: &str,
+) -> Result<(), Box<dyn Error>> {
+    editable.clear();
+    if args.is_empty() {
+        args = "/";
+    }
+
+    let mut fields = tools::split_sep(args);
+    let lastname = fields.next().unwrap_or(""); // sukunimi
+    let firstname = fields.next().unwrap_or(""); // etunimi
+    let group = fields.next().unwrap_or(""); // ryhmä
+    let desc = fields.next().unwrap_or(""); // lisätiedot
+
+    let query = ScoresForStudents::query(db, lastname, firstname, group, desc).await?;
 
     match query.count() {
         0 => {

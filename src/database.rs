@@ -411,6 +411,21 @@ pub struct ScoresForAssignments {
     pub list: Vec<ScoresForAssignment>,
 }
 
+pub struct ScoresForStudent {
+    pub oid: i32,
+    pub lastname: String,
+    pub firstname: String,
+    pub student_description: String,
+    pub rid: i32,
+    pub group: String,
+    pub group_description: String,
+    pub scores: Vec<Score>,
+}
+
+pub struct ScoresForStudents {
+    pub list: Vec<ScoresForStudent>,
+}
+
 impl Score {
     async fn exists(&self, db: &mut PgConnection) -> Result<bool, Box<dyn Error>> {
         let result = sqlx::query("SELECT 1 FROM arvosanat WHERE sid = $1 AND oid = $2")
@@ -559,6 +574,104 @@ impl ScoresForAssignments {
     }
 
     pub fn get(&self, n: usize) -> &ScoresForAssignment {
+        &self.list[n]
+    }
+
+    pub fn copy_to(self, n: usize, ed: &mut Editable) {
+        ed.item = EditableItem::Scores(self.list[n].scores.clone());
+    }
+}
+
+impl ScoresForStudents {
+    pub async fn query(
+        db: &mut PgConnection,
+        lastname: &str,
+        firstname: &str,
+        group: &str,
+        student_desc: &str,
+    ) -> Result<ScoresForStudents, Box<dyn Error>> {
+        let mut rows = sqlx::query(
+            "SELECT oid, sukunimi, etunimi, olt, rid, ryhma, rlt, \
+             sid, suoritus, lyhenne, painokerroin, arvosana, alt \
+             FROM view_arvosanat \
+             WHERE sukunimi LIKE $1 AND etunimi LIKE $2 AND ryhma LIKE $3 AND olt LIKE $4 \
+             AND sid IS NOT NULL \
+             ORDER BY sukunimi, etunimi, oid, ryhma, rid, sija, sid",
+        )
+        .bind(like_esc_wild(lastname))
+        .bind(like_esc_wild(firstname))
+        .bind(like_esc_wild(group))
+        .bind(like_esc_wild(student_desc))
+        .fetch(db);
+
+        let mut row = match rows.try_next().await? {
+            Some(r) => r,
+            None => return Ok(ScoresForStudents { list: Vec::new() }),
+        };
+
+        let mut list = Vec::with_capacity(1);
+        let mut scores = Vec::with_capacity(10);
+
+        loop {
+            let oid: i32 = row.try_get("oid")?;
+            let rid: i32 = row.try_get("rid")?;
+
+            scores.push(Score {
+                oid,
+                lastname: row.try_get("sukunimi")?,
+                firstname: row.try_get("etunimi")?,
+                sid: row.try_get("sid")?,
+                assignment: row.try_get("suoritus")?,
+                assignment_short: row.try_get("lyhenne")?,
+                weight: row.try_get("painokerroin")?,
+                score: row.try_get("arvosana")?,
+                score_description: row.try_get("alt")?,
+            });
+
+            row = match rows.try_next().await? {
+                Some(next_row) => {
+                    let next_oid: i32 = next_row.try_get("oid")?;
+                    let next_rid: i32 = next_row.try_get("rid")?;
+                    if next_oid != oid || next_rid != rid {
+                        let l = scores.len();
+                        list.push(ScoresForStudent {
+                            oid,
+                            lastname: row.try_get("sukunimi")?,
+                            firstname: row.try_get("etunimi")?,
+                            student_description: row.try_get("olt")?,
+                            rid: row.try_get("rid")?,
+                            group: row.try_get("ryhma")?,
+                            group_description: row.try_get("rlt")?,
+                            scores,
+                        });
+                        scores = Vec::with_capacity(l);
+                    }
+                    next_row
+                }
+                None => {
+                    list.push(ScoresForStudent {
+                        oid,
+                        lastname: row.try_get("sukunimi")?,
+                        firstname: row.try_get("etunimi")?,
+                        student_description: row.try_get("olt")?,
+                        rid: row.try_get("rid")?,
+                        group: row.try_get("ryhma")?,
+                        group_description: row.try_get("rlt")?,
+                        scores,
+                    });
+                    break;
+                }
+            };
+        }
+
+        Ok(ScoresForStudents { list })
+    }
+
+    pub fn count(&self) -> usize {
+        self.list.len()
+    }
+
+    pub fn get(&self, n: usize) -> &ScoresForStudent {
         &self.list[n]
     }
 
