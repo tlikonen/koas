@@ -213,7 +213,7 @@ impl ScoresForAssignment {
                 Cell::Left(format!("{}, {}", score.lastname, score.firstname)),
                 match &score.score {
                     Some(s) => {
-                        if let Some(f) = tools::parse_float(s) {
+                        if let Some(f) = tools::parse_number(s) {
                             sum += f;
                             count += 1;
                         }

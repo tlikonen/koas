@@ -55,7 +55,7 @@ pub fn is_within_limits(limit: usize, list: &[usize]) -> bool {
     list.iter().all(|n| *n <= limit)
 }
 
-pub fn parse_float(s: &str) -> Option<f64> {
+pub fn parse_number(s: &str) -> Option<f64> {
     use std::cmp::max;
     const MINUS_CHARS: &str = "-–−";
 
@@ -208,34 +208,34 @@ mod tests {
     }
 
     #[test]
-    fn t_parse_float() {
-        assert_eq!(None, parse_float(""));
-        assert_eq!(None, parse_float("+"));
-        assert_eq!(None, parse_float("-"));
-        assert_eq!(None, parse_float("."));
-        assert_eq!(None, parse_float("..3"));
-        assert_eq!(None, parse_float(".3."));
-        assert_eq!(None, parse_float("asdf"));
-        assert_eq!(Some(4.0), parse_float("4"));
-        assert_eq!(Some(4.3), parse_float("4.3"));
-        assert_eq!(Some(4.3), parse_float("4,3"));
-        assert_eq!(Some(4.0), parse_float("+4"));
-        assert_eq!(Some(-4.0), parse_float("-4"));
-        assert_eq!(Some(8.0), parse_float("8."));
-        assert_eq!(Some(0.8), parse_float(".8"));
-        assert_eq!(Some(7.75), parse_float("8-"));
-        assert_eq!(Some(8.25), parse_float("8+"));
-        assert_eq!(Some(8.5), parse_float("8½"));
-        assert_eq!(Some(84.75), parse_float("85-"));
-        assert_eq!(Some(85.25), parse_float("85+"));
-        assert_eq!(Some(85.5), parse_float("85½"));
-        assert_eq!(Some(0.5), parse_float("½"));
-        assert_eq!(None, parse_float("+85-"));
-        assert_eq!(None, parse_float("+85+"));
-        assert_eq!(None, parse_float("+85½"));
-        assert_eq!(None, parse_float("-85-"));
-        assert_eq!(None, parse_float("-85+"));
-        assert_eq!(None, parse_float("-85½"));
+    fn t_parse_number() {
+        assert_eq!(None, parse_number(""));
+        assert_eq!(None, parse_number("+"));
+        assert_eq!(None, parse_number("-"));
+        assert_eq!(None, parse_number("."));
+        assert_eq!(None, parse_number("..3"));
+        assert_eq!(None, parse_number(".3."));
+        assert_eq!(None, parse_number("asdf"));
+        assert_eq!(Some(4.0), parse_number("4"));
+        assert_eq!(Some(4.3), parse_number("4.3"));
+        assert_eq!(Some(4.3), parse_number("4,3"));
+        assert_eq!(Some(4.0), parse_number("+4"));
+        assert_eq!(Some(-4.0), parse_number("-4"));
+        assert_eq!(Some(8.0), parse_number("8."));
+        assert_eq!(Some(0.8), parse_number(".8"));
+        assert_eq!(Some(7.75), parse_number("8-"));
+        assert_eq!(Some(8.25), parse_number("8+"));
+        assert_eq!(Some(8.5), parse_number("8½"));
+        assert_eq!(Some(84.75), parse_number("85-"));
+        assert_eq!(Some(85.25), parse_number("85+"));
+        assert_eq!(Some(85.5), parse_number("85½"));
+        assert_eq!(Some(0.5), parse_number("½"));
+        assert_eq!(None, parse_number("+85-"));
+        assert_eq!(None, parse_number("+85+"));
+        assert_eq!(None, parse_number("+85½"));
+        assert_eq!(None, parse_number("-85-"));
+        assert_eq!(None, parse_number("-85+"));
+        assert_eq!(None, parse_number("-85½"));
     }
 
     #[test]
