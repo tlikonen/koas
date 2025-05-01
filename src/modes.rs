@@ -9,6 +9,7 @@ pub enum Mode {
 pub enum Output {
     #[default]
     Unicode,
+    UnicodeOpen,
     Ascii,
     Orgmode,
     Tab,

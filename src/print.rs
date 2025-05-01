@@ -48,6 +48,7 @@ impl Table {
         }
         match output {
             Output::Unicode => print_table(self, BOX_UNICODE),
+            Output::UnicodeOpen => print_table(self, BOX_UNICODE_OPEN),
             Output::Ascii => print_table(self, BOX_ASCII),
             Output::Orgmode => print_table(self, BOX_ORGMODE),
             Output::Tab => print_table_tab(self),
@@ -255,6 +256,14 @@ static BOX_UNICODE: [&str; 15] = [
     "├─", "─", "─┼─", "─┤", // mid
     "╘═", "═", "═╧═", "═╛", // bottom
     "│ ", " │ ", " │", // vert: left mid right
+];
+
+#[rustfmt::skip]
+static BOX_UNICODE_OPEN: [&str; 15] = [
+    "═", "═", "══", "═", // top
+    "─", "─", "──", "─", // mid
+    "═", "═", "══", "═", // bottom
+    " ", "  ", " ", // vert: left mid right
 ];
 
 #[rustfmt::skip]
