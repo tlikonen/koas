@@ -180,6 +180,11 @@ pub fn normalize_str(s: &str) -> String {
     new
 }
 
+pub fn format_decimal(num: f64) -> String {
+    const PRECISION: f64 = 100.0;
+    format!("{:.2}", (num * PRECISION).round() / PRECISION).replace(".", ",")
+}
+
 pub fn umask(mask: u32) -> u32 {
     unsafe { libc::umask(mask) }
 }

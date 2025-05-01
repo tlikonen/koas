@@ -229,7 +229,7 @@ impl ScoresForAssignment {
         }
 
         let average = if count > 0 {
-            Cell::Left(format_decimal(sum / f64::from(count)))
+            Cell::Left(tools::format_decimal(sum / f64::from(count)))
         } else {
             Cell::Empty
         };
@@ -458,11 +458,6 @@ fn line_split(s: &str, max: usize) -> Vec<String> {
 
     lines.push(line);
     lines
-}
-
-fn format_decimal(num: f64) -> String {
-    const PRECISION: f64 = 100.0;
-    format!("{:.2}", (num * PRECISION).round() / PRECISION).replace(".", ",")
 }
 
 #[cfg(test)]
