@@ -104,10 +104,7 @@ pub async fn scores_for_assignments(
     let query = ScoresForAssignments::query(db, group, assign, assign_short).await?;
 
     match query.count() {
-        0 => {
-            print_not_found();
-            return Ok(());
-        }
+        0 => print_not_found(),
         1 => {
             let mut table = query.get(0).table();
             if modes.is_interactive() {
@@ -148,10 +145,7 @@ pub async fn scores_for_students(
     let query = ScoresForStudents::query(db, lastname, firstname, group, desc).await?;
 
     match query.count() {
-        0 => {
-            print_not_found();
-            return Ok(());
-        }
+        0 => print_not_found(),
         1 => {
             let mut table = query.get(0).table();
             if modes.is_interactive() {
