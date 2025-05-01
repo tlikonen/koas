@@ -568,15 +568,13 @@ pub async fn delete(
 
     let indexes = {
         let (first, _) = tools::split_first(args);
-        tools::parse_number_list(first)?
-    };
-
-    {
+        let i = tools::parse_number_list(first)?;
         let max = editable.count();
-        if !tools::is_within_limits(max, &indexes) {
-            Err(format!("Suurin muokattava tietue on {max}."))?;
+        if !tools::is_within_limits(max, &i) {
+            Err(format!("Suurin poistettava tietue on {max}."))?;
         }
-    }
+        i
+    };
 
     let mut ta = db.begin().await?;
     match editable.item() {
