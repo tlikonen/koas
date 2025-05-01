@@ -52,6 +52,7 @@ pub async fn command_stage(modes: Modes, config: Config) -> Result<(), Box<dyn E
                 }
             }
         }
+
         Mode::Single(line) => {
             let (cmd, args) = tools::split_first(line);
             if !query_commands(&modes, &mut db, &mut editable, cmd, args).await? {
@@ -60,6 +61,7 @@ pub async fn command_stage(modes: Modes, config: Config) -> Result<(), Box<dyn E
                 ))?;
             }
         }
+
         Mode::Stdin => {
             let mut ta = db.begin().await?;
             for item in io::stdin().lines() {
