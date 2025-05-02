@@ -394,21 +394,34 @@ impl ScoresForGroup {
 
         rows.push(Row::Midrule);
 
+        let mut total_sum = 0.0;
+        let mut total_count = 0;
+
+        let mut vert_sums = Vec::with_capacity(10);
+        let mut vert_counts = Vec::with_capacity(10);
+
         for student in &self.students {
             let mut line = Vec::with_capacity(10);
             line.push(Cell::Left(student.name.clone()));
 
-            let mut sum = 0.0;
-            let mut count = 0;
+            let mut horiz_sum = 0.0;
+            let mut horiz_count = 0;
 
-            for simple_score in &student.scores {
+            for (c, simple_score) in student.scores.iter().enumerate() {
+                if vert_sums.get(c).is_none() {
+                    vert_sums.push(0.0);
+                    vert_counts.push(0);
+                }
+
                 match &simple_score.score {
                     Some(s) => {
                         if let Some(f) = tools::parse_number(s) {
                             if let Some(w) = simple_score.weight {
-                                sum += f * f64::from(w);
-                                count += w;
+                                horiz_sum += f * f64::from(w);
+                                horiz_count += w;
                             }
+                            vert_sums[c] += f;
+                            vert_counts[c] += 1;
                         }
                         line.push(Cell::Left(s.clone()));
                     }
@@ -416,8 +429,11 @@ impl ScoresForGroup {
                 }
             }
 
-            let average = if count > 0 {
-                Cell::Right(tools::format_decimal(sum / f64::from(count)))
+            let average = if horiz_count > 0 {
+                let avg = horiz_sum / f64::from(horiz_count);
+                total_sum += avg;
+                total_count += 1;
+                Cell::Right(tools::format_decimal(avg))
             } else {
                 Cell::Empty
             };
@@ -427,7 +443,26 @@ impl ScoresForGroup {
         }
 
         rows.push(Row::Midrule);
-        rows.push(Row::Foot(vec![Cell::Left("Keskiarvo".to_string())]));
+
+        let mut totals = Vec::with_capacity(10);
+        totals.push(Cell::Left("Keskiarvo".to_string()));
+
+        for (n, sum) in vert_sums.iter().enumerate() {
+            let c = vert_counts[n];
+            totals.push(if c > 0 {
+                Cell::Left(tools::format_decimal(sum / f64::from(c)))
+            } else {
+                Cell::Empty
+            });
+        }
+
+        totals.push(if total_count > 0 {
+            Cell::Right(tools::format_decimal(total_sum / f64::from(total_count)))
+        } else {
+            Cell::Empty
+        });
+
+        rows.push(Row::Foot(totals));
         rows.push(Row::Bottomrule);
         Table { rows }
     }
