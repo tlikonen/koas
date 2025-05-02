@@ -6,7 +6,7 @@ use koas::{
 };
 use std::{error::Error, process::ExitCode};
 
-static PROGRAM_NAME: &str = env!("CARGO_BIN_NAME");
+static PROGRAM_NAME: &str = env!("CARGO_PKG_NAME");
 static PROGRAM_VERSION: &str = env!("CARGO_PKG_VERSION");
 static PROGRAM_AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
 static PROGRAM_LICENSE: &str = env!("CARGO_PKG_LICENSE");
