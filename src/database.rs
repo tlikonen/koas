@@ -392,6 +392,16 @@ impl Groups {
     }
 }
 
+pub struct Assignment {
+    //pub group: String,
+    //pub rid: i32,
+    pub sid: i32,
+    pub assignment: String,
+    pub assignment_short: String,
+    pub weight: Option<i32>,
+    //pub order: i32,
+}
+
 #[derive(Clone)]
 pub struct Score {
     pub oid: i32,
@@ -687,7 +697,7 @@ impl ScoresForStudents {
 pub struct ScoresForGroup {
     pub group: String,
     pub students: Vec<SimpleStudent>,
-    //pub assignments: Vec<Assignment>
+    pub assignments: Vec<Assignment>,
 }
 
 pub struct SimpleStudent {
@@ -702,11 +712,32 @@ pub struct SimpleScore {
 
 impl ScoresForGroup {
     pub async fn query(db: &mut PgConnection, group: &str) -> Result<Self, Box<dyn Error>> {
+        let mut assignments = Vec::with_capacity(10);
+
+        {
+            let mut rows = sqlx::query(
+                "SELECT ryhma, sid, suoritus, lyhenne, painokerroin FROM view_suoritukset \
+                 WHERE ryhma = $1 ORDER BY sija",
+            )
+            .bind(group)
+            .fetch(&mut *db);
+
+            while let Some(row) = rows.try_next().await? {
+                assignments.push(Assignment {
+                    //group: row.try_get("ryhma")?,
+                    //rid: row.try_get("rid")?,
+                    sid: row.try_get("sid")?,
+                    assignment: row.try_get("suoritus")?,
+                    assignment_short: row.try_get("lyhenne")?,
+                    weight: row.try_get("painokerroin")?,
+                    //order: row.try_get("sija")?,
+                });
+            }
+        }
+
         let mut rows = sqlx::query(
-            "SELECT sukunimi, etunimi, oid, arvosana, painokerroin \
-             FROM view_arvosanat \
-             WHERE ryhma = $1 \
-             ORDER BY sukunimi, etunimi, oid, sija",
+            "SELECT sukunimi, etunimi, oid, arvosana, painokerroin FROM view_arvosanat \
+             WHERE ryhma = $1 ORDER BY sukunimi, etunimi, oid, sija",
         )
         .bind(group)
         .fetch(db);
@@ -759,6 +790,7 @@ impl ScoresForGroup {
         Ok(Self {
             group: group.to_string(),
             students,
+            assignments,
         })
     }
 

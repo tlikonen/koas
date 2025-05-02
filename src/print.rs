@@ -383,14 +383,27 @@ impl ScoresForStudents {
 impl ScoresForGroup {
     pub fn print(&self, out: &Output) {
         self.table().print(out);
-        //self.table_assignments().print(out);
+        println!();
+        self.table_assignments().print(out);
     }
 
     fn table(&self) -> Table {
         let mut rows = vec![Row::Title(self.group.clone()), Row::Toprule];
 
-        rows.push(Row::Head(vec![Cell::Left("Suoritus".to_string())]));
-        rows.push(Row::Head(vec![Cell::Left("Painokerroin".to_string())]));
+        let mut assigns = vec![Cell::Left("Suoritus".to_string())];
+        let mut weigths = vec![Cell::Left("Painokerroin".to_string())];
+        for assign in &self.assignments {
+            assigns.push(Cell::Left(assign.assignment_short.clone()));
+            weigths.push(match assign.weight {
+                Some(w) => Cell::Left(w.to_string()),
+                None => Cell::Empty,
+            });
+        }
+
+        assigns.push(Cell::Right("ka".to_string()));
+        rows.push(Row::Head(assigns));
+        weigths.push(Cell::Empty);
+        rows.push(Row::Head(weigths));
 
         rows.push(Row::Midrule);
 
@@ -463,6 +476,32 @@ impl ScoresForGroup {
         });
 
         rows.push(Row::Foot(totals));
+        rows.push(Row::Bottomrule);
+        Table { rows }
+    }
+
+    fn table_assignments(&self) -> Table {
+        let mut rows = vec![
+            Row::Toprule,
+            Row::Head(vec![
+                Cell::Left("Lyh".to_string()),
+                Cell::Left("Suoritus".to_string()),
+            ]),
+            Row::Midrule,
+        ];
+
+        for assign in &self.assignments {
+            rows.push(Row::Data(vec![
+                Cell::Left(assign.assignment_short.clone()),
+                Cell::Left(assign.assignment.clone()),
+            ]));
+        }
+
+        rows.push(Row::Data(vec![
+            Cell::Left("ka".to_string()),
+            Cell::Left("Keskiarvo".to_string()),
+        ]));
+
         rows.push(Row::Bottomrule);
         Table { rows }
     }
