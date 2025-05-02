@@ -683,6 +683,90 @@ impl ScoresForStudents {
     }
 }
 
+#[derive(Default)]
+pub struct ScoresForGroup {
+    pub group: String,
+    pub students: Vec<SimpleStudent>,
+    //pub assignments: Vec<Assignment>
+}
+
+pub struct SimpleStudent {
+    pub name: String,
+    pub scores: Vec<SimpleScore>,
+}
+
+pub struct SimpleScore {
+    pub weight: Option<i32>,
+    pub score: Option<String>,
+}
+
+impl ScoresForGroup {
+    pub async fn query(db: &mut PgConnection, group: &str) -> Result<Self, Box<dyn Error>> {
+        let mut rows = sqlx::query(
+            "SELECT sukunimi, etunimi, oid, sija, arvosana, painokerroin \
+             FROM view_arvosanat \
+             WHERE ryhma = $1 \
+             ORDER BY sukunimi, etunimi, oid, sija",
+        )
+        .bind(group)
+        .fetch(db);
+
+        let mut row = match rows.try_next().await? {
+            Some(r) => r,
+            None => return Ok(Default::default()),
+        };
+
+        let mut students = Vec::with_capacity(25);
+        let mut scores = Vec::with_capacity(10);
+
+        loop {
+            let oid: i32 = row.try_get("oid")?;
+
+            scores.push(SimpleScore {
+                weight: row.try_get("painokerroin")?,
+                score: row.try_get("arvosana")?,
+            });
+
+            row = match rows.try_next().await? {
+                Some(next_row) => {
+                    let next_oid: i32 = next_row.try_get("oid")?;
+                    if next_oid != oid {
+                        let l = scores.len();
+                        let lastname: String = row.try_get("sukunimi")?;
+                        let firstname: String = row.try_get("etunimi")?;
+
+                        students.push(SimpleStudent {
+                            name: format!("{lastname}, {firstname}"),
+                            scores,
+                        });
+                        scores = Vec::with_capacity(l);
+                    }
+                    next_row
+                }
+
+                None => {
+                    let lastname: String = row.try_get("sukunimi")?;
+                    let firstname: String = row.try_get("etunimi")?;
+                    students.push(SimpleStudent {
+                        name: format!("{lastname}, {firstname}"),
+                        scores,
+                    });
+                    break;
+                }
+            }
+        }
+
+        Ok(Self {
+            group: group.to_string(),
+            students,
+        })
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.students.is_empty()
+    }
+}
+
 const LIKE_ESC_CHARS: &str = "_%\\";
 
 fn like_esc_wild(string: &str) -> String {

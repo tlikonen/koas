@@ -120,6 +120,7 @@ async fn query_commands(
         "ho" => commands::students(modes, db, editable, args).await?,
         "has" => commands::scores_for_assignments(modes, db, editable, args).await?,
         "hao" => commands::scores_for_students(modes, db, editable, args).await?,
+        "hak" => commands::scores_for_group(modes, db, editable, args).await?,
         _ => return Ok(false),
     }
     Ok(true)

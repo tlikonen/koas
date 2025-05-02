@@ -1,8 +1,8 @@
 use crate::{
     Output,
     database::{
-        Groups, ScoresForAssignment, ScoresForAssignments, ScoresForStudent, ScoresForStudents,
-        Stats, Students,
+        Groups, ScoresForAssignment, ScoresForAssignments, ScoresForGroup, ScoresForStudent,
+        ScoresForStudents, Stats, Students,
     },
     tools,
 };
@@ -377,6 +377,59 @@ impl ScoresForStudents {
     pub fn print_numbered(&self, out: &Output) {
         assert!(self.count() == 1);
         self.list[0].print_numbered(out);
+    }
+}
+
+impl ScoresForGroup {
+    pub fn print(&self, out: &Output) {
+        self.table().print(out);
+        //self.table_assignments().print(out);
+    }
+
+    fn table(&self) -> Table {
+        let mut rows = vec![Row::Title(self.group.clone()), Row::Toprule];
+
+        rows.push(Row::Head(vec![Cell::Left("Suoritus".to_string())]));
+        rows.push(Row::Head(vec![Cell::Left("Painokerroin".to_string())]));
+
+        rows.push(Row::Midrule);
+
+        for student in &self.students {
+            let mut line = Vec::with_capacity(10);
+            line.push(Cell::Left(student.name.clone()));
+
+            let mut sum = 0.0;
+            let mut count = 0;
+
+            for simple_score in &student.scores {
+                match &simple_score.score {
+                    Some(s) => {
+                        if let Some(f) = tools::parse_number(s) {
+                            if let Some(w) = simple_score.weight {
+                                sum += f * f64::from(w);
+                                count += w;
+                            }
+                        }
+                        line.push(Cell::Left(s.clone()));
+                    }
+                    None => line.push(Cell::Empty),
+                }
+            }
+
+            let average = if count > 0 {
+                Cell::Right(tools::format_decimal(sum / f64::from(count)))
+            } else {
+                Cell::Empty
+            };
+
+            line.push(average);
+            rows.push(Row::Data(line));
+        }
+
+        rows.push(Row::Midrule);
+        rows.push(Row::Foot(vec![Cell::Left("Keskiarvo".to_string())]));
+        rows.push(Row::Bottomrule);
+        Table { rows }
     }
 }
 

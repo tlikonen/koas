@@ -1,8 +1,8 @@
 use crate::{
     Modes,
     database::{
-        Editable, EditableItem, Group, Groups, Score, ScoresForAssignments, ScoresForStudents,
-        Stats, Student, Students,
+        Editable, EditableItem, Group, Groups, Score, ScoresForAssignments, ScoresForGroup,
+        ScoresForStudents, Stats, Student, Students,
     },
     tools,
 };
@@ -152,6 +152,32 @@ pub async fn scores_for_students(
         _ => query.print(modes.output()),
     }
 
+    Ok(())
+}
+
+pub async fn scores_for_group(
+    modes: &Modes,
+    db: &mut PgConnection,
+    editable: &mut Editable,
+    args: &str,
+) -> Result<(), Box<dyn Error>> {
+    editable.clear();
+
+    let group = {
+        let (g, _) = tools::split_first(args);
+        if g.is_empty() {
+            Err("Argumentiksi pitää antaa ryhmän nimi.")?;
+        }
+        g
+    };
+
+    let query = ScoresForGroup::query(db, group).await?;
+    if query.is_empty() {
+        print_not_found();
+        return Ok(());
+    }
+
+    query.print(modes.output());
     Ok(())
 }
 
