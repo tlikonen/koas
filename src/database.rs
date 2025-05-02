@@ -68,7 +68,7 @@ impl Editable {
     }
 
     pub fn print_fields(&self, fields: &[&str]) {
-        let mut s = String::new();
+        let mut s = String::with_capacity(50);
         for (n, f) in fields.iter().enumerate() {
             s.push_str(&format!(" / {}:{}", n + 1, f));
         }
@@ -253,7 +253,7 @@ impl Students {
         .bind(like_esc_wild(desc))
         .fetch(db);
 
-        let mut list = Vec::new();
+        let mut list = Vec::with_capacity(25);
         while let Some(row) = rows.try_next().await? {
             list.push(Student {
                 oid: row.try_get("oid")?,
@@ -359,7 +359,7 @@ impl Groups {
         .bind(like_esc_wild(desc))
         .fetch(db);
 
-        let mut list = Vec::new();
+        let mut list = Vec::with_capacity(10);
         while let Some(row) = rows.try_next().await? {
             list.push(Group {
                 rid: row.try_get("rid")?,

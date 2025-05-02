@@ -36,12 +36,12 @@ impl Config {
         })?;
 
         let mut config = Config {
-            user: String::new(),
-            password: String::new(),
-            database: String::new(),
-            host: String::new(),
+            user: String::with_capacity(10),
+            password: String::with_capacity(16),
+            database: String::with_capacity(10),
+            host: String::with_capacity(10),
             port: 0,
-            tables: String::new(),
+            tables: String::with_capacity(10),
         };
         let mut port = false;
         let max = 10;
@@ -165,9 +165,9 @@ impl Default for Config {
         Self {
             host: "localhost".to_string(),
             port: 5432,
-            database: String::new(),
-            user: String::new(),
-            password: String::new(),
+            database: String::with_capacity(10),
+            user: String::with_capacity(10),
+            password: String::with_capacity(16),
             tables: "unicode".to_string(),
         }
     }

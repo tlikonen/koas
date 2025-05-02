@@ -10,7 +10,7 @@ pub struct Table {
 
 impl Table {
     fn widths(&self) -> Vec<usize> {
-        let mut vec = Vec::new();
+        let mut vec = Vec::with_capacity(10);
         for row in &self.rows {
             match row.widths() {
                 None => continue,
@@ -70,7 +70,7 @@ enum Row {
 
 impl Row {
     fn widths(&self) -> Option<Vec<usize>> {
-        let mut vec = Vec::new();
+        let mut vec = Vec::with_capacity(10);
         match self {
             Row::Head(v) | Row::Data(v) | Row::Foot(v) => {
                 for cell in v {

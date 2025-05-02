@@ -257,7 +257,7 @@ pub async fn edit_series(
         (n, rest)
     };
 
-    let mut values: Vec<String> = Vec::new();
+    let mut values: Vec<String> = Vec::with_capacity(4);
     if tools::has_content(rest) {
         for s in tools::split_sep(rest).map(|s| s.to_string()) {
             values.push(s);
@@ -370,8 +370,8 @@ async fn edit_students(
              Muuta yksi kerrallaan, jos se on tarkoituksena.")?;
     }
 
-    let mut groups_add: Vec<String> = Vec::new();
-    let mut groups_remove: Vec<String> = Vec::new();
+    let mut groups_add: Vec<String> = Vec::with_capacity(3);
+    let mut groups_remove: Vec<String> = Vec::with_capacity(1);
 
     if tools::has_content(groups) {
         for g in tools::words_iter(groups) {
