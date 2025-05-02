@@ -165,7 +165,7 @@ pub async fn edit(
     }
 
     if args.is_empty() {
-        Err("Puuttuu tietueiden numerot ja muokattavat kentät.")?;
+        Err("Argumentiksi pitää antaa tietueiden numerot ja muokattavat kentät.")?;
     }
 
     let (indexes, fields) = {
@@ -209,7 +209,7 @@ pub async fn edit_series(
     }
 
     if args.is_empty() {
-        Err("Tietueiden numerot ja kentän numero puuttuvat.")?;
+        Err("Argumentiksi pitää antaa tietueiden numerot ja kentän numero.")?;
     }
 
     let field_num_max = match editable.item() {
@@ -225,7 +225,7 @@ pub async fn edit_series(
     let (indexes, rest) = {
         let (first, rest) = tools::split_first(args);
         if rest.is_empty() {
-            Err("Kentän numero puuttuu.")?;
+            Err("Toiseksi argumentiksi täytyy antaa kentän numero.")?;
         }
         let i = tools::parse_number_list(first)?;
 
