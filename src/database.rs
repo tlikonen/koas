@@ -88,7 +88,7 @@ pub struct Stats {
 }
 
 impl Stats {
-    pub async fn query(db: &mut PgConnection) -> Result<Stats, Box<dyn Error>> {
+    pub async fn query(db: &mut PgConnection) -> Result<Self, Box<dyn Error>> {
         let row = sqlx::query(
             "SELECT \
              (SELECT count(*) FROM oppilaat) oppilaat, \
@@ -99,7 +99,7 @@ impl Stats {
         .fetch_one(db)
         .await?;
 
-        Ok(Stats {
+        Ok(Self {
             students: row.try_get("oppilaat")?,
             groups: row.try_get("ryhmat")?,
             assignments: row.try_get("suoritukset")?,
@@ -237,7 +237,7 @@ impl Students {
         firstname: &str,
         group: &str,
         desc: &str,
-    ) -> Result<Students, Box<dyn Error>> {
+    ) -> Result<Self, Box<dyn Error>> {
         let mut rows = sqlx::query(
             "SELECT DISTINCT view_oppilaat.oid, sukunimi, etunimi, ryhmat, olt FROM view_oppilaat \
              JOIN (SELECT oid, string_agg(ryhma, ' ' ORDER BY ryhma) ryhmat \
@@ -263,7 +263,7 @@ impl Students {
             });
         }
 
-        Ok(Students { list })
+        Ok(Self { list })
     }
 
     pub fn is_empty(&self) -> bool {
@@ -348,7 +348,7 @@ impl Groups {
         db: &mut PgConnection,
         group: &str,
         desc: &str,
-    ) -> Result<Groups, Box<dyn Error>> {
+    ) -> Result<Self, Box<dyn Error>> {
         let mut rows = sqlx::query(
             "SELECT rid, nimi, lisatiedot FROM ryhmat \
              WHERE nimi LIKE $1 AND lisatiedot LIKE $2 \
@@ -367,7 +367,7 @@ impl Groups {
             });
         }
 
-        Ok(Groups { list })
+        Ok(Self { list })
     }
 
     pub fn is_empty(&self) -> bool {
@@ -412,6 +412,7 @@ pub struct ScoresForAssignment {
     pub scores: Vec<Score>,
 }
 
+#[derive(Default)]
 pub struct ScoresForAssignments {
     pub list: Vec<ScoresForAssignment>,
 }
@@ -427,6 +428,7 @@ pub struct ScoresForStudent {
     pub scores: Vec<Score>,
 }
 
+#[derive(Default)]
 pub struct ScoresForStudents {
     pub list: Vec<ScoresForStudent>,
 }
@@ -508,7 +510,7 @@ impl ScoresForAssignments {
         group: &str,
         assign: &str,
         assign_short: &str,
-    ) -> Result<ScoresForAssignments, Box<dyn Error>> {
+    ) -> Result<Self, Box<dyn Error>> {
         let mut rows = sqlx::query(
             "SELECT ryhma, rid, rlt, sija, sid, suoritus, lyhenne, painokerroin, \
              oid, sukunimi, etunimi, arvosana, alt \
@@ -523,7 +525,7 @@ impl ScoresForAssignments {
 
         let mut row = match rows.try_next().await? {
             Some(r) => r,
-            None => return Ok(ScoresForAssignments { list: Vec::new() }),
+            None => return Ok(Default::default()),
         };
 
         let mut list = Vec::with_capacity(1);
@@ -559,6 +561,7 @@ impl ScoresForAssignments {
                     }
                     next_row
                 }
+
                 None => {
                     list.push(ScoresForAssignment {
                         assignment: row.try_get("suoritus")?,
@@ -571,7 +574,7 @@ impl ScoresForAssignments {
             };
         }
 
-        Ok(ScoresForAssignments { list })
+        Ok(Self { list })
     }
 
     pub fn count(&self) -> usize {
@@ -591,7 +594,7 @@ impl ScoresForStudents {
         firstname: &str,
         group: &str,
         student_desc: &str,
-    ) -> Result<ScoresForStudents, Box<dyn Error>> {
+    ) -> Result<Self, Box<dyn Error>> {
         let mut rows = sqlx::query(
             "SELECT oid, sukunimi, etunimi, olt, rid, ryhma, rlt, \
              sid, suoritus, lyhenne, painokerroin, arvosana, alt \
@@ -608,7 +611,7 @@ impl ScoresForStudents {
 
         let mut row = match rows.try_next().await? {
             Some(r) => r,
-            None => return Ok(ScoresForStudents { list: Vec::new() }),
+            None => return Ok(Default::default()),
         };
 
         let mut list = Vec::with_capacity(1);
@@ -650,6 +653,7 @@ impl ScoresForStudents {
                     }
                     next_row
                 }
+
                 None => {
                     list.push(ScoresForStudent {
                         //oid,
@@ -666,7 +670,7 @@ impl ScoresForStudents {
             };
         }
 
-        Ok(ScoresForStudents { list })
+        Ok(Self { list })
     }
 
     pub fn count(&self) -> usize {
