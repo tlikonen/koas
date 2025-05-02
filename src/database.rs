@@ -108,8 +108,7 @@ impl Stats {
     }
 }
 
-#[derive(Default)]
-#[derive(Clone)]
+#[derive(Default, Clone)]
 pub struct Student {
     pub oid: i32,
     pub lastname: String,
