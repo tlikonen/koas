@@ -512,7 +512,7 @@ impl ScoresForAssignments {
         assign_short: &str,
     ) -> Result<Self, Box<dyn Error>> {
         let mut rows = sqlx::query(
-            "SELECT ryhma, rid, rlt, sija, sid, suoritus, lyhenne, painokerroin, \
+            "SELECT ryhma, rid, sija, sid, suoritus, painokerroin, \
              oid, sukunimi, etunimi, arvosana, alt \
              FROM view_arvosanat \
              WHERE ryhma LIKE $1 AND suoritus LIKE $2 AND lyhenne LIKE $3 AND oid IS NOT NULL \
@@ -596,8 +596,8 @@ impl ScoresForStudents {
         student_desc: &str,
     ) -> Result<Self, Box<dyn Error>> {
         let mut rows = sqlx::query(
-            "SELECT oid, sukunimi, etunimi, olt, rid, ryhma, rlt, \
-             sid, suoritus, lyhenne, painokerroin, arvosana, alt \
+            "SELECT oid, sukunimi, etunimi, rid, ryhma, \
+             sid, suoritus, painokerroin, arvosana, alt \
              FROM view_arvosanat \
              WHERE sukunimi LIKE $1 AND etunimi LIKE $2 AND ryhma LIKE $3 AND olt LIKE $4 \
              AND sid IS NOT NULL \
@@ -703,7 +703,7 @@ pub struct SimpleScore {
 impl ScoresForGroup {
     pub async fn query(db: &mut PgConnection, group: &str) -> Result<Self, Box<dyn Error>> {
         let mut rows = sqlx::query(
-            "SELECT sukunimi, etunimi, oid, sija, arvosana, painokerroin \
+            "SELECT sukunimi, etunimi, oid, arvosana, painokerroin \
              FROM view_arvosanat \
              WHERE ryhma = $1 \
              ORDER BY sukunimi, etunimi, oid, sija",
