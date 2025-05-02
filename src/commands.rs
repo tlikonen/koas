@@ -558,6 +558,10 @@ pub async fn convert_to_score(
         Err("Edellinen komento ei sisällä muokattavia tietueita.")?;
     }
 
+    if !editable.is_score() {
+        Err("Vain arvosanoja voi muokata tällä komennolla.")?;
+    }
+
     if args.is_empty() {
         Err("Puuttuu tietueiden numerot.")?;
     }
@@ -592,7 +596,7 @@ pub async fn convert_to_score(
                 }
             }
         }
-        _ => Err("Vain arvosanoja voi muokata tällä komennolla.")?,
+        _ => panic!(),
     }
     ta.commit().await?;
     Ok(())
@@ -605,6 +609,10 @@ pub async fn convert_to_decimal(
 ) -> Result<(), Box<dyn Error>> {
     if editable.is_none() {
         Err("Edellinen komento ei sisällä muokattavia tietueita.")?;
+    }
+
+    if !editable.is_score() {
+        Err("Vain arvosanoja voi muokata tällä komennolla.")?;
     }
 
     if args.is_empty() {
@@ -640,7 +648,7 @@ pub async fn convert_to_decimal(
                 }
             }
         }
-        _ => Err("Vain arvosanoja voi muokata tällä komennolla.")?,
+        _ => panic!(),
     }
     ta.commit().await?;
     Ok(())

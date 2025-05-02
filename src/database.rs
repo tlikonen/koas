@@ -49,6 +49,10 @@ impl Editable {
         matches!(self.item, EditableItem::None)
     }
 
+    pub fn is_score(&self) -> bool {
+        matches!(self.item, EditableItem::Scores(_))
+    }
+
     pub fn count(&self) -> usize {
         match &self.item {
             EditableItem::None => 0,
