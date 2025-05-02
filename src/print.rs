@@ -155,31 +155,6 @@ impl Stats {
     }
 }
 
-impl Groups {
-    pub fn table(&self) -> Table {
-        const DESCRIPTION_WIDTH: usize = 70;
-
-        let mut rows = vec![
-            Row::Toprule,
-            Row::Head(vec![
-                Cell::Left("Nimi".to_string()),
-                Cell::Left("Lisätiedot".to_string()),
-            ]),
-            Row::Midrule,
-        ];
-
-        for group in &self.list {
-            rows.push(Row::Data(vec![
-                Cell::Left(group.name.clone()),
-                Cell::Multi(line_split(&group.description, DESCRIPTION_WIDTH)),
-            ]));
-        }
-
-        rows.push(Row::Bottomrule);
-        Table { rows }
-    }
-}
-
 impl Students {
     pub fn table(&self) -> Table {
         const GROUPS_WIDTH: usize = 36;
@@ -202,6 +177,31 @@ impl Students {
                 Cell::Left(student.firstname.clone()),
                 Cell::Multi(line_split(&student.groups, GROUPS_WIDTH)),
                 Cell::Multi(line_split(&student.description, DESC_WIDTH)),
+            ]));
+        }
+
+        rows.push(Row::Bottomrule);
+        Table { rows }
+    }
+}
+
+impl Groups {
+    pub fn table(&self) -> Table {
+        const DESCRIPTION_WIDTH: usize = 70;
+
+        let mut rows = vec![
+            Row::Toprule,
+            Row::Head(vec![
+                Cell::Left("Nimi".to_string()),
+                Cell::Left("Lisätiedot".to_string()),
+            ]),
+            Row::Midrule,
+        ];
+
+        for group in &self.list {
+            rows.push(Row::Data(vec![
+                Cell::Left(group.name.clone()),
+                Cell::Multi(line_split(&group.description, DESCRIPTION_WIDTH)),
             ]));
         }
 
