@@ -46,7 +46,7 @@ pub async fn students(
     if modes.is_interactive() {
         query.copy_to(editable);
         query.print_numbered(modes.output());
-        editable.print_fields(&["sukunimi", "etunimi", "ryhmät", "lisätiedot"]);
+        editable.print_fields(&["Sukunimi", "Etunimi", "Ryhmät", "Lisätiedot"]);
     } else {
         query.print(modes.output());
     }
@@ -77,7 +77,7 @@ pub async fn groups(
     if modes.is_interactive() {
         query.copy_to(editable);
         query.print_numbered(modes.output());
-        editable.print_fields(&["nimi", "lisätiedot"]);
+        editable.print_fields(&["Nimi", "Lisätiedot"]);
     } else {
         query.print(modes.output());
     }
@@ -108,7 +108,7 @@ pub async fn scores_for_assignments(
             if modes.is_interactive() {
                 query.copy_to(editable);
                 query.print_numbered(modes.output());
-                editable.print_fields(&["arvosana", "lisätiedot"]);
+                editable.print_fields(&["As", "Lisätiedot"]);
             } else {
                 query.print(modes.output());
             }
@@ -144,7 +144,7 @@ pub async fn scores_for_students(
             if modes.is_interactive() {
                 query.copy_to(editable);
                 query.print_numbered(modes.output());
-                editable.print_fields(&["arvosana", "lisätiedot"]);
+                editable.print_fields(&["As", "Lisätiedot"]);
             } else {
                 query.print(modes.output());
             }
