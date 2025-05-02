@@ -8,6 +8,10 @@ pub struct Table {
     rows: Vec<Row>,
 }
 
+pub struct Tables {
+    list: Vec<Table>,
+}
+
 impl Table {
     fn widths(&self) -> Vec<usize> {
         let mut vec = Vec::with_capacity(10);
@@ -54,6 +58,14 @@ impl Table {
             Output::Orgmode => print_table(self, TBL_ORGMODE),
             Output::Tab => print_table_tab(self),
             Output::Latex => print_table_latex(self),
+        }
+    }
+}
+
+impl Tables {
+    pub fn print(&self, out: &Output) {
+        for t in &self.list {
+            t.print(out);
         }
     }
 }
