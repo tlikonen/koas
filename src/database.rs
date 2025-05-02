@@ -105,6 +105,7 @@ impl Stats {
 }
 
 #[derive(Default)]
+#[derive(Clone)]
 pub struct Student {
     pub oid: i32,
     pub lastname: String,
@@ -266,11 +267,12 @@ impl Students {
         self.list.is_empty()
     }
 
-    pub fn move_to(self, ed: &mut Editable) {
-        ed.item = EditableItem::Students(self.list);
+    pub fn copy_to(&self, ed: &mut Editable) {
+        ed.item = EditableItem::Students(self.list.clone());
     }
 }
 
+#[derive(Clone)]
 pub struct Group {
     pub rid: i32,
     pub name: String,
@@ -369,8 +371,8 @@ impl Groups {
         self.list.is_empty()
     }
 
-    pub fn move_to(self, ed: &mut Editable) {
-        ed.item = EditableItem::Groups(self.list);
+    pub fn copy_to(&self, ed: &mut Editable) {
+        ed.item = EditableItem::Groups(self.list.clone());
     }
 
     pub async fn delete_empty(db: &mut PgConnection) -> Result<(), Box<dyn Error>> {
@@ -577,7 +579,7 @@ impl ScoresForAssignments {
         &self.list[n]
     }
 
-    pub fn copy_to(self, n: usize, ed: &mut Editable) {
+    pub fn copy_to(&self, n: usize, ed: &mut Editable) {
         ed.item = EditableItem::Scores(self.list[n].scores.clone());
     }
 }

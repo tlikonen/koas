@@ -47,7 +47,7 @@ pub async fn students(
     let mut table = query.table();
     if modes.is_interactive() {
         table.numbering();
-        query.move_to(editable);
+        query.copy_to(editable);
     }
     table.print(modes.output());
     editable.print_fields(&["sukunimi", "etunimi", "ryhmät", "lisätiedot"]);
@@ -78,7 +78,7 @@ pub async fn groups(
     let mut table = query.table();
     if modes.is_interactive() {
         table.numbering();
-        query.move_to(editable);
+        query.copy_to(editable);
     }
     table.print(modes.output());
     editable.print_fields(&["nimi", "lisätiedot"]);
