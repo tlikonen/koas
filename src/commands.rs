@@ -43,13 +43,13 @@ pub async fn students(
         return Ok(());
     }
 
-    let mut table = query.table();
     if modes.is_interactive() {
-        table.numbering();
         query.copy_to(editable);
+        query.print_numbered(modes.output());
+        editable.print_fields(&["sukunimi", "etunimi", "ryhmät", "lisätiedot"]);
+    } else {
+        query.print(modes.output());
     }
-    table.print(modes.output());
-    editable.print_fields(&["sukunimi", "etunimi", "ryhmät", "lisätiedot"]);
     Ok(())
 }
 
@@ -74,13 +74,13 @@ pub async fn groups(
         return Ok(());
     }
 
-    let mut table = query.table();
     if modes.is_interactive() {
-        table.numbering();
         query.copy_to(editable);
+        query.print_numbered(modes.output());
+        editable.print_fields(&["nimi", "lisätiedot"]);
+    } else {
+        query.print(modes.output());
     }
-    table.print(modes.output());
-    editable.print_fields(&["nimi", "lisätiedot"]);
     Ok(())
 }
 
@@ -105,15 +105,15 @@ pub async fn scores_for_assignments(
     match query.count() {
         0 => print_not_found(),
         1 => {
-            let mut table = query.get(0).table();
             if modes.is_interactive() {
-                table.numbering();
-                query.copy_to(0, editable);
+                query.copy_to(editable);
+                query.print_numbered(modes.output());
+                editable.print_fields(&["arvosana", "lisätiedot"]);
+            } else {
+                query.print(modes.output());
             }
-            table.print(modes.output());
-            editable.print_fields(&["arvosana", "lisätiedot"]);
         }
-        _ => query.tables().print(modes.output()),
+        _ => query.print(modes.output()),
     }
 
     Ok(())
@@ -141,15 +141,15 @@ pub async fn scores_for_students(
     match query.count() {
         0 => print_not_found(),
         1 => {
-            let mut table = query.get(0).table();
             if modes.is_interactive() {
-                table.numbering();
-                query.copy_to(0, editable);
+                query.copy_to(editable);
+                query.print_numbered(modes.output());
+                editable.print_fields(&["arvosana", "lisätiedot"]);
+            } else {
+                query.print(modes.output());
             }
-            table.print(modes.output());
-            editable.print_fields(&["arvosana", "lisätiedot"]);
         }
-        _ => query.tables().print(modes.output()),
+        _ => query.print(modes.output()),
     }
 
     Ok(())

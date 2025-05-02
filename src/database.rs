@@ -578,12 +578,9 @@ impl ScoresForAssignments {
         self.list.len()
     }
 
-    pub fn get(&self, n: usize) -> &ScoresForAssignment {
-        &self.list[n]
-    }
-
-    pub fn copy_to(&self, n: usize, ed: &mut Editable) {
-        ed.item = EditableItem::Scores(self.list[n].scores.clone());
+    pub fn copy_to(&self, ed: &mut Editable) {
+        assert!(self.count() == 1);
+        ed.item = EditableItem::Scores(self.list[0].scores.clone());
     }
 }
 
@@ -676,12 +673,9 @@ impl ScoresForStudents {
         self.list.len()
     }
 
-    pub fn get(&self, n: usize) -> &ScoresForStudent {
-        &self.list[n]
-    }
-
-    pub fn copy_to(self, n: usize, ed: &mut Editable) {
-        ed.item = EditableItem::Scores(self.list[n].scores.clone());
+    pub fn copy_to(&self, ed: &mut Editable) {
+        assert!(self.count() == 1);
+        ed.item = EditableItem::Scores(self.list[0].scores.clone());
     }
 }
 

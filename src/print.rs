@@ -7,12 +7,8 @@ use crate::{
     tools,
 };
 
-pub struct Table {
+struct Table {
     rows: Vec<Row>,
-}
-
-pub struct Tables {
-    list: Vec<Table>,
 }
 
 impl Table {
@@ -35,7 +31,7 @@ impl Table {
         vec
     }
 
-    pub fn numbering(&mut self) {
+    fn numbering(mut self) -> Self {
         let mut n = 1;
         for row in &mut self.rows {
             match row {
@@ -47,9 +43,10 @@ impl Table {
                 _ => (),
             }
         }
+        self
     }
 
-    pub fn print(&self, output: &Output) {
+    fn print(&self, output: &Output) {
         if self.rows.is_empty() {
             return;
         }
@@ -61,14 +58,6 @@ impl Table {
             Output::Orgmode => print_table(self, TBL_ORGMODE),
             Output::Tab => print_table_tab(self),
             Output::Latex => print_table_latex(self),
-        }
-    }
-}
-
-impl Tables {
-    pub fn print(&self, out: &Output) {
-        for t in &self.list {
-            t.print(out);
         }
     }
 }
@@ -107,7 +96,7 @@ enum Cell {
 
 impl Cell {
     fn width(&self) -> usize {
-        match &self {
+        match self {
             Cell::Empty => 0,
             Cell::Left(s) | Cell::Right(s) => s.chars().count(),
             Cell::Multi(v) => {
@@ -156,7 +145,15 @@ impl Stats {
 }
 
 impl Students {
-    pub fn table(&self) -> Table {
+    pub fn print(&self, out: &Output) {
+        self.table().print(out);
+    }
+
+    pub fn print_numbered(&self, out: &Output) {
+        self.table().numbering().print(out);
+    }
+
+    fn table(&self) -> Table {
         const GROUPS_WIDTH: usize = 36;
         const DESC_WIDTH: usize = 36;
 
@@ -186,7 +183,15 @@ impl Students {
 }
 
 impl Groups {
-    pub fn table(&self) -> Table {
+    pub fn print(&self, out: &Output) {
+        self.table().print(out);
+    }
+
+    pub fn print_numbered(&self, out: &Output) {
+        self.table().numbering().print(out);
+    }
+
+    fn table(&self) -> Table {
         const DESCRIPTION_WIDTH: usize = 70;
 
         let mut rows = vec![
@@ -211,7 +216,15 @@ impl Groups {
 }
 
 impl ScoresForAssignment {
-    pub fn table(&self) -> Table {
+    pub fn print(&self, out: &Output) {
+        self.table().print(out);
+    }
+
+    pub fn print_numbered(&self, out: &Output) {
+        self.table().numbering().print(out);
+    }
+
+    fn table(&self) -> Table {
         const DESC_WIDTH: usize = 50;
 
         let mut rows = vec![
@@ -266,17 +279,28 @@ impl ScoresForAssignment {
 }
 
 impl ScoresForAssignments {
-    pub fn tables(&self) -> Tables {
-        let mut list = Vec::with_capacity(self.list.len());
+    pub fn print(&self, out: &Output) {
         for t in &self.list {
-            list.push(t.table());
+            t.print(out);
         }
-        Tables { list }
+    }
+
+    pub fn print_numbered(&self, out: &Output) {
+        assert!(self.count() == 1);
+        self.list[0].print_numbered(out);
     }
 }
 
 impl ScoresForStudent {
-    pub fn table(&self) -> Table {
+    pub fn print(&self, out: &Output) {
+        self.table().print(out);
+    }
+
+    pub fn print_numbered(&self, out: &Output) {
+        self.table().numbering().print(out);
+    }
+
+    fn table(&self) -> Table {
         const DESC_WIDTH: usize = 50;
 
         let mut rows = vec![
@@ -344,12 +368,15 @@ impl ScoresForStudent {
 }
 
 impl ScoresForStudents {
-    pub fn tables(&self) -> Tables {
-        let mut list = Vec::with_capacity(self.list.len());
+    pub fn print(&self, out: &Output) {
         for t in &self.list {
-            list.push(t.table());
+            t.print(out);
         }
-        Tables { list }
+    }
+
+    pub fn print_numbered(&self, out: &Output) {
+        assert!(self.count() == 1);
+        self.list[0].print_numbered(out);
     }
 }
 
