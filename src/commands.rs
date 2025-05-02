@@ -16,8 +16,7 @@ pub async fn stats(
 ) -> Result<(), Box<dyn Error>> {
     editable.clear();
 
-    let query = Stats::query(db).await?;
-    query.table().print(modes.output());
+    Stats::query(db).await?.print(modes.output());
     Ok(())
 }
 

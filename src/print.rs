@@ -125,7 +125,11 @@ impl Cell {
 }
 
 impl Stats {
-    pub fn table(&self) -> Table {
+    pub fn print(&self, out: &Output) {
+        self.table().print(out);
+    }
+
+    fn table(&self) -> Table {
         let rows = vec![
             Row::Toprule,
             Row::Data(vec![
