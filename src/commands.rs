@@ -114,12 +114,7 @@ pub async fn scores_for_assignments(
             table.print(modes.output());
             editable.print_fields(&["arvosana", "lisätiedot"]);
         }
-        n => {
-            for i in 0..n {
-                let table = query.get(i).table();
-                table.print(modes.output());
-            }
-        }
+        _ => query.tables().print(modes.output()),
     }
 
     Ok(())
@@ -155,12 +150,7 @@ pub async fn scores_for_students(
             table.print(modes.output());
             editable.print_fields(&["arvosana", "lisätiedot"]);
         }
-        n => {
-            for i in 0..n {
-                let table = query.get(i).table();
-                table.print(modes.output());
-            }
-        }
+        _ => query.tables().print(modes.output()),
     }
 
     Ok(())

@@ -1,6 +1,9 @@
 use crate::{
     Output,
-    database::{Groups, ScoresForAssignment, ScoresForStudent, Stats, Students},
+    database::{
+        Groups, ScoresForAssignment, ScoresForAssignments, ScoresForStudent, ScoresForStudents,
+        Stats, Students,
+    },
     tools,
 };
 
@@ -258,6 +261,16 @@ impl ScoresForAssignment {
     }
 }
 
+impl ScoresForAssignments {
+    pub fn tables(&self) -> Tables {
+        let mut list = Vec::with_capacity(self.list.len());
+        for t in &self.list {
+            list.push(t.table());
+        }
+        Tables { list }
+    }
+}
+
 impl ScoresForStudent {
     pub fn table(&self) -> Table {
         const DESC_WIDTH: usize = 50;
@@ -323,6 +336,16 @@ impl ScoresForStudent {
         ]));
         rows.push(Row::Bottomrule);
         Table { rows }
+    }
+}
+
+impl ScoresForStudents {
+    pub fn tables(&self) -> Tables {
+        let mut list = Vec::with_capacity(self.list.len());
+        for t in &self.list {
+            list.push(t.table());
+        }
+        Tables { list }
     }
 }
 
