@@ -716,7 +716,7 @@ impl ScoresForGroup {
 
         {
             let mut rows = sqlx::query(
-                "SELECT rid, ryhma, sid, suoritus, lyhenne, painokerroin, sija \
+                "SELECT rid, sid, suoritus, lyhenne, painokerroin, sija \
                  FROM view_suoritukset WHERE ryhma = $1 ORDER BY sija",
             )
             .bind(group)
