@@ -152,6 +152,7 @@ async fn insert_commands(
 ) -> Result<bool, Box<dyn Error>> {
     match cmd {
         "lo" => commands::insert_student(db, editable, args).await?,
+        "ls" => commands::insert_assignment(db, editable, args).await?,
         _ => return Ok(false),
     }
     Ok(true)

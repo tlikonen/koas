@@ -383,7 +383,7 @@ impl Groups {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct Assignment {
     //pub group: String,
     pub rid: i32,
@@ -399,6 +399,23 @@ pub struct Assignments {
 }
 
 impl Assignment {
+    pub async fn insert(&self, db: &mut PgConnection, pos: i32) -> Result<(), sqlx::Error> {
+        sqlx::query(
+            "INSERT INTO suoritukset (rid, nimi, lyhenne, painokerroin, sija) \
+             VALUES ($1, $2, $3, $4, $5)",
+        )
+        .bind(self.rid)
+        .bind(&self.assignment)
+        .bind(&self.assignment_short)
+        .bind(self.weight)
+        .bind(pos)
+        .execute(&mut *db)
+        .await?;
+
+        Assignments::reposition(db, self.rid).await?;
+        Ok(())
+    }
+
     pub async fn delete(&self, db: &mut PgConnection) -> Result<(), sqlx::Error> {
         sqlx::query("DELETE FROM suoritukset WHERE sid = $1")
             .bind(self.sid)
@@ -449,7 +466,7 @@ impl Assignments {
 
         {
             let mut rows =
-                sqlx::query("SELECT sid FROM suoritukset WHERE rid = $1 ORDER BY sija, sid")
+                sqlx::query("SELECT sid FROM suoritukset WHERE rid = $1 ORDER BY sija, sid DESC")
                     .bind(rid)
                     .fetch(&mut *db);
 

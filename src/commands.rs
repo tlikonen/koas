@@ -743,6 +743,75 @@ pub async fn insert_student(
     Ok(())
 }
 
+pub async fn insert_assignment(
+    db: &mut PgConnection,
+    editable: &mut Editable,
+    mut args: &str,
+) -> Result<(), Box<dyn Error>> {
+    editable.clear();
+    if args.is_empty() {
+        args = "/";
+    }
+
+    let mut fields = tools::split_sep(args);
+    let group = fields.next().unwrap_or(""); // ryhmä
+    let assignment = fields.next().unwrap_or(""); // assignment
+    let assignment_short = fields.next().unwrap_or(""); // lyhenne
+    let weight = fields.next().unwrap_or(""); // painokerroin
+    let position = fields.next().unwrap_or(""); // sija
+
+    if !tools::has_content(group)
+        || !tools::has_content(assignment)
+        || !tools::has_content(assignment_short)
+    {
+        Err("Pitää antaa vähintään ryhmä, suorituksen nimi ja lyhenne.")?;
+    }
+
+    let weight = {
+        let value = tools::normalize_str(weight);
+        if tools::has_content(&value) {
+            if !tools::is_all_digits(&value) {
+                Err("Painokertoimen täytyy olla positiivinen kokonaisluku.")?;
+            }
+            match value.parse::<i32>() {
+                Ok(n) if n >= 1 => Some(n),
+                _ => Err("Painokertoimen täytyy olla positiivinen kokonaisluku.")?,
+            }
+        } else {
+            None
+        }
+    };
+
+    let position = {
+        let value = tools::normalize_str(position);
+        if tools::has_content(&value) {
+            if !tools::is_all_digits(&value) {
+                Err("Sijan täytyy olla positiivinen kokonaisluku.")?;
+            }
+            match value.parse::<i32>() {
+                Ok(n) if n >= 1 => n,
+                _ => Err("Sijan täytyy olla positiivinen kokonaisluku.")?,
+            }
+        } else {
+            i32::MAX
+        }
+    };
+
+    let mut ta = db.begin().await?;
+
+    let assignment = Assignment {
+        rid: Group::get_or_insert(&mut ta, &tools::normalize_str(group)).await?,
+        assignment: tools::normalize_str(assignment),
+        assignment_short: tools::normalize_str(assignment_short),
+        weight,
+        ..Default::default()
+    };
+
+    assignment.insert(&mut ta, position).await?;
+    ta.commit().await?;
+    Ok(())
+}
+
 pub async fn delete(
     db: &mut PgConnection,
     editable: &mut Editable,
