@@ -754,7 +754,7 @@ pub async fn insert_assignment(
     }
 
     let mut fields = tools::split_sep(args);
-    let group = fields.next().unwrap_or(""); // ryhmä
+    let mut group = fields.next().unwrap_or(""); // ryhmä
     let assignment = fields.next().unwrap_or(""); // assignment
     let assignment_short = fields.next().unwrap_or(""); // lyhenne
     let weight = fields.next().unwrap_or(""); // painokerroin
@@ -765,6 +765,17 @@ pub async fn insert_assignment(
         || !tools::has_content(assignment_short)
     {
         Err("Pitää antaa vähintään ryhmä, suorituksen nimi ja lyhenne.")?;
+    }
+
+    {
+        let (first, rest) = tools::split_first(group);
+        if rest.is_empty() {
+            group = first;
+        } else {
+            Err(format!(
+                "Ryhmätunnus ”{group}” ei kelpaa: pitää olla yksi sana."
+            ))?;
+        }
     }
 
     let weight = {
