@@ -50,7 +50,7 @@ pub fn parse_number_list(s: &str) -> Result<Vec<usize>, Box<dyn Error>> {
     Ok(vec)
 }
 
-pub fn is_all_digits(s: &str) -> bool {
+fn is_all_digits(s: &str) -> bool {
     !s.is_empty() && s.chars().all(|c| c.is_ascii_digit())
 }
 
