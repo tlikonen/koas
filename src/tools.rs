@@ -3,7 +3,6 @@ use std::error::Error;
 pub fn parse_number_list(s: &str) -> Result<Vec<usize>, Box<dyn Error>> {
     let mut vec: Vec<usize> = Vec::with_capacity(25);
     let errmsg = |v| format!("Sopimaton tietueen numero: ”{v}”.");
-    let is_all_digits = |it: &str| !it.is_empty() && it.chars().all(|c| c.is_ascii_digit());
 
     for part in s.split(',').filter(|e| !e.is_empty()) {
         if is_all_digits(part) {
@@ -49,6 +48,10 @@ pub fn parse_number_list(s: &str) -> Result<Vec<usize>, Box<dyn Error>> {
         }
     }
     Ok(vec)
+}
+
+pub fn is_all_digits(s: &str) -> bool {
+    !s.is_empty() && s.chars().all(|c| c.is_ascii_digit())
 }
 
 pub fn is_within_limits(limit: usize, list: &[usize]) -> bool {
@@ -306,6 +309,20 @@ mod tests {
             vec![3, 4, 5, 6, 7, 10, 15, 14, 13, 12],
             parse_number_list("3-7,10,15-12").unwrap()
         );
+    }
+
+    #[test]
+    fn t_is_all_digits() {
+        assert_eq!(true, is_all_digits("3"));
+        assert_eq!(true, is_all_digits("364"));
+        assert_eq!(true, is_all_digits("01234567890"));
+        assert_eq!(false, is_all_digits(""));
+        assert_eq!(false, is_all_digits(" "));
+        assert_eq!(false, is_all_digits("x"));
+        assert_eq!(false, is_all_digits("+6"));
+        assert_eq!(false, is_all_digits("-6"));
+        assert_eq!(false, is_all_digits(".6"));
+        assert_eq!(false, is_all_digits("6.0"));
     }
 
     #[test]
