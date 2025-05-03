@@ -400,40 +400,10 @@ pub struct Assignments {
 
 impl Assignment {
     pub async fn delete(&self, db: &mut PgConnection) -> Result<(), sqlx::Error> {
-        let mut ta = db.begin().await?;
-
         sqlx::query("DELETE FROM suoritukset WHERE sid = $1")
             .bind(self.sid)
-            .execute(&mut *ta)
+            .execute(db)
             .await?;
-
-        Groups::delete_empty(&mut ta).await?;
-
-        let mut sid_list = Vec::with_capacity(10);
-
-        {
-            let mut rows =
-                sqlx::query("SELECT sid FROM suoritukset WHERE rid = $1 ORDER BY sija, sid")
-                    .bind(self.rid)
-                    .fetch(&mut *ta);
-
-            while let Some(row) = rows.try_next().await? {
-                let sid: i32 = row.try_get("sid")?;
-                sid_list.push(sid);
-            }
-        }
-
-        let mut order: i32 = 0;
-        for sid in sid_list {
-            order += 1;
-            sqlx::query("UPDATE suoritukset SET sija = $1 WHERE sid = $2")
-                .bind(order)
-                .bind(sid)
-                .execute(&mut *ta)
-                .await?;
-        }
-
-        ta.commit().await?;
         Ok(())
     }
 }
@@ -472,6 +442,34 @@ impl Assignments {
 
     pub fn copy_to(&self, ed: &mut Editable) {
         ed.item = EditableItem::Assignments(self.list.clone());
+    }
+
+    pub async fn reposition(db: &mut PgConnection, rid: i32) -> Result<(), sqlx::Error> {
+        let mut sid_list = Vec::with_capacity(10);
+
+        {
+            let mut rows =
+                sqlx::query("SELECT sid FROM suoritukset WHERE rid = $1 ORDER BY sija, sid")
+                    .bind(rid)
+                    .fetch(&mut *db);
+
+            while let Some(row) = rows.try_next().await? {
+                let sid: i32 = row.try_get("sid")?;
+                sid_list.push(sid);
+            }
+        }
+
+        let mut position: i32 = 0;
+        for sid in sid_list {
+            position += 1;
+            sqlx::query("UPDATE suoritukset SET sija = $1 WHERE sid = $2")
+                .bind(position)
+                .bind(sid)
+                .execute(&mut *db)
+                .await?;
+        }
+
+        Ok(())
     }
 }
 

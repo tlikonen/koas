@@ -808,13 +808,26 @@ async fn delete_assignments(
     indexes: Vec<usize>,
     assignments: &[Assignment],
 ) -> Result<(), Box<dyn Error>> {
+    let mut rid_list = Vec::with_capacity(1);
     for i in indexes {
         let assignment = match assignments.get(i - 1) {
             None => Err("Poistettavia suorituksia ei ole.")?,
             Some(v) => v,
         };
+
         assignment.delete(db).await?;
+
+        if !rid_list.contains(&assignment.rid) {
+            rid_list.push(assignment.rid);
+        }
     }
+
+    Groups::delete_empty(db).await?;
+
+    for rid in rid_list {
+        Assignments::reposition(db, rid).await?;
+    }
+
     Ok(())
 }
 
