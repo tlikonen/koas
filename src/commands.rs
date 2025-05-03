@@ -754,28 +754,17 @@ pub async fn insert_assignment(
     }
 
     let mut fields = tools::split_sep(args);
-    let mut group = fields.next().unwrap_or(""); // ryhmä
-    let assignment = fields.next().unwrap_or(""); // assignment
+    let groups = fields.next().unwrap_or(""); // ryhmät
+    let assignment = fields.next().unwrap_or(""); // suoritus
     let assignment_short = fields.next().unwrap_or(""); // lyhenne
     let weight = fields.next().unwrap_or(""); // painokerroin
     let position = fields.next().unwrap_or(""); // sija
 
-    if !tools::has_content(group)
+    if !tools::has_content(groups)
         || !tools::has_content(assignment)
         || !tools::has_content(assignment_short)
     {
         Err("Pitää antaa vähintään ryhmä, suorituksen nimi ja lyhenne.")?;
-    }
-
-    {
-        let (first, rest) = tools::split_first(group);
-        if rest.is_empty() {
-            group = first;
-        } else {
-            Err(format!(
-                "Ryhmätunnus ”{group}” ei kelpaa: pitää olla yksi sana."
-            ))?;
-        }
     }
 
     let weight = {
@@ -808,17 +797,23 @@ pub async fn insert_assignment(
         }
     };
 
+    let assignment = tools::normalize_str(assignment);
+    let assignment_short = tools::normalize_str(assignment_short);
+
     let mut ta = db.begin().await?;
 
-    let assignment = Assignment {
-        rid: Group::get_or_insert(&mut ta, &tools::normalize_str(group)).await?,
-        assignment: tools::normalize_str(assignment),
-        assignment_short: tools::normalize_str(assignment_short),
-        weight,
-        ..Default::default()
-    };
+    for g in tools::words_iter(groups) {
+        let assignment = Assignment {
+            rid: Group::get_or_insert(&mut ta, g).await?,
+            assignment: assignment.clone(),
+            assignment_short: assignment_short.clone(),
+            weight,
+            ..Default::default()
+        };
 
-    assignment.insert(&mut ta, position).await?;
+        assignment.insert(&mut ta, position).await?;
+    }
+
     ta.commit().await?;
     Ok(())
 }
