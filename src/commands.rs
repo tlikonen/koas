@@ -770,9 +770,6 @@ pub async fn insert_assignment(
     let weight = {
         let value = tools::normalize_str(weight);
         if tools::has_content(&value) {
-            if !tools::is_all_digits(&value) {
-                Err("Painokertoimen täytyy olla positiivinen kokonaisluku.")?;
-            }
             match value.parse::<i32>() {
                 Ok(n) if n >= 1 => Some(n),
                 _ => Err("Painokertoimen täytyy olla positiivinen kokonaisluku.")?,
@@ -785,9 +782,6 @@ pub async fn insert_assignment(
     let position = {
         let value = tools::normalize_str(position);
         if tools::has_content(&value) {
-            if !tools::is_all_digits(&value) {
-                Err("Sijan täytyy olla positiivinen kokonaisluku.")?;
-            }
             match value.parse::<i32>() {
                 Ok(n) if n >= 1 => n,
                 _ => Err("Sijan täytyy olla positiivinen kokonaisluku.")?,
