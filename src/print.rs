@@ -1,8 +1,8 @@
 use crate::{
     Output,
     database::{
-        Groups, ScoresForAssignment, ScoresForAssignments, ScoresForGroup, ScoresForStudent,
-        ScoresForStudents, Stats, Students,
+        Assignments, Groups, ScoresForAssignment, ScoresForAssignments, ScoresForGroup,
+        ScoresForStudent, ScoresForStudents, Stats, Students,
     },
     tools,
 };
@@ -207,6 +207,43 @@ impl Groups {
             rows.push(Row::Data(vec![
                 Cell::Left(group.name.clone()),
                 Cell::Multi(line_split(&group.description, DESCRIPTION_WIDTH)),
+            ]));
+        }
+
+        rows.push(Row::Bottomrule);
+        Table { rows }
+    }
+}
+
+impl Assignments {
+    pub fn print(&self, out: &Output) {
+        self.table().print(out);
+    }
+
+    pub fn print_numbered(&self, out: &Output) {
+        self.table().numbering().print(out);
+    }
+
+    fn table(&self) -> Table {
+        let mut rows = vec![
+            Row::Title(self.group.clone()),
+            Row::Toprule,
+            Row::Head(vec![
+                Cell::Left("Suoritus".to_string()),
+                Cell::Left("Lyh".to_string()),
+                Cell::Right("K".to_string()),
+            ]),
+            Row::Midrule,
+        ];
+
+        for assign in &self.list {
+            rows.push(Row::Data(vec![
+                Cell::Left(assign.assignment.clone()),
+                Cell::Left(assign.assignment_short.clone()),
+                match &assign.weight {
+                    Some(w) => Cell::Right(w.to_string()),
+                    None => Cell::Empty,
+                },
             ]));
         }
 

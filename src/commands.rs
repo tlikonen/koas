@@ -1,8 +1,8 @@
 use crate::{
     Modes,
     database::{
-        Editable, EditableItem, Group, Groups, Score, ScoresForAssignments, ScoresForGroup,
-        ScoresForStudents, Stats, Student, Students,
+        Assignment, Assignments, Editable, EditableItem, Group, Groups, Score,
+        ScoresForAssignments, ScoresForGroup, ScoresForStudents, Stats, Student, Students,
     },
     tools,
 };
@@ -78,6 +78,38 @@ pub async fn groups(
         query.copy_to(editable);
         query.print_numbered(modes.output());
         editable.print_fields(&["Nimi", "Lisätiedot"]);
+    } else {
+        query.print(modes.output());
+    }
+    Ok(())
+}
+
+pub async fn assignments(
+    modes: &Modes,
+    db: &mut PgConnection,
+    editable: &mut Editable,
+    args: &str,
+) -> Result<(), Box<dyn Error>> {
+    editable.clear();
+
+    let group = {
+        let (g, _) = tools::split_first(args);
+        if g.is_empty() {
+            Err("Argumentiksi pitää antaa ryhmän nimi.")?;
+        }
+        g
+    };
+
+    let query = Assignments::query(db, group).await?;
+    if query.is_empty() {
+        print_not_found();
+        return Ok(());
+    }
+
+    if modes.is_interactive() {
+        query.copy_to(editable);
+        query.print_numbered(modes.output());
+        editable.print_fields(&["Suoritus", "Lyhenne(Lyh)", "Painokerroin(K)", "Sija"]);
     } else {
         query.print(modes.output());
     }
@@ -215,7 +247,7 @@ pub async fn edit(
         EditableItem::Groups(groups) => {
             edit_groups(&mut ta, indexes, groups, fields).await?;
         }
-        EditableItem::Assignments => todo!(),
+        EditableItem::Assignments(_) => todo!(),
         EditableItem::Scores(scores) => {
             edit_scores(&mut ta, indexes, scores, fields).await?;
         }
@@ -241,7 +273,7 @@ pub async fn edit_series(
     let field_num_max = match editable.item() {
         EditableItem::Students(_) => 4,
         EditableItem::Groups(_) => 2,
-        EditableItem::Assignments => todo!(),
+        EditableItem::Assignments(_) => 4,
         EditableItem::Scores(_) => 2,
         EditableItem::None => panic!(),
     };
@@ -340,7 +372,7 @@ pub async fn edit_series(
             EditableItem::Groups(groups) => {
                 edit_groups(&mut ta, index, groups, fields).await?;
             }
-            EditableItem::Assignments => todo!(),
+            EditableItem::Assignments(_) => todo!(),
             EditableItem::Scores(scores) => {
                 edit_scores(&mut ta, index, scores, fields).await?;
             }
@@ -743,7 +775,9 @@ pub async fn delete(
             Err("Ryhmiä ei voi poistaa näin. Ryhmä poistuu itsestään,\n\
                  kun siltä poistaa kaikki oppilaat ja suoritukset.")?;
         }
-        EditableItem::Assignments => todo!(),
+        EditableItem::Assignments(assignments) => {
+            delete_assignments(&mut ta, indexes, assignments).await?;
+        }
         EditableItem::Scores(scores) => {
             delete_scores(&mut ta, indexes, scores).await?;
         }
@@ -766,6 +800,21 @@ async fn delete_students(
         student.delete(db).await?;
     }
     Groups::delete_empty(db).await?;
+    Ok(())
+}
+
+async fn delete_assignments(
+    db: &mut PgConnection,
+    indexes: Vec<usize>,
+    assignments: &[Assignment],
+) -> Result<(), Box<dyn Error>> {
+    for i in indexes {
+        let assignment = match assignments.get(i - 1) {
+            None => Err("Poistettavia suorituksia ei ole.")?,
+            Some(v) => v,
+        };
+        assignment.delete(db).await?;
+    }
     Ok(())
 }
 

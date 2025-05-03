@@ -23,7 +23,7 @@ pub enum EditableItem {
     None,
     Students(Vec<Student>),
     Groups(Vec<Group>),
-    Assignments,
+    Assignments(Vec<Assignment>),
     Scores(Vec<Score>),
 }
 
@@ -57,7 +57,7 @@ impl Editable {
             EditableItem::None => 0,
             EditableItem::Students(v) => v.len(),
             EditableItem::Groups(v) => v.len(),
-            EditableItem::Assignments => todo!(),
+            EditableItem::Assignments(v) => v.len(),
             EditableItem::Scores(v) => v.len(),
         }
     }
@@ -383,6 +383,7 @@ impl Groups {
     }
 }
 
+#[derive(Clone)]
 pub struct Assignment {
     //pub group: String,
     pub rid: i32,
@@ -390,7 +391,88 @@ pub struct Assignment {
     pub assignment: String,
     pub assignment_short: String,
     pub weight: Option<i32>,
-    pub order: i32,
+}
+
+pub struct Assignments {
+    pub group: String,
+    pub list: Vec<Assignment>,
+}
+
+impl Assignment {
+    pub async fn delete(&self, db: &mut PgConnection) -> Result<(), sqlx::Error> {
+        let mut ta = db.begin().await?;
+
+        sqlx::query("DELETE FROM suoritukset WHERE sid = $1")
+            .bind(self.sid)
+            .execute(&mut *ta)
+            .await?;
+
+        Groups::delete_empty(&mut ta).await?;
+
+        let mut sid_list = Vec::with_capacity(10);
+
+        {
+            let mut rows =
+                sqlx::query("SELECT sid FROM suoritukset WHERE rid = $1 ORDER BY sija, sid")
+                    .bind(self.rid)
+                    .fetch(&mut *ta);
+
+            while let Some(row) = rows.try_next().await? {
+                let sid: i32 = row.try_get("sid")?;
+                sid_list.push(sid);
+            }
+        }
+
+        let mut order: i32 = 0;
+        for sid in sid_list {
+            order += 1;
+            sqlx::query("UPDATE suoritukset SET sija = $1 WHERE sid = $2")
+                .bind(order)
+                .bind(sid)
+                .execute(&mut *ta)
+                .await?;
+        }
+
+        ta.commit().await?;
+        Ok(())
+    }
+}
+
+impl Assignments {
+    pub async fn query(db: &mut PgConnection, group: &str) -> Result<Self, sqlx::Error> {
+        let mut rows = sqlx::query(
+            "SELECT rid, sid, suoritus, lyhenne, painokerroin FROM view_suoritukset \
+             WHERE ryhma = $1 ORDER BY sija, sid",
+        )
+        .bind(group)
+        .fetch(db);
+
+        let mut list = Vec::with_capacity(10);
+
+        while let Some(row) = rows.try_next().await? {
+            list.push(Assignment {
+                //group: row.try_get("ryhma")?,
+                rid: row.try_get("rid")?,
+                sid: row.try_get("sid")?,
+                assignment: row.try_get("suoritus")?,
+                assignment_short: row.try_get("lyhenne")?,
+                weight: row.try_get("painokerroin")?,
+            });
+        }
+
+        Ok(Self {
+            group: group.to_string(),
+            list,
+        })
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.list.is_empty()
+    }
+
+    pub fn copy_to(&self, ed: &mut Editable) {
+        ed.item = EditableItem::Assignments(self.list.clone());
+    }
 }
 
 #[derive(Clone)]
@@ -707,7 +789,7 @@ impl ScoresForGroup {
 
         {
             let mut rows = sqlx::query(
-                "SELECT rid, sid, suoritus, lyhenne, painokerroin, sija \
+                "SELECT rid, sid, suoritus, lyhenne, painokerroin \
                  FROM view_suoritukset WHERE ryhma = $1 ORDER BY sija",
             )
             .bind(group)
@@ -721,7 +803,6 @@ impl ScoresForGroup {
                     assignment: row.try_get("suoritus")?,
                     assignment_short: row.try_get("lyhenne")?,
                     weight: row.try_get("painokerroin")?,
-                    order: row.try_get("sija")?,
                 });
             }
         }
