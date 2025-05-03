@@ -1,9 +1,8 @@
 use crate::config::Config;
 use futures::TryStreamExt; // STREAM.try_next()
 use sqlx::{Connection, PgConnection, Row as SqlxRow};
-use std::error::Error;
 
-pub async fn connect(config: &Config) -> Result<PgConnection, Box<dyn Error>> {
+pub async fn connect(config: &Config) -> Result<PgConnection, sqlx::Error> {
     let client = PgConnection::connect(
         format!(
             "postgres://{user}:{password}@{host}:{port}/{db}",
@@ -88,7 +87,7 @@ pub struct Stats {
 }
 
 impl Stats {
-    pub async fn query(db: &mut PgConnection) -> Result<Self, Box<dyn Error>> {
+    pub async fn query(db: &mut PgConnection) -> Result<Self, sqlx::Error> {
         let row = sqlx::query(
             "SELECT \
              (SELECT count(*) FROM oppilaat) oppilaat, \
@@ -122,7 +121,7 @@ pub struct Students {
 }
 
 impl Student {
-    pub async fn in_group(&self, db: &mut PgConnection, rid: i32) -> Result<bool, Box<dyn Error>> {
+    pub async fn in_group(&self, db: &mut PgConnection, rid: i32) -> Result<bool, sqlx::Error> {
         let result = sqlx::query("SELECT 1 FROM oppilaat_ryhmat WHERE oid = $1 AND rid = $2")
             .bind(self.oid)
             .bind(rid)
@@ -132,11 +131,7 @@ impl Student {
         Ok(result)
     }
 
-    pub async fn add_to_group(
-        &self,
-        db: &mut PgConnection,
-        rid: i32,
-    ) -> Result<(), Box<dyn Error>> {
+    pub async fn add_to_group(&self, db: &mut PgConnection, rid: i32) -> Result<(), sqlx::Error> {
         sqlx::query("INSERT INTO oppilaat_ryhmat (oid, rid) VALUES ($1, $2)")
             .bind(self.oid)
             .bind(rid)
@@ -149,7 +144,7 @@ impl Student {
         &self,
         db: &mut PgConnection,
         rid: i32,
-    ) -> Result<(), Box<dyn Error>> {
+    ) -> Result<(), sqlx::Error> {
         sqlx::query("DELETE FROM oppilaat_ryhmat WHERE oid = $1 AND rid = $2")
             .bind(self.oid)
             .bind(rid)
@@ -158,7 +153,7 @@ impl Student {
         Ok(())
     }
 
-    pub async fn only_one_group(&self, db: &mut PgConnection) -> Result<bool, Box<dyn Error>> {
+    pub async fn only_one_group(&self, db: &mut PgConnection) -> Result<bool, sqlx::Error> {
         let row = sqlx::query("SELECT count(*) count FROM oppilaat_ryhmat WHERE oid = $1")
             .bind(self.oid)
             .fetch_one(db)
@@ -171,7 +166,7 @@ impl Student {
         &self,
         db: &mut PgConnection,
         lastname: &str,
-    ) -> Result<(), Box<dyn Error>> {
+    ) -> Result<(), sqlx::Error> {
         sqlx::query("UPDATE oppilaat SET sukunimi = $1 WHERE oid = $2")
             .bind(lastname)
             .bind(self.oid)
@@ -184,7 +179,7 @@ impl Student {
         &self,
         db: &mut PgConnection,
         firstname: &str,
-    ) -> Result<(), Box<dyn Error>> {
+    ) -> Result<(), sqlx::Error> {
         sqlx::query("UPDATE oppilaat SET etunimi = $1 WHERE oid = $2")
             .bind(firstname)
             .bind(self.oid)
@@ -197,7 +192,7 @@ impl Student {
         &self,
         db: &mut PgConnection,
         desc: &str,
-    ) -> Result<(), Box<dyn Error>> {
+    ) -> Result<(), sqlx::Error> {
         sqlx::query("UPDATE oppilaat SET lisatiedot = $1 WHERE oid = $2")
             .bind(desc)
             .bind(self.oid)
@@ -206,7 +201,7 @@ impl Student {
         Ok(())
     }
 
-    pub async fn insert(&mut self, db: &mut PgConnection) -> Result<(), Box<dyn Error>> {
+    pub async fn insert(&mut self, db: &mut PgConnection) -> Result<(), sqlx::Error> {
         let row = sqlx::query(
             "INSERT INTO oppilaat (sukunimi, etunimi, lisatiedot) \
              VALUES ($1, $2, $3) RETURNING oid",
@@ -221,7 +216,7 @@ impl Student {
         Ok(())
     }
 
-    pub async fn delete(&self, db: &mut PgConnection) -> Result<(), Box<dyn Error>> {
+    pub async fn delete(&self, db: &mut PgConnection) -> Result<(), sqlx::Error> {
         sqlx::query("DELETE FROM oppilaat WHERE oid = $1")
             .bind(self.oid)
             .execute(db)
@@ -237,7 +232,7 @@ impl Students {
         firstname: &str,
         group: &str,
         desc: &str,
-    ) -> Result<Self, Box<dyn Error>> {
+    ) -> Result<Self, sqlx::Error> {
         let mut rows = sqlx::query(
             "SELECT DISTINCT view_oppilaat.oid, sukunimi, etunimi, ryhmat, olt FROM view_oppilaat \
              JOIN (SELECT oid, string_agg(ryhma, ' ' ORDER BY ryhma) ryhmat \
@@ -287,7 +282,7 @@ pub struct Groups {
 }
 
 impl Group {
-    pub async fn get_or_insert(db: &mut PgConnection, name: &str) -> Result<i32, Box<dyn Error>> {
+    pub async fn get_or_insert(db: &mut PgConnection, name: &str) -> Result<i32, sqlx::Error> {
         let rid = match Self::get_id(db, name).await? {
             Some(id) => id,
             None => {
@@ -302,7 +297,7 @@ impl Group {
         Ok(rid)
     }
 
-    pub async fn get_id(db: &mut PgConnection, name: &str) -> Result<Option<i32>, Box<dyn Error>> {
+    pub async fn get_id(db: &mut PgConnection, name: &str) -> Result<Option<i32>, sqlx::Error> {
         match sqlx::query("SELECT rid FROM ryhmat WHERE nimi = $1")
             .bind(name)
             .fetch_optional(db)
@@ -316,11 +311,7 @@ impl Group {
         }
     }
 
-    pub async fn update_name(
-        &self,
-        db: &mut PgConnection,
-        name: &str,
-    ) -> Result<(), Box<dyn Error>> {
+    pub async fn update_name(&self, db: &mut PgConnection, name: &str) -> Result<(), sqlx::Error> {
         sqlx::query("UPDATE ryhmat SET nimi = $1 WHERE rid = $2")
             .bind(name)
             .bind(self.rid)
@@ -333,7 +324,7 @@ impl Group {
         &self,
         db: &mut PgConnection,
         desc: &str,
-    ) -> Result<(), Box<dyn Error>> {
+    ) -> Result<(), sqlx::Error> {
         sqlx::query("UPDATE ryhmat SET lisatiedot = $1 WHERE rid = $2")
             .bind(desc)
             .bind(self.rid)
@@ -348,7 +339,7 @@ impl Groups {
         db: &mut PgConnection,
         group: &str,
         desc: &str,
-    ) -> Result<Self, Box<dyn Error>> {
+    ) -> Result<Self, sqlx::Error> {
         let mut rows = sqlx::query(
             "SELECT rid, nimi, lisatiedot FROM ryhmat \
              WHERE nimi LIKE $1 AND lisatiedot LIKE $2 \
@@ -378,7 +369,7 @@ impl Groups {
         ed.item = EditableItem::Groups(self.list.clone());
     }
 
-    pub async fn delete_empty(db: &mut PgConnection) -> Result<(), Box<dyn Error>> {
+    pub async fn delete_empty(db: &mut PgConnection) -> Result<(), sqlx::Error> {
         sqlx::query(
             "DELETE FROM ryhmat WHERE rid IN \
              (SELECT r.rid FROM ryhmat AS r \
@@ -444,7 +435,7 @@ pub struct ScoresForStudents {
 }
 
 impl Score {
-    async fn exists(&self, db: &mut PgConnection) -> Result<bool, Box<dyn Error>> {
+    async fn exists(&self, db: &mut PgConnection) -> Result<bool, sqlx::Error> {
         let result = sqlx::query("SELECT 1 FROM arvosanat WHERE sid = $1 AND oid = $2")
             .bind(self.sid)
             .bind(self.oid)
@@ -458,7 +449,7 @@ impl Score {
         &self,
         db: &mut PgConnection,
         score: &str,
-    ) -> Result<(), Box<dyn Error>> {
+    ) -> Result<(), sqlx::Error> {
         let value = if score.is_empty() { None } else { Some(score) };
 
         if self.exists(db).await? {
@@ -483,7 +474,7 @@ impl Score {
         &self,
         db: &mut PgConnection,
         desc: &str,
-    ) -> Result<(), Box<dyn Error>> {
+    ) -> Result<(), sqlx::Error> {
         let value = if desc.is_empty() { None } else { Some(desc) };
 
         if self.exists(db).await? {
@@ -504,7 +495,7 @@ impl Score {
         Ok(())
     }
 
-    pub async fn delete(&self, db: &mut PgConnection) -> Result<(), Box<dyn Error>> {
+    pub async fn delete(&self, db: &mut PgConnection) -> Result<(), sqlx::Error> {
         sqlx::query("DELETE FROM arvosanat WHERE sid = $1 AND oid = $2")
             .bind(self.sid)
             .bind(self.oid)
@@ -520,7 +511,7 @@ impl ScoresForAssignments {
         group: &str,
         assign: &str,
         assign_short: &str,
-    ) -> Result<Self, Box<dyn Error>> {
+    ) -> Result<Self, sqlx::Error> {
         let mut rows = sqlx::query(
             "SELECT ryhma, rid, sija, sid, suoritus, painokerroin, \
              oid, sukunimi, etunimi, arvosana, alt \
@@ -604,7 +595,7 @@ impl ScoresForStudents {
         firstname: &str,
         group: &str,
         student_desc: &str,
-    ) -> Result<Self, Box<dyn Error>> {
+    ) -> Result<Self, sqlx::Error> {
         let mut rows = sqlx::query(
             "SELECT oid, sukunimi, etunimi, rid, ryhma, \
              sid, suoritus, painokerroin, arvosana, alt \
@@ -711,7 +702,7 @@ pub struct SimpleScore {
 }
 
 impl ScoresForGroup {
-    pub async fn query(db: &mut PgConnection, group: &str) -> Result<Self, Box<dyn Error>> {
+    pub async fn query(db: &mut PgConnection, group: &str) -> Result<Self, sqlx::Error> {
         let mut assignments = Vec::with_capacity(10);
 
         {
