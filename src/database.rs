@@ -394,12 +394,12 @@ impl Groups {
 
 pub struct Assignment {
     //pub group: String,
-    //pub rid: i32,
+    pub rid: i32,
     pub sid: i32,
     pub assignment: String,
     pub assignment_short: String,
     pub weight: Option<i32>,
-    //pub order: i32,
+    pub order: i32,
 }
 
 #[derive(Clone)]
@@ -716,8 +716,8 @@ impl ScoresForGroup {
 
         {
             let mut rows = sqlx::query(
-                "SELECT ryhma, sid, suoritus, lyhenne, painokerroin FROM view_suoritukset \
-                 WHERE ryhma = $1 ORDER BY sija",
+                "SELECT rid, ryhma, sid, suoritus, lyhenne, painokerroin, sija \
+                 FROM view_suoritukset WHERE ryhma = $1 ORDER BY sija",
             )
             .bind(group)
             .fetch(&mut *db);
@@ -725,12 +725,12 @@ impl ScoresForGroup {
             while let Some(row) = rows.try_next().await? {
                 assignments.push(Assignment {
                     //group: row.try_get("ryhma")?,
-                    //rid: row.try_get("rid")?,
+                    rid: row.try_get("rid")?,
                     sid: row.try_get("sid")?,
                     assignment: row.try_get("suoritus")?,
                     assignment_short: row.try_get("lyhenne")?,
                     weight: row.try_get("painokerroin")?,
-                    //order: row.try_get("sija")?,
+                    order: row.try_get("sija")?,
                 });
             }
         }
