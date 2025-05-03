@@ -1,0 +1,15 @@
+ho  /sukunimi/etunimi/ryhmät/lisätiedot
+hr  /ryhmä/lisätiedot
+hs  ryhmä
+hao /sukunimi/etunimi/ryhmät/lisätiedot
+has /ryhmä/suoritus/lyhenne
+hak ryhmä
+
+tk
+
+lo /sukunimi/etunimi/ryhmät .../lisätiedot
+ls /ryhmät .../suoritus/lyhenne/painokerroin/sija
+
+m numerot /.../.../.../...
+ms numerot kenttä /.../.../...
+poista numerot
