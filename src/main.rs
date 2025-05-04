@@ -38,12 +38,13 @@ async fn main() -> ExitCode {
         return ExitCode::FAILURE;
     }
 
-    if args.option_exists("ohje") {
-        todo!();
-    }
-
     if args.option_exists("help") {
         print_usage();
+        return ExitCode::SUCCESS;
+    }
+
+    if args.option_exists("ohje") {
+        koas::help();
         return ExitCode::SUCCESS;
     }
 

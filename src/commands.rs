@@ -903,7 +903,11 @@ async fn delete_scores(
     Ok(())
 }
 
-pub fn help(editable: &mut Editable, args: &str) {
+pub fn help_interactive(editable: &mut Editable, _args: &str) {
     editable.clear();
-    println!("Tähän jotain apua: {args}");
+    help();
+}
+
+pub fn help() {
+    println!("{}", include_str!("../help/help.txt"));
 }

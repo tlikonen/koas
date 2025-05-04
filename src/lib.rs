@@ -5,6 +5,7 @@ pub mod modes;
 mod print;
 pub mod tools;
 
+pub use crate::commands::help;
 use crate::{
     config::Config,
     database::Editable,
@@ -160,7 +161,7 @@ async fn insert_commands(
 
 fn help_commands(editable: &mut Editable, cmd: &str, args: &str) -> Result<bool, Box<dyn Error>> {
     match cmd {
-        "?" => commands::help(editable, args),
+        "?" => commands::help_interactive(editable, args),
         _ => return Ok(false),
     }
     Ok(true)
