@@ -380,29 +380,24 @@ async fn edit_students(
     students: &[Student],
     mut fields: impl Iterator<Item = &str>,
 ) -> Result<(), Box<dyn Error>> {
-    let lastname = fields.next().unwrap_or(""); // sukunimi
-    let firstname = fields.next().unwrap_or(""); // etunimi
-    let groups = fields.next().unwrap_or(""); // ryhmät
-    let desc = fields.next().unwrap_or(""); // lisätiedot
+    let lastname = fields
+        .next()
+        .filter(|x| tools::has_content(x))
+        .map(tools::normalize_str); // sukunimi
 
-    let mut lastname_update = false;
-    let mut firstname_update = false;
-    let mut groups_update = false;
-    let mut desc_update = false;
+    let firstname = fields
+        .next()
+        .filter(|x| tools::has_content(x))
+        .map(tools::normalize_str); // etunimi
 
-    if lastname.is_empty() && firstname.is_empty() && groups.is_empty() && desc.is_empty() {
-        Err("Ei muokattavia kenttiä.")?;
+    let groups = fields.next().filter(|x| tools::has_content(x)); // ryhmät
+    let desc = fields.next().map(tools::normalize_str); // lisätiedot
+
+    if lastname.is_none() && firstname.is_none() && groups.is_none() && desc.is_none() {
+        Err("Anna muokattavia kenttiä.")?;
     }
 
-    if tools::has_content(lastname) {
-        lastname_update = true;
-    }
-
-    if tools::has_content(firstname) {
-        firstname_update = true;
-    }
-
-    if (lastname_update || firstname_update) && indexes.len() > 1 {
+    if (lastname.is_some() || firstname.is_some()) && indexes.len() > 1 {
         Err("Usealle henkilölle ei voi muuttaa kerralla samaa nimeä.\n\
              Muuta yksi kerrallaan, jos se on tarkoituksena.")?;
     }
@@ -410,8 +405,8 @@ async fn edit_students(
     let mut groups_add: Vec<String> = Vec::with_capacity(3);
     let mut groups_remove: Vec<String> = Vec::with_capacity(1);
 
-    if tools::has_content(groups) {
-        for g in tools::words_iter(groups) {
+    if groups.is_some() {
+        for g in tools::words_iter(groups.unwrap()) {
             let mut chars = g.chars();
             match chars.next() {
                 Some('+') => groups_add.push(chars.collect()),
@@ -426,17 +421,7 @@ async fn edit_students(
         if groups_add.iter().any(|s| s.is_empty()) || groups_remove.iter().any(|s| s.is_empty()) {
             Err("Ryhmän nimiä puuttuu. Kirjoita merkin ”+” tai ”-” jälkeen ryhmätunnus.")?;
         }
-
-        groups_update = true;
     }
-
-    if !desc.is_empty() {
-        desc_update = true;
-    }
-
-    let lastname = tools::normalize_str(lastname);
-    let firstname = tools::normalize_str(firstname);
-    let desc = tools::normalize_str(desc);
 
     for i in indexes {
         let student = match students.get(i - 1) {
@@ -444,44 +429,48 @@ async fn edit_students(
             Some(v) => v,
         };
 
-        if lastname_update {
-            student.update_lastname(db, &lastname).await?;
+        if lastname.is_some() {
+            student
+                .update_lastname(db, lastname.as_ref().unwrap())
+                .await?;
         }
 
-        if firstname_update {
-            student.update_firstname(db, &firstname).await?;
+        if firstname.is_some() {
+            student
+                .update_firstname(db, firstname.as_ref().unwrap())
+                .await?;
         }
 
-        if groups_update {
-            for name in &groups_add {
-                let rid = Group::get_or_insert(db, name).await?;
-                if student.in_group(db, rid).await? {
-                    continue;
-                } else {
-                    student.add_to_group(db, rid).await?;
-                }
-            }
-
-            for name in &groups_remove {
-                let rid = match Group::get_id(db, name).await? {
-                    Some(id) => id,
-                    None => continue,
-                };
-
-                if !student.in_group(db, rid).await? {
-                    continue;
-                }
-
-                if student.only_one_group(db).await? {
-                    Err("Oppilaan pitää kuulua vähintään yhteen ryhmään.")?;
-                } else {
-                    student.remove_from_group(db, rid).await?;
-                }
+        for name in &groups_add {
+            let rid = Group::get_or_insert(db, name).await?;
+            if student.in_group(db, rid).await? {
+                continue;
+            } else {
+                student.add_to_group(db, rid).await?;
             }
         }
 
-        if desc_update {
-            student.update_description(db, &desc).await?;
+        for name in &groups_remove {
+            let rid = match Group::get_id(db, name).await? {
+                Some(id) => id,
+                None => continue,
+            };
+
+            if !student.in_group(db, rid).await? {
+                continue;
+            }
+
+            if student.only_one_group(db).await? {
+                Err("Oppilaan pitää kuulua vähintään yhteen ryhmään.")?;
+            } else {
+                student.remove_from_group(db, rid).await?;
+            }
+        }
+
+        if desc.is_some() {
+            student
+                .update_description(db, desc.as_ref().unwrap())
+                .await?;
         }
     }
 
