@@ -259,16 +259,6 @@ pub async fn edit_series(
         Err("Argumentiksi pitää antaa tietueiden numerot ja kentän numero.")?;
     }
 
-    let field_num_max = match editable.item() {
-        EditableItem::Students(_) => 4,
-        EditableItem::Groups(_) => 2,
-        EditableItem::Assignments(_) => 4,
-        EditableItem::Scores(_) => 2,
-        EditableItem::None => panic!(),
-    };
-
-    let field_num_err = || format!("Kentän numeron täytyy olla kokonaisluku 1–{field_num_max}.");
-
     let (indexes, rest) = {
         let (first, rest) = tools::split_first(args);
         if rest.is_empty() {
@@ -285,6 +275,17 @@ pub async fn edit_series(
     };
 
     let (field_num, rest) = {
+        let field_num_max = match editable.item() {
+            EditableItem::Students(_) => 4,
+            EditableItem::Groups(_) => 2,
+            EditableItem::Assignments(_) => 4,
+            EditableItem::Scores(_) => 2,
+            EditableItem::None => panic!(),
+        };
+
+        let field_num_err =
+            || format!("Kentän numeron täytyy olla kokonaisluku 1–{field_num_max}.");
+
         let (n, rest) = tools::split_first(rest);
         let n = n.parse::<usize>().map_err(|_| field_num_err())?;
         if n < 1 || n > field_num_max {
