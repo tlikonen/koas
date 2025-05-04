@@ -484,46 +484,45 @@ async fn edit_groups(
     groups: &[Group],
     mut fields: impl Iterator<Item = &str>,
 ) -> Result<(), Box<dyn Error>> {
-    let mut name = fields.next().unwrap_or(""); // nimi
-    let desc = fields.next().unwrap_or(""); // lisätiedot
+    let mut name = fields.next().filter(|x| tools::has_content(x)); // nimi
 
-    let mut name_update = false;
-    let mut desc_update = false;
+    let desc = fields
+        .next()
+        .filter(|x| tools::has_content(x))
+        .map(tools::normalize_str); // lisätiedot
 
-    if name.is_empty() && desc.is_empty() {
-        Err("Ei muokattavia kenttiä.")?;
+    if name.is_none() && desc.is_none() {
+        Err("Anna muokattavia kenttiä.")?;
     }
 
-    if tools::has_content(name) {
-        let (first, rest) = tools::split_first(name);
-        if rest.is_empty() {
-            if indexes.len() > 1 {
-                Err("Usealle ryhmälle ei voi antaa samaa nimeä.")?;
+    if name.is_some() && indexes.len() > 1 {
+        Err("Usealle ryhmälle ei voi antaa samaa nimeä.")?;
+    }
+
+    name = match name {
+        Some(s) => {
+            let mut words = tools::words_iter(s);
+            let first = words.next().unwrap();
+            if words.next().is_some() {
+                Err("Ryhmätunnuksen pitää olla yksi sana.")?;
             }
-            name = first;
-            name_update = true;
-        } else {
-            Err(format!(
-                "Ryhmätunnus ”{name}” ei kelpaa: pitää olla yksi sana."
-            ))?;
+            Some(first)
         }
-    }
-
-    if !desc.is_empty() {
-        desc_update = true;
-    }
-    let desc = tools::normalize_str(desc);
+        None => None,
+    };
 
     for i in indexes {
         let group = match groups.get(i - 1) {
             None => Err("Muokattavia ryhmiä ei ole.")?,
             Some(g) => g,
         };
-        if name_update {
-            group.update_name(db, name).await?;
+
+        if name.is_some() {
+            group.update_name(db, name.unwrap()).await?;
         }
-        if desc_update {
-            group.update_description(db, &desc).await?;
+
+        if desc.is_some() {
+            group.update_description(db, desc.as_ref().unwrap()).await?;
         }
     }
     Ok(())
