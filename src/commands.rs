@@ -658,20 +658,18 @@ pub async fn convert_to_decimal(
 
     let mut ta = db.begin().await?;
     match editable.item() {
-        EditableItem::Scores(scores) => {
+        EditableItem::Scores(student_scores) => {
             for i in indexes {
-                let score = match scores.get(i - 1) {
+                let student_score = match student_scores.get(i - 1) {
                     Some(v) => v,
                     None => Err("Ei muokattavia tietueita.")?,
                 };
 
-                if score.score.is_none() {
-                    continue;
-                }
-
-                if let Some(old) = tools::parse_number(score.score.as_ref().unwrap()) {
-                    let new = tools::format_decimal(old);
-                    score.update_score(&mut ta, &new).await?;
+                if student_score.score.is_some() {
+                    if let Some(old) = tools::parse_number(student_score.score.as_ref().unwrap()) {
+                        let new = tools::format_decimal(old);
+                        student_score.update_score(&mut ta, &new).await?;
+                    }
                 }
             }
         }
