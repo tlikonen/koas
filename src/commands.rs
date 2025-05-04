@@ -754,58 +754,51 @@ pub async fn insert_assignment(
     }
 
     let mut fields = tools::split_sep(args);
-    let groups = fields.next().unwrap_or(""); // ryhmät
-    let assignment = fields.next().unwrap_or(""); // suoritus
-    let assignment_short = fields.next().unwrap_or(""); // lyhenne
-    let weight = fields.next().unwrap_or(""); // painokerroin
-    let position = fields.next().unwrap_or(""); // sija
+    let groups = fields.next().filter(|x| tools::has_content(x)); // ryhmät
 
-    if !tools::has_content(groups)
-        || !tools::has_content(assignment)
-        || !tools::has_content(assignment_short)
-    {
+    let assignment = fields
+        .next()
+        .filter(|x| tools::has_content(x))
+        .map(tools::normalize_str); // suoritus
+
+    let assignment_short = fields
+        .next()
+        .filter(|x| tools::has_content(x))
+        .map(tools::normalize_str); // lyhenne
+
+    let weight = fields.next().filter(|x| tools::has_content(x)); // painokerroin
+    let position = fields.next().filter(|x| tools::has_content(x)); // sija
+
+    if groups.is_none() || assignment.is_none() || assignment_short.is_none() {
         Err("Pitää antaa vähintään ryhmä, suorituksen nimi ja lyhenne.")?;
     }
 
-    let weight = {
-        let value = tools::normalize_str(weight);
-        if tools::has_content(&value) {
-            match value.parse::<i32>() {
-                Ok(n) if n >= 1 => Some(n),
-                _ => Err("Painokertoimen täytyy olla positiivinen kokonaisluku.")?,
-            }
-        } else {
-            None
-        }
-    };
+    let weight =
+        match weight {
+            Some(s) => Some(tools::parse_positive_int(s).map_err(|e| {
+                format!("Painokertoimen ”{e}” täytyy olla positiivinen kokonaisluku.")
+            })?),
+            None => None,
+        };
 
-    let position = {
-        let value = tools::normalize_str(position);
-        if tools::has_content(&value) {
-            match value.parse::<i32>() {
-                Ok(n) if n >= 1 => n,
-                _ => Err("Sijan täytyy olla positiivinen kokonaisluku.")?,
-            }
-        } else {
-            i32::MAX
-        }
+    let position = match position {
+        Some(s) => tools::parse_positive_int(s)
+            .map_err(|e| format!("Sijan ”{e}” täytyy olla positiivinen kokonaisluku."))?,
+        None => i32::MAX,
     };
-
-    let assignment = tools::normalize_str(assignment);
-    let assignment_short = tools::normalize_str(assignment_short);
 
     let mut ta = db.begin().await?;
 
-    for g in tools::words_iter(groups) {
-        let assignment = Assignment {
+    for g in tools::words_iter(groups.unwrap()) {
+        let group_assignment = Assignment {
             rid: Group::get_or_insert(&mut ta, g).await?,
-            assignment: assignment.clone(),
-            assignment_short: assignment_short.clone(),
+            assignment: assignment.clone().unwrap(),
+            assignment_short: assignment_short.clone().unwrap(),
             weight,
             ..Default::default()
         };
 
-        assignment.insert(&mut ta, position).await?;
+        group_assignment.insert(&mut ta, position).await?;
     }
 
     ta.commit().await?;
