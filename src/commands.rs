@@ -531,44 +531,48 @@ async fn edit_groups(
 async fn edit_scores(
     db: &mut PgConnection,
     indexes: Vec<usize>,
-    scores: &[Score],
+    student_scores: &[Score],
     mut fields: impl Iterator<Item = &str>,
 ) -> Result<(), Box<dyn Error>> {
-    let score = fields.next().unwrap_or(""); // arvosana
-    let desc = fields.next().unwrap_or(""); // lisätiedot
+    let score = fields
+        .next()
+        .filter(|x| !x.is_empty())
+        .map(tools::normalize_str); // arvosana
 
-    let mut score_update = false;
-    let mut desc_update = false;
+    let desc = fields
+        .next()
+        .filter(|x| !x.is_empty())
+        .map(tools::normalize_str); // lisätiedot
 
-    if score.is_empty() && desc.is_empty() {
-        Err("Ei muokattavia kenttiä.")?;
+    if score.is_none() && desc.is_none() {
+        Err("Anna muokattavia kenttiä.")?;
     }
-
-    if !score.is_empty() {
-        score_update = true;
-    }
-    let new_score = tools::normalize_str(score);
-
-    if !desc.is_empty() {
-        desc_update = true;
-    }
-    let new_desc = tools::normalize_str(desc);
 
     for i in indexes {
-        let score = match scores.get(i - 1) {
+        let student_score = match student_scores.get(i - 1) {
             None => Err("Muokattavia arvosanoja ei ole.")?,
             Some(v) => v,
         };
 
-        if score_update && desc_update && new_score.is_empty() && new_desc.is_empty() {
-            score.delete(db).await?;
+        if score.is_some()
+            && desc.is_some()
+            && score.as_ref().unwrap().is_empty()
+            && desc.as_ref().unwrap().is_empty()
+        {
+            student_score.delete(db).await?;
             continue;
         }
-        if score_update {
-            score.update_score(db, &new_score).await?;
+
+        if score.is_some() {
+            student_score
+                .update_score(db, score.as_ref().unwrap())
+                .await?;
         }
-        if desc_update {
-            score.update_description(db, &new_desc).await?;
+
+        if desc.is_some() {
+            student_score
+                .update_description(db, desc.as_ref().unwrap())
+                .await?;
         }
     }
     Ok(())
