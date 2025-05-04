@@ -712,29 +712,35 @@ pub async fn insert_student(
     }
 
     let mut fields = tools::split_sep(args);
-    let lastname = fields.next().unwrap_or(""); // sukunimi
-    let firstname = fields.next().unwrap_or(""); // etunimi
-    let groups = fields.next().unwrap_or(""); // ryhmat
-    let desc = fields.next().unwrap_or(""); // lisätiedot
 
-    if !tools::has_content(lastname)
-        || !tools::has_content(firstname)
-        || !tools::has_content(groups)
-    {
+    let lastname = fields
+        .next()
+        .filter(|x| tools::has_content(x))
+        .map(tools::normalize_str); // sukunimi
+
+    let firstname = fields
+        .next()
+        .filter(|x| tools::has_content(x))
+        .map(tools::normalize_str); // etunimi
+
+    let groups = fields.next().filter(|x| tools::has_content(x)); // ryhmät
+    let desc = fields.next().or(Some("")).map(tools::normalize_str); // lisätiedot
+
+    if lastname.is_none() || firstname.is_none() || groups.is_none() {
         Err("Pitää antaa vähintään sukunimi, etunimi ja ryhmä.")?;
     }
 
     let mut student = Student {
-        lastname: tools::normalize_str(lastname),
-        firstname: tools::normalize_str(firstname),
-        description: tools::normalize_str(desc),
+        lastname: lastname.unwrap(),
+        firstname: firstname.unwrap(),
+        description: desc.unwrap(),
         ..Default::default()
     };
 
     let mut ta = db.begin().await?;
     student.insert(&mut ta).await?;
 
-    for g in tools::words_iter(groups) {
+    for g in tools::words_iter(groups.unwrap()) {
         let rid = Group::get_or_insert(&mut ta, g).await?;
         student.add_to_group(&mut ta, rid).await?;
     }
