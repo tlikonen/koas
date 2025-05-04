@@ -261,8 +261,11 @@ impl Students {
         Ok(Self { list })
     }
 
-    pub fn is_empty(&self) -> bool {
-        self.list.is_empty()
+    pub fn has_data(self) -> Result<Self, String> {
+        match self.list.is_empty() {
+            false => Ok(self),
+            true => Err("Ei löytynyt.")?,
+        }
     }
 
     pub fn copy_to(&self, ed: &mut Editable) {
@@ -361,8 +364,11 @@ impl Groups {
         Ok(Self { list })
     }
 
-    pub fn is_empty(&self) -> bool {
-        self.list.is_empty()
+    pub fn has_data(self) -> Result<Self, String> {
+        match self.list.is_empty() {
+            false => Ok(self),
+            true => Err("Ei löytynyt.")?,
+        }
     }
 
     pub fn copy_to(&self, ed: &mut Editable) {
@@ -453,8 +459,11 @@ impl Assignments {
         })
     }
 
-    pub fn is_empty(&self) -> bool {
-        self.list.is_empty()
+    pub fn has_data(self) -> Result<Self, String> {
+        match self.list.is_empty() {
+            false => Ok(self),
+            true => Err("Ei löytynyt.")?,
+        }
     }
 
     pub fn copy_to(&self, ed: &mut Editable) {
@@ -675,6 +684,13 @@ impl ScoresForAssignments {
         Ok(Self { list })
     }
 
+    pub fn has_data(self) -> Result<Self, String> {
+        match self.list.is_empty() {
+            false => Ok(self),
+            true => Err("Ei löytynyt.")?,
+        }
+    }
+
     pub fn count(&self) -> usize {
         self.list.len()
     }
@@ -769,6 +785,13 @@ impl ScoresForStudents {
         }
 
         Ok(Self { list })
+    }
+
+    pub fn has_data(self) -> Result<Self, String> {
+        match self.list.is_empty() {
+            false => Ok(self),
+            true => Err("Ei löytynyt.")?,
+        }
     }
 
     pub fn count(&self) -> usize {
@@ -881,8 +904,11 @@ impl ScoresForGroup {
         })
     }
 
-    pub fn is_empty(&self) -> bool {
-        self.students.is_empty()
+    pub fn has_data(self) -> Result<Self, String> {
+        match self.students.is_empty() {
+            false => Ok(self),
+            true => Err("Ei löytynyt.")?,
+        }
     }
 }
 

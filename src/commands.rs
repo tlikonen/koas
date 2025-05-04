@@ -37,11 +37,9 @@ pub async fn students(
     let group = fields.next().unwrap_or(""); // ryhma
     let desc = fields.next().unwrap_or(""); // lisätiedot
 
-    let query = Students::query(db, lastname, firstname, group, desc).await?;
-    if query.is_empty() {
-        print_not_found();
-        return Ok(());
-    }
+    let query = Students::query(db, lastname, firstname, group, desc)
+        .await?
+        .has_data()?;
 
     if modes.is_interactive() {
         query.copy_to(editable);
@@ -68,11 +66,7 @@ pub async fn groups(
     let name = fields.next().unwrap_or(""); // nimi
     let desc = fields.next().unwrap_or(""); // lisätiedot
 
-    let query = Groups::query(db, name, desc).await?;
-    if query.is_empty() {
-        print_not_found();
-        return Ok(());
-    }
+    let query = Groups::query(db, name, desc).await?.has_data()?;
 
     if modes.is_interactive() {
         query.copy_to(editable);
@@ -100,11 +94,7 @@ pub async fn assignments(
         g
     };
 
-    let query = Assignments::query(db, group).await?;
-    if query.is_empty() {
-        print_not_found();
-        return Ok(());
-    }
+    let query = Assignments::query(db, group).await?.has_data()?;
 
     if modes.is_interactive() {
         query.copy_to(editable);
@@ -132,10 +122,12 @@ pub async fn scores_for_assignments(
     let assign = fields.next().unwrap_or(""); // suoritus
     let assign_short = fields.next().unwrap_or(""); // lyhenne
 
-    let query = ScoresForAssignments::query(db, group, assign, assign_short).await?;
+    let query = ScoresForAssignments::query(db, group, assign, assign_short)
+        .await?
+        .has_data()?;
 
     match query.count() {
-        0 => print_not_found(),
+        0 => panic!(),
         1 => {
             if modes.is_interactive() {
                 query.copy_to(editable);
@@ -168,10 +160,12 @@ pub async fn scores_for_students(
     let group = fields.next().unwrap_or(""); // ryhmä
     let desc = fields.next().unwrap_or(""); // lisätiedot
 
-    let query = ScoresForStudents::query(db, lastname, firstname, group, desc).await?;
+    let query = ScoresForStudents::query(db, lastname, firstname, group, desc)
+        .await?
+        .has_data()?;
 
     match query.count() {
-        0 => print_not_found(),
+        0 => panic!(),
         1 => {
             if modes.is_interactive() {
                 query.copy_to(editable);
@@ -203,12 +197,7 @@ pub async fn scores_for_group(
         g
     };
 
-    let query = ScoresForGroup::query(db, group).await?;
-    if query.is_empty() {
-        print_not_found();
-        return Ok(());
-    }
-
+    let query = ScoresForGroup::query(db, group).await?.has_data()?;
     query.print(modes.output());
     Ok(())
 }
@@ -912,10 +901,6 @@ async fn delete_scores(
         score.delete(db).await?;
     }
     Ok(())
-}
-
-fn print_not_found() {
-    eprintln!("Ei löytynyt.");
 }
 
 pub fn help(editable: &mut Editable, args: &str) {
