@@ -405,6 +405,99 @@ pub struct Assignments {
 }
 
 impl Assignment {
+    pub async fn update_name(&self, db: &mut PgConnection, name: &str) -> Result<(), sqlx::Error> {
+        sqlx::query("UPDATE suoritukset SET nimi = $1 WHERE sid = $2")
+            .bind(name)
+            .bind(self.sid)
+            .execute(db)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn update_short(
+        &self,
+        db: &mut PgConnection,
+        short: &str,
+    ) -> Result<(), sqlx::Error> {
+        sqlx::query("UPDATE suoritukset SET lyhenne = $1 WHERE sid = $2")
+            .bind(short)
+            .bind(self.sid)
+            .execute(db)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn update_weight(
+        &self,
+        db: &mut PgConnection,
+        weight: Option<i32>,
+    ) -> Result<(), sqlx::Error> {
+        let value = match weight {
+            Some(n) if n < 1 => None,
+            v => v,
+        };
+        sqlx::query("UPDATE suoritukset SET painokerroin = $1 WHERE sid = $2")
+            .bind(value)
+            .bind(self.sid)
+            .execute(db)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn update_position(
+        &self,
+        db: &mut PgConnection,
+        mut pos: i32,
+    ) -> Result<(), sqlx::Error> {
+        let mut other_sids = Vec::with_capacity(10);
+
+        {
+            let mut rows = sqlx::query(
+                "SELECT sid FROM suoritukset \
+                 WHERE rid = $1 AND NOT sid = $2 ORDER BY sija, sid DESC",
+            )
+            .bind(self.rid)
+            .bind(self.sid)
+            .fetch(&mut *db);
+
+            while let Some(row) = rows.try_next().await? {
+                let sid: i32 = row.try_get("sid")?;
+                other_sids.push(sid);
+            }
+        }
+
+        if pos < 1 {
+            pos = 1;
+        }
+
+        let other_max: i32 = other_sids.len().try_into().unwrap();
+        if pos > other_max + 1 {
+            pos = other_max + 1
+        }
+
+        sqlx::query("UPDATE suoritukset SET sija = $1 WHERE sid = $2")
+            .bind(pos)
+            .bind(self.sid)
+            .execute(&mut *db)
+            .await?;
+
+        let mut position: i32 = 0;
+        for sid in other_sids {
+            position += 1;
+            if position == pos {
+                position += 1;
+            }
+
+            sqlx::query("UPDATE suoritukset SET sija = $1 WHERE sid = $2")
+                .bind(position)
+                .bind(sid)
+                .execute(&mut *db)
+                .await?;
+        }
+
+        Ok(())
+    }
+
     pub async fn insert(&self, db: &mut PgConnection, pos: i32) -> Result<(), sqlx::Error> {
         sqlx::query(
             "INSERT INTO suoritukset (rid, nimi, lyhenne, painokerroin, sija) \

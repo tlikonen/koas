@@ -236,7 +236,9 @@ pub async fn edit(
         EditableItem::Groups(groups) => {
             edit_groups(&mut ta, indexes, groups, fields).await?;
         }
-        EditableItem::Assignments(_) => todo!(),
+        EditableItem::Assignments(assignments) => {
+            edit_assignments(&mut ta, indexes, assignments, fields).await?;
+        }
         EditableItem::Scores(scores) => {
             edit_scores(&mut ta, indexes, scores, fields).await?;
         }
@@ -362,7 +364,9 @@ pub async fn edit_series(
             EditableItem::Groups(groups) => {
                 edit_groups(&mut ta, index, groups, fields).await?;
             }
-            EditableItem::Assignments(_) => todo!(),
+            EditableItem::Assignments(assignments) => {
+                edit_assignments(&mut ta, index, assignments, fields).await?;
+            }
             EditableItem::Scores(scores) => {
                 edit_scores(&mut ta, index, scores, fields).await?;
             }
@@ -523,6 +527,80 @@ async fn edit_groups(
 
         if desc.is_some() {
             group.update_description(db, desc.as_ref().unwrap()).await?;
+        }
+    }
+    Ok(())
+}
+
+async fn edit_assignments(
+    db: &mut PgConnection,
+    indexes: Vec<usize>,
+    group_assignments: &[Assignment],
+    mut fields: impl Iterator<Item = &str>,
+) -> Result<(), Box<dyn Error>> {
+    let name = fields
+        .next()
+        .filter(|x| tools::has_content(x))
+        .map(tools::normalize_str); // suoritus
+
+    let short = fields
+        .next()
+        .filter(|x| tools::has_content(x))
+        .map(tools::normalize_str); // lyhenne
+
+    let weight = fields.next().filter(|x| !x.is_empty()); // painokerroin
+    let position = fields.next().filter(|x| tools::has_content(x)); // sija
+
+    if name.is_none() && short.is_none() && weight.is_none() && position.is_none() {
+        Err("Anna muokattavia kenttiä.")?;
+    }
+
+    if position.is_some() && indexes.len() > 1 {
+        Err("Usealle suoritukselle ei voi asettaa samaa sijaa.")?;
+    }
+
+    let weight = match weight {
+        Some(s) if !tools::has_content(s) => Some(0), // painokerroin: NULL
+        Some(s) => Some(tools::parse_positive_int(s).map_err(|e| {
+            format!("Painokertoimen ”{e}” täytyy olla positiivinen kokonaisluku (tai tyhjä).")
+        })?),
+        None => None,
+    };
+
+    let position = match position {
+        Some(s) => Some(
+            tools::parse_positive_int(s)
+                .map_err(|e| format!("Sijan ”{e}” täytyy olla positiivinen kokonaisluku."))?,
+        ),
+        None => None,
+    };
+
+    for i in indexes {
+        let group_assignment = match group_assignments.get(i - 1) {
+            None => Err("Muokattavia suorituksia ei ole.")?,
+            Some(v) => v,
+        };
+
+        if name.is_some() {
+            group_assignment
+                .update_name(db, name.as_ref().unwrap())
+                .await?;
+        }
+
+        if short.is_some() {
+            group_assignment
+                .update_short(db, short.as_ref().unwrap())
+                .await?;
+        }
+
+        if weight.is_some() {
+            group_assignment.update_weight(db, weight).await?;
+        }
+
+        if position.is_some() {
+            group_assignment
+                .update_position(db, position.unwrap())
+                .await?;
         }
     }
     Ok(())
