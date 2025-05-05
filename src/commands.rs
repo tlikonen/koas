@@ -561,17 +561,18 @@ async fn edit_assignments(
 
     let weight = match weight {
         Some(s) if !tools::has_content(s) => Some(0), // painokerroin: NULL
-        Some(s) => Some(tools::parse_positive_int(s).map_err(|e| {
-            format!("Painokertoimen ”{e}” täytyy olla positiivinen kokonaisluku (tai tyhjä).")
-        })?),
+        Some(s) => match s.trim().parse::<i32>() {
+            Ok(n) if n >= 1 => Some(n),
+            _ => Err("Painokertoimen täytyy olla positiivinen kokonaisluku (tai tyhjä).")?,
+        },
         None => None,
     };
 
     let position = match position {
-        Some(s) => Some(
-            tools::parse_positive_int(s)
-                .map_err(|e| format!("Sijan ”{e}” täytyy olla positiivinen kokonaisluku."))?,
-        ),
+        Some(s) => match s.trim().parse::<i32>() {
+            Ok(n) => Some(n),
+            _ => Err("Sijan täytyy olla kokonaisluku.")?,
+        },
         None => None,
     };
 
@@ -837,15 +838,18 @@ pub async fn insert_assignment(
 
     let weight =
         match weight {
-            Some(s) => Some(tools::parse_positive_int(s).map_err(|e| {
-                format!("Painokertoimen ”{e}” täytyy olla positiivinen kokonaisluku.")
-            })?),
+            Some(s) => match s.trim().parse::<i32>() {
+                Ok(n) if n >= 1 => Some(n),
+                _ => Err("Painokertoimen täytyy olla positiivinen kokonaisluku (tai tyhjä).")?,
+            },
             None => None,
         };
 
     let position = match position {
-        Some(s) => tools::parse_positive_int(s)
-            .map_err(|e| format!("Sijan ”{e}” täytyy olla positiivinen kokonaisluku."))?,
+        Some(s) => match s.trim().parse::<i32>() {
+            Ok(n) => n,
+            _ => Err("Sijan täytyy olla kokonaisluku.")?,
+        },
         None => i32::MAX,
     };
 

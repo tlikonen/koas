@@ -1,12 +1,5 @@
 use std::error::Error;
 
-pub fn parse_positive_int(s: &str) -> Result<i32, &str> {
-    match s.trim().parse::<i32>() {
-        Ok(n) if n >= 1 => Ok(n),
-        _ => Err(s),
-    }
-}
-
 pub fn parse_number_list(s: &str) -> Result<Vec<usize>, Box<dyn Error>> {
     let mut vec: Vec<usize> = Vec::with_capacity(25);
     let errmsg = |v| format!("Sopimaton tietueen numero: ”{v}”.");
@@ -243,19 +236,6 @@ mod tests {
         assert_eq!(("eka", "toka kolmas"), split_first(" eka  toka kolmas"));
         assert_eq!(("eka", "toka  kolmas "), split_first("eka  toka  kolmas "));
         assert_eq!(("€äö", "€äö  €äö "), split_first("€äö  €äö  €äö "));
-    }
-
-    #[test]
-    fn t_parse_positive_int() {
-        assert_eq!(true, parse_positive_int("").is_err());
-        assert_eq!(true, parse_positive_int("0").is_err());
-        assert_eq!(true, parse_positive_int("x").is_err());
-        assert_eq!(true, parse_positive_int("-1").is_err());
-        assert_eq!(true, parse_positive_int(" 1  3 ").is_err());
-        assert_eq!(Ok(1), parse_positive_int("1"));
-        assert_eq!(Ok(12), parse_positive_int(" 12 "));
-        assert_eq!(Ok(72), parse_positive_int("+72"));
-        assert_eq!(Ok(60), parse_positive_int("  +60  "));
     }
 
     #[test]
