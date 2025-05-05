@@ -154,7 +154,7 @@ impl Students {
     }
 
     fn table(&self) -> Table {
-        const GROUPS_WIDTH: usize = 36;
+        const GROUPS_WIDTH: usize = 42;
         const DESC_WIDTH: usize = 36;
 
         let mut rows = vec![
