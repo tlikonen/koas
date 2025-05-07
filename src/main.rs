@@ -15,7 +15,7 @@ static PROGRAM_LICENSE: &str = env!("CARGO_PKG_LICENSE");
 async fn main() -> ExitCode {
     let args = jg::OptSpecs::new()
         .option("taulukot", "taulukot", jg::OptValue::RequiredNonEmpty)
-        .option("ohje", "ohje", jg::OptValue::Optional)
+        .option("ohje", "ohje", jg::OptValue::OptionalNonEmpty)
         .option("help", "h", jg::OptValue::None)
         .option("version", "versio", jg::OptValue::None)
         .flag(jg::OptFlags::PrefixMatchLongOptions)
@@ -39,13 +39,19 @@ async fn main() -> ExitCode {
     }
 
     if args.option_exists("help") {
-        print_usage();
+        println!(include_str!("../help/usage.txt"), program = PROGRAM_NAME);
         return ExitCode::SUCCESS;
     }
 
     if args.option_exists("ohje") {
-        koas::help();
-        return ExitCode::SUCCESS;
+        let topic = args.options_value_last("ohje").map_or("", |v| v);
+        match koas::help(topic) {
+            Ok(_) => return ExitCode::SUCCESS,
+            Err(e) => {
+                eprintln!("{e}");
+                return ExitCode::FAILURE;
+            }
+        }
     }
 
     if args.option_exists("version") {
@@ -68,27 +74,6 @@ async fn main() -> ExitCode {
             ExitCode::FAILURE
         }
     }
-}
-
-fn print_usage() {
-    println!(
-        "Käyttö: {name} [valitsimet] [--] [komento]
-
-Valitsimet
-
-  --taulukot=tulostusmuoto
-        Taulukoiden tulostusmuoto no oletuksena ”unicode”, mutta muita
-        vaihtoehtoja ovat ”ascii”, ”org-mode”, ”tab” ja ”latex”.
-
-  --ohje, --ohje=tyyppi
-        Tulostaa ohjelman ohjeita. (Ei ole toteutettu vielä.)
-
-  -h    Tulostaa tämän ohjeen.
-
-  --versio
-        Tulostaa ohjelman versionumeron ja lisenssin.\n",
-        name = PROGRAM_NAME
-    )
 }
 
 async fn config_stage(args: jg::Args) -> Result<(), Box<dyn Error>> {

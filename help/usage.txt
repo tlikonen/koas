@@ -1,0 +1,15 @@
+Käyttö: {program} [valitsimet] [--] [komento]
+
+Valitsimet
+
+  --taulukot=tulostusmuoto
+        Taulukoiden tulostusmuoto no oletuksena ”unicode”, mutta muita
+        vaihtoehtoja ovat ”ascii”, ”org-mode”, ”tab” ja ”latex”.
+
+  --ohje, --ohje=tyyppi
+        Tulostaa ohjelman ohjeita.
+
+  -h    Tulostaa tämän ohjeen.
+
+  --versio
+        Tulostaa ohjelman versionumeron ja lisenssin.

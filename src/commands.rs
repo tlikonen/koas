@@ -836,14 +836,13 @@ pub async fn insert_assignment(
         Err("Pitää antaa vähintään ryhmä, suorituksen nimi ja lyhenne.")?;
     }
 
-    let weight =
-        match weight {
-            Some(s) => match s.trim().parse::<i32>() {
-                Ok(n) if n >= 1 => Some(n),
-                _ => Err("Painokertoimen täytyy olla positiivinen kokonaisluku (tai tyhjä).")?,
-            },
-            None => None,
-        };
+    let weight = match weight {
+        Some(s) => match s.trim().parse::<i32>() {
+            Ok(n) if n >= 1 => Some(n),
+            _ => Err("Painokertoimen täytyy olla positiivinen kokonaisluku (tai tyhjä).")?,
+        },
+        None => None,
+    };
 
     let position = match position {
         Some(s) => match s.trim().parse::<i32>() {
@@ -974,11 +973,13 @@ async fn delete_scores(
     Ok(())
 }
 
-pub fn help_interactive(editable: &mut Editable, _args: &str) {
-    editable.clear();
-    help();
-}
-
-pub fn help() {
-    println!("{}", include_str!("../help/help.txt"));
+pub fn help(args: &str) -> Result<(), String> {
+    println!(
+        "{}",
+        match args.to_lowercase().as_str() {
+            "" => include_str!("../help/quick.txt"),
+            _ => Err(format!("Tuntematon ohjeiden aihe: ”{args}”."))?,
+        }
+    );
+    Ok(())
 }

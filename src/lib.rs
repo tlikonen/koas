@@ -161,7 +161,10 @@ async fn insert_commands(
 
 fn help_commands(editable: &mut Editable, cmd: &str, args: &str) -> Result<bool, Box<dyn Error>> {
     match cmd {
-        "?" => commands::help_interactive(editable, args),
+        "?" => {
+            editable.clear();
+            commands::help(args)?;
+        }
         _ => return Ok(false),
     }
     Ok(true)
