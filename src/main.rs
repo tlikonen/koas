@@ -105,8 +105,8 @@ async fn config_stage(args: jg::Args) -> Result<(), Box<dyn Error>> {
         config.write(&config_file)?;
         Err(format!(
             "Luotiin asetustiedosto ”{}”.\n\
-             Muokkaa tiedostoon tietokannan yhteysasetukset tekstieditorilla.\n\
-             Valitsin ”--ohje=asetukset” tulostaa apua.",
+             Muokkaa tiedostoa tekstieditorilla ja aseta tietokannan yhteysasetukset.\n\
+             Seuraavilla valitsimilla saa apua: ”--ohje=tietokanta” ja ”--ohje=asetukset”.",
             config_file.to_string_lossy()
         ))?;
     }
