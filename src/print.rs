@@ -751,7 +751,7 @@ fn line_split(s: &str, max: usize) -> Vec<String> {
     let mut lines = Vec::with_capacity(20);
     let mut line = String::with_capacity(60);
 
-    for word in tools::words_iter(s) {
+    for word in s.split_whitespace() {
         if line.is_empty() {
             line.push_str(word);
         } else if line.chars().count() + word.chars().count() < max {

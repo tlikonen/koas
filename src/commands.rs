@@ -410,7 +410,7 @@ async fn edit_students(
     let mut groups_remove: Vec<String> = Vec::with_capacity(1);
 
     if groups.is_some() {
-        for g in tools::words_iter(groups.unwrap()) {
+        for g in groups.unwrap().split_whitespace() {
             let mut chars = g.chars();
             match chars.next() {
                 Some('+') => groups_add.push(chars.collect()),
@@ -505,7 +505,7 @@ async fn edit_groups(
 
     name = match name {
         Some(s) => {
-            let mut words = tools::words_iter(s);
+            let mut words = s.split_whitespace();
             let first = words.next().unwrap();
             if words.next().is_some() {
                 Err("Ryhmätunnuksen pitää olla yksi sana.")?;
@@ -797,7 +797,7 @@ pub async fn insert_student(
     let mut ta = db.begin().await?;
     student.insert(&mut ta).await?;
 
-    for g in tools::words_iter(groups.unwrap()) {
+    for g in groups.unwrap().split_whitespace() {
         let rid = Group::get_or_insert(&mut ta, g).await?;
         student.add_to_group(&mut ta, rid).await?;
     }
@@ -854,7 +854,7 @@ pub async fn insert_assignment(
 
     let mut ta = db.begin().await?;
 
-    for g in tools::words_iter(groups.unwrap()) {
+    for g in groups.unwrap().split_whitespace() {
         let group_assignment = Assignment {
             rid: Group::get_or_insert(&mut ta, g).await?,
             assignment: assignment.clone().unwrap(),
