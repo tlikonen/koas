@@ -978,6 +978,7 @@ pub fn help(args: &str) -> Result<(), String> {
         "{}",
         match args.to_lowercase().as_str() {
             "" => include_str!("../help/quick.txt"),
+            "tietokanta" => include_str!("../help/database.txt"),
             _ => Err(format!("Tuntematon ohjeiden aihe: ”{args}”."))?,
         }
     );
