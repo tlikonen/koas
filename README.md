@@ -28,7 +28,7 @@ _Koas_ toimii ainakin GNU/Linux-käyttöjärjestelmissä. Se on ohjelmoitu
 kehitysympäristön, jonka voi asentaa ohjelmointikielen verkkosivun
 ohjeiden avulla.
 
-Ohjelman lähdekoodin voi kääntää ja käännetyn ohjelman asentaa
+Ohjelman voi kääntää lähdekoodista ja käännetyn ohjelman asentaa
 komennolla `cargo install --path .` Kääntämisen yhteydessä ladataan
 automaattisesti useita ohjelmointikirjastoja, joita Koas tarvitsee.
 
@@ -43,7 +43,6 @@ voi syöttää. Komennolla `?` tulostuvat ohjeet ohjelman komennoista.
 Ohjelman komentorivillä valitsin `-h` tulostaa myös apua. Ohjelman
 ohjetekstit ovat alihakemistossa [help](help).
 
-
 [Rust]:     https://www.rust-lang.org/
 [Psql]:     https://www.postgresql.org/
 
@@ -51,15 +50,17 @@ ohjetekstit ovat alihakemistossa [help](help).
 Tekijä ja tekijänoikeus
 -----------------------
 
-Ohjelman tekijä on Teemu Likonen <<tlikonen@iki.fi>> (OpenPGP-avain:
-[6965F03973F0D4CA22B9410F0F2CAE0E07608462][PGP]), ja ohjelmaa levitetään
-[The GNU General Public License][GPL] -nimisellä lisenssillä. Lisenssin
-teksti on linkin takana englanninkielisenä. Lisenssin ajatuksena on,
-että ohjelmaa saa käyttää ja levittää vapaasti. Ohjelmaan saa myös
-vapaasti tehdä omia muutoksia, mutta jos levittää omaa muunneltua
-versiota, täytyy ohjelman muunneltu lähdekoodi antaa muiden käyttöön.
-Muunnellut versiot täytyy jakaa tällä samalla ohjelmistolisenssillä (tai
-sen uudemmalla versiolla).
+Tekijä: Teemu Likonen <<tlikonen@iki.fi>>
+
+OpenPGP-avain: [6965F03973F0D4CA22B9410F0F2CAE0E07608462][PGP]
+
+Ohjelmaa levitetään [The GNU General Public License][GPL] -nimisellä
+lisenssillä. Lisenssin teksti on linkin takana englanninkielisenä.
+Lisenssin ajatuksena on, että ohjelmaa saa käyttää ja levittää vapaasti.
+Ohjelmaan saa myös vapaasti tehdä omia muutoksia, mutta jos levittää
+omaa muunneltua versiota, täytyy ohjelman muunneltu lähdekoodi antaa
+muiden käyttöön. Muunnellut versiot täytyy jakaa tällä samalla
+ohjelmistolisenssillä (tai sen uudemmalla versiolla).
 
 Ohjelmaa levitetään siinä toivossa, että siitä on hyötyä muille.
 Ohjelman tekijä ei kuitenkaan anna mitään takuita ohjelmalle, ei edes
@@ -72,7 +73,7 @@ lupausta, että se sopii johonkin tiettyyn käyttötarkoitukseen.
 Copyright and Licence
 ---------------------
 
-Copyright (C) Teemu Likonen <<tlikonen@iki.fi>>
+Author: Teemu Likonen <<tlikonen@iki.fi>>
 
 OpenPGP key: [6965F03973F0D4CA22B9410F0F2CAE0E07608462][PGP]
 
