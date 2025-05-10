@@ -2,7 +2,7 @@ use super::{PgConnection, Row};
 use crate::modes::Modes;
 use std::{cmp::Ordering, error::Error};
 
-const PROGRAM_DB_VERSION: i32 = 10;
+pub const PROGRAM_DB_VERSION: i32 = 10;
 const UPGRADE_COMMAND: &str = "päivitä";
 
 pub async fn init(db: &mut PgConnection, modes: &Modes) -> Result<(), Box<dyn Error>> {

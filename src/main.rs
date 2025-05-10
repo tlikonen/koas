@@ -56,10 +56,11 @@ async fn main() -> ExitCode {
 
     if args.option_exists("version") {
         println!(
-            "{name} v{version}\n\
+            "{name} v{version} (arvosanatietokanta v{db})\n\
              Tekijä:   {author}\n\
              Lisenssi: {license}",
             name = PROGRAM_NAME,
+            db = koas::PROGRAM_DB_VERSION,
             version = PROGRAM_VERSION,
             author = PROGRAM_AUTHORS,
             license = PROGRAM_LICENSE

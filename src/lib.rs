@@ -5,7 +5,7 @@ pub mod modes;
 mod print;
 pub mod tools;
 
-pub use crate::commands::help;
+pub use crate::{commands::help, database::PROGRAM_DB_VERSION};
 use crate::{
     config::Config,
     database::Editable,
