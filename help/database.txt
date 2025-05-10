@@ -3,16 +3,17 @@ Arvosanatietokanta
 
 Koas-ohjelma käyttää PostgreSQL-tietokantajärjestelmää arvosanojen
 tallentamiseen. Se on palvelinohjelmisto, johon asiakasohjelmat kuten
-Koas ovat yhteydessä Internetin tekniikalla. Palvelinohjelmisto voi
+Koas ovat yhteydessä Internetin tekniikoilla. Palvelinohjelmisto voi
 toimia esimerkiksi omalla tietokoneella.
 
 PostgreSQL täytyy asentaa tietokoneelle erikseen, ja Koas-ohjelmaa
 varten täytyy luoda sopiva käyttäjätunnus ja tietokanta. Seuraavat
 ohjeet neuvovat tietokannan valmistelun.
 
-Tietokantapalvelimeen täytyy muodostaa yhteys ylläpitokäyttäjällä.
-Sellainen on ainakin käyttäjä ”postgres”. Se käyttäjätunnus on olemassa
-sekä käyttöjärjestelmässä että PostgreSQL:ssä.
+Tietokantapalvelimeen täytyy muodostaa yhteys ylläpitokäyttäjällä, jolla
+on oikeus luoda tietokantoja ja käyttäjiä. Sellainen on ainakin käyttäjä
+”postgres”. Se käyttäjätunnus on olemassa sekä käyttöjärjestelmässä että
+PostgreSQL:ssä.
 
     $ sudo -u postgres psql
 
@@ -38,16 +39,16 @@ käyttäjätunnuksella itsellään.
 
 Koas-ohjelma tarvitsee toimiakseen yhden skeeman (schema) eli
 nimiavaruuden jostakin tietokannasta. Se skeema voi olla osa jotakin
-suurempaa tietokantaa, tai Koasia varten voi luoda ihan oman
-tietokannan, jota ei mikään muu ohjelma käytä. Seuraavat ohjeet luovat
-oman tietokannan Koasille.
+suurempaa tietokantaa, tai Koasia varten voi luoda oman tietokannan,
+jota mikään muu ohjelma ei käytä. Seuraavat ohjeet luovat oman
+tietokannan Koasille.
 
 Seuraavassa luodaan uusi tietokanta nimeltä ”koas”. Nimi voi olla mikä
 hyvänsä muukin.
 
     postgres=# CREATE DATABASE koas;
 
-Otetaan yhteys uuteen tietokantaan:
+Muodostetaan yhteys uuteen tietokantaan:
 
     postgres=# \c koas
 
@@ -76,21 +77,20 @@ skeemaan. Valitse seuraavista jompikumpi:
 
 Lopuksi asetetaan käyttäjätunnus ”koas” käyttämään skeemaa ”arvosanat”
 tietokannassa ”koas”. Koas-ohjelma ei itse välitä, missä skeemassa ja
-tietokannassa se toimii. Siksi seuraavalla komennolla asetetaan
-muuttujan search_path arvoksi se skeema, jota Koas-ohjelman halutaan
-käyttävän. Tämän muuttujan avulla Koas voidaan asettaa käyttämään mitä
-skeemaa hyvänsä.
+tietokannassa se toimii. Siksi seuraavalla komennolla täytyy asettaa
+muuttujan ”search_path” arvoksi se skeema, jota käyttäjätunnuksen ”koas”
+halutaan käyttävän tässä tietokannassa.
 
     koas=# ALTER ROLE koas IN DATABASE koas SET search_path TO arvosanat;
 
 Edellä ensimmäinen ”koas” on käyttäjätunnuksen nimi, toinen ”koas” on
-tietokannan nimi, johon search_path-muuttujan asetus tulee voimaan.
+tietokannan nimi, johon muuttujan ”search_path” asetus tulee voimaan.
 Lopussa oleva ”arvosanat” on skeeman nimi.
 
 Tietokannan asetukset ovat nyt valmiit. Psql-ohjelmasta voi poistua
 komennolla ”\q”.
 
-Uudella käyttäjätunnuksella kirjautumista voi kokeilla Psql-ohjelmalla
+Uudella käyttäjätunnuksella kirjautumista voi kokeilla psql-ohjelmalla
 käyttöjärjestelmän komentotulkista. Seuraavassa komennossa valitsin ”-U”
 määrittää käyttäjätunnuksen, ”-h” verkko-osoitteen, jossa
 PostgreSQL-palvelin toimii, ja ”-d” nimen tietokannalle, johon
@@ -106,4 +106,4 @@ käyttäjätunnusten asetuksia.
 Ennen kuin Koas-ohjelma toimii, täytyy sen asetustiedostoon asettaa
 tietokannan yhteysasetukset. Sitä varten on erillinen ohje. Kun
 asetukset ovat kunnossa, Koas luo tarvitsemansa taulukot ja muut
-tietokantaobjektit ensimmäisellä käynnistuskerralla.
+tietokantaobjektit ensimmäisellä käynnistyskerralla.
