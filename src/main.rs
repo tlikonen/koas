@@ -17,7 +17,7 @@ async fn main() -> ExitCode {
         .option("taulukot", "taulukot", jg::OptValue::RequiredNonEmpty)
         .option("ohje", "ohje", jg::OptValue::OptionalNonEmpty)
         .option("help", "h", jg::OptValue::None)
-        .option("version", "versio", jg::OptValue::None)
+        .option("version", "version", jg::OptValue::None)
         .flag(jg::OptFlags::PrefixMatchLongOptions)
         .getopt(std::env::args().skip(1));
 
