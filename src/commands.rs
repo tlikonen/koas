@@ -409,8 +409,8 @@ async fn edit_students(
     let mut groups_add: Vec<String> = Vec::with_capacity(3);
     let mut groups_remove: Vec<String> = Vec::with_capacity(1);
 
-    if groups.is_some() {
-        for g in groups.unwrap().split_whitespace() {
+    if let Some(groups) = groups {
+        for g in groups.split_whitespace() {
             let mut chars = g.chars();
             match chars.next() {
                 Some('+') => groups_add.push(chars.collect()),
@@ -433,16 +433,12 @@ async fn edit_students(
             Some(v) => v,
         };
 
-        if lastname.is_some() {
-            student
-                .update_lastname(db, lastname.as_ref().unwrap())
-                .await?;
+        if let Some(last) = &lastname {
+            student.update_lastname(db, last).await?;
         }
 
-        if firstname.is_some() {
-            student
-                .update_firstname(db, firstname.as_ref().unwrap())
-                .await?;
+        if let Some(first) = &firstname {
+            student.update_firstname(db, first).await?;
         }
 
         for name in &groups_add {
@@ -471,10 +467,8 @@ async fn edit_students(
             }
         }
 
-        if desc.is_some() {
-            student
-                .update_description(db, desc.as_ref().unwrap())
-                .await?;
+        if let Some(d) = &desc {
+            student.update_description(db, d).await?;
         }
     }
 
@@ -521,12 +515,12 @@ async fn edit_groups(
             Some(g) => g,
         };
 
-        if name.is_some() {
-            group.update_name(db, name.unwrap()).await?;
+        if let Some(n) = name {
+            group.update_name(db, n).await?;
         }
 
-        if desc.is_some() {
-            group.update_description(db, desc.as_ref().unwrap()).await?;
+        if let Some(d) = &desc {
+            group.update_description(db, d).await?;
         }
     }
     Ok(())
@@ -582,26 +576,20 @@ async fn edit_assignments(
             Some(v) => v,
         };
 
-        if name.is_some() {
-            group_assignment
-                .update_name(db, name.as_ref().unwrap())
-                .await?;
+        if let Some(n) = &name {
+            group_assignment.update_name(db, n).await?;
         }
 
-        if short.is_some() {
-            group_assignment
-                .update_short(db, short.as_ref().unwrap())
-                .await?;
+        if let Some(s) = &short {
+            group_assignment.update_short(db, s).await?;
         }
 
         if weight.is_some() {
             group_assignment.update_weight(db, weight).await?;
         }
 
-        if position.is_some() {
-            group_assignment
-                .update_position(db, position.unwrap())
-                .await?;
+        if let Some(p) = position {
+            group_assignment.update_position(db, p).await?;
         }
     }
     Ok(())
@@ -642,16 +630,12 @@ async fn edit_scores(
             continue;
         }
 
-        if score.is_some() {
-            student_score
-                .update_score(db, score.as_ref().unwrap())
-                .await?;
+        if let Some(s) = &score {
+            student_score.update_score(db, s).await?;
         }
 
-        if desc.is_some() {
-            student_score
-                .update_description(db, desc.as_ref().unwrap())
-                .await?;
+        if let Some(d) = &desc {
+            student_score.update_description(db, d).await?;
         }
     }
     Ok(())
@@ -693,8 +677,8 @@ pub async fn convert_to_score(
                     None => Err("Ei muokattavia tietueita.")?,
                 };
 
-                if student_score.score.is_some() {
-                    if let Some(old) = tools::parse_number(student_score.score.as_ref().unwrap()) {
+                if let Some(ss) = &student_score.score {
+                    if let Some(old) = tools::parse_number(ss) {
                         if let Some(new) = tools::float_to_score(old) {
                             student_score.update_score(&mut ta, &new).await?;
                         }
@@ -744,8 +728,8 @@ pub async fn convert_to_decimal(
                     None => Err("Ei muokattavia tietueita.")?,
                 };
 
-                if student_score.score.is_some() {
-                    if let Some(old) = tools::parse_number(student_score.score.as_ref().unwrap()) {
+                if let Some(ss) = &student_score.score {
+                    if let Some(old) = tools::parse_number(ss) {
                         let new = tools::format_decimal(old);
                         student_score.update_score(&mut ta, &new).await?;
                     }
