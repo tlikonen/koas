@@ -19,7 +19,6 @@ pub struct Config {
 impl Config {
     pub fn file() -> Result<PathBuf, Box<dyn Error>> {
         let path = xdg::BaseDirectories::new()
-            .map_err(|_| "Asetustiedoston alustus epäonnistui.".to_string())?
             .place_config_file(CONFIG_FILE)
             .map_err(|e| format!("Asetustiedoston alustus epäonnistui: {}", e.kind()))?;
         Ok(path)
