@@ -34,12 +34,14 @@ automaattisesti useita ohjelmointikirjastoja, joita Koas tarvitsee.
 
 Arvosanatietokantaa varten Koas tarvitsee erillisen
 [PostgreSQL][Psql]-tietokantapalvelimen. Se täytyy asentaa erikseen.
-Koas-ohjelma sisältää ohjeita tietokannan valmisteluun Koasia varten.
+Koas-ohjelma sisältää ohjeita tietokannan valmisteluun Koasia varten
+(ks. [help/database.txt](help/database.txt)).
 
-Koas käynnistetään komennolla `koas`. Se käynnistää ohjelman
+Koas käynnistetään komennolla `koas`. Komento käynnistää ohjelman
 vuorovaikutteiseen tilaan, jossa kehote `koas>` ilmaisee, että komentoja
 voi syöttää. Komennolla `?` tulostuvat ohjeet ohjelman komennoista.
-Ohjelman komentorivillä valitsin `-h` tulostaa myös apua.
+Ohjelman komentorivillä valitsin `-h` tulostaa myös apua. Ohjelman
+ohjetekstit ovat alihakemistossa [help](help).
 
 
 [Rust]:     https://www.rust-lang.org/
