@@ -3,7 +3,7 @@ mod init;
 pub use self::init::init;
 use crate::config::Config;
 use futures::TryStreamExt; // STREAM.try_next()
-use sqlx::{Connection, PgConnection, Row as SqlxRow};
+use sqlx::{Connection, PgConnection, Row};
 
 pub async fn connect(config: &Config) -> Result<PgConnection, sqlx::Error> {
     let client = PgConnection::connect(

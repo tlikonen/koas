@@ -1,4 +1,4 @@
-use super::{PgConnection, SqlxRow};
+use super::{PgConnection, Row};
 use crate::modes::Modes;
 use std::{cmp::Ordering, error::Error};
 
