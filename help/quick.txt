@@ -1,15 +1,23 @@
-ho  /sukunimi/etunimi/ryhmät/lisätiedot
-hr  /ryhmä/lisätiedot
-hs  ryhmä
-hao /sukunimi/etunimi/ryhmät/lisätiedot
-has /ryhmä/suoritus/lyhenne
-hak ryhmä
+Komennot
+========
 
-tk
+ho  /sukunimi/etunimi/ryhmät/lisätiedot         Hae oppilaita
+hr  /ryhmä/lisätiedot                           Hae ryhmiä.
+hs  ryhmä                                       Hae suoritukset ryhmältä.
+has /ryhmä/suoritus/lyhenne                     Hae arvosanat ryhmiltä.
+hao /sukunimi/etunimi/ryhmät/lisätiedot         Hae arvosanat oppilailta.
+hak ryhmä                                       Hae ryhmän arvosanojen koonti.
 
-lo /sukunimi/etunimi/ryhmät .../lisätiedot
-ls /ryhmät .../suoritus/lyhenne/painokerroin/sija
+tk              Tulosta tietokannan tilastoja.
 
-m numerot /.../.../.../...
-ms numerot kenttä /.../.../...
-poista numerot
+lo /sukunimi/etunimi/ryhmät.../lisätiedot               Lisää oppilas.
+ls /ryhmät.../suoritus/lyhenne/painokerroin/sija        Lisää ryhmille suoritus.
+
+m  tietueet /.../.../.../...            Muokkaa valittuja tietueita ja kenttiä.
+ms tietueet kenttä /.../.../...         Muokkaa tietueista samaa kenttää.
+ma tietueet                             Muuta tietueiden arvosanat kouluarvosanaksi (jos mahdollista).
+md tietueet                             Muuta tietuedden arvosanat desimaaliluvuksi (jos mahdollista).
+poista tietueet                         Poista tietueet
+
+?               Tulostaa tämän ohjeen vuorovaikutteisessa tilassa.
+? tietokanta    Tulostaa tietokannan valmistelun ohjeita.
