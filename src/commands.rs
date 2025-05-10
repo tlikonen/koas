@@ -621,15 +621,6 @@ async fn edit_scores(
             Some(v) => v,
         };
 
-        if score.is_some()
-            && desc.is_some()
-            && score.as_ref().unwrap().is_empty()
-            && desc.as_ref().unwrap().is_empty()
-        {
-            student_score.delete(db).await?;
-            continue;
-        }
-
         if let Some(s) = &score {
             student_score.update_score(db, s).await?;
         }
@@ -637,6 +628,8 @@ async fn edit_scores(
         if let Some(d) = &desc {
             student_score.update_description(db, d).await?;
         }
+
+        student_score.delete_if_empty(db).await?;
     }
     Ok(())
 }

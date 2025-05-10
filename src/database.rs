@@ -700,6 +700,19 @@ impl Score {
             .await?;
         Ok(())
     }
+
+    pub async fn delete_if_empty(&self, db: &mut PgConnection) -> Result<(), sqlx::Error> {
+        sqlx::query(
+            "DELETE FROM arvosanat \
+             WHERE sid = $1 AND oid = $2 \
+             AND arvosana IS NULL AND lisatiedot IS NULL",
+        )
+        .bind(self.sid)
+        .bind(self.oid)
+        .execute(db)
+        .await?;
+        Ok(())
+    }
 }
 
 impl ScoresForAssignments {
