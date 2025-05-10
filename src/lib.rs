@@ -19,7 +19,8 @@ pub async fn command_stage(modes: Modes, config: Config) -> Result<(), Box<dyn E
     const PROGRAM_VERSION: &str = env!("CARGO_PKG_VERSION");
 
     let mut db = database::connect(&config).await?;
-    // database::init()?;    // Check and create database item here.
+    database::init(&mut db, &modes).await?;
+
     let mut editable: Editable = Default::default();
 
     match modes.mode() {

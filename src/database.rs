@@ -1,3 +1,6 @@
+mod init;
+
+pub use self::init::init;
 use crate::config::Config;
 use futures::TryStreamExt; // STREAM.try_next()
 use sqlx::{Connection, PgConnection, Row as SqlxRow};
