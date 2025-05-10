@@ -168,7 +168,7 @@ pub fn has_content(s: &str) -> bool {
 }
 
 pub fn normalize_str(s: &str) -> String {
-    let mut new = String::with_capacity(60);
+    let mut new = String::with_capacity(s.len());
     for (n, word) in s.split_whitespace().enumerate() {
         if n > 0 {
             new.push(' ');
