@@ -6,20 +6,15 @@ use futures::TryStreamExt; // STREAM.try_next()
 use sqlx::{Connection, PgConnection, Row};
 
 pub async fn connect(config: &Config) -> Result<PgConnection, sqlx::Error> {
-    let client = PgConnection::connect(
-        format!(
-            "postgres://{user}:{password}@{host}:{port}/{db}",
-            user = config.user,
-            password = config.password,
-            host = config.host,
-            port = config.port,
-            db = config.database,
-        )
-        .as_str(),
-    )
-    .await?;
-
-    Ok(client)
+    let connect_string = format!(
+        "postgres://{user}:{password}@{host}:{port}/{db}",
+        user = config.user,
+        password = config.password,
+        host = config.host,
+        port = config.port,
+        db = config.database,
+    );
+    PgConnection::connect(&connect_string).await
 }
 
 pub enum EditableItem {
