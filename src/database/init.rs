@@ -1,4 +1,4 @@
-use super::{PgConnection, Row};
+use super::{Connection, PgConnection, Row};
 use crate::modes::Modes;
 use std::{cmp::Ordering, error::Error};
 
@@ -61,13 +61,15 @@ pub async fn init(db: &mut PgConnection, modes: &Modes) -> Result<(), Box<dyn Er
         // Database objects don't exist. Create all.
         eprintln!("Valmistellaan arvosanatietokanta.");
 
+        let mut ta = db.begin().await?;
+
         sqlx::query("CREATE TABLE hallinto (avain TEXT PRIMARY KEY, arvo INTEGER, teksti TEXT)")
-            .execute(&mut *db)
+            .execute(&mut *ta)
             .await?;
 
         sqlx::query("INSERT INTO hallinto (avain, arvo) VALUES ('versio', $1)")
             .bind(PROGRAM_DB_VERSION)
-            .execute(&mut *db)
+            .execute(&mut *ta)
             .await?;
 
         // Seuraavassa versiossa ehkä vaatimuksia: NOT NULL.
@@ -78,11 +80,11 @@ pub async fn init(db: &mut PgConnection, modes: &Modes) -> Result<(), Box<dyn Er
              etunimi TEXT, \
              lisatiedot TEXT DEFAULT '')",
         )
-        .execute(&mut *db)
+        .execute(&mut *ta)
         .await?;
 
         sqlx::query("CREATE INDEX idx_oppilaat_sukunimi_etunimi ON oppilaat (sukunimi, etunimi)")
-            .execute(&mut *db)
+            .execute(&mut *ta)
             .await?;
 
         // Seuraavassa versiossa ehkä vaatimuksia: NOT NULL.
@@ -92,7 +94,7 @@ pub async fn init(db: &mut PgConnection, modes: &Modes) -> Result<(), Box<dyn Er
              nimi TEXT UNIQUE NOT NULL, \
              lisatiedot TEXT DEFAULT '')",
         )
-        .execute(&mut *db)
+        .execute(&mut *ta)
         .await?;
 
         sqlx::query(
@@ -101,11 +103,11 @@ pub async fn init(db: &mut PgConnection, modes: &Modes) -> Result<(), Box<dyn Er
              rid INTEGER NOT NULL REFERENCES ryhmat(rid) ON DELETE CASCADE, \
              PRIMARY KEY (oid, rid))",
         )
-        .execute(&mut *db)
+        .execute(&mut *ta)
         .await?;
 
         sqlx::query("CREATE INDEX idx_oppilaat_ryhmat_rid ON oppilaat_ryhmat (rid)")
-            .execute(&mut *db)
+            .execute(&mut *ta)
             .await?;
 
         // Seuraavassa versiossa ehkä vaatimuksia: NOT NULL.
@@ -118,11 +120,11 @@ pub async fn init(db: &mut PgConnection, modes: &Modes) -> Result<(), Box<dyn Er
              lyhenne TEXT DEFAULT '', \
              painokerroin INTEGER)",
         )
-        .execute(&mut *db)
+        .execute(&mut *ta)
         .await?;
 
         sqlx::query("CREATE INDEX idx_suoritukset_rid ON suoritukset (rid)")
-            .execute(&mut *db)
+            .execute(&mut *ta)
             .await?;
 
         sqlx::query(
@@ -133,11 +135,11 @@ pub async fn init(db: &mut PgConnection, modes: &Modes) -> Result<(), Box<dyn Er
              lisatiedot TEXT, \
              PRIMARY KEY (sid, oid))",
         )
-        .execute(&mut *db)
+        .execute(&mut *ta)
         .await?;
 
         sqlx::query("CREATE INDEX idx_arvosanat_oid ON arvosanat (oid)")
-            .execute(&mut *db)
+            .execute(&mut *ta)
             .await?;
 
         sqlx::query(
@@ -147,7 +149,7 @@ pub async fn init(db: &mut PgConnection, modes: &Modes) -> Result<(), Box<dyn Er
              LEFT JOIN oppilaat_ryhmat AS j ON j.oid = o.oid \
              LEFT JOIN ryhmat AS r ON r.rid = j.rid",
         )
-        .execute(&mut *db)
+        .execute(&mut *ta)
         .await?;
 
         sqlx::query(
@@ -157,7 +159,7 @@ pub async fn init(db: &mut PgConnection, modes: &Modes) -> Result<(), Box<dyn Er
              FROM suoritukset AS s \
              JOIN ryhmat AS r ON r.rid = s.rid",
         )
-        .execute(&mut *db)
+        .execute(&mut *ta)
         .await?;
 
         sqlx::query(
@@ -172,8 +174,10 @@ pub async fn init(db: &mut PgConnection, modes: &Modes) -> Result<(), Box<dyn Er
              LEFT JOIN suoritukset AS s ON r.rid = s.rid \
              LEFT JOIN arvosanat AS a ON o.oid = a.oid AND s.sid = a.sid",
         )
-        .execute(&mut *db)
+        .execute(&mut *ta)
         .await?;
+
+        ta.commit().await?;
     }
 
     Ok(())
