@@ -1,6 +1,10 @@
 Kouluarvosanatietokanta
 =======================
 
+Tämän kehityshaaran kehitys on päättynyt. Ohjelma on kirjoitettu
+uudelleen Rust-kielellä, ja uusi versio on saatavilla
+[Githubissa](https://github.com/tlikonen/koas).
+
 
 Esittely
 --------
