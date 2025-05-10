@@ -28,15 +28,15 @@ nimiseen tietokantaan on parhaillaan yhteys.
 Luodaan uusi tietokannan käyttäjätunnus ja salasana Koas-ohjelmaa
 varten:
 
-    postgres=# create user koas password 'salaisuus';
+    postgres=# CREATE USER koas PASSWORD 'salaisuus';
 
 Myöhemmin salasanan voi vaihtaa seuraavalla komennolla. Komennon voi
 suorittaa joko ylläpitotunnuksella kuten ”postgres” tai kyseisellä
 käyttäjätunnuksella itsellään.
 
-    postgres=# alter role koas password 'uusi-salaisuus';
+    postgres=# ALTER ROLE koas PASSWORD 'uusi-salaisuus';
 
-Koas-ohjelma tarvitsee toimiakseen yhden ”skeeman” (schema) eli
+Koas-ohjelma tarvitsee toimiakseen yhden skeeman (schema) eli
 nimiavaruuden jostakin tietokannasta. Se skeema voi olla osa jotakin
 suurempaa tietokantaa, tai Koasia varten voi luoda ihan oman
 tietokannan, jota ei mikään muu ohjelma käytä. Seuraavat ohjeet luovat
@@ -45,20 +45,19 @@ oman tietokannan Koasille.
 Seuraavassa luodaan uusi tietokanta nimeltä ”koas”. Nimi voi olla mikä
 hyvänsä muukin.
 
-    postgres=# create database koas;
+    postgres=# CREATE DATABASE koas;
 
 Otetaan yhteys uuteen tietokantaan:
 
     postgres=# \c koas
 
     You are now connected to database "koas" as user "postgres".
-    koas=# 
 
 Tähän uuteen koas-nimiseen tietokantaan luodaan skeema eli nimiavaruus
 Koas-ohjelman taulukoille. Seuraavassa esimerkissä skeeman nimi on
 ”arvosanat”, mutta nimeksi voi valita muunkin.
 
-    koas=# create schema arvosanat;
+    koas=# CREATE SCHEMA arvosanat;
 
 Seuraavaksi annetaan käyttäjätunnukselle ”koas” käyttöoikeuksia uuteen
 tietokantaan ja sen sisältämään skeemaan. Tietokantaan annetaan
@@ -67,20 +66,22 @@ kirjautumisoikeus ja skeemaan käyttö- ja muokkausoikeudet.
 Oikeus tietokantaan kirjautumiseen. Seuraavassa ensin mainittu ”koas” on
 tietokannan nimi ja jälkimmäinen ”koas” on käyttäjätunnus.
 
-    koas=# grant connect on database koas to koas;
+    koas=# GRANT CONNECT ON DATABASE koas TO koas;
 
-Oikeus arvosanat-skeeman käyttöön ja muokkaamiseen:
+Oikeus arvosanat-skeeman käyttöön ja muokkaamiseen tai täysi omistajuus
+skeemaan. Valitse seuraavista jompikumpi:
 
-    koas=# grant usage, create on schema arvosanat to koas;
+    koas=# GRANT USAGE, CREATE ON SCHEMA arvosanat TO koas;
+    koas=# ALTER SCHEMA arvosanat OWNER TO koas;
 
 Lopuksi asetetaan käyttäjätunnus ”koas” käyttämään skeemaa ”arvosanat”
-tietokannassa ”koas”. Koas-ohjelma ei itse millään tavalla välitä, missä
-skeemassa ja tietokannassa se toimii. Siksi seuraavalla komennolla
-asetetaan tietokannassa muuttujan search_path arvoksi se skeema, jota
-Koas-ohjelman halutaan käyttävän. Tämän muuttujan avulla Koas voidaan
-asettaa käyttämään, mitä skeemaa hyvänsä.
+tietokannassa ”koas”. Koas-ohjelma ei itse välitä, missä skeemassa ja
+tietokannassa se toimii. Siksi seuraavalla komennolla asetetaan
+muuttujan search_path arvoksi se skeema, jota Koas-ohjelman halutaan
+käyttävän. Tämän muuttujan avulla Koas voidaan asettaa käyttämään mitä
+skeemaa hyvänsä.
 
-    koas=# alter role koas in database koas set search_path to arvosanat;
+    koas=# ALTER ROLE koas IN DATABASE koas SET search_path TO arvosanat;
 
 Edellä ensimmäinen ”koas” on käyttäjätunnuksen nimi, toinen ”koas” on
 tietokannan nimi, johon search_path-muuttujan asetus tulee voimaan.
