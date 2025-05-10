@@ -19,8 +19,6 @@ laskemisessa käyttäjän määrittämiä painokertoimia. Ohjelmassa on
 tekstipohjainen käyttöliittymä ja myös tulosteet ovat tekstimuotoisia
 taulukoita.
 
-Tiedot tallennetaan erilliselle PostgreSQL-tietokantapalvelimelle.
-
 
 Asentaminen ja käyttö
 ---------------------
@@ -30,9 +28,13 @@ _Koas_ toimii ainakin GNU/Linux-käyttöjärjestelmissä. Se on ohjelmoitu
 kehitysympäristön, jonka voi asentaa ohjelmointikielen verkkosivun
 ohjeiden avulla.
 
-Ohjelman lähdekoodin voi kääntää ja käännetyn asentaa komennolla `cargo
-install --path .` Kääntämisen yhteydessä ladataan automaattisesti useita
-kirjastoja, joita ohjelma tarvitsee.
+Ohjelman lähdekoodin voi kääntää ja käännetyn ohjelman asentaa
+komennolla `cargo install --path .` Kääntämisen yhteydessä ladataan
+automaattisesti useita ohjelmointikirjastoja, joita Koas tarvitsee.
+
+Arvosanatietokantaa varten Koas tarvitsee erillisen
+[PostgreSQL][Psql]-tietokantapalvelimen. Se täytyy asentaa erikseen.
+Koas-ohjelma sisältää ohjeita tietokannan valmisteluun Koasia varten.
 
 Koas käynnistetään komennolla `koas`. Se käynnistää ohjelman
 vuorovaikutteiseen tilaan, jossa kehote `koas>` ilmaisee, että komentoja
@@ -41,6 +43,7 @@ Ohjelman komentorivillä valitsin `-h` tulostaa myös apua.
 
 
 [Rust]:     https://www.rust-lang.org/
+[Psql]:     https://www.postgresql.org/
 
 
 Tekijä ja tekijänoikeus
