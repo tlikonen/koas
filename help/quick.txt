@@ -15,10 +15,11 @@ ls /ryhmät.../suoritus/lyhenne/painokerroin/sija        Lisää ryhmille suorit
 
 m  tietueet /.../.../.../...            Muokkaa valittuja tietueita ja kenttiä.
 ms tietueet kenttä /.../.../...         Muokkaa tietueista samaa kenttää.
-ma tietueet                             Muuta tietueiden arvosanat kouluarvosanaksi (jos mahdollista).
-md tietueet                             Muuta tietuedden arvosanat desimaaliluvuksi (jos mahdollista).
+ma tietueet                             Muuta arvosanat kouluarvosanaksi, jos mahdollista.
+md tietueet                             Muuta arvosanat desimaaliluvuksi, jos mahdollista.
 poista tietueet                         Poista tietueet
 
-?               Tulostaa tämän ohjeen vuorovaikutteisessa tilassa.
+?               Tämä ohje vuorovaikutteisessa tilassa.
+? komennot      Tarkemmat ohjeet komennoista (EI TOTEUTETTU VIELÄ).
 ? tietokanta    Tietokannan valmistelun ohjeita.
 ? asetukset     Ohjelman asetustiedoston ohjeita.

@@ -9,7 +9,8 @@ Valitsimet
 
   --ohje, --ohje=aihe
         Tulostaa ohjelman komentojen pikaohjeen tai tarkempia ohjeita
-        aiheiden mukaan. Aiheita ovat: ”tietokanta” ja ”asetukset”.
+        aiheiden mukaan. Aiheita ovat: ”komennot”, ”tietokanta” ja
+        ”asetukset”.
 
   -h    Tulostaa tämän ohjeen.
 
