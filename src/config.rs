@@ -80,7 +80,7 @@ impl Config {
                     config.password.clear();
                     config.password.push_str(value);
                 }
-                "kanta" => {
+                "tietokanta" => {
                     config.database.clear();
                     config.database.push_str(value);
                 }
@@ -137,7 +137,7 @@ impl Config {
             format!(
                 "käyttäjä={user}\n\
                  salasana={pw}\n\
-                 kanta={db}\n\
+                 tietokanta={db}\n\
                  osoite={host}\n\
                  portti={port}\n\
                  taulukot={tables}\n",
