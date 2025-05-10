@@ -3,11 +3,13 @@ Käyttö: {program} [valitsimet] [--] [komento]
 Valitsimet
 
   --taulukot=tulostusmuoto
-        Taulukoiden tulostusmuoto no oletuksena ”unicode”, mutta muita
-        vaihtoehtoja ovat ”ascii”, ”org-mode”, ”tab” ja ”latex”.
+        Taulukoiden tulostusmuoto. Sopivia vaihtoehtoja ovat ”unicode”,
+        ”unicode-avoin”, ”ascii”, ”ascii-avoin”, ”emacs”, ”tab” ja
+        ”latex”.
 
-  --ohje, --ohje=tyyppi
-        Tulostaa ohjelman ohjeita.
+  --ohje, --ohje=aihe
+        Tulostaa ohjelman komentojen pikaohjeen tai tarkempia ohjeita
+        aiheiden mukaan. Aiheita ovat: ”tietokanta” ja ”asetukset”.
 
   -h    Tulostaa tämän ohjeen.
 

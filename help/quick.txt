@@ -20,4 +20,5 @@ md tietueet                             Muuta tietuedden arvosanat desimaaliluvu
 poista tietueet                         Poista tietueet
 
 ?               Tulostaa tämän ohjeen vuorovaikutteisessa tilassa.
-? tietokanta    Tulostaa tietokannan valmistelun ohjeita.
+? tietokanta    Tietokannan valmistelun ohjeita.
+? asetukset     Ohjelman asetustiedoston ohjeita.
