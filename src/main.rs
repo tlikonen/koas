@@ -29,7 +29,7 @@ async fn main() -> ExitCode {
     }
 
     for o in args.required_value_missing() {
-        eprintln!("Valitsimelle ”{}” täytyy antaa arvo.", o.name);
+        eprintln!("Valitsimelle ”{}” täytyy antaa arvo.", o.id);
         error = true;
     }
 
