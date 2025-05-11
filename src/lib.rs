@@ -57,7 +57,7 @@ pub async fn command_stage(modes: Modes, config: Config) -> Result<(), Box<dyn E
 
         Mode::Single(line) => {
             let (cmd, args) = tools::split_first(line);
-            if !query_commands(&modes, &mut db, &mut editable, cmd, args).await? {
+            if !non_interactive_commands(&modes, &mut db, &mut editable, cmd, args).await? {
                 Err(format!(
                     "Tuntematon komento ”{cmd}”. Apua saa valitsimella ”--ohje”."
                 ))?;
@@ -70,7 +70,7 @@ pub async fn command_stage(modes: Modes, config: Config) -> Result<(), Box<dyn E
                 let line = item?;
                 if !line.is_empty() {
                     let (cmd, args) = tools::split_first(&line);
-                    if !stdin_commands(&modes, &mut ta, &mut editable, cmd, args).await? {
+                    if !non_interactive_commands(&modes, &mut ta, &mut editable, cmd, args).await? {
                         Err(format!(
                             "Tuntematon komento ”{cmd}”. Apua saa valitsimella ”--ohje”."
                         ))?;
@@ -90,82 +90,60 @@ async fn interactive_commands(
     cmd: &str,
     args: &str,
 ) -> Result<bool, Box<dyn Error>> {
-    let result = query_commands(modes, db, editable, cmd, args).await?
-        || edit_commands(db, editable, cmd, args).await?
-        || insert_commands(db, editable, cmd, args).await?
-        || help_commands(editable, cmd, args)?;
-    Ok(result)
-}
-
-async fn stdin_commands(
-    modes: &Modes,
-    db: &mut PgConnection,
-    editable: &mut Editable,
-    cmd: &str,
-    args: &str,
-) -> Result<bool, Box<dyn Error>> {
-    let result = query_commands(modes, db, editable, cmd, args).await?
-        || insert_commands(db, editable, cmd, args).await?;
-    Ok(result)
-}
-
-async fn query_commands(
-    modes: &Modes,
-    db: &mut PgConnection,
-    editable: &mut Editable,
-    cmd: &str,
-    args: &str,
-) -> Result<bool, Box<dyn Error>> {
     match cmd {
-        "tk" => commands::stats(modes, db, editable).await?,
         "ho" => commands::students(modes, db, editable, args).await?,
         "hr" => commands::groups(modes, db, editable, args).await?,
         "hs" => commands::assignments(modes, db, editable, args).await?,
         "has" => commands::scores_for_assignments(modes, db, editable, args).await?,
         "hao" => commands::scores_for_students(modes, db, editable, args).await?,
         "hak" => commands::scores_for_group(modes, db, editable, args).await?,
-        _ => return Ok(false),
-    }
-    Ok(true)
-}
 
-async fn edit_commands(
-    db: &mut PgConnection,
-    editable: &mut Editable,
-    cmd: &str,
-    args: &str,
-) -> Result<bool, Box<dyn Error>> {
-    match cmd {
+        "tk" => commands::stats(modes, db, editable).await?,
+
+        "lo" => commands::insert_student(db, editable, args).await?,
+        "ls" => commands::insert_assignment(db, editable, args).await?,
+
         "m" => commands::edit(db, editable, args).await?,
         "ms" => commands::edit_series(db, editable, args).await?,
         "ma" => commands::convert_to_score(db, editable, args).await?,
         "md" => commands::convert_to_decimal(db, editable, args).await?,
         "poista" => commands::delete(db, editable, args).await?,
+
+        "?" => {
+            editable.clear();
+            commands::help(args)?;
+        }
+
         _ => return Ok(false),
     }
     Ok(true)
 }
 
-async fn insert_commands(
+async fn non_interactive_commands(
+    modes: &Modes,
     db: &mut PgConnection,
     editable: &mut Editable,
     cmd: &str,
     args: &str,
 ) -> Result<bool, Box<dyn Error>> {
     match cmd {
+        "ho" => commands::students(modes, db, editable, args).await?,
+        "hr" => commands::groups(modes, db, editable, args).await?,
+        "hs" => commands::assignments(modes, db, editable, args).await?,
+        "has" => commands::scores_for_assignments(modes, db, editable, args).await?,
+        "hao" => commands::scores_for_students(modes, db, editable, args).await?,
+        "hak" => commands::scores_for_group(modes, db, editable, args).await?,
+
+        "tk" => commands::stats(modes, db, editable).await?,
+
         "lo" => commands::insert_student(db, editable, args).await?,
         "ls" => commands::insert_assignment(db, editable, args).await?,
-        _ => return Ok(false),
-    }
-    Ok(true)
-}
 
-fn help_commands(editable: &mut Editable, cmd: &str, args: &str) -> Result<bool, Box<dyn Error>> {
-    match cmd {
         "?" => {
             editable.clear();
             commands::help(args)?;
         }
+
         _ => return Ok(false),
     }
     Ok(true)
