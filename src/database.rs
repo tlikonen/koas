@@ -22,7 +22,7 @@ pub enum EditableItem {
     Students(Vec<Student>),
     Groups(Vec<Group>),
     Assignments(Vec<Assignment>),
-    Scores(Vec<Score>),
+    Grades(Vec<Grade>),
 }
 
 pub struct Editable {
@@ -46,8 +46,8 @@ impl Editable {
         matches!(self.item, EditableItem::None)
     }
 
-    pub fn is_score(&self) -> bool {
-        matches!(self.item, EditableItem::Scores(_))
+    pub fn is_grade(&self) -> bool {
+        matches!(self.item, EditableItem::Grades(_))
     }
 
     pub fn count(&self) -> usize {
@@ -56,7 +56,7 @@ impl Editable {
             EditableItem::Students(v) => v.len(),
             EditableItem::Groups(v) => v.len(),
             EditableItem::Assignments(v) => v.len(),
-            EditableItem::Scores(v) => v.len(),
+            EditableItem::Grades(v) => v.len(),
         }
     }
 
@@ -81,7 +81,7 @@ pub struct Stats {
     pub students: i64,
     pub groups: i64,
     pub assignments: i64,
-    pub scores: i64,
+    pub grades: i64,
 }
 
 impl Stats {
@@ -100,7 +100,7 @@ impl Stats {
             students: row.try_get("oppilaat")?,
             groups: row.try_get("ryhmat")?,
             assignments: row.try_get("suoritukset")?,
-            scores: row.try_get("arvosanat")?,
+            grades: row.try_get("arvosanat")?,
         })
     }
 }
@@ -199,7 +199,7 @@ impl Student {
         Ok(())
     }
 
-    pub async fn count_scores(&self, db: &mut PgConnection) -> Result<i64, sqlx::Error> {
+    pub async fn count_grades(&self, db: &mut PgConnection) -> Result<i64, sqlx::Error> {
         let count: i64 = sqlx::query("SELECT count(*) AS count FROM arvosanat WHERE oid = $1")
             .bind(self.oid)
             .fetch_one(db)
@@ -208,7 +208,7 @@ impl Student {
         Ok(count)
     }
 
-    pub async fn count_scores_group(
+    pub async fn count_grades_group(
         &self,
         db: &mut PgConnection,
         rid: i32,
@@ -523,7 +523,7 @@ impl Assignment {
         Ok(())
     }
 
-    pub async fn count_scores(&self, db: &mut PgConnection) -> Result<i64, sqlx::Error> {
+    pub async fn count_grades(&self, db: &mut PgConnection) -> Result<i64, sqlx::Error> {
         let count: i64 = sqlx::query("SELECT count(*) AS count FROM arvosanat WHERE sid = $1")
             .bind(self.sid)
             .fetch_one(db)
@@ -627,7 +627,7 @@ impl Assignments {
 }
 
 #[derive(Clone)]
-pub struct Score {
+pub struct Grade {
     pub oid: i32,
     pub lastname: String,
     pub firstname: String,
@@ -635,23 +635,23 @@ pub struct Score {
     pub assignment: String,
     //pub assignment_short: String,
     pub weight: Option<i32>,
-    pub score: Option<String>,
-    pub score_description: Option<String>,
+    pub grade: Option<String>,
+    pub grade_description: Option<String>,
 }
 
-pub struct ScoresForAssignment {
+pub struct GradesForAssignment {
     pub assignment: String,
     pub group: String,
     //pub group_description: String,
-    pub scores: Vec<Score>,
+    pub grades: Vec<Grade>,
 }
 
 #[derive(Default)]
-pub struct ScoresForAssignments {
-    pub list: Vec<ScoresForAssignment>,
+pub struct GradesForAssignments {
+    pub list: Vec<GradesForAssignment>,
 }
 
-pub struct ScoresForStudent {
+pub struct GradesForStudent {
     //pub oid: i32,
     pub lastname: String,
     pub firstname: String,
@@ -659,15 +659,15 @@ pub struct ScoresForStudent {
     //pub rid: i32,
     pub group: String,
     //pub group_description: String,
-    pub scores: Vec<Score>,
+    pub grades: Vec<Grade>,
 }
 
 #[derive(Default)]
-pub struct ScoresForStudents {
-    pub list: Vec<ScoresForStudent>,
+pub struct GradesForStudents {
+    pub list: Vec<GradesForStudent>,
 }
 
-impl Score {
+impl Grade {
     async fn exists(&self, db: &mut PgConnection) -> Result<bool, sqlx::Error> {
         let result = sqlx::query("SELECT 1 FROM arvosanat WHERE sid = $1 AND oid = $2")
             .bind(self.sid)
@@ -678,12 +678,12 @@ impl Score {
         Ok(result)
     }
 
-    pub async fn update_score(
+    pub async fn update_grade(
         &self,
         db: &mut PgConnection,
-        score: &str,
+        grade: &str,
     ) -> Result<(), sqlx::Error> {
-        let value = if score.is_empty() { None } else { Some(score) };
+        let value = if grade.is_empty() { None } else { Some(grade) };
 
         if self.exists(db).await? {
             sqlx::query("UPDATE arvosanat SET arvosana = $1 WHERE sid = $2 AND oid = $3")
@@ -751,7 +751,7 @@ impl Score {
     }
 }
 
-impl ScoresForAssignments {
+impl GradesForAssignments {
     pub async fn query(
         db: &mut PgConnection,
         group: &str,
@@ -776,12 +776,12 @@ impl ScoresForAssignments {
         };
 
         let mut list = Vec::with_capacity(1);
-        let mut scores = Vec::with_capacity(10);
+        let mut grades = Vec::with_capacity(10);
 
         loop {
             let sid: i32 = row.try_get("sid")?;
 
-            scores.push(Score {
+            grades.push(Grade {
                 oid: row.try_get("oid")?,
                 lastname: row.try_get("sukunimi")?,
                 firstname: row.try_get("etunimi")?,
@@ -789,32 +789,32 @@ impl ScoresForAssignments {
                 assignment: row.try_get("suoritus")?,
                 //assignment_short: row.try_get("lyhenne")?,
                 weight: row.try_get("painokerroin")?,
-                score: row.try_get("arvosana")?,
-                score_description: row.try_get("alt")?,
+                grade: row.try_get("arvosana")?,
+                grade_description: row.try_get("alt")?,
             });
 
             row = match rows.try_next().await? {
                 Some(next_row) => {
                     let next_sid: i32 = next_row.try_get("sid")?;
                     if next_sid != sid {
-                        let l = scores.len();
-                        list.push(ScoresForAssignment {
+                        let l = grades.len();
+                        list.push(GradesForAssignment {
                             assignment: row.try_get("suoritus")?,
                             group: row.try_get("ryhma")?,
                             //group_description: row.try_get("rlt")?,
-                            scores,
+                            grades,
                         });
-                        scores = Vec::with_capacity(l);
+                        grades = Vec::with_capacity(l);
                     }
                     next_row
                 }
 
                 None => {
-                    list.push(ScoresForAssignment {
+                    list.push(GradesForAssignment {
                         assignment: row.try_get("suoritus")?,
                         group: row.try_get("ryhma")?,
                         //group_description: row.try_get("rlt")?,
-                        scores,
+                        grades,
                     });
                     break;
                 }
@@ -837,11 +837,11 @@ impl ScoresForAssignments {
 
     pub fn copy_to(&self, ed: &mut Editable) {
         assert!(self.count() == 1);
-        ed.item = EditableItem::Scores(self.list[0].scores.clone());
+        ed.item = EditableItem::Grades(self.list[0].grades.clone());
     }
 }
 
-impl ScoresForStudents {
+impl GradesForStudents {
     pub async fn query(
         db: &mut PgConnection,
         lastname: &str,
@@ -869,13 +869,13 @@ impl ScoresForStudents {
         };
 
         let mut list = Vec::with_capacity(1);
-        let mut scores = Vec::with_capacity(10);
+        let mut grades = Vec::with_capacity(10);
 
         loop {
             let oid: i32 = row.try_get("oid")?;
             let rid: i32 = row.try_get("rid")?;
 
-            scores.push(Score {
+            grades.push(Grade {
                 oid,
                 lastname: row.try_get("sukunimi")?,
                 firstname: row.try_get("etunimi")?,
@@ -883,8 +883,8 @@ impl ScoresForStudents {
                 assignment: row.try_get("suoritus")?,
                 //assignment_short: row.try_get("lyhenne")?,
                 weight: row.try_get("painokerroin")?,
-                score: row.try_get("arvosana")?,
-                score_description: row.try_get("alt")?,
+                grade: row.try_get("arvosana")?,
+                grade_description: row.try_get("alt")?,
             });
 
             row = match rows.try_next().await? {
@@ -892,8 +892,8 @@ impl ScoresForStudents {
                     let next_oid: i32 = next_row.try_get("oid")?;
                     let next_rid: i32 = next_row.try_get("rid")?;
                     if next_oid != oid || next_rid != rid {
-                        let l = scores.len();
-                        list.push(ScoresForStudent {
+                        let l = grades.len();
+                        list.push(GradesForStudent {
                             //oid,
                             lastname: row.try_get("sukunimi")?,
                             firstname: row.try_get("etunimi")?,
@@ -901,15 +901,15 @@ impl ScoresForStudents {
                             //rid: row.try_get("rid")?,
                             group: row.try_get("ryhma")?,
                             //group_description: row.try_get("rlt")?,
-                            scores,
+                            grades,
                         });
-                        scores = Vec::with_capacity(l);
+                        grades = Vec::with_capacity(l);
                     }
                     next_row
                 }
 
                 None => {
-                    list.push(ScoresForStudent {
+                    list.push(GradesForStudent {
                         //oid,
                         lastname: row.try_get("sukunimi")?,
                         firstname: row.try_get("etunimi")?,
@@ -917,7 +917,7 @@ impl ScoresForStudents {
                         //rid: row.try_get("rid")?,
                         group: row.try_get("ryhma")?,
                         //group_description: row.try_get("rlt")?,
-                        scores,
+                        grades,
                     });
                     break;
                 }
@@ -940,12 +940,12 @@ impl ScoresForStudents {
 
     pub fn copy_to(&self, ed: &mut Editable) {
         assert!(self.count() == 1);
-        ed.item = EditableItem::Scores(self.list[0].scores.clone());
+        ed.item = EditableItem::Grades(self.list[0].grades.clone());
     }
 }
 
 #[derive(Default)]
-pub struct ScoresForGroup {
+pub struct GradesForGroup {
     pub group: String,
     pub students: Vec<SimpleStudent>,
     pub assignments: Vec<Assignment>,
@@ -953,15 +953,15 @@ pub struct ScoresForGroup {
 
 pub struct SimpleStudent {
     pub name: String,
-    pub scores: Vec<SimpleScore>,
+    pub grades: Vec<SimpleGrade>,
 }
 
-pub struct SimpleScore {
+pub struct SimpleGrade {
     pub weight: Option<i32>,
-    pub score: Option<String>,
+    pub grade: Option<String>,
 }
 
-impl ScoresForGroup {
+impl GradesForGroup {
     pub async fn query(db: &mut PgConnection, group: &str) -> Result<Self, sqlx::Error> {
         let mut assignments = Vec::with_capacity(10);
 
@@ -998,29 +998,29 @@ impl ScoresForGroup {
         };
 
         let mut students = Vec::with_capacity(25);
-        let mut scores = Vec::with_capacity(10);
+        let mut grades = Vec::with_capacity(10);
 
         loop {
             let oid: i32 = row.try_get("oid")?;
 
-            scores.push(SimpleScore {
+            grades.push(SimpleGrade {
                 weight: row.try_get("painokerroin")?,
-                score: row.try_get("arvosana")?,
+                grade: row.try_get("arvosana")?,
             });
 
             row = match rows.try_next().await? {
                 Some(next_row) => {
                     let next_oid: i32 = next_row.try_get("oid")?;
                     if next_oid != oid {
-                        let l = scores.len();
+                        let l = grades.len();
                         let lastname: String = row.try_get("sukunimi")?;
                         let firstname: String = row.try_get("etunimi")?;
 
                         students.push(SimpleStudent {
                             name: format!("{lastname}, {firstname}"),
-                            scores,
+                            grades,
                         });
-                        scores = Vec::with_capacity(l);
+                        grades = Vec::with_capacity(l);
                     }
                     next_row
                 }
@@ -1030,7 +1030,7 @@ impl ScoresForGroup {
                     let firstname: String = row.try_get("etunimi")?;
                     students.push(SimpleStudent {
                         name: format!("{lastname}, {firstname}"),
-                        scores,
+                        grades,
                     });
                     break;
                 }

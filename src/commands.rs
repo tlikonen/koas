@@ -1,8 +1,8 @@
 use crate::{
     Modes,
     database::{
-        Assignment, Assignments, Editable, EditableItem, Group, Groups, Score,
-        ScoresForAssignments, ScoresForGroup, ScoresForStudents, Stats, Student, Students,
+        Assignment, Assignments, Editable, EditableItem, Grade, GradesForAssignments,
+        GradesForGroup, GradesForStudents, Group, Groups, Stats, Student, Students,
     },
     tools,
 };
@@ -106,7 +106,7 @@ pub async fn assignments(
     Ok(())
 }
 
-pub async fn scores_for_assignments(
+pub async fn grades_for_assignments(
     modes: &Modes,
     db: &mut PgConnection,
     editable: &mut Editable,
@@ -122,7 +122,7 @@ pub async fn scores_for_assignments(
     let assign = fields.next().unwrap_or(""); // suoritus
     let assign_short = fields.next().unwrap_or(""); // lyhenne
 
-    let query = ScoresForAssignments::query(db, group, assign, assign_short)
+    let query = GradesForAssignments::query(db, group, assign, assign_short)
         .await?
         .has_data()?;
 
@@ -143,7 +143,7 @@ pub async fn scores_for_assignments(
     Ok(())
 }
 
-pub async fn scores_for_students(
+pub async fn grades_for_students(
     modes: &Modes,
     db: &mut PgConnection,
     editable: &mut Editable,
@@ -160,7 +160,7 @@ pub async fn scores_for_students(
     let group = fields.next().unwrap_or(""); // ryhmä
     let desc = fields.next().unwrap_or(""); // lisätiedot
 
-    let query = ScoresForStudents::query(db, lastname, firstname, group, desc)
+    let query = GradesForStudents::query(db, lastname, firstname, group, desc)
         .await?
         .has_data()?;
 
@@ -181,7 +181,7 @@ pub async fn scores_for_students(
     Ok(())
 }
 
-pub async fn scores_for_group(
+pub async fn grades_for_group(
     modes: &Modes,
     db: &mut PgConnection,
     editable: &mut Editable,
@@ -197,7 +197,7 @@ pub async fn scores_for_group(
         g
     };
 
-    let query = ScoresForGroup::query(db, group).await?.has_data()?;
+    let query = GradesForGroup::query(db, group).await?.has_data()?;
     query.print(modes.output());
     Ok(())
 }
@@ -239,8 +239,8 @@ pub async fn edit(
         EditableItem::Assignments(assignments) => {
             edit_assignments(&mut ta, indexes, assignments, fields).await?;
         }
-        EditableItem::Scores(scores) => {
-            edit_scores(&mut ta, indexes, scores, fields).await?;
+        EditableItem::Grades(grades) => {
+            edit_grades(&mut ta, indexes, grades, fields).await?;
         }
         EditableItem::None => panic!(),
     }
@@ -281,7 +281,7 @@ pub async fn edit_series(
             EditableItem::Students(_) => 4,
             EditableItem::Groups(_) => 2,
             EditableItem::Assignments(_) => 4,
-            EditableItem::Scores(_) => 2,
+            EditableItem::Grades(_) => 2,
             EditableItem::None => panic!(),
         };
 
@@ -367,8 +367,8 @@ pub async fn edit_series(
             EditableItem::Assignments(assignments) => {
                 edit_assignments(&mut ta, index, assignments, fields).await?;
             }
-            EditableItem::Scores(scores) => {
-                edit_scores(&mut ta, index, scores, fields).await?;
+            EditableItem::Grades(grades) => {
+                edit_grades(&mut ta, index, grades, fields).await?;
             }
             EditableItem::None => panic!(),
         }
@@ -460,7 +460,7 @@ async fn edit_students(
                 continue;
             }
 
-            let count = student.count_scores_group(db, rid).await?;
+            let count = student.count_grades_group(db, rid).await?;
             if count > 0 {
                 Err(format!(
                     "Oppilaalle ”{l}, {f}” on ryhmässä ”{g}” kirjattu {c} arvosana(a).\n\
@@ -607,13 +607,13 @@ async fn edit_assignments(
     Ok(())
 }
 
-async fn edit_scores(
+async fn edit_grades(
     db: &mut PgConnection,
     indexes: Vec<usize>,
-    student_scores: &[Score],
+    student_grades: &[Grade],
     mut fields: impl Iterator<Item = &str>,
 ) -> Result<(), Box<dyn Error>> {
-    let score = fields
+    let grade = fields
         .next()
         .filter(|x| !x.is_empty())
         .map(tools::normalize_str); // arvosana
@@ -623,30 +623,30 @@ async fn edit_scores(
         .filter(|x| !x.is_empty())
         .map(tools::normalize_str); // lisätiedot
 
-    if score.is_none() && desc.is_none() {
+    if grade.is_none() && desc.is_none() {
         Err("Anna muokattavia kenttiä.")?;
     }
 
     for i in indexes {
-        let student_score = match student_scores.get(i - 1) {
+        let student_grade = match student_grades.get(i - 1) {
             None => Err("Muokattavia arvosanoja ei ole.")?,
             Some(v) => v,
         };
 
-        if let Some(s) = &score {
-            student_score.update_score(db, s).await?;
+        if let Some(s) = &grade {
+            student_grade.update_grade(db, s).await?;
         }
 
         if let Some(d) = &desc {
-            student_score.update_description(db, d).await?;
+            student_grade.update_description(db, d).await?;
         }
 
-        student_score.delete_if_empty(db).await?;
+        student_grade.delete_if_empty(db).await?;
     }
     Ok(())
 }
 
-pub async fn convert_to_score(
+pub async fn convert_to_grade(
     db: &mut PgConnection,
     editable: &mut Editable,
     args: &str,
@@ -655,7 +655,7 @@ pub async fn convert_to_score(
         Err("Edellinen komento ei sisällä muokattavia tietueita.")?;
     }
 
-    if !editable.is_score() {
+    if !editable.is_grade() {
         Err("Vain arvosanoja voi muokata tällä komennolla.")?;
     }
 
@@ -675,17 +675,17 @@ pub async fn convert_to_score(
 
     let mut ta = db.begin().await?;
     match editable.item() {
-        EditableItem::Scores(student_scores) => {
+        EditableItem::Grades(student_grades) => {
             for i in indexes {
-                let student_score = match student_scores.get(i - 1) {
+                let student_grade = match student_grades.get(i - 1) {
                     Some(v) => v,
                     None => Err("Ei muokattavia tietueita.")?,
                 };
 
-                if let Some(ss) = &student_score.score {
+                if let Some(ss) = &student_grade.grade {
                     if let Some(old) = tools::parse_number(ss) {
-                        if let Some(new) = tools::float_to_score(old) {
-                            student_score.update_score(&mut ta, &new).await?;
+                        if let Some(new) = tools::float_to_grade(old) {
+                            student_grade.update_grade(&mut ta, &new).await?;
                         }
                     }
                 }
@@ -706,7 +706,7 @@ pub async fn convert_to_decimal(
         Err("Edellinen komento ei sisällä muokattavia tietueita.")?;
     }
 
-    if !editable.is_score() {
+    if !editable.is_grade() {
         Err("Vain arvosanoja voi muokata tällä komennolla.")?;
     }
 
@@ -726,17 +726,17 @@ pub async fn convert_to_decimal(
 
     let mut ta = db.begin().await?;
     match editable.item() {
-        EditableItem::Scores(student_scores) => {
+        EditableItem::Grades(student_grades) => {
             for i in indexes {
-                let student_score = match student_scores.get(i - 1) {
+                let student_grade = match student_grades.get(i - 1) {
                     Some(v) => v,
                     None => Err("Ei muokattavia tietueita.")?,
                 };
 
-                if let Some(ss) = &student_score.score {
+                if let Some(ss) = &student_grade.grade {
                     if let Some(old) = tools::parse_number(ss) {
                         let new = tools::format_decimal(old);
-                        student_score.update_score(&mut ta, &new).await?;
+                        student_grade.update_grade(&mut ta, &new).await?;
                     }
                 }
             }
@@ -894,8 +894,8 @@ pub async fn delete(
         EditableItem::Assignments(assignments) => {
             delete_assignments(&mut ta, indexes, assignments).await?;
         }
-        EditableItem::Scores(scores) => {
-            delete_scores(&mut ta, indexes, scores).await?;
+        EditableItem::Grades(grades) => {
+            delete_grades(&mut ta, indexes, grades).await?;
         }
         EditableItem::None => panic!(),
     }
@@ -914,7 +914,7 @@ async fn delete_students(
             Some(v) => v,
         };
 
-        let count = student.count_scores(db).await?;
+        let count = student.count_grades(db).await?;
         if count > 0 {
             Err(format!(
                 "Oppilaalle ”{l}, {f}” on kirjattu {c} arvosana(a). Poista ne ensin.",
@@ -942,7 +942,7 @@ async fn delete_assignments(
             Some(v) => v,
         };
 
-        let count = assignment.count_scores(db).await?;
+        let count = assignment.count_grades(db).await?;
         if count > 0 {
             Err(format!(
                 "Suoritukselle ”{a}” on kirjattu {c} arvosana(a). Poista ne ensin.",
@@ -967,17 +967,17 @@ async fn delete_assignments(
     Ok(())
 }
 
-async fn delete_scores(
+async fn delete_grades(
     db: &mut PgConnection,
     indexes: Vec<usize>,
-    scores: &[Score],
+    grades: &[Grade],
 ) -> Result<(), Box<dyn Error>> {
     for i in indexes {
-        let score = match scores.get(i - 1) {
+        let grade = match grades.get(i - 1) {
             None => Err("Poistettavia arvosanoja ei ole.")?,
             Some(v) => v,
         };
-        score.delete(db).await?;
+        grade.delete(db).await?;
     }
     Ok(())
 }

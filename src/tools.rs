@@ -127,7 +127,7 @@ pub fn parse_number(s: &str) -> Option<f64> {
     }
 }
 
-pub fn float_to_score(float: f64) -> Option<String> {
+pub fn float_to_grade(float: f64) -> Option<String> {
     if float < 0.0 {
         return None;
     }
@@ -265,16 +265,16 @@ mod tests {
     }
 
     #[test]
-    fn t_float_to_score() {
-        assert_eq!(None, float_to_score(-0.1));
-        assert_eq!(None, float_to_score(-5.0));
-        assert_eq!(None, float_to_score(5.13));
-        assert_eq!(None, float_to_score(8.99));
-        assert_eq!(None, float_to_score(8.26));
-        assert_eq!(Some("8"), float_to_score(8.0).as_deref());
-        assert_eq!(Some("8+"), float_to_score(8.25).as_deref());
-        assert_eq!(Some("8½"), float_to_score(8.5).as_deref());
-        assert_eq!(Some("9-"), float_to_score(8.75).as_deref());
+    fn t_float_to_grade() {
+        assert_eq!(None, float_to_grade(-0.1));
+        assert_eq!(None, float_to_grade(-5.0));
+        assert_eq!(None, float_to_grade(5.13));
+        assert_eq!(None, float_to_grade(8.99));
+        assert_eq!(None, float_to_grade(8.26));
+        assert_eq!(Some("8"), float_to_grade(8.0).as_deref());
+        assert_eq!(Some("8+"), float_to_grade(8.25).as_deref());
+        assert_eq!(Some("8½"), float_to_grade(8.5).as_deref());
+        assert_eq!(Some("9-"), float_to_grade(8.75).as_deref());
     }
 
     #[test]

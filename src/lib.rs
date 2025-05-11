@@ -94,9 +94,9 @@ async fn interactive_commands(
         "ho" => commands::students(modes, db, editable, args).await?,
         "hr" => commands::groups(modes, db, editable, args).await?,
         "hs" => commands::assignments(modes, db, editable, args).await?,
-        "has" => commands::scores_for_assignments(modes, db, editable, args).await?,
-        "hao" => commands::scores_for_students(modes, db, editable, args).await?,
-        "hak" => commands::scores_for_group(modes, db, editable, args).await?,
+        "has" => commands::grades_for_assignments(modes, db, editable, args).await?,
+        "hao" => commands::grades_for_students(modes, db, editable, args).await?,
+        "hak" => commands::grades_for_group(modes, db, editable, args).await?,
 
         "tk" => commands::stats(modes, db, editable).await?,
 
@@ -105,7 +105,7 @@ async fn interactive_commands(
 
         "m" => commands::edit(db, editable, args).await?,
         "ms" => commands::edit_series(db, editable, args).await?,
-        "ma" => commands::convert_to_score(db, editable, args).await?,
+        "ma" => commands::convert_to_grade(db, editable, args).await?,
         "md" => commands::convert_to_decimal(db, editable, args).await?,
         "poista" => commands::delete(db, editable, args).await?,
 
@@ -130,9 +130,9 @@ async fn non_interactive_commands(
         "ho" => commands::students(modes, db, editable, args).await?,
         "hr" => commands::groups(modes, db, editable, args).await?,
         "hs" => commands::assignments(modes, db, editable, args).await?,
-        "has" => commands::scores_for_assignments(modes, db, editable, args).await?,
-        "hao" => commands::scores_for_students(modes, db, editable, args).await?,
-        "hak" => commands::scores_for_group(modes, db, editable, args).await?,
+        "has" => commands::grades_for_assignments(modes, db, editable, args).await?,
+        "hao" => commands::grades_for_students(modes, db, editable, args).await?,
+        "hak" => commands::grades_for_group(modes, db, editable, args).await?,
 
         "tk" => commands::stats(modes, db, editable).await?,
 

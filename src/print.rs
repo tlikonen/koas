@@ -1,8 +1,8 @@
 use crate::{
     Output,
     database::{
-        Assignments, Groups, ScoresForAssignment, ScoresForAssignments, ScoresForGroup,
-        ScoresForStudent, ScoresForStudents, Stats, Students,
+        Assignments, GradesForAssignment, GradesForAssignments, GradesForGroup, GradesForStudent,
+        GradesForStudents, Groups, Stats, Students,
     },
     tools,
 };
@@ -135,7 +135,7 @@ impl Stats {
             ]),
             Row::Data(vec![
                 Cell::Left("Arvosanoja:".to_string()),
-                Cell::Right(self.scores.to_string()),
+                Cell::Right(self.grades.to_string()),
             ]),
             Row::Bottomrule,
         ];
@@ -252,7 +252,7 @@ impl Assignments {
     }
 }
 
-impl ScoresForAssignment {
+impl GradesForAssignment {
     pub fn print(&self, out: &Output) {
         self.table().print(out);
     }
@@ -278,10 +278,10 @@ impl ScoresForAssignment {
         let mut sum = 0.0;
         let mut count = 0;
 
-        for score in &self.scores {
+        for grade in &self.grades {
             rows.push(Row::Data(vec![
-                Cell::Left(format!("{}, {}", score.lastname, score.firstname)),
-                match &score.score {
+                Cell::Left(format!("{}, {}", grade.lastname, grade.firstname)),
+                match &grade.grade {
                     Some(s) => {
                         if let Some(f) = tools::parse_number(s) {
                             sum += f;
@@ -291,7 +291,7 @@ impl ScoresForAssignment {
                     }
                     None => Cell::Empty,
                 },
-                match &score.score_description {
+                match &grade.grade_description {
                     Some(s) => Cell::Multi(line_split(s, DESC_WIDTH)),
                     None => Cell::Empty,
                 },
@@ -315,7 +315,7 @@ impl ScoresForAssignment {
     }
 }
 
-impl ScoresForAssignments {
+impl GradesForAssignments {
     pub fn print(&self, out: &Output) {
         for t in &self.list {
             t.print(out);
@@ -328,7 +328,7 @@ impl ScoresForAssignments {
     }
 }
 
-impl ScoresForStudent {
+impl GradesForStudent {
     pub fn print(&self, out: &Output) {
         self.table().print(out);
     }
@@ -360,13 +360,13 @@ impl ScoresForStudent {
         let mut sum = 0.0;
         let mut count = 0;
 
-        for score in &self.scores {
+        for grade in &self.grades {
             rows.push(Row::Data(vec![
-                Cell::Left(score.assignment.clone()),
-                match &score.score {
+                Cell::Left(grade.assignment.clone()),
+                match &grade.grade {
                     Some(s) => {
                         if let Some(f) = tools::parse_number(s) {
-                            if let Some(w) = score.weight {
+                            if let Some(w) = grade.weight {
                                 sum += f * f64::from(w);
                                 count += w;
                             }
@@ -375,11 +375,11 @@ impl ScoresForStudent {
                     }
                     None => Cell::Empty,
                 },
-                match &score.weight {
+                match &grade.weight {
                     Some(w) => Cell::Left(w.to_string()),
                     None => Cell::Empty,
                 },
-                match &score.score_description {
+                match &grade.grade_description {
                     Some(s) => Cell::Multi(line_split(s, DESC_WIDTH)),
                     None => Cell::Empty,
                 },
@@ -404,7 +404,7 @@ impl ScoresForStudent {
     }
 }
 
-impl ScoresForStudents {
+impl GradesForStudents {
     pub fn print(&self, out: &Output) {
         for t in &self.list {
             t.print(out);
@@ -417,7 +417,7 @@ impl ScoresForStudents {
     }
 }
 
-impl ScoresForGroup {
+impl GradesForGroup {
     pub fn print(&self, out: &Output) {
         self.table().print(out);
         println!();
@@ -457,16 +457,16 @@ impl ScoresForGroup {
             let mut horiz_sum = 0.0;
             let mut horiz_count = 0;
 
-            for (c, simple_score) in student.scores.iter().enumerate() {
+            for (c, simple_grade) in student.grades.iter().enumerate() {
                 if vert_sums.get(c).is_none() {
                     vert_sums.push(0.0);
                     vert_counts.push(0);
                 }
 
-                match &simple_score.score {
+                match &simple_grade.grade {
                     Some(s) => {
                         if let Some(f) = tools::parse_number(s) {
-                            if let Some(w) = simple_score.weight {
+                            if let Some(w) = simple_grade.weight {
                                 horiz_sum += f * f64::from(w);
                                 horiz_count += w;
                             }
