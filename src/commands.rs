@@ -460,6 +460,18 @@ async fn edit_students(
                 continue;
             }
 
+            let count = student.count_scores_group(db, rid).await?;
+            if count > 0 {
+                Err(format!(
+                    "Oppilaalle ”{l}, {f}” on ryhmässä ”{g}” kirjattu {c} arvosana(a).\n\
+                     Säilytetään ryhmät ja perutaan toiminto.",
+                    l = student.lastname,
+                    f = student.firstname,
+                    c = count,
+                    g = name,
+                ))?;
+            }
+
             if student.only_one_group(db).await? {
                 Err("Oppilaan pitää kuulua vähintään yhteen ryhmään.")?;
             } else {
@@ -901,6 +913,17 @@ async fn delete_students(
             None => Err("Poistettavia oppilaita ei ole.")?,
             Some(v) => v,
         };
+
+        let count = student.count_scores(db).await?;
+        if count > 0 {
+            Err(format!(
+                "Oppilaalle ”{l}, {f}” on kirjattu {c} arvosana(a). Poista ne ensin.",
+                l = student.lastname,
+                f = student.firstname,
+                c = count
+            ))?;
+        }
+
         student.delete(db).await?;
     }
     Groups::delete_empty(db).await?;
@@ -918,6 +941,15 @@ async fn delete_assignments(
             None => Err("Poistettavia suorituksia ei ole.")?,
             Some(v) => v,
         };
+
+        let count = assignment.count_scores(db).await?;
+        if count > 0 {
+            Err(format!(
+                "Suoritukselle ”{a}” on kirjattu {c} arvosana(a). Poista ne ensin.",
+                a = assignment.assignment,
+                c = count,
+            ))?;
+        }
 
         assignment.delete(db).await?;
 

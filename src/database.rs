@@ -199,6 +199,33 @@ impl Student {
         Ok(())
     }
 
+    pub async fn count_scores(&self, db: &mut PgConnection) -> Result<i64, sqlx::Error> {
+        let count: i64 = sqlx::query("SELECT count(*) AS count FROM arvosanat WHERE oid = $1")
+            .bind(self.oid)
+            .fetch_one(db)
+            .await?
+            .try_get("count")?;
+        Ok(count)
+    }
+
+    pub async fn count_scores_group(
+        &self,
+        db: &mut PgConnection,
+        rid: i32,
+    ) -> Result<i64, sqlx::Error> {
+        let count: i64 = sqlx::query(
+            "SELECT count(*) AS count FROM arvosanat AS a \
+             JOIN suoritukset AS s ON a.sid = s.sid \
+             WHERE oid = $1 AND rid = $2",
+        )
+        .bind(self.oid)
+        .bind(rid)
+        .fetch_one(db)
+        .await?
+        .try_get("count")?;
+        Ok(count)
+    }
+
     pub async fn insert(&mut self, db: &mut PgConnection) -> Result<(), sqlx::Error> {
         let row = sqlx::query(
             "INSERT INTO oppilaat (sukunimi, etunimi, lisatiedot) \
@@ -494,6 +521,15 @@ impl Assignment {
         }
 
         Ok(())
+    }
+
+    pub async fn count_scores(&self, db: &mut PgConnection) -> Result<i64, sqlx::Error> {
+        let count: i64 = sqlx::query("SELECT count(*) AS count FROM arvosanat WHERE sid = $1")
+            .bind(self.sid)
+            .fetch_one(db)
+            .await?
+            .try_get("count")?;
+        Ok(count)
     }
 
     pub async fn insert(&self, db: &mut PgConnection, pos: i32) -> Result<(), sqlx::Error> {
