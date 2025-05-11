@@ -1,5 +1,9 @@
 Käyttö: {program} [valitsimet] [--] [komento]
 
+  Ohjelma käynnistyy vuorovaikutteiseen tilaan, jos sen käynnistää ilman
+  ”komento”-argumenttia. Jos ”komento” on ”-”, luetaan komentoja
+  standardisyötteestä.
+
 Valitsimet
 
   --taulukot=tulostusmuoto

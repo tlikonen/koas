@@ -1,7 +1,7 @@
-Komennot
-========
+Komentojen yleiskuva
+====================
 
-ho  /sukunimi/etunimi/ryhmät/lisätiedot         Hae oppilaita
+ho  /sukunimi/etunimi/ryhmät/lisätiedot         Hae oppilaita.
 hr  /ryhmä/lisätiedot                           Hae ryhmiä.
 hs  ryhmä                                       Hae suoritukset ryhmältä.
 has /ryhmä/suoritus/lyhenne                     Hae arvosanat ryhmiltä.
@@ -17,9 +17,9 @@ m  tietueet /.../.../.../...            Muokkaa valittuja tietueita ja kenttiä.
 ms tietueet kenttä /.../.../...         Muokkaa tietueista samaa kenttää.
 ma tietueet                             Muuta arvosanat kouluarvosanaksi, jos mahdollista.
 md tietueet                             Muuta arvosanat desimaaliluvuksi, jos mahdollista.
-poista tietueet                         Poista tietueet
+poista tietueet                         Poista tietueet.
 
-?               Tämä ohje vuorovaikutteisessa tilassa.
-? komennot      Tarkemmat ohjeet komennoista (EI TOTEUTETTU VIELÄ).
+?               Tämä ohje.
+? komennot      Tarkemmat ohjeet komennoista.
 ? tietokanta    Tietokannan valmistelun ohjeita.
 ? asetukset     Ohjelman asetustiedoston ohjeita.
