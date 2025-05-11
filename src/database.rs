@@ -1009,7 +1009,7 @@ impl ScoresForGroup {
     }
 
     pub fn has_data(self) -> Result<Self, String> {
-        match self.students.is_empty() {
+        match self.assignments.is_empty() {
             false => Ok(self),
             true => Err("Ei löytynyt.")?,
         }
