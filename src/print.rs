@@ -437,7 +437,7 @@ impl GradesForGroup {
             });
         }
 
-        assigns.push(Cell::Right("ka".to_string()));
+        assigns.push(Cell::Left("ka".to_string()));
         rows.push(Row::Head(assigns));
         weigths.push(Cell::Empty);
         rows.push(Row::Head(weigths));
