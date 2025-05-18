@@ -98,9 +98,10 @@ async fn interactive_commands(
         "hao" => commands::grades_for_students(modes, db, editable, args).await?,
         "hak" => commands::grades_for_group(modes, db, editable, args).await?,
 
-        "tk" => commands::stats(modes, db, editable).await?,
         "tp" => commands::student_ranking(modes, db, editable, args, false).await?,
         "tpk" => commands::student_ranking(modes, db, editable, args, true).await?,
+        "tj" => commands::grade_distribution(modes, db, editable, args, false).await?,
+        "tjk" => commands::grade_distribution(modes, db, editable, args, true).await?,
 
         "lo" => commands::insert_student(db, editable, args).await?,
         "ls" => commands::insert_assignment(db, editable, args).await?,
@@ -112,6 +113,7 @@ async fn interactive_commands(
         "poista" => commands::delete(db, editable, args).await?,
 
         "tlk" => commands::table_format(modes, args)?,
+        "tk" => commands::stats(modes, db, editable).await?,
 
         "?" => {
             editable.clear();
@@ -138,12 +140,15 @@ async fn non_interactive_commands(
         "hao" => commands::grades_for_students(modes, db, editable, args).await?,
         "hak" => commands::grades_for_group(modes, db, editable, args).await?,
 
-        "tk" => commands::stats(modes, db, editable).await?,
         "tp" => commands::student_ranking(modes, db, editable, args, false).await?,
         "tpk" => commands::student_ranking(modes, db, editable, args, true).await?,
+        "tj" => commands::grade_distribution(modes, db, editable, args, false).await?,
+        "tjk" => commands::grade_distribution(modes, db, editable, args, true).await?,
 
         "lo" => commands::insert_student(db, editable, args).await?,
         "ls" => commands::insert_assignment(db, editable, args).await?,
+
+        "tk" => commands::stats(modes, db, editable).await?,
 
         "?" => {
             editable.clear();

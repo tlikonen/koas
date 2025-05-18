@@ -8,8 +8,10 @@ has /ryhmä/suoritus/lyhenne                     Hae arvosanat ryhmiltä.
 hao /sukunimi/etunimi/ryhmät/lisätiedot         Hae arvosanat oppilailta.
 hak ryhmä                                       Hae ryhmän arvosanojen koonti.
 
-tp  @/ryhmä/suor/lyh/suku/etu/lisä@/...         Tulosta paremmuusjärjestys (painokert.).
-tpk @/ryhmä/suor/lyh/suku/etu/lisä@/...         Tulosta paremmuusjärjestys.
+tp  @/ryhmä/suor/lyh/suku/etu/lisä@/...         Tulosta paremmuusjärjestys (painokertoimet).
+tpk @/ryhmä/suor/lyh/suku/etu/lisä@/...         Tulosta paremmuusjärjestys (kaikki).
+tj  @/ryhmä/suor/lyh/suku/etu/lisä@/...         Tulosta jakauma (painokertoimet).
+tjk @/ryhmä/suor/lyh/suku/etu/lisä@/...         Tulosta jakauma (kaikki).
 
 lo /sukunimi/etunimi/ryhmät/lisätiedot          Lisää oppilas.
 ls /ryhmät/suoritus/lyhenne/painokerroin/sija   Lisää ryhmille suoritus.

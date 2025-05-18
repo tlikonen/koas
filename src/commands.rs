@@ -1010,6 +1010,52 @@ pub async fn student_ranking(
     Ok(())
 }
 
+pub async fn grade_distribution(
+    modes: &Modes,
+    db: &mut PgConnection,
+    editable: &mut Editable,
+    mut args: &str,
+    all: bool,
+) -> Result<(), Box<dyn Error>> {
+    editable.clear();
+    if args.is_empty() {
+        args = "@";
+    }
+
+    let mut hash: HashMap<String, i32> = HashMap::new();
+
+    let field_groups = tools::split_sep(args);
+    for field_string in field_groups {
+        let mut fields = tools::split_sep(field_string);
+        let group = fields.next().unwrap_or(""); // ryhmä
+        let assign = fields.next().unwrap_or(""); // suoritus
+        let assign_short = fields.next().unwrap_or(""); // lyhenne
+        let lastname = fields.next().unwrap_or(""); // sukunimi
+        let firstname = fields.next().unwrap_or(""); // etunimi
+        let desc = fields.next().unwrap_or(""); // lisätiedot
+
+        database::query_grade_distribution(
+            db,
+            &mut hash,
+            all,
+            group,
+            assign,
+            assign_short,
+            lastname,
+            firstname,
+            desc,
+        )
+        .await?;
+    }
+
+    if hash.is_empty() {
+        Err("Ei löytynyt.")?;
+    }
+
+    print::grade_distribution(&hash, modes.output());
+    Ok(())
+}
+
 pub fn table_format(modes: &mut Modes, args: &str) -> Result<(), Box<dyn Error>> {
     let (first, _) = tools::split_first(args);
     if first.is_empty() {

@@ -617,6 +617,74 @@ pub fn student_ranking(hash: &mut HashMap<i32, StudentRank>, out: &Output) {
     Table { rows }.print(out);
 }
 
+pub fn grade_distribution(hash: &HashMap<String, i32>, out: &Output) {
+    const BAR_WIDTH: i32 = 40;
+
+    static GRADE_SERIES_1: [&str; 7] = ["4", "5", "6", "7", "8", "9", "10"];
+    static GRADE_SERIES_4: [&str; 25] = [
+        "4", "4+", "4½", "5-", "5", "5+", "5½", "6-", "6", "6+", "6½", "7-", "7", "7+", "7½", "8-",
+        "8", "8+", "8½", "9-", "9", "9+", "9½", "10-", "10",
+    ];
+
+    let box_char = match out {
+        Output::Ascii | Output::AsciiOpen => "#",
+        _ => "■",
+    };
+
+    let mut rows = vec![
+        Row::Toprule,
+        Row::Head(vec![
+            Cell::Left("As".to_string()),
+            Cell::Left("Lkm".to_string()),
+            Cell::Empty,
+        ]),
+        Row::Midrule,
+    ];
+
+    let mut integer_only = true;
+    let mut highest_count: i32 = 0;
+    for (grade, count) in hash {
+        let gr = grade.as_str();
+        if !GRADE_SERIES_4.contains(&gr) {
+            continue;
+        }
+
+        if !GRADE_SERIES_1.contains(&gr) {
+            integer_only = false;
+        }
+
+        if *count > highest_count {
+            highest_count = *count;
+        }
+    }
+
+    for grade in GRADE_SERIES_4 {
+        if integer_only && !GRADE_SERIES_1.contains(&grade) {
+            continue;
+        }
+
+        if let Some(count) = hash.get(grade) {
+            let char_count = (f64::from(*count) / f64::from(highest_count) * f64::from(BAR_WIDTH))
+                .round() as usize;
+
+            rows.push(Row::Data(vec![
+                Cell::Left(grade.to_string()),
+                Cell::Right(count.to_string()),
+                Cell::Left(box_char.repeat(char_count)),
+            ]));
+        } else {
+            rows.push(Row::Data(vec![
+                Cell::Left(grade.to_string()),
+                Cell::Right("0".to_string()),
+                Cell::Empty,
+            ]));
+        }
+    }
+
+    rows.push(Row::Bottomrule);
+    Table { rows }.print(out);
+}
+
 #[rustfmt::skip]
 static TBL_UNICODE: [&str; 15] = [
     "╒═", "═", "═╤═", "═╕", // top
