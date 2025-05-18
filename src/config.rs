@@ -174,13 +174,13 @@ impl Default for Config {
 
 pub fn select_table_format(value: &str) -> Result<Output, Box<dyn Error>> {
     let out = match value.to_lowercase().as_str() {
-        "unicode" => Output::Unicode,
-        "unicode-avoin" => Output::UnicodeOpen,
-        "ascii" => Output::Ascii,
-        "ascii-avoin" => Output::AsciiOpen,
-        "emacs" => Output::Orgmode,
-        "tab" => Output::Tab,
-        "latex" => Output::Latex,
+        "unicode" | "u" => Output::Unicode,
+        "unicode-avoin" | "ua" => Output::UnicodeOpen,
+        "ascii" | "a" => Output::Ascii,
+        "ascii-avoin" | "aa" => Output::AsciiOpen,
+        "emacs" | "e" => Output::Orgmode,
+        "tab" | "t" => Output::Tab,
+        "latex" | "l" => Output::Latex,
         _ => Err(value.to_string())?,
     };
     Ok(out)

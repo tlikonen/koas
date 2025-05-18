@@ -22,8 +22,8 @@ ma tietueet                             Muuta arvosanat kouluarvosanaksi, jos ma
 md tietueet                             Muuta arvosanat desimaaliluvuksi, jos mahdollista.
 poista tietueet                         Poista tietueet.
 
-tlk tyyli       Vaihtaa taulukkotyylin: unicode, unicode-avoin, ascii, ascii-avoin,
-                emacs, tab, latex.
+tlk tyyli       Vaihtaa taulukkotyylin: unicode (u), unicode-avoin (ua), ascii (a),
+                ascii-avoin (aa), emacs (e), tab (t), latex (l).
 
 ?               Tämä ohje.
 ? komennot      Tarkemmat ohjeet komennoista.
