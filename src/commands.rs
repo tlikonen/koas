@@ -24,12 +24,9 @@ pub async fn students(
     modes: &Modes,
     db: &mut PgConnection,
     editable: &mut Editable,
-    mut args: &str,
+    args: &str,
 ) -> Result<(), Box<dyn Error>> {
     editable.clear();
-    if args.is_empty() {
-        args = "/";
-    }
 
     let mut fields = tools::split_sep(args);
     let lastname = fields.next().unwrap_or(""); // sukunimi
@@ -55,12 +52,9 @@ pub async fn groups(
     modes: &Modes,
     db: &mut PgConnection,
     editable: &mut Editable,
-    mut args: &str,
+    args: &str,
 ) -> Result<(), Box<dyn Error>> {
     editable.clear();
-    if args.is_empty() {
-        args = "/";
-    }
 
     let mut fields = tools::split_sep(args);
     let name = fields.next().unwrap_or(""); // nimi
@@ -110,12 +104,9 @@ pub async fn grades_for_assignments(
     modes: &Modes,
     db: &mut PgConnection,
     editable: &mut Editable,
-    mut args: &str,
+    args: &str,
 ) -> Result<(), Box<dyn Error>> {
     editable.clear();
-    if args.is_empty() {
-        args = "/";
-    }
 
     let mut fields = tools::split_sep(args);
     let group = fields.next().unwrap_or(""); // ryhmä
@@ -147,12 +138,9 @@ pub async fn grades_for_students(
     modes: &Modes,
     db: &mut PgConnection,
     editable: &mut Editable,
-    mut args: &str,
+    args: &str,
 ) -> Result<(), Box<dyn Error>> {
     editable.clear();
-    if args.is_empty() {
-        args = "/";
-    }
 
     let mut fields = tools::split_sep(args);
     let lastname = fields.next().unwrap_or(""); // sukunimi
@@ -750,12 +738,9 @@ pub async fn convert_to_decimal(
 pub async fn insert_student(
     db: &mut PgConnection,
     editable: &mut Editable,
-    mut args: &str,
+    args: &str,
 ) -> Result<(), Box<dyn Error>> {
     editable.clear();
-    if args.is_empty() {
-        args = "/";
-    }
 
     let mut fields = tools::split_sep(args);
 
@@ -798,12 +783,9 @@ pub async fn insert_student(
 pub async fn insert_assignment(
     db: &mut PgConnection,
     editable: &mut Editable,
-    mut args: &str,
+    args: &str,
 ) -> Result<(), Box<dyn Error>> {
     editable.clear();
-    if args.is_empty() {
-        args = "/";
-    }
 
     let mut fields = tools::split_sep(args);
     let groups = fields.next().filter(|x| tools::has_content(x)); // ryhmät
