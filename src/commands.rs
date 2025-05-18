@@ -1,13 +1,13 @@
 use crate::{
     Modes,
     database::{
-        Assignment, Assignments, Editable, EditableItem, Grade, GradesForAssignments,
-        GradesForGroup, GradesForStudents, Group, Groups, Stats, Student, Students,
+        self, Assignment, Assignments, Editable, EditableItem, Grade, GradesForAssignments,
+        GradesForGroup, GradesForStudents, Group, Groups, Stats, Student, StudentRank, Students,
     },
-    tools,
+    print, tools,
 };
 use sqlx::{Connection, PgConnection};
-use std::{error::Error, io};
+use std::{collections::HashMap, error::Error, io};
 
 pub async fn stats(
     modes: &Modes,
@@ -961,6 +961,52 @@ async fn delete_grades(
         };
         grade.delete(db).await?;
     }
+    Ok(())
+}
+
+pub async fn student_ranking(
+    modes: &Modes,
+    db: &mut PgConnection,
+    editable: &mut Editable,
+    mut args: &str,
+    all: bool,
+) -> Result<(), Box<dyn Error>> {
+    editable.clear();
+    if args.is_empty() {
+        args = "@";
+    }
+
+    let mut hash: HashMap<i32, StudentRank> = HashMap::new();
+
+    let field_groups = tools::split_sep(args);
+    for field_string in field_groups {
+        let mut fields = tools::split_sep(field_string);
+        let group = fields.next().unwrap_or(""); // ryhmä
+        let assign = fields.next().unwrap_or(""); // suoritus
+        let assign_short = fields.next().unwrap_or(""); // lyhenne
+        let lastname = fields.next().unwrap_or(""); // sukunimi
+        let firstname = fields.next().unwrap_or(""); // etunimi
+        let desc = fields.next().unwrap_or(""); // lisätiedot
+
+        database::query_student_ranking(
+            db,
+            &mut hash,
+            all,
+            group,
+            assign,
+            assign_short,
+            lastname,
+            firstname,
+            desc,
+        )
+        .await?;
+    }
+
+    if hash.is_empty() {
+        Err("Ei löytynyt.")?;
+    }
+
+    print::student_ranking(&mut hash, modes.output());
     Ok(())
 }
 

@@ -1,9 +1,10 @@
 mod init;
 
 pub use self::init::{PROGRAM_DB_VERSION, init};
-use crate::config::Config;
+use crate::{config::Config, tools};
 use futures::TryStreamExt; // STREAM.try_next()
 use sqlx::{Connection, PgConnection, Row};
+use std::collections::HashMap;
 
 pub async fn connect(config: &Config) -> Result<PgConnection, sqlx::Error> {
     let connect_string = format!(
@@ -1050,6 +1051,78 @@ impl GradesForGroup {
             true => Err("Ei löytynyt.")?,
         }
     }
+}
+
+#[derive(Default)]
+pub struct StudentRank {
+    pub name: String,
+    pub groups: Vec<String>,
+    pub sum: f64,
+    pub count: i32,
+    pub grade_count: usize,
+}
+
+#[allow(clippy::too_many_arguments)]
+pub async fn query_student_ranking(
+    db: &mut PgConnection,
+    hash: &mut HashMap<i32, StudentRank>,
+    all: bool,
+    group: &str,
+    assign: &str,
+    assign_short: &str,
+    lastname: &str,
+    firstname: &str,
+    desc: &str,
+) -> Result<(), sqlx::Error> {
+    let mut rows = sqlx::query(
+        "SELECT oid, sukunimi, etunimi, ryhma, arvosana, painokerroin \
+         FROM view_arvosanat \
+         WHERE sukunimi LIKE $1 \
+         AND etunimi LIKE $2 \
+         AND ryhma LIKE $3 \
+         AND olt LIKE $4 \
+         AND suoritus LIKE $5 \
+         AND lyhenne LIKE $6",
+    )
+    .bind(like_esc_wild(lastname))
+    .bind(like_esc_wild(firstname))
+    .bind(like_esc_wild(group))
+    .bind(like_esc_wild(desc))
+    .bind(like_esc_wild(assign))
+    .bind(like_esc_wild(assign_short))
+    .fetch(db);
+
+    while let Some(row) = rows.try_next().await? {
+        if let Some(gr) = row.try_get("arvosana")? {
+            if let Some(grade) = tools::parse_number(gr) {
+                let weight: i32 = match row.try_get("painokerroin")? {
+                    Some(w) => w,
+                    None if all => 1,
+                    None => continue,
+                };
+
+                let oid: i32 = row.try_get("oid")?;
+                let rank = hash.entry(oid).or_default();
+
+                if rank.name.is_empty() {
+                    let lastname: String = row.try_get("sukunimi")?;
+                    let firstname: String = row.try_get("etunimi")?;
+                    rank.name = format!("{lastname}, {firstname}");
+                }
+
+                let group: String = row.try_get("ryhma")?;
+                if !rank.groups.contains(&group) {
+                    rank.groups.push(group.to_string());
+                }
+
+                rank.sum += grade * f64::from(weight);
+                rank.count += weight;
+                rank.grade_count += 1;
+            }
+        }
+    }
+
+    Ok(())
 }
 
 fn like_esc_wild(string: &str) -> String {

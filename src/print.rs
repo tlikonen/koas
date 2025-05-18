@@ -2,10 +2,13 @@ use crate::{
     Output,
     database::{
         Assignments, GradesForAssignment, GradesForAssignments, GradesForGroup, GradesForStudent,
-        GradesForStudents, Groups, Stats, Students,
+        GradesForStudents, Groups, Stats, StudentRank, Students,
     },
     tools,
 };
+use std::{cmp::Ordering, collections::HashMap};
+
+const GROUPS_WIDTH: usize = 42;
 
 struct Table {
     rows: Vec<Row>,
@@ -154,7 +157,6 @@ impl Students {
     }
 
     fn table(&self) -> Table {
-        const GROUPS_WIDTH: usize = 42;
         const DESC_WIDTH: usize = 36;
 
         let mut rows = vec![
@@ -542,6 +544,82 @@ impl GradesForGroup {
         rows.push(Row::Bottomrule);
         Table { rows }
     }
+}
+
+pub fn student_ranking(hash: &mut HashMap<i32, StudentRank>, out: &Output) {
+    const DECIMALS: usize = 5;
+
+    let mut rows = vec![
+        Row::Toprule,
+        Row::Head(vec![
+            Cell::Empty,
+            Cell::Left("Oppilas".to_string()),
+            Cell::Left("Ryhmät".to_string()),
+            Cell::Left("Ka".to_string()),
+            Cell::Left("Lkm".to_string()),
+        ]),
+        Row::Midrule,
+    ];
+
+    let mut total_sum = 0.0;
+    let mut total_count = 0;
+
+    let mut list: Vec<(String, String, f64, usize)> = Vec::with_capacity(30);
+    for student in hash.values_mut() {
+        student.groups.sort();
+
+        let avg = student.sum / f64::from(student.count);
+
+        list.push((
+            student.name.clone(),
+            student.groups.join(" "),
+            avg,
+            student.grade_count,
+        ));
+
+        total_sum += avg;
+        total_count += 1;
+    }
+
+    list.sort_by(|left, right| match right.2.total_cmp(&left.2) {
+        Ordering::Equal => left.0.cmp(&right.0),
+        ord => ord,
+    });
+
+    let mut average_last = 0.0;
+    for (n, student) in list.iter().enumerate() {
+        rows.push(Row::Data(vec![
+            if student.2 == average_last {
+                Cell::Empty
+            } else {
+                Cell::Right(format!("{}.", n + 1))
+            },
+            Cell::Left(student.0.clone()),
+            Cell::Multi(line_split(&student.1, GROUPS_WIDTH)),
+            Cell::Right(tools::format_decimal_n(student.2, DECIMALS)),
+            Cell::Right(student.3.to_string()),
+        ]));
+        average_last = student.2;
+    }
+
+    rows.push(Row::Midrule);
+    rows.push(Row::Foot(vec![
+        Cell::Empty,
+        Cell::Left("Keskiarvo".to_string()),
+        Cell::Empty,
+        if total_count > 0 {
+            Cell::Right(tools::format_decimal_n(
+                total_sum / f64::from(total_count),
+                DECIMALS,
+            ))
+        } else {
+            Cell::Empty
+        },
+        Cell::Empty,
+    ]));
+    rows.push(Row::Bottomrule);
+
+    Table { rows }.print(out);
 }
 
 #[rustfmt::skip]

@@ -10,6 +10,9 @@ hak ryhmä                                       Hae ryhmän arvosanojen koonti.
 
 tk              Tulosta tietokannan tilastoja.
 
+tp  @/ryhmä/suor/lyh/suku/etu/lisä@/...         Tulosta paremmuusjärjestys.
+tpk @/ryhmä/suor/lyh/suku/etu/lisä@/...         Tulosta paremmuusjärjestys.
+
 lo /sukunimi/etunimi/ryhmät.../lisätiedot               Lisää oppilas.
 ls /ryhmät.../suoritus/lyhenne/painokerroin/sija        Lisää ryhmille suoritus.
 
