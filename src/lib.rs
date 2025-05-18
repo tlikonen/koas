@@ -14,7 +14,7 @@ use crate::{
 use sqlx::{Connection, PgConnection};
 use std::{error::Error, io};
 
-pub async fn command_stage(modes: Modes, config: Config) -> Result<(), Box<dyn Error>> {
+pub async fn command_stage(mut modes: Modes, config: Config) -> Result<(), Box<dyn Error>> {
     const PROGRAM_NAME: &str = env!("CARGO_PKG_NAME");
     const PROGRAM_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -47,7 +47,7 @@ pub async fn command_stage(modes: Modes, config: Config) -> Result<(), Box<dyn E
 
                 let (cmd, args) = tools::split_first(&line);
 
-                match interactive_commands(&modes, &mut db, &mut editable, cmd, args).await {
+                match interactive_commands(&mut modes, &mut db, &mut editable, cmd, args).await {
                     Ok(true) => (),
                     Ok(false) => eprintln!("Tuntematon komento ”{cmd}”. Apua saa ?:llä."),
                     Err(e) => eprintln!("{e}"),
@@ -84,7 +84,7 @@ pub async fn command_stage(modes: Modes, config: Config) -> Result<(), Box<dyn E
 }
 
 async fn interactive_commands(
-    modes: &Modes,
+    modes: &mut Modes,
     db: &mut PgConnection,
     editable: &mut Editable,
     cmd: &str,
@@ -110,6 +110,8 @@ async fn interactive_commands(
         "ma" => commands::convert_to_grade(db, editable, args).await?,
         "md" => commands::convert_to_decimal(db, editable, args).await?,
         "poista" => commands::delete(db, editable, args).await?,
+
+        "tlk" => commands::table_format(modes, args)?,
 
         "?" => {
             editable.clear();

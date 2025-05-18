@@ -1,5 +1,5 @@
 use crate::{
-    Modes,
+    Modes, config,
     database::{
         self, Assignment, Assignments, Editable, EditableItem, Grade, GradesForAssignments,
         GradesForGroup, GradesForStudents, Group, Groups, Stats, Student, StudentRank, Students,
@@ -1007,6 +1007,19 @@ pub async fn student_ranking(
     }
 
     print::student_ranking(&mut hash, modes.output());
+    Ok(())
+}
+
+pub fn table_format(modes: &mut Modes, args: &str) -> Result<(), Box<dyn Error>> {
+    let (first, _) = tools::split_first(args);
+    if first.is_empty() {
+        Err("Anna argumentiksi taulukkotyyli. Apua saa ?:llä.")?;
+    }
+
+    modes.set_output(
+        config::select_table_format(first)
+            .map_err(|e| format!("Tuntematon taulukkotyyli ”{e}”. Apua saa ?:llä."))?,
+    );
     Ok(())
 }
 

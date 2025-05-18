@@ -6,8 +6,8 @@ Käyttö: {program} [valitsimet] [--] [komento]
 
 Valitsimet
 
-  --taulukot=tulostusmuoto
-        Taulukoiden tulostusmuoto. Sopivia vaihtoehtoja ovat ”unicode”,
+  --taulukot=tyyli
+        Taulukoiden tyyli. Sopivia vaihtoehtoja ovat ”unicode”,
         ”unicode-avoin”, ”ascii”, ”ascii-avoin”, ”emacs”, ”tab” ja
         ”latex”.
 
