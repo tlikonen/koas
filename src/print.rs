@@ -628,7 +628,7 @@ pub fn grade_distribution(hash: &HashMap<String, i32>, out: &Output) {
 
     let box_char = match out {
         Output::Ascii | Output::AsciiOpen => "#",
-        _ => "■",
+        _ => "◼",
     };
 
     let mut rows = vec![
