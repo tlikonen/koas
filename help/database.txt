@@ -10,14 +10,14 @@ PostgreSQL täytyy asentaa tietokoneelle erikseen, ja Koas-ohjelmaa
 varten täytyy luoda sopiva käyttäjätunnus ja tietokanta. Seuraavat
 ohjeet neuvovat tietokannan valmistelun.
 
-Tietokantapalvelimeen täytyy muodostaa yhteys ylläpitokäyttäjällä, jolla
-on oikeus luoda tietokantoja ja käyttäjiä. Sellainen on ainakin käyttäjä
-”postgres”. Se käyttäjätunnus on olemassa sekä käyttöjärjestelmässä että
-PostgreSQL:ssä.
+Valmisteluvaiheessa tietokantapalvelimeen täytyy muodostaa yhteys
+ylläpitokäyttäjällä, jolla on oikeus luoda tietokantoja ja käyttäjiä.
+Sellainen käyttäjätunnus on ainakin ”postgres”. Se käyttäjätunnus on
+olemassa sekä käyttöjärjestelmässä että PostgreSQL:ssä.
 
     $ sudo -u postgres psql
 
-    psql (15.12 (Debian 15.12-0+deb12u2))
+    psql (15.13 (Debian 15.13-0+deb12u1))
     Type "help" for help.
 
     postgres=# 
@@ -26,7 +26,7 @@ PostgreSQL:ssä.
 SQL-kielisiä tietokannan käskyjä. Kehote ”postgres=#” kertoo, minkä
 nimiseen tietokantaan on parhaillaan yhteys.
 
-Luodaan uusi tietokannan käyttäjätunnus ja salasana Koas-ohjelmaa
+Luodaan uusi tietokannan käyttäjätunnus ”koas” ja salasana Koas-ohjelmaa
 varten:
 
     postgres=# CREATE USER koas PASSWORD 'salaisuus';
@@ -40,8 +40,8 @@ käyttäjätunnuksella itsellään.
 Koas-ohjelma tarvitsee toimiakseen yhden skeeman (schema) eli
 nimiavaruuden jostakin tietokannasta. Se skeema voi olla osa jotakin
 suurempaa tietokantaa, tai Koasia varten voi luoda oman tietokannan,
-jota mikään muu ohjelma ei käytä. Seuraavat ohjeet luovat oman
-tietokannan Koasille.
+jossa ei ole muita skeemoja. Seuraavat ohjeet luovat oman tietokannan
+Koasille.
 
 Seuraavassa luodaan uusi tietokanta nimeltä ”koas”. Nimi voi olla mikä
 hyvänsä muukin.
@@ -64,13 +64,13 @@ Seuraavaksi annetaan käyttäjätunnukselle ”koas” käyttöoikeuksia uuteen
 tietokantaan ja sen sisältämään skeemaan. Tietokantaan annetaan
 kirjautumisoikeus ja skeemaan käyttö- ja muokkausoikeudet.
 
-Oikeus tietokantaan kirjautumiseen. Seuraavassa ensin mainittu ”koas” on
-tietokannan nimi ja jälkimmäinen ”koas” on käyttäjätunnus.
+Ensin oikeus tietokantaan kirjautumiseen. Seuraavassa ensin mainittu
+”koas” on tietokannan nimi ja jälkimmäinen ”koas” on käyttäjätunnus.
 
     koas=# GRANT CONNECT ON DATABASE koas TO koas;
 
-Oikeus arvosanat-skeeman käyttöön ja muokkaamiseen tai täysi omistajuus
-skeemaan. Valitse seuraavista jompikumpi:
+Sitten oikeus arvosanat-skeeman käyttöön ja muokkaamiseen tai täysi
+omistajuus skeemaan. Valitse seuraavista jompikumpi:
 
     koas=# GRANT USAGE, CREATE ON SCHEMA arvosanat TO koas;
     koas=# ALTER SCHEMA arvosanat OWNER TO koas;

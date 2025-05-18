@@ -1025,7 +1025,7 @@ pub fn table_format(modes: &mut Modes, args: &str) -> Result<(), Box<dyn Error>>
 
 pub fn help(args: &str) -> Result<(), String> {
     println!(
-        "{}",
+        "\n{}",
         match args.to_lowercase().as_str() {
             "" => include_str!("../help/quick.txt"),
             "komennot" => include_str!("../help/commands.txt"),
