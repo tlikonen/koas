@@ -547,8 +547,6 @@ impl GradesForGroup {
 }
 
 pub fn student_ranking(hash: &mut HashMap<i32, StudentRank>, out: &Output) {
-    const DECIMALS: usize = 5;
-
     let mut rows = vec![
         Row::Toprule,
         Row::Head(vec![
@@ -596,7 +594,7 @@ pub fn student_ranking(hash: &mut HashMap<i32, StudentRank>, out: &Output) {
             },
             Cell::Left(student.0.clone()),
             Cell::Multi(line_split(&student.1, GROUPS_WIDTH)),
-            Cell::Right(tools::format_decimal_n(student.2, DECIMALS)),
+            Cell::Right(tools::format_decimal(student.2)),
             Cell::Right(student.3.to_string()),
         ]));
         average_last = student.2;
@@ -608,10 +606,7 @@ pub fn student_ranking(hash: &mut HashMap<i32, StudentRank>, out: &Output) {
         Cell::Left("Keskiarvo".to_string()),
         Cell::Empty,
         if total_count > 0 {
-            Cell::Right(tools::format_decimal_n(
-                total_sum / f64::from(total_count),
-                DECIMALS,
-            ))
+            Cell::Right(tools::format_decimal(total_sum / f64::from(total_count)))
         } else {
             Cell::Empty
         },

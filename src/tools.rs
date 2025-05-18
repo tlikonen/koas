@@ -183,16 +183,6 @@ pub fn format_decimal(num: f64) -> String {
     format!("{:.2}", (num * PRECISION).round() / PRECISION).replace(".", ",")
 }
 
-pub fn format_decimal_n(num: f64, decimals: usize) -> String {
-    let precision: f64 = 10.0_f64.powf(decimals as f64);
-    format!(
-        "{n:.d$}",
-        d = decimals,
-        n = (num * precision).round() / precision
-    )
-    .replace(".", ",")
-}
-
 pub fn umask(mask: u32) -> u32 {
     unsafe { libc::umask(mask) }
 }
@@ -362,16 +352,5 @@ mod tests {
         assert_eq!("5,26", format_decimal(5.255));
         assert_eq!("0,01", format_decimal(0.01));
         assert_eq!("0,00", format_decimal(0.0));
-    }
-
-    #[test]
-    fn t_format_decimal_n() {
-        assert_eq!("5", format_decimal_n(5.0, 0));
-        assert_eq!("5,000", format_decimal_n(5.0, 3));
-        assert_eq!("5,5", format_decimal_n(5.456, 1));
-        assert_eq!("5,6", format_decimal_n(5.556, 1));
-        assert_eq!("5,46", format_decimal_n(5.456, 2));
-        assert_eq!("5,456", format_decimal_n(5.456, 3));
-        assert_eq!("5,4560", format_decimal_n(5.456, 4));
     }
 }
