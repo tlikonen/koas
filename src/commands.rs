@@ -93,7 +93,7 @@ pub async fn assignments(
     if modes.is_interactive() {
         query.copy_to(editable);
         query.print_numbered(modes.output());
-        editable.print_fields(&["Suoritus", "Lyhenne(Lyh)", "Painokerroin(K)", "Sija"]);
+        editable.print_fields(&["Suoritus", "Lyhenne(Lyh)", "Painokerroin(K)", "Järjestys"]);
     } else {
         query.print(modes.output());
     }
@@ -550,7 +550,7 @@ async fn edit_assignments(
     }
 
     if position.is_some() && indexes.len() > 1 {
-        Err("Usealle suoritukselle ei voi asettaa samaa sijaa.")?;
+        Err("Usealle suoritukselle ei voi asettaa samaa järjestysnumeroa.")?;
     }
 
     let weight = match weight {
@@ -565,7 +565,7 @@ async fn edit_assignments(
     let position = match position {
         Some(s) => match s.trim().parse::<i32>() {
             Ok(n) => Some(n),
-            _ => Err("Sijan täytyy olla kokonaisluku.")?,
+            _ => Err("Järjestysnumeron täytyy olla kokonaisluku.")?,
         },
         None => None,
     };
@@ -818,7 +818,7 @@ pub async fn insert_assignment(
     let position = match position {
         Some(s) => match s.trim().parse::<i32>() {
             Ok(n) => n,
-            _ => Err("Sijan täytyy olla kokonaisluku.")?,
+            _ => Err("Järjestysnumeron täytyy olla kokonaisluku.")?,
         },
         None => i32::MAX,
     };

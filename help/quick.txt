@@ -14,7 +14,7 @@ tj  @/ryhmä/suor/lyh/suku/etu/lisä@/...         Tulosta jakauma (painokertoime
 tjk @/ryhmä/suor/lyh/suku/etu/lisä@/...         Tulosta jakauma (kaikki).
 
 lo /sukunimi/etunimi/ryhmät/lisätiedot          Lisää oppilas.
-ls /ryhmät/suoritus/lyhenne/painokerroin/sija   Lisää ryhmille suoritus.
+ls /ryhmät/suoritus/lyhenne/painokerroin/järj   Lisää ryhmille suoritus.
 
 m  tietueet /.../...            Muokkaa valittuja tietueita ja kenttiä.
 ms tietueet kenttä /.../...     Muokkaa tietueista samaa kenttää.
