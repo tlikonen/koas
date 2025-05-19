@@ -1075,14 +1075,9 @@ pub async fn query_student_ranking(
     desc: &str,
 ) -> Result<(), sqlx::Error> {
     let mut rows = sqlx::query(
-        "SELECT oid, sukunimi, etunimi, ryhma, arvosana, painokerroin \
-         FROM view_arvosanat \
-         WHERE sukunimi LIKE $1 \
-         AND etunimi LIKE $2 \
-         AND ryhma LIKE $3 \
-         AND olt LIKE $4 \
-         AND suoritus LIKE $5 \
-         AND lyhenne LIKE $6",
+        "SELECT oid, sukunimi, etunimi, ryhma, arvosana, painokerroin FROM view_arvosanat \
+         WHERE sukunimi LIKE $1 AND etunimi LIKE $2 AND ryhma LIKE $3 \
+         AND olt LIKE $4 AND suoritus LIKE $5 AND lyhenne LIKE $6",
     )
     .bind(like_esc_wild(lastname))
     .bind(like_esc_wild(firstname))
@@ -1139,12 +1134,8 @@ pub async fn query_grade_distribution(
 ) -> Result<(), sqlx::Error> {
     let mut rows = sqlx::query(
         "SELECT arvosana, painokerroin FROM view_arvosanat \
-         WHERE sukunimi LIKE $1 \
-         AND etunimi LIKE $2 \
-         AND ryhma LIKE $3 \
-         AND olt LIKE $4 \
-         AND suoritus LIKE $5 \
-         AND lyhenne LIKE $6",
+         WHERE sukunimi LIKE $1 AND etunimi LIKE $2 AND ryhma LIKE $3 \
+         AND olt LIKE $4 AND suoritus LIKE $5 AND lyhenne LIKE $6",
     )
     .bind(like_esc_wild(lastname))
     .bind(like_esc_wild(firstname))
