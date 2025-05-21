@@ -2182,7 +2182,7 @@ komento. Muokkauskomennot eivät ole tällöin käytössä.
 
 (defun ohjeet-versio ()
   (viesti "~
-Koas versio ~A
+Koas v~A
 Tekijä:   Teemu Likonen <tlikonen@iki.fi>
 Lisenssi: GNU General Public License 3
           <https://www.gnu.org/licenses/gpl-3.0.html>
@@ -2403,9 +2403,8 @@ Lisenssi: GNU General Public License 3
                          (viesti "~A~%" tila)))))))))))))
 
 
-(defun start (&key versio)
-  (handler-case (let ((*ohjelman-versio* (or versio *ohjelman-versio*))
-                      (*readline* t))
+(defun start ()
+  (handler-case (let ((*readline* t))
                   (apply #'main (rest sb-ext:*posix-argv*)))
     (sb-int:simple-stream-error ()
       (sb-ext:exit :code 0))
