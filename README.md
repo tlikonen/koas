@@ -28,20 +28,29 @@ _Koas_ toimii ainakin GNU/Linux-käyttöjärjestelmissä. Se on ohjelmoitu
 kehitysympäristön, jonka voi asentaa ohjelmointikielen verkkosivun
 ohjeiden avulla.
 
-Ohjelman voi kääntää lähdekoodista ja käännetyn ohjelman asentaa
-komennolla `cargo install --path .` Kääntämisen yhteydessä ladataan
-automaattisesti useita ohjelmointikirjastoja, joita Koas tarvitsee.
+Tavallisimpia komentoja lähdekoodihakemistossa:
+
+  * `cargo build` ohjelman kääntäminen lähdekoodista
+  * `cargo run` ohjelman suorittaminen lähdekoodihakemistossa
+  * `cargo install --path .` ohjelman asentaminen polkuun `~/.cargo/bin/`
+  * `cargo clean` kääntämistiedostojen poisto
+
+Yksinkertaisimmin ohjelman voi kääntää ja asentaa komennolla `cargo
+install --path .` Kääntämisen yhteydessä ladataan automaattisesti useita
+ohjelmointikirjastoja, joita Koas tarvitsee.
 
 Arvosanatietokantaa varten Koas tarvitsee erillisen
-[PostgreSQL][Psql]-tietokantapalvelimen. Se täytyy asentaa erikseen.
-Koas-ohjelma sisältää ohjeita tietokannan valmisteluun Koasia varten
-(ks. [help/database.txt](help/database.txt)).
+[PostgreSQL][Psql]-tietokantapalvelimen. Se täytyy asentaa erikseen tai
+olla käytettävissä jossakin verkkopalvelussa. Koas-ohjelma sisältää
+ohjeita tietokannan valmisteluun Koasia varten (ks.
+[help/database.txt](help/database.txt)). Muutkin ohjelman ohjetekstit
+ovat luettavissa alihakemistossa [help](help).
 
 Koas käynnistetään komennolla `koas`. Komento käynnistää ohjelman
 vuorovaikutteiseen tilaan, jossa kehote `koas>` ilmaisee, että komentoja
-voi syöttää. Komennolla `?` tulostuvat ohjeet ohjelman komennoista.
-Ohjelman komentorivillä valitsin `-h` tulostaa myös apua. Ohjelman
-ohjetekstit ovat alihakemistossa [help](help).
+voi syöttää. Komennolla `?` tulostuvat ohjeet ohjelman komennoista. Jos
+ohjelman käynnistää käyttämällä valitsinta `-h` (`koas -h`), tulostuu
+tietoa ohjelman komentoriviargumenteista.
 
 [Rust]:     https://www.rust-lang.org/
 [Psql]:     https://www.postgresql.org/
