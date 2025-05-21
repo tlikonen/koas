@@ -24,7 +24,7 @@
 (in-package #:koas)
 
 
-(defvar *ohjelman-versio* "KEHITYSVERSIO")
+(defvar *ohjelman-versio* "1.2025")
 (defvar *readline* nil)
 (defvar *muokattavat* nil)
 (defvar *vuorovaikutteinen* nil)
