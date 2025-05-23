@@ -127,6 +127,10 @@ pub async fn init(db: &mut PgConnection, modes: &Modes) -> Result<(), Box<dyn Er
             .execute(&mut *ta)
             .await?;
 
+        // Seuraavassa tietokannan päivityksessä:
+        // UPDATE arvosanat SET arvosana = NULL WHERE arvosana = '';
+        // UPDATE arvosanat SET lisatiedot = NULL WHERE lisatiedot = '';
+        // DELETE FROM arvosanat WHERE arvosana IS NULL AND lisatiedot IS NULL;
         sqlx::query(
             "CREATE TABLE arvosanat \
              (sid INTEGER NOT NULL REFERENCES suoritukset(sid) ON DELETE CASCADE, \
