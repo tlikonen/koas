@@ -1062,10 +1062,9 @@ pub fn table_format(modes: &mut Modes, args: &str) -> Result<(), Box<dyn Error>>
         Err("Anna argumentiksi taulukkotyyli. Apua saa ?:llä.")?;
     }
 
-    modes.set_output(
-        config::select_table_format(first)
-            .map_err(|e| format!("Tuntematon taulukkotyyli ”{e}”. Apua saa ?:llä."))?,
-    );
+    let new = config::select_table_format(first)
+        .map_err(|e| format!("Tuntematon taulukkotyyli ”{e}”. Apua saa ?:llä."))?;
+    modes.set_output(new);
     Ok(())
 }
 
