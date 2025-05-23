@@ -5,7 +5,7 @@ ho  /sukunimi/etunimi/ryhmät/lisätiedot         Hae oppilaita.
 hr  /ryhmä/lisätiedot                           Hae ryhmiä.
 hs  ryhmä                                       Hae suoritukset ryhmältä.
 has /ryhmä/suoritus/lyhenne                     Hae arvosanat ryhmiltä.
-hao /sukunimi/etunimi/ryhmät/lisätiedot         Hae arvosanat oppilailta.
+hao /sukunimi/etunimi/ryhmä/lisätiedot          Hae arvosanat oppilailta.
 hak ryhmä                                       Hae ryhmän arvosanojen koonti.
 
 tp  @/ryhmä/suor/lyh/suku/etu/lisä@/...         Tulosta paremmuusjärjestys (painokertoimet).
@@ -24,8 +24,7 @@ poista tietueet                 Poista tietueet.
 
 tlk tyyli       Vaihda taulukkotyyli: unicode (u), unicode-avoin (ua), ascii (a),
                 ascii-avoin (aa), emacs (e), tab (t), latex (l).
-
 tk              Tulosta tietokannan tilastoja.
 
 ?               Tämä ohje.
-? aihe          Ohjeita aiheittain: komennot, tietokanta, asetukset.
+? aihe          Ohjeita aiheittain: haku, tietokanta, asetukset.

@@ -1,20 +1,18 @@
 Käyttö: {program} [valitsimet] [--] [komento]
 
   Ohjelma käynnistyy vuorovaikutteiseen tilaan, jos sen käynnistää ilman
-  ”komento”-argumenttia. Jos ”komento” on ”-”, luetaan komentoja
+  komentoargumenttia. Jos ”komento” on pelkkä viiva (-), luetaan komentoja
   standardisyötteestä.
 
 Valitsimet
 
   --taulukot=tyyli
-        Taulukoiden tyyli. Sopivia vaihtoehtoja ovat ”unicode”,
-        ”unicode-avoin”, ”ascii”, ”ascii-avoin”, ”emacs”, ”tab” ja
-        ”latex”.
+        Taulukoiden tyyli. Vaihtoehdot: unicode (u), unicode-avoin (ua), ascii
+        (a), ascii-avoin (aa), emacs (e), tab (t) ja latex (l).
 
   --ohje, --ohje=aihe
-        Tulostaa ohjelman komentojen pikaohjeen tai tarkempia ohjeita
-        aiheiden mukaan. Aiheita ovat: ”komennot”, ”tietokanta” ja
-        ”asetukset”.
+        Tulostaa ohjelman komentojen pikaohjeen tai tarkempia ohjeita aiheiden
+        mukaan. Aiheita ovat: haku, tietokanta ja asetukset.
 
   -h    Tulostaa tämän ohjeen.
 

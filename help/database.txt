@@ -2,49 +2,48 @@ Arvosanatietokanta
 ==================
 
 Koas-ohjelma käyttää PostgreSQL-tietokantajärjestelmää arvosanojen
-tallentamiseen. Se on palvelinohjelmisto, johon asiakasohjelmat kuten
-Koas ovat yhteydessä Internetin tekniikoilla. Palvelinohjelmisto voi
-toimia esimerkiksi omalla tietokoneella.
+tallentamiseen. Se on palvelinohjelmisto, johon asiakasohjelmat kuten Koas
+ovat yhteydessä Internetin tekniikoilla. Palvelinohjelmisto voi toimia
+esimerkiksi omalla tietokoneella.
 
-PostgreSQL täytyy asentaa tietokoneelle erikseen, ja Koas-ohjelmaa
-varten täytyy luoda sopiva käyttäjätunnus ja tietokanta. Seuraavat
-ohjeet neuvovat tietokannan valmistelun.
+PostgreSQL täytyy asentaa tietokoneelle erikseen, ja Koas-ohjelmaa varten
+täytyy luoda sopiva käyttäjätunnus ja tietokanta. Seuraavat ohjeet neuvovat
+tietokannan valmistelun.
 
 Valmisteluvaiheessa tietokantapalvelimeen täytyy muodostaa yhteys
 ylläpitokäyttäjällä, jolla on oikeus luoda tietokantoja ja käyttäjiä.
-Sellainen käyttäjätunnus on ainakin ”postgres”. Se käyttäjätunnus on
-olemassa sekä käyttöjärjestelmässä että PostgreSQL:ssä.
+Sellainen käyttäjätunnus on ainakin ”postgres”. Se käyttäjätunnus on olemassa
+sekä käyttöjärjestelmässä että PostgreSQL:ssä.
 
     $ sudo -u postgres psql
 
     psql (15.13 (Debian 15.13-0+deb12u1))
     Type "help" for help.
 
-    postgres=# 
+    postgres=#
 
 ”psql” on asiakasohjelma PostgreSQL:ään, ja sen avulla voi suorittaa
-SQL-kielisiä tietokannan käskyjä. Kehote ”postgres=#” kertoo, minkä
-nimiseen tietokantaan on parhaillaan yhteys.
+SQL-kielisiä tietokannan käskyjä. Kehote ”postgres=#” kertoo, minkä nimiseen
+tietokantaan on parhaillaan yhteys.
 
 Luodaan uusi tietokannan käyttäjätunnus ”koas” ja salasana Koas-ohjelmaa
 varten:
 
     postgres=# CREATE USER koas PASSWORD 'salaisuus';
 
-Myöhemmin salasanan voi vaihtaa seuraavalla komennolla. Komennon voi
-suorittaa joko ylläpitotunnuksella kuten ”postgres” tai kyseisellä
-käyttäjätunnuksella itsellään.
+Myöhemmin salasanan voi vaihtaa seuraavalla komennolla. Komennon voi suorittaa
+joko ylläpitotunnuksella kuten ”postgres” tai kyseisellä käyttäjätunnuksella
+itsellään.
 
     postgres=# ALTER ROLE koas PASSWORD 'uusi-salaisuus';
 
-Koas-ohjelma tarvitsee toimiakseen yhden skeeman (schema) eli
-nimiavaruuden jostakin tietokannasta. Se skeema voi olla osa jotakin
-suurempaa tietokantaa, tai Koasia varten voi luoda oman tietokannan,
-jossa ei ole muita skeemoja. Seuraavat ohjeet luovat oman tietokannan
-Koasille.
+Koas-ohjelma tarvitsee toimiakseen yhden skeeman (schema) eli nimiavaruuden
+jostakin tietokannasta. Se skeema voi olla osa jotakin suurempaa tietokantaa,
+tai Koasia varten voi luoda oman tietokannan, jossa ei ole muita skeemoja.
+Seuraavat ohjeet luovat oman tietokannan Koasille.
 
-Seuraavassa luodaan uusi tietokanta nimeltä ”koas”. Nimi voi olla mikä
-hyvänsä muukin.
+Seuraavassa luodaan uusi tietokanta nimeltä ”koas”. Nimi voi olla mikä hyvänsä
+muukin.
 
     postgres=# CREATE DATABASE koas;
 
@@ -64,46 +63,44 @@ Seuraavaksi annetaan käyttäjätunnukselle ”koas” käyttöoikeuksia uuteen
 tietokantaan ja sen sisältämään skeemaan. Tietokantaan annetaan
 kirjautumisoikeus ja skeemaan käyttö- ja muokkausoikeudet.
 
-Ensin oikeus tietokantaan kirjautumiseen. Seuraavassa ensin mainittu
-”koas” on tietokannan nimi ja jälkimmäinen ”koas” on käyttäjätunnus.
+Ensin oikeus tietokantaan kirjautumiseen. Seuraavassa ensin mainittu ”koas” on
+tietokannan nimi ja jälkimmäinen ”koas” on käyttäjätunnus.
 
     koas=# GRANT CONNECT ON DATABASE koas TO koas;
 
-Sitten oikeus arvosanat-skeeman käyttöön ja muokkaamiseen tai täysi
-omistajuus skeemaan. Valitse seuraavista jompikumpi:
+Sitten oikeus arvosanat-skeeman käyttöön ja muokkaamiseen tai täysi omistajuus
+skeemaan. Valitse seuraavista jompikumpi:
 
     koas=# GRANT USAGE, CREATE ON SCHEMA arvosanat TO koas;
     koas=# ALTER SCHEMA arvosanat OWNER TO koas;
 
 Lopuksi asetetaan käyttäjätunnus ”koas” käyttämään skeemaa ”arvosanat”
 tietokannassa ”koas”. Koas-ohjelma ei itse välitä, missä skeemassa ja
-tietokannassa se toimii. Siksi seuraavalla komennolla täytyy asettaa
-muuttujan ”search_path” arvoksi se skeema, jota käyttäjätunnuksen ”koas”
-halutaan käyttävän tässä tietokannassa.
+tietokannassa se toimii. Siksi seuraavalla komennolla täytyy asettaa muuttujan
+”search_path” arvoksi se skeema, jota käyttäjätunnuksen ”koas” halutaan
+käyttävän tässä tietokannassa.
 
     koas=# ALTER ROLE koas IN DATABASE koas SET search_path TO arvosanat;
 
 Edellä ensimmäinen ”koas” on käyttäjätunnuksen nimi, toinen ”koas” on
-tietokannan nimi, johon muuttujan ”search_path” asetus tulee voimaan.
-Lopussa oleva ”arvosanat” on skeeman nimi.
+tietokannan nimi, johon muuttujan ”search_path” asetus tulee voimaan. Lopussa
+oleva ”arvosanat” on skeeman nimi.
 
-Tietokannan asetukset ovat nyt valmiit. Psql-ohjelmasta voi poistua
-komennolla ”\q”.
+Tietokannan asetukset ovat nyt valmiit. Psql-ohjelmasta voi poistua komennolla
+”\q”.
 
 Uudella käyttäjätunnuksella kirjautumista voi kokeilla psql-ohjelmalla
 käyttöjärjestelmän komentotulkista. Seuraavassa komennossa valitsin ”-U”
-määrittää käyttäjätunnuksen, ”-h” verkko-osoitteen, jossa
-PostgreSQL-palvelin toimii, ja ”-d” nimen tietokannalle, johon
-kirjaudutaan.
+määrittää käyttäjätunnuksen, ”-h” verkko-osoitteen, jossa PostgreSQL-palvelin
+toimii, ja ”-d” nimen tietokannalle, johon kirjaudutaan.
 
     $ psql -U koas -h localhost -d koas
 
-Psql:n komentotulkissa voi komennolla ”\l” listata tietokannat,
-komennolla ”\dn+” nykyisen tietokannan skeemat ja käyttöoikeudet,
-komennolla ”\du” käyttäjätunnukset ja komennolla ”\drds”
-käyttäjätunnusten asetuksia.
+Psql:n komentotulkissa voi komennolla ”\l” listata tietokannat, komennolla
+”\dn+” nykyisen tietokannan skeemat ja käyttöoikeudet, komennolla ”\du”
+käyttäjätunnukset ja komennolla ”\drds” käyttäjätunnusten asetuksia.
 
 Ennen kuin Koas-ohjelma toimii, täytyy sen asetustiedostoon asettaa
-tietokannan yhteysasetukset. Sitä varten on erillinen ohje. Kun
-asetukset ovat kunnossa, Koas luo tarvitsemansa taulukot ja muut
-tietokantaobjektit ensimmäisellä käynnistyskerralla.
+tietokannan yhteysasetukset. Sitä varten on erillinen ohje. Kun asetukset ovat
+kunnossa, Koas luo tarvitsemansa taulukot ja muut tietokantaobjektit
+ensimmäisellä käynnistyskerralla.
