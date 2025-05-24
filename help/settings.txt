@@ -3,7 +3,7 @@ Asetukset
 
 Ohjelman asetustiedoston (~/.config/koas) avulla asetetaan tietokannan yhteys-
 ja muita asetuksa. Se on tekstitiedosto, joka voi sisältää alla luetellut
-asetukset eli kentät ja niiden arvot. Kentän nimen jälkeen on merkki ”=”,
+asetukset eli kenttien nimet ja arvot. Kentän nimen jälkeen on merkki ”=”,
 jonka jälkeen kirjoitetaan kentän arvo.
 
 käyttäjä=
@@ -14,17 +14,19 @@ salasana=
 
 tietokanta=
 
-    Tietokannan nimi, johon kirjaudutaan.
+    Tietokanta, johon kirjaudutaan. PostgreSQL:n tietokannat saa listattua
+    komennolla ”psql --list”.
 
 osoite=
 portti=
 
     Tietokantapalvelimen verkko-osoite ja tietoliikenneportti. Sopiva osoite
     on yleensä ”localhost”, jos palvelin toimii samalla tietokoneella.
-    PostgreSQL:n portti on oletuksena ”5432”.
+    PostgreSQL:n portti on yleensä ”5432”.
 
 taulukot=
 
     Ohjelman taulukoiden ulkoasu tai tyyli oletuksena. Tämän voi muuttaa
-    väliaikaisesti komentorivivalitsimella. Sopivia arvoja ovat ”unicode”,
-    ”unicode-avoin”, ”ascii”, ”ascii-avoin”, ”emacs”, ”tab” ja ”latex”.
+    väliaikaisesti komentorivivalitsimella tai vuorovaikutteisessa tilassa.
+    Sopivia arvoja ovat ”unicode”, ”unicode-avoin”, ”ascii”, ”ascii-avoin”,
+    ”emacs”, ”tab” ja ”latex”.
