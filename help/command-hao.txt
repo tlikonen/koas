@@ -1,0 +1,7 @@
+hao /sukunimi/etunimi/ryhmä/lisätiedot
+
+    Hae arvosanat oppilailta, jotka täsmäävät hakukenttiin sukunimi, etunimi,
+    ryhmä tai oppilaan lisätiedot. Komento tulostaa oppilaiden suoritusten
+    arvosanat ryhmäkohtaisesti. Kentissä voi käyttää jokerimerkkiä ”*”, tai ne
+    voi jättää tyhjäksi. Komennon jälkeen on mahdollista muokata arvosanoja ja
+    niiden lisätietoja. Katso muokkauskomennot erillisestä ohjeesta.

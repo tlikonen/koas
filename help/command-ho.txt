@@ -1,0 +1,10 @@
+ho /sukunimi/etunimi/ryhmät/lisätiedot
+
+    Hae oppilaita sukunimen, etunimen, ryhmän tai lisätietojen perusteella.
+    Kaikkia kenttiä ei tarvitse käyttää, ja kenttiä voi jättää tyhjäksikin.
+    Jos kaikki kentät jättää tyhjäksi tai jos komennon argumentti puuttuu
+    kokonaan, listataan kaikki oppilaat.
+
+    Komennon jälkeen on mahdollista muokata oppilaiden sukunimiä, etunimiä,
+    ryhmiä tai lisätietoja eli tulostettujen tietueiden kenttiä. Katso
+    muokkauskomennot erillisestä ohjeesta.

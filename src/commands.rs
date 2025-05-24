@@ -1069,15 +1069,28 @@ pub fn table_format(modes: &mut Modes, args: &str) -> Result<(), Box<dyn Error>>
 }
 
 pub fn help(args: &str) -> Result<(), String> {
-    println!(
-        "\n{}",
-        match args.to_lowercase().as_str() {
-            "" => include_str!("../help/quick.txt"),
-            "haku" => include_str!("../help/commands-query.txt"),
-            "tietokanta" => include_str!("../help/database.txt"),
-            "asetukset" => include_str!("../help/settings.txt"),
-            _ => Err(format!("Tuntematon ohjeiden aihe: ”{args}”."))?,
-        }
-    );
+    static HO: &str = include_str!("../help/command-ho.txt");
+    static HR: &str = include_str!("../help/command-hr.txt");
+    static HS: &str = include_str!("../help/command-hs.txt");
+    static HAS: &str = include_str!("../help/command-has.txt");
+    static HAO: &str = include_str!("../help/command-hao.txt");
+    static HAK: &str = include_str!("../help/command-hak.txt");
+
+    match args.to_lowercase().as_str() {
+        "" => println!("\n{}", include_str!("../help/quick.txt")),
+        "ho" => println!("\n{HO}"),
+        "hr" => println!("\n{HR}"),
+        "hs" => println!("\n{HS}"),
+        "has" => println!("\n{HAS}"),
+        "hao" => println!("\n{HAO}"),
+        "hak" => println!("\n{HAK}"),
+        "komennot" => println!(
+            "\n{pre}\n{HO}\n{HR}\n{HS}\n{HAS}\n{HAO}\n{HAK}",
+            pre = include_str!("../help/command.txt")
+        ),
+        "tietokanta" => println!("\n{}", include_str!("../help/database.txt")),
+        "asetukset" => println!("\n{}", include_str!("../help/settings.txt")),
+        _ => Err(format!("Tuntematon ohjeiden aihe: ”{args}”."))?,
+    }
     Ok(())
 }

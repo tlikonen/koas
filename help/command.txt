@@ -1,0 +1,22 @@
+Komennot
+========
+
+Monille komennoille annetaan argumentiksi useita kenttiä. Ohjeiden
+esimerkeissä kentät on erotettu toisistaan vinoviivoilla (/), mutta kentän
+erotin voi olla melkein mikä tahansa muukin merkki (muttei välilyönti).
+Kenttien alussa oleva merkki määrittää, mikä merkki erottaa kentät toisistaan
+siitä eteenpäin. Esimerkiksi seuraavat toimivat samoin:
+
+    /kenttä/toinen kenttä/kolmas kenttä
+    |kenttä|toinen kenttä|kolmas kenttä
+
+Kaikkia kenttiä ei tarvitse kirjoittaa, eli joitakin kenttiä voi jättää
+tyhjäksi tai kokonaan pois.
+
+    /hakusana           haku ensimmäisen kentän perusteella; loput tyhjiä
+    ///hakusana         haku vain kolmannen kentän perusteella
+
+Hakukomentojen kentissä voi yleensä käyttää jokerimerkkiä ”*”, joka täsmää
+mihin tahansa merkkeihin, joita on nolla tai enemmän siinä kohdassa.
+Jokerimerkin hyväksyvien kenttien alussa ja lopussa on automaattisesti
+jokerimerkki.

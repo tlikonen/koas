@@ -12,7 +12,8 @@ Valitsimet
 
   --ohje, --ohje=aihe
         Tulostaa ohjelman komentojen pikaohjeen tai tarkempia ohjeita aiheiden
-        mukaan. Aiheita ovat: haku, tietokanta ja asetukset.
+        mukaan. Aihe voi olla komennon nimi tai jokin seuraavista: haku,
+        tietokanta, asetukset.
 
   -h    Tulostaa tämän ohjeen.
 

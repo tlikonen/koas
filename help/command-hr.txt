@@ -1,0 +1,8 @@
+hr /ryhmä/lisätiedot
+
+    Hae ryhmiä ryhmätunnuksen tai ryhmän lisätiedon eli kuvauksen perusteella.
+    Kentät voi jättää tyhjäksi tai argumentin pois kokonaan, jolloin
+    tulostetaan kaikki ryhmät. Kentissä voi käyttää jokerimerkkiä ”*”.
+    Komennon jälkeen on mahdollista muokata ryhmätunnuksia ja niiden
+    lisätietoja eli komennon tulostamien tietueiden kenttiä. Katso
+    muokkauskomennot erillisestä ohjeesta.

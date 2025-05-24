@@ -1,0 +1,6 @@
+hs ryhmä
+
+    Hae suoritukset ryhmältä. Argumentin ”ryhmä” on oltava tarkka ryhmätunnus.
+    Komennon jälkeen on mahdollista muokata ryhmän suorituksia eli komennon
+    tulostamien tietueiden kenttiä. Katso muokkauskomennot erillisestä
+    ohjeesta.

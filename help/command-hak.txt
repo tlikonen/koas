@@ -1,0 +1,4 @@
+hak ryhmä
+
+    Hae kaikki suoritukset ja arvosanat ryhmän oppilailta. Argumentin ”ryhmä”
+    on oltava tarkka ryhmätunnus.

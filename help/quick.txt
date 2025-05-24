@@ -27,4 +27,5 @@ tlk tyyli       Vaihda taulukkotyyli: unicode (u), unicode-avoin (ua), ascii (a)
 tk              Tulosta tietokannan tilastoja.
 
 ?               Tämä ohje.
-? aihe          Ohjeita aiheittain: haku, tietokanta, asetukset.
+? aihe          Ohjeita aiheittain. Aihe voi olla komennon nimi jokin seuraavista:
+                haku, tietokanta, asetukset.
