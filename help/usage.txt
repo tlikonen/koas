@@ -1,5 +1,3 @@
-Käyttö: {program} [valitsimet] [--] [komento]
-
   Ohjelma käynnistyy vuorovaikutteiseen tilaan, jos sen käynnistää ilman
   komentoargumenttia. Jos ”komento” on pelkkä viiva (-), luetaan komentoja
   standardisyötteestä.

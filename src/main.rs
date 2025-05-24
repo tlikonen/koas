@@ -39,7 +39,11 @@ async fn main() -> ExitCode {
     }
 
     if args.option_exists("help") {
-        println!(include_str!("../help/usage.txt"), program = PROGRAM_NAME);
+        println!(
+            "Käyttö: {prg} [valitsimet] [--] [komento]\n\n{txt}",
+            prg = PROGRAM_NAME,
+            txt = include_str!("../help/usage.txt")
+        );
         return ExitCode::SUCCESS;
     }
 
