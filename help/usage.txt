@@ -12,7 +12,7 @@ Valitsimet
 
   --ohje, --ohje=aihe
         Tulostaa ohjelman komentojen pikaohjeen tai tarkempia ohjeita aiheiden
-        mukaan. Aihe voi olla komennon nimi tai jokin seuraavista: haku,
+        mukaan. Aihe voi olla komennon nimi tai jokin seuraavista: komennot,
         tietokanta, asetukset.
 
   -h    Tulostaa tämän ohjeen.
