@@ -14,3 +14,6 @@ md tietueet
     samaan muotoon eli pilkku desimaalierottimeksi ja tarkkuudeksi kaksi
     desimaalia. Kenttään ei kosketa, jos se ei ole yksiselitteisesti
     muutettavissa desimaaliluvuksi.
+
+    Jos komento antaa virheilmoituksen, kaikki saman komennon tarkoittamat
+    muokkaukset perutaan.

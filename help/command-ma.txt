@@ -13,3 +13,6 @@ ma tietueet
     Desimaalierottimena voi olla piste tai pilkku, molemmat hyväksytään.
     Kenttään ei kosketa, jos se ei ole yksiselitteisesti muutettavissa
     kouluarvosanaksi.
+
+    Jos komento antaa virheilmoituksen, kaikki saman komennon tarkoittamat
+    muokkaukset perutaan.
