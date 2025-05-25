@@ -1,6 +1,12 @@
-  Ohjelma käynnistyy vuorovaikutteiseen tilaan, jos sen käynnistää ilman
-  komentoargumenttia. Jos ”komento” on pelkkä viiva (-), luetaan komentoja
-  standardisyötteestä.
+  Ohjelma käynnistyy vuorovaikutteiseen tilaan, jos sen suorittaa ilman
+  komentoargumenttia. Argumentiksi voi antaa yksittäisen komennon (ks.
+  ”--ohje”).
+
+  Jos komentoargumentti on pelkkä viiva (-), luetaan komentoja riveittäin
+  standardisyötteestä. Standardisyötettä käsittelevä istunto suoritetaan
+  yhdessä tietokannan transaktiossa, mikä tarkoittaa, että jos istunnossa
+  tulee yksikin virhe, kaikki mahdolliset samassa istunnossa tehdyt
+  muokkaukset perutaan ja istunto lopetetaan.
 
 Valitsimet
 
