@@ -1,0 +1,18 @@
+poista tietueet
+
+    Poista tietueet. Komento on käytettävissä vain vuorovaikutteisessa tilassa
+    ja tiettyjen hakukomentojen jälkeen. Muokkausmahdollisuus ilmaistaan
+    hakutulostaulukon alapuolella seuraavanlaisella rivillä, joka kertoo
+    muokattavat tietueet ja kentät.
+
+        Tietueet 1–20. Kentät: / 1:Kentän nimi / 2:Toinen nimi / 3:Kolmas
+
+    Argumentti ”tietueet” on pilkuilla eroteltu numeroiden luettelo
+    tietueista, jotka halutaan poistaa, esimerkiksi ”2-4,6-9,15”.
+
+    Luetellut tietueet poistetaan tietokannasta, eikä komentoa voi perua.
+    Poistamiselle on tiettyjä rajoituksia. Esimerkiksi oppilasta tai
+    suoritusta ei voi poistaa, jos niille on kirjattu arvosanoja; täytyy ensin
+    poistaa kaikki oppilaan tai suorituksen arvosanat. Ryhmiä ei voi poistaa
+    lainkaan tällä komennolla. Ryhmät poistuvat itsestään, kun niiltä poistaa
+    kaikki suoritukset ja oppilaat tai kun siirtää oppilaat pois ryhmästä.

@@ -1,0 +1,19 @@
+m tietueet /.../...
+
+    Muokkaa numeroitujen tietueiden kenttiä. Komento on käytettävissä vain
+    vuorovaikutteisessa tilassa ja tiettyjen hakukomentojen jälkeen.
+    Muokkausmahdollisuus ilmaistaan hakutulostaulukon alapuolella
+    seuraavanlaisella rivillä, joka kertoo muokattavat tietueet ja kentät.
+
+        Tietueet 1–20. Kentät: / 1:Kentän nimi / 2:Toinen nimi / 3:Kolmas
+
+    Ensimmäinen argumentti ”tietueet” on pilkuilla eroteltu numeroiden
+    luettelo tietueista, joita halutaan muokata, esimerkiksi ”2-4,6-9,15”.
+
+    Toinen argumentti ”/.../...” sisältää uudet tiedot kenttien sisällöksi.
+    Riippuu edellä tehdystä hakukomennosta, mitä kenttiä on milloinkin
+    muokattavissa. Argumentin ensimmäinen merkki (edellä ”/”) voi olla mikä
+    tahansa ja se määrittää, mikä erotinmerkki erottaa kentät toisistaan. Jos
+    kentän jättää tyhjäksi, sen sisältöön ei kosketa. Jos kentän sisältönä on
+    pelkkiä välilyöntejä, tyhjennetään tai poistetaan kyseinen kenttä.
+    Arvosanatietue poistetaan aina kokonaan, jos sen kentät jäävät tyhjäksi.

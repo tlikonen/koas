@@ -1,0 +1,35 @@
+ms tietueet kenttä /.../...
+
+    Muokkaa numeroitujen tietueiden samaa kenttää. Komento on käytettävissä
+    vain vuorovaikutteisessa tilassa ja tiettyjen hakukomentojen jälkeen.
+    Muokkausmahdollisuus ilmaistaan hakutulostaulukon alapuolella
+    seuraavanlaisella rivillä, joka kertoo muokattavat tietueet ja kentät.
+
+        Tietueet 1–20. Kentät: / 1:Kentän nimi / 2:Toinen nimi / 3:Kolmas
+
+    Ensimmäinen argumentti ”tietueet” on pilkuilla eroteltu numeroiden
+    luettelo tietueista, joita halutaan muokata, esimerkiksi ”2-4,6-9,15”.
+
+    Toinen argumentti ”kenttä” on kentän numero: ”1” tarkoittaa ensimmäistä
+    kenttää vasemmalta lukien, ”2” toista kenttää jne. Kaikista tietueista
+    muokataan vain tätä kenttää.
+
+    Kolmas argumentti ”/.../...” on vapaaehtoinen. Lue alempaa tietoa, mitä
+    tapahtuu, jos sen jättää pois. Argumentti sisältää uudet tiedot kentän
+    sisällöksi eri tietueissa. Argumentin ensimmäinen merkki (edellä ”/”) voi
+    olla mikä tahansa ja se määrittää, mikä erotinmerkki erottaa kentät
+    toisistaan. Jos kentän jättää tyhjäksi, sen sisältöön ei kosketa. Jos
+    sisältönä on pelkkiä välilyöntejä, tyhjennetään tai poistetaan kyseinen
+    kenttä. Arvosanatietue poistetaan aina kokonaan, jos sen kentät jäävät
+    tyhjäksi.
+
+    Argumentin ensimmäinen kenttä ”/...” tulee ensimmäisen numeroluettelossa
+    (ks. ”tietueet” yllä) mainitun tietueen kentän arvoksi, toinen kenttä
+    ”//...” tulee arvoksi toiselle tietueelle jne.
+    
+    Jos komennon kolmannen argumentin jättää pois kokonaan, ohjelma pyytää
+    kirjoittamaan rivi kerrallaan kaikkien numeroluettelossa (ks. ”tietueet”
+    yllä) mainittujen tietueiden kentälle uuden sisällön. Kun riittävästi
+    rivejä on syötetty, ohjelma pyytää näppäilemään Ctrl-d, joka lopettaa
+    tietojen syötön. Sen voi näppäillä ennenaikaisestikin, jolloin jäljellä
+    oleviin tietueisiin ei kosketa.

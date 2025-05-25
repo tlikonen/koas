@@ -1,0 +1,15 @@
+ma tietueet
+
+    Muokkaa arvosanakenttiä ja muuta ne kouluarvosanoiksi, jos mahdollista.
+    Komento on käytettävissä vain vuorovaikutteisessa tilassa ja vain
+    arvosanoja hakevan komennon jälkeen.
+
+    Argumentti ”tietueet” on pilkuilla eroteltu numeroiden luettelo
+    tietueista, joita halutaan muokata, esimerkiksi ”2-4,6-9,15”.
+
+    Arvosanakentässä desimaaliluku muutetaan vastaavaksi kouluarvosanaksi.
+    Esimerkiksi luvusta ”7,75” tulee arvosana ”8-”, luvusta ”8,00” arvosana
+    ”8”, luvusta ”8,25” arvosana ”8+” ja luvusta ”8,50” arvosana ”8½”.
+    Desimaalierottimena voi olla piste tai pilkku, molemmat hyväksytään.
+    Kenttään ei kosketa, jos se ei ole yksiselitteisesti muutettavissa
+    kouluarvosanaksi.
