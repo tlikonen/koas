@@ -33,3 +33,6 @@ ms tietueet kenttä /.../...
     rivejä on syötetty, ohjelma pyytää näppäilemään Ctrl-d, joka lopettaa
     tietojen syötön. Sen voi näppäillä ennenaikaisestikin, jolloin jäljellä
     oleviin tietueisiin ei kosketa.
+
+    Jos komento antaa virheilmoituksen, kaikki saman komennon tarkoittamat
+    muokkaukset perutaan.

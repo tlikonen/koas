@@ -17,3 +17,6 @@ m tietueet /.../...
     kentän jättää tyhjäksi, sen sisältöön ei kosketa. Jos kentän sisältönä on
     pelkkiä välilyöntejä, tyhjennetään tai poistetaan kyseinen kenttä.
     Arvosanatietue poistetaan aina kokonaan, jos sen kentät jäävät tyhjäksi.
+
+    Jos komento antaa virheilmoituksen, kaikki saman komennon tarkoittamat
+    muokkaukset perutaan.

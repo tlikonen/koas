@@ -16,3 +16,6 @@ poista tietueet
     poistaa kaikki oppilaan tai suorituksen arvosanat. Ryhmiä ei voi poistaa
     lainkaan tällä komennolla. Ryhmät poistuvat itsestään, kun niiltä poistaa
     kaikki suoritukset ja oppilaat tai kun siirtää oppilaat pois ryhmästä.
+
+    Jos komento antaa virheilmoituksen, kaikki saman komennon tarkoittamat
+    poistot perutaan.
