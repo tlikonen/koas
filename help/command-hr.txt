@@ -6,3 +6,7 @@ hr /ryhmä/lisätiedot
 
     Komennon jälkeen on mahdollista muokata ryhmätunnuksia ja niiden
     lisätietoja. Katso muokkauskomennot erillisistä ohjeista.
+
+    Uusia ryhmiä syntyy automaattisesti, kun oppilaan lisää ryhmään tai
+    ryhmälle lisää suorituksen. Ryhmä poistuu itsestään, kun kaikki oppilaat
+    ja suoritukset poistetaan ryhmältä.
