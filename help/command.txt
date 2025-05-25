@@ -1,5 +1,4 @@
 Komennot
-========
 
 Monille komennoille annetaan argumentiksi useita kenttiä. Ohjeiden
 esimerkeissä kentät on erotettu toisistaan vinoviivoilla (/), mutta kentän

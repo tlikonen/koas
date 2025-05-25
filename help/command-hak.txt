@@ -1,4 +1,5 @@
 hak ryhmä
 
-    Hae kaikki suoritukset ja arvosanat ryhmän oppilailta. Argumentin ”ryhmä”
-    on oltava tarkka ryhmätunnus.
+    Hae kaikki suoritukset ja arvosanat ryhmästä. Suoritusten keskiarvot
+    lasketaan sekä oppilas- että suorituskohtaisesti. Argumentin ”ryhmä” on
+    oltava tarkka ryhmätunnus.
