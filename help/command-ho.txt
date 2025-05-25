@@ -5,4 +5,6 @@ ho /sukunimi/etunimi/ryhmät/lisätiedot
     tyhjäksi tai argumentin pois kokonaan, tulostetaan kaikki oppilaat.
 
     Komennon jälkeen on mahdollista muokata oppilaiden sukunimiä, etunimiä,
-    ryhmiä tai lisätietoja. Katso muokkauskomennot erillisistä ohjeista.
+    ryhmiä tai lisätietoja. Oppilaan ryhmät-kentän muokkaamisessa täytyy
+    jokaisen ryhmätunnuksen alkuun kirjoittaa merkki ”+” (lisää ryhmään) tai
+    ”-” (poista ryhmästä). Katso muokkauskomennot erillisistä ohjeista.
