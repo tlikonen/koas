@@ -1,6 +1,8 @@
 ho /sukunimi/etunimi/ryhmät/lisätiedot
 
-    Hae oppilaita sukunimen, etunimen, ryhmän tai lisätietojen perusteella.
-    Kentissä voi käyttää jokerimerkkiä ”*”. Komennon jälkeen on mahdollista
-    muokata oppilaiden sukunimiä, etunimiä, ryhmiä tai lisätietoja. Katso
-    muokkauskomennot erillisestä ohjeesta.
+    Hae oppilaita sukunimen, etunimen, ryhmän tai oppilaan lisätietojen
+    perusteella. Kentissä voi käyttää jokerimerkkiä ”*”. Jos hakukentät jättää
+    tyhjäksi tai argumentin pois kokonaan, tulostetaan kaikki oppilaat.
+
+    Komennon jälkeen on mahdollista muokata oppilaiden sukunimiä, etunimiä,
+    ryhmiä tai lisätietoja. Katso muokkauskomennot erillisistä ohjeista.

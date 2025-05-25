@@ -8,4 +8,4 @@ hao /sukunimi/etunimi/ryhmä/lisätiedot
 
     Jos haku täsmää vain yhteen oppilaaseen ja hänen yhteen ryhmään, on
     komennon jälkeen mahdollista muokata arvosanoja ja niiden lisätietoja.
-    Katso muokkauskomennot erillisestä ohjeesta.
+    Katso muokkauskomennot erillisistä ohjeista.

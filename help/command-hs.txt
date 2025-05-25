@@ -3,4 +3,4 @@ hs ryhmä
     Hae suoritukset ryhmältä. Argumentin ”ryhmä” on oltava tarkka ryhmätunnus.
     Komennon jälkeen on mahdollista muokata ryhmän suorituksia, suorituksen
     lyhenteitä, painokertoimia ja järjestystä. Katso muokkauskomennot
-    erillisestä ohjeesta.
+    erillisistä ohjeista.

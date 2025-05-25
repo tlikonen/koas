@@ -5,4 +5,4 @@ hr /ryhmä/lisätiedot
     argumentin pois kokonaan, tulostetaan kaikki ryhmät.
 
     Komennon jälkeen on mahdollista muokata ryhmätunnuksia ja niiden
-    lisätietoja. Katso muokkauskomennot erillisestä ohjeesta.
+    lisätietoja. Katso muokkauskomennot erillisistä ohjeista.

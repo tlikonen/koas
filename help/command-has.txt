@@ -8,4 +8,4 @@ has /ryhmä/suoritus/lyhenne
 
     Jos haku täsmää vain yhteen ryhmään ja suoritukseen, on komennon jälkeen
     mahdollista muokata arvosanoja ja niiden lisätietoja. Katso
-    muokkauskomennot erillisestä ohjeesta.
+    muokkauskomennot erillisistä ohjeista.
