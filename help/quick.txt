@@ -13,17 +13,17 @@ ma tietueet                     Muuta arvosanat kouluarvosanaksi, jos mahdollist
 md tietueet                     Muuta arvosanat desimaaliluvuksi, jos mahdollista.
 poista tietueet                 Poista tietueet.
 
-tp  @/ryhmä/suor/lyh/suku/etu/lisä@/...         Tulosta paremmuusjärjestys (painokertoimet).
-tpk @/ryhmä/suor/lyh/suku/etu/lisä@/...         Tulosta paremmuusjärjestys (kaikki).
-tj  @/ryhmä/suor/lyh/suku/etu/lisä@/...         Tulosta jakauma (painokertoimet).
-tjk @/ryhmä/suor/lyh/suku/etu/lisä@/...         Tulosta jakauma (kaikki).
-
 lo /sukunimi/etunimi/ryhmät/lisätiedot          Lisää oppilas.
 ls /ryhmät/suoritus/lyhenne/painokerroin/järj   Lisää ryhmille suoritus.
 
+tp  @/ryhmä/suor/lyh/suku/etu/lisä@/...     Oppilaiden paremmuusjärj. (painokertoimet).
+tpk @/ryhmä/suor/lyh/suku/etu/lisä@/...     Oppilaiden paremmuusjärj. (kaikki).
+tj  @/ryhmä/suor/lyh/suku/etu/lisä@/...     Suoritusten jakauma (painokertoimet).
+tjk @/ryhmä/suor/lyh/suku/etu/lisä@/...     Suoritusten jakauma (kaikki).
+
+tk              Tietokannan tilastoja.
 tlk tyyli       Vaihda taulukkotyyli: unicode (u), unicode-avoin (ua), ascii (a),
                 ascii-avoin (aa), emacs (e), tab (t), latex (l).
-tk              Tulosta tietokannan tilastoja.
 
 ?               Tämä ohje.
 ? aihe          Ohjeita aiheittain. Aihe voi olla komennon nimi tai jokin seuraavista:
