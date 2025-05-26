@@ -1095,7 +1095,7 @@ pub fn help(args: &str) -> Result<(), String> {
         "md" => println!("\n{MD}"),
         "poista" => println!("\n{POISTA}"),
 
-        "tp" | "tpk" | "tj" | "tjk" | "lo" | "ls" | "tlk" | "tk" => {
+        "?" | "tp" | "tpk" | "tj" | "tjk" | "lo" | "ls" | "tlk" | "tk" => {
             println!("\n(ohje puuttuu toistaiseksi)\n");
         }
 
