@@ -1,0 +1,6 @@
+lo /sukunimi/etunimi/ryhmät/lisätiedot
+
+    Lisää uusi oppilas. Pakollisia kenttiä ovat ”sukunimi”, ”etunimi” ja
+    ”ryhmät”. Kenttä ”ryhmät” on välilyönneillä erotettu luettelo ryhmistä,
+    joihin oppilas liitetään. Jos annettua ryhmää ei ole olemassa, se luodaan
+    automaattisesti.

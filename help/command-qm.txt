@@ -1,0 +1,6 @@
+?
+? aihe
+
+    Tulosta komentojen pikaohje tai ohje tietystä aiheesta. Argumentti ”aihe”
+    voi olla komennon nimi tai jokin seuraavista: komennot, tietokanta,
+    asetukset.

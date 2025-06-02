@@ -1075,11 +1075,17 @@ pub fn help(args: &str) -> Result<(), String> {
     static HAS: &str = include_str!("../help/command-has.txt");
     static HAO: &str = include_str!("../help/command-hao.txt");
     static HAK: &str = include_str!("../help/command-hak.txt");
+
     static M: &str = include_str!("../help/command-m.txt");
     static MS: &str = include_str!("../help/command-ms.txt");
     static MA: &str = include_str!("../help/command-ma.txt");
     static MD: &str = include_str!("../help/command-md.txt");
     static POISTA: &str = include_str!("../help/command-poista.txt");
+
+    static LO: &str = include_str!("../help/command-lo.txt");
+    static LS: &str = include_str!("../help/command-ls.txt");
+
+    static QM: &str = include_str!("../help/command-qm.txt");
 
     match args {
         "" => println!("\n{}", include_str!("../help/quick.txt")),
@@ -1089,18 +1095,25 @@ pub fn help(args: &str) -> Result<(), String> {
         "has" => println!("\n{HAS}"),
         "hao" => println!("\n{HAO}"),
         "hak" => println!("\n{HAK}"),
+
         "m" => println!("\n{M}"),
         "ms" => println!("\n{MS}"),
         "ma" => println!("\n{MA}"),
         "md" => println!("\n{MD}"),
         "poista" => println!("\n{POISTA}"),
 
-        "?" | "tp" | "tpk" | "tj" | "tjk" | "lo" | "ls" | "tlk" | "tk" => {
+        "lo" => println!("\n{LO}"),
+        "ls" => println!("\n{LS}"),
+
+        "?" => println!("\n{QM}"),
+
+        "tp" | "tpk" | "tj" | "tjk" | "tlk" | "tk" => {
             println!("\n(ohje puuttuu toistaiseksi)\n");
         }
 
         "komennot" => println!(
-            "\n{pre}\n{HO}\n{HR}\n{HS}\n{HAS}\n{HAO}\n{HAK}\n{M}\n{MS}\n{MA}\n{MD}\n{POISTA}",
+            "\n{pre}\n{HO}\n{HR}\n{HS}\n{HAS}\n{HAO}\n{HAK}\n{M}\n{MS}\n{MA}\n{MD}\n{POISTA}\
+             \n{LO}\n{LS}\n{QM}",
             pre = include_str!("../help/command.txt")
         ),
         "tietokanta" => println!("\n{}", include_str!("../help/database.txt")),

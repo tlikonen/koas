@@ -1,0 +1,13 @@
+ls /ryhmät/suoritus/lyhenne/painokerroin/järjestys
+
+    Lisää ryhmille uusi suoritus. Pakollisia kenttiä ovat ”ryhmät”, ”suoritus”
+    ja ”lyhenne”. Kenttä ”ryhmät” on välilyönneillä erotettu luettelo
+    ryhmistä, joille suoritus lisätään. Jos annettua ryhmää ei ole olemassa,
+    se luodaan automaattisesti. Kenttä ”suoritus” on suorituksen nimi, ja
+    ”lyhenne” on suorituksen lyhenne.
+
+    Vapaaehtoinen kenttä ”painokerroin” on suorituksen painokerroin, jota
+    käytetään keskiarvon laskennassa. Se on positiivinen kokonaisluku tai
+    tyhjä, joka tarkoittaa, että suoritusta ei huomioida keskiarvon
+    laskennassa. Kenttä ”järjestys” ei ole varsinainen tietokenttä, mutta sen
+    avulla voi asettaa, kuinka monentena suoritus on järjestyksessä.
