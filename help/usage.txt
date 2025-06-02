@@ -15,8 +15,8 @@ Valitsimet
         (a), ascii-avoin (aa), emacs (e), tab (t) ja latex (l).
 
   --ohje, --ohje=aihe
-        Tulostaa ohjelman komentojen pikaohjeen tai tarkempia ohjeita aiheiden
-        mukaan. Aihe voi olla komennon nimi tai jokin seuraavista: komennot,
+        Tulostaa ohjelman komentojen pikaohjeen tai tarkemmat ohjeet tietystä
+        aiheesta. Aihe voi olla komennon nimi tai jokin seuraavista: komennot,
         tietokanta, asetukset.
 
   -h    Tulostaa tämän ohjeen.

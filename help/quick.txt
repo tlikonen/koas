@@ -1,11 +1,11 @@
 Komennot
 
-ho  /sukunimi/etunimi/ryhmät/lisätiedot         Hae oppilaita.
-hr  /ryhmä/lisätiedot                           Hae ryhmiä.
-hs  ryhmä                                       Hae suoritukset ryhmältä.
-has /ryhmä/suoritus/lyhenne                     Hae arvosanat ryhmiltä.
-hao /sukunimi/etunimi/ryhmä/lisätiedot          Hae arvosanat oppilailta.
-hak ryhmä                                       Hae ryhmän arvosanojen koonti.
+ho  /sukunimi/etunimi/ryhmät/lisätiedot     Hae oppilaita.
+hr  /ryhmä/lisätiedot                       Hae ryhmiä.
+hs  ryhmä                                   Hae suoritukset ryhmältä.
+has /ryhmä/suoritus/lyhenne                 Hae arvosanat ryhmiltä.
+hao /sukunimi/etunimi/ryhmä/lisätiedot      Hae arvosanat oppilailta.
+hak ryhmä                                   Hae ryhmän arvosanojen koonti.
 
 m  tietueet /.../...            Muokkaa valittuja tietueita ja kenttiä.
 ms tietueet kenttä /.../...     Muokkaa tietueista samaa kenttää.
@@ -21,10 +21,10 @@ tpk @/ryhmä/suor/lyh/suku/etu/lisä@/...     Oppilaiden paremmuusjärj. (kaikki
 tj  @/ryhmä/suor/lyh/suku/etu/lisä@/...     Suoritusten jakauma (painokertoimet).
 tjk @/ryhmä/suor/lyh/suku/etu/lisä@/...     Suoritusten jakauma (kaikki).
 
-tk              Tietokannan tilastoja.
-tlk tyyli       Vaihda taulukkotyyli: unicode (u), unicode-avoin (ua), ascii (a),
-                ascii-avoin (aa), emacs (e), tab (t), latex (l).
+tk          Tietokannan tilastoja.
+tlk tyyli   Vaihda taulukkotyyli: unicode (u), unicode-avoin (ua), ascii (a),
+            ascii-avoin (aa), emacs (e), tab (t), latex (l).
 
-?               Tämä ohje.
-? aihe          Ohjeita aiheittain. Aihe voi olla komennon nimi tai jokin seuraavista:
-                komennot, tietokanta, asetukset.
+?           Tämä ohje.
+? aihe      Ohjeita aiheesta. Aihe voi olla komennon nimi tai jokin seuraavista:
+            komennot, tietokanta, asetukset.
