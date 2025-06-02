@@ -11,12 +11,12 @@ m tietueet /.../...
     luettelo tietueista, joita halutaan muokata, esimerkiksi ”2-4,6-9,15”.
 
     Toinen argumentti ”/.../...” sisältää uudet tiedot kenttien sisällöksi.
-    Riippuu edellä tehdystä hakukomennosta, mitä kenttiä on milloinkin
-    muokattavissa. Argumentin ensimmäinen merkki (edellä ”/”) voi olla mikä
-    tahansa ja se määrittää, mikä erotinmerkki erottaa kentät toisistaan. Jos
-    kentän jättää tyhjäksi, sen sisältöön ei kosketa. Jos kentän sisältönä on
-    pelkkiä välilyöntejä, tyhjennetään tai poistetaan kyseinen kenttä.
-    Arvosanatietue poistetaan aina kokonaan, jos sen kentät jäävät tyhjäksi.
+    Riippuu edellä tehdystä hakukomennosta, mitkä kentät ovat muokattavissa.
+    Argumentin ensimmäinen merkki (edellä ”/”) voi olla mikä tahansa ja se
+    määrittää, mikä erotinmerkki erottaa kentät toisistaan. Jos kentän jättää
+    tyhjäksi, sen sisältöön ei kosketa. Jos kentän sisältönä on pelkkiä
+    välilyöntejä, tyhjennetään tai poistetaan kyseinen kenttä. Arvosanatietue
+    poistetaan aina kokonaan, jos sen kentät jäävät tyhjäksi.
 
     Jos komento antaa virheilmoituksen, kaikki saman komennon tarkoittamat
     muokkaukset perutaan.

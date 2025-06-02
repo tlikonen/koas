@@ -14,14 +14,14 @@ ms tietueet kenttä /.../...
     kenttää vasemmalta lukien, ”2” toista kenttää jne. Kaikista tietueista
     muokataan vain tätä kenttää.
 
-    Kolmas argumentti ”/.../...” on vapaaehtoinen. Lue alempaa tietoa, mitä
-    tapahtuu, jos sen jättää pois. Argumentti sisältää uudet tiedot kentän
-    sisällöksi eri tietueissa. Argumentin ensimmäinen merkki (edellä ”/”) voi
-    olla mikä tahansa ja se määrittää, mikä erotinmerkki erottaa kentät
-    toisistaan. Jos kentän jättää tyhjäksi, sen sisältöön ei kosketa. Jos
-    sisältönä on pelkkiä välilyöntejä, tyhjennetään tai poistetaan kyseinen
-    kenttä. Arvosanatietue poistetaan aina kokonaan, jos sen kentät jäävät
-    tyhjäksi.
+    Kolmas argumentti ”/.../...” on vapaaehtoinen. Alempana on tietoa, miten
+    komento toimii, jos argumentin jättää pois. Argumentti sisältää uudet
+    tiedot kentän sisällöksi eri tietueissa. Argumentin ensimmäinen merkki
+    (edellä ”/”) voi olla mikä tahansa ja se määrittää, mikä erotinmerkki
+    erottaa kentät toisistaan. Jos kentän jättää tyhjäksi, sen sisältöön ei
+    kosketa. Jos sisältönä on pelkkiä välilyöntejä, tyhjennetään tai
+    poistetaan kyseinen kenttä. Arvosanatietue poistetaan aina kokonaan, jos
+    sen kentät jäävät tyhjäksi.
 
     Argumentin ensimmäinen kenttä ”/...” tulee ensimmäisen numeroluettelossa
     (ks. ”tietueet” yllä) mainitun tietueen kentän arvoksi, toinen kenttä

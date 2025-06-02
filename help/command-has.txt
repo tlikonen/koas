@@ -6,6 +6,10 @@ has /ryhmä/suoritus/lyhenne
     jokerimerkkiä ”*”. Jos hakukentät jättää tyhjäksi tai argumentin pois
     kokonaan, tulostetaan kaikkien suoritusten oppilaskohtaiset arvosanat.
 
+    Komennon argumentissa kenttien erotinmerkkinä on yllä vinoviiva ”/”, mutta
+    se voi olla mikä tahansa muukin. Argumentin alussa oleva merkki määrittää,
+    mikä merkki erottaa kentät toisistaan.
+
     Jos haku täsmää vain yhteen ryhmään ja suoritukseen, on komennon jälkeen
-    mahdollista muokata arvosanoja ja niiden lisätietoja. Katso
+    mahdollista muokata eri oppilaiden arvosanoja ja niiden lisätietoja. Katso
     muokkauskomennot erillisistä ohjeista.

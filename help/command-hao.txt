@@ -6,6 +6,10 @@ hao /sukunimi/etunimi/ryhmä/lisätiedot
     ”*”. Jos kentät jättää tyhjäksi tai argumentin pois kokonaan, tulostetaan
     kaikkien oppilaiden kaikki suoritukset.
 
-    Jos haku täsmää vain yhteen oppilaaseen ja hänen yhteen ryhmään, on
-    komennon jälkeen mahdollista muokata arvosanoja ja niiden lisätietoja.
-    Katso muokkauskomennot erillisistä ohjeista.
+    Komennon argumentissa kenttien erotinmerkkinä on yllä vinoviiva ”/”, mutta
+    se voi olla mikä tahansa muukin. Argumentin alussa oleva merkki määrittää,
+    mikä merkki erottaa kentät toisistaan.
+
+    Jos haku täsmää vain yhteen oppilaaseen ja yhteen hänen ryhmäänsä, on
+    komennon jälkeen mahdollista muokata eri suoritusten arvosanoja ja niiden
+    lisätietoja. Katso muokkauskomennot erillisistä ohjeista.

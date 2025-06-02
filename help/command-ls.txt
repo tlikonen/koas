@@ -6,6 +6,10 @@ ls /ryhmät/suoritus/lyhenne/painokerroin/järjestys
     se luodaan automaattisesti. Kenttä ”suoritus” on suorituksen nimi, ja
     ”lyhenne” on suorituksen lyhenne.
 
+    Komennon argumentissa kenttien erotinmerkkinä on yllä vinoviiva ”/”, mutta
+    se voi olla mikä tahansa muukin. Argumentin alussa oleva merkki määrittää,
+    mikä merkki erottaa kentät toisistaan.
+
     Vapaaehtoinen kenttä ”painokerroin” on suorituksen painokerroin, jota
     käytetään keskiarvon laskennassa. Se on positiivinen kokonaisluku tai
     tyhjä, joka tarkoittaa, että suoritusta ei huomioida keskiarvon

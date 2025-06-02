@@ -4,6 +4,10 @@ hr /ryhmä/lisätiedot
     Kentissä voi käyttää jokerimerkkiä ”*”. Jos kentät jättää tyhjäksi tai
     argumentin pois kokonaan, tulostetaan kaikki ryhmät.
 
+    Komennon argumentissa kenttien erotinmerkkinä on yllä vinoviiva ”/”, mutta
+    se voi olla mikä tahansa muukin. Argumentin alussa oleva merkki määrittää,
+    mikä merkki erottaa kentät toisistaan.
+
     Komennon jälkeen on mahdollista muokata ryhmätunnuksia ja niiden
     lisätietoja. Katso muokkauskomennot erillisistä ohjeista.
 
