@@ -1068,7 +1068,7 @@ pub fn table_format(modes: &mut Modes, args: &str) -> Result<(), Box<dyn Error>>
     Ok(())
 }
 
-pub fn help(args: &str) -> Result<(), String> {
+pub fn help(topic: &str) -> Result<(), String> {
     static HO: &str = include_str!("../help/command-ho.txt");
     static HR: &str = include_str!("../help/command-hr.txt");
     static HS: &str = include_str!("../help/command-hs.txt");
@@ -1085,9 +1085,12 @@ pub fn help(args: &str) -> Result<(), String> {
     static LO: &str = include_str!("../help/command-lo.txt");
     static LS: &str = include_str!("../help/command-ls.txt");
 
+    static TP: &str = include_str!("../help/command-tp.txt");
+    static TJ: &str = include_str!("../help/command-tj.txt");
+
     static QM: &str = include_str!("../help/command-qm.txt");
 
-    match args {
+    match topic {
         "" => println!("\n{}", include_str!("../help/quick.txt")),
         "ho" => println!("\n{HO}"),
         "hr" => println!("\n{HR}"),
@@ -1105,20 +1108,24 @@ pub fn help(args: &str) -> Result<(), String> {
         "lo" => println!("\n{LO}"),
         "ls" => println!("\n{LS}"),
 
+        "tp" | "tpk" => println!("\n{TP}"),
+        "tj" | "tjk" => println!("\n{TJ}"),
+
         "?" => println!("\n{QM}"),
 
-        "tp" | "tpk" | "tj" | "tjk" | "tlk" | "tk" => {
+        "tlk" | "tk" => {
             println!("\n(ohje puuttuu toistaiseksi)\n");
         }
 
         "komennot" => println!(
             "\n{pre}\n{HO}\n{HR}\n{HS}\n{HAS}\n{HAO}\n{HAK}\n{M}\n{MS}\n{MA}\n{MD}\n{POISTA}\
-             \n{LO}\n{LS}\n{QM}",
+             \n{LO}\n{LS}\n{TP}\n{TJ}\n{QM}",
             pre = include_str!("../help/command.txt")
         ),
+
         "tietokanta" => println!("\n{}", include_str!("../help/database.txt")),
         "asetukset" => println!("\n{}", include_str!("../help/settings.txt")),
-        _ => Err(format!("Tuntematon ohjeiden aihe: ”{args}”."))?,
+        _ => Err(format!("Tuntematon ohjeiden aihe: ”{topic}”."))?,
     }
     Ok(())
 }

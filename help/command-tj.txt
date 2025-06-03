@@ -1,0 +1,16 @@
+tj  @/ryhmä/suoritus/lyhenne/sukunimi/etunimi/lisätiedot@/...
+tjk @/ryhmä/suoritus/lyhenne/sukunimi/etunimi/lisätiedot@/...
+
+    Tulosta jakauma ja frekvenssit eri kouluarvosanoista. Ilman argumenttia
+    tulostetaan jakauma kaikista arvosanoista, mutta argumentin avulla hakua
+    voi rajata ryhmän, suorituksen nimen tai lyhenteen perusteella tai
+    oppilaiden nimien tai lisätiedon perusteella. Komento ”tj” huomioi vain ne
+    suoritukset, joilla on painokerroin. Komento ”tjk” huomioi kaikki
+    suoritukset.
+
+    Argumentti ”@/.../...@/.../...” on hakujen luettelo. Argumentin
+    ensimmäinen merkki (yllä ”@”) voi olla mikä tahansa, ja se määrittää, mikä
+    merkki erottaa haut toisistaan. Sen jälkeen kukin haku jakautuu
+    hakukenttiin. Jälleen ensimmäinen merkki (yllä ”/”) voi olla mikä tahansa,
+    ja se määrittää, mikä merkki erottaa eri kentät toisistaan. Kenttiä voi
+    jättää tyhjäksi, ja niissä voi käyttää jokerimerkkiä ”*”.
