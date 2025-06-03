@@ -119,14 +119,10 @@ pub async fn grades_for_assignments(
 
     match query.count() {
         0 => panic!(),
-        1 => {
-            if modes.is_interactive() {
-                query.copy_to(editable);
-                query.print_numbered(modes.output());
-                editable.print_fields(&["Arvosana(As)", "Lisätiedot"]);
-            } else {
-                query.print(modes.output());
-            }
+        1 if modes.is_interactive() => {
+            query.copy_to(editable);
+            query.print_numbered(modes.output());
+            editable.print_fields(&["Arvosana(As)", "Lisätiedot"]);
         }
         _ => query.print(modes.output()),
     }
@@ -154,14 +150,10 @@ pub async fn grades_for_students(
 
     match query.count() {
         0 => panic!(),
-        1 => {
-            if modes.is_interactive() {
-                query.copy_to(editable);
-                query.print_numbered(modes.output());
-                editable.print_fields(&["Arvosana(As)", "Lisätiedot"]);
-            } else {
-                query.print(modes.output());
-            }
+        1 if modes.is_interactive() => {
+            query.copy_to(editable);
+            query.print_numbered(modes.output());
+            editable.print_fields(&["Arvosana(As)", "Lisätiedot"]);
         }
         _ => query.print(modes.output()),
     }
