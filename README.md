@@ -66,9 +66,9 @@ OpenPGP-avain: [6965F03973F0D4CA22B9410F0F2CAE0E07608462][PGP]
 Ohjelmaa levitetään [The GNU General Public License][GPL] -nimisellä
 lisenssillä. Lisenssin teksti on linkin takana englanninkielisenä.
 Lisenssin ajatuksena on, että ohjelmaa saa käyttää ja levittää vapaasti.
-Ohjelmaan saa myös vapaasti tehdä omia muutoksia, mutta jos levittää
-omaa muunneltua versiota, täytyy ohjelman muunneltu lähdekoodi antaa
-muiden käyttöön. Muunnellut versiot täytyy jakaa tällä samalla
+Ohjelmaan saa myös tehdä omia muutoksia, mutta jos levittää omaa
+muunneltua versiota, täytyy ohjelman muunneltu lähdekoodi antaa muiden
+käyttöön. Muunnellut versiot täytyy jakaa tällä samalla
 ohjelmistolisenssillä (tai sen uudemmalla versiolla).
 
 Ohjelmaa levitetään siinä toivossa, että siitä on hyötyä muille.
