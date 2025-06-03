@@ -1,0 +1,4 @@
+tk
+
+    Tulosta tilastoja tietokannasta: oppilaiden, ryhmien, suoritusten ja
+    arvosanojen lukumäärä.
