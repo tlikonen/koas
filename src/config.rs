@@ -180,6 +180,7 @@ pub fn select_table_format(value: &str) -> Result<Output, Box<dyn Error>> {
         "ascii-avoin" | "aa" => Output::AsciiOpen,
         "emacs" | "e" => Output::Orgmode,
         "tab" | "t" => Output::Tab,
+        "csv" | "c" => Output::Csv,
         "latex" | "l" => Output::Latex,
         _ => Err(value.to_string())?,
     };

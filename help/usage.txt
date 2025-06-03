@@ -12,7 +12,7 @@ Valitsimet
 
   --taulukot=tyyli
         Taulukoiden tyyli. Vaihtoehdot: unicode (u), unicode-avoin (ua), ascii
-        (a), ascii-avoin (aa), emacs (e), tab (t) ja latex (l).
+        (a), ascii-avoin (aa), emacs (e), tab (t), csv (c) ja latex (l).
 
   --ohje, --ohje=aihe
         Tulostaa ohjelman komentojen pikaohjeen tai tarkemmat ohjeet tietystä

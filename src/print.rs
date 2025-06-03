@@ -60,6 +60,7 @@ impl Table {
             Output::AsciiOpen => print_table(self, TBL_ASCII_OPEN),
             Output::Orgmode => print_table(self, TBL_ORGMODE),
             Output::Tab => print_table_tab(self),
+            Output::Csv => print_table_csv(self),
             Output::Latex => print_table_latex(self),
         }
     }
@@ -858,6 +859,43 @@ fn print_table_tab(tbl: &Table) {
                     match cell {
                         Cell::Left(s) | Cell::Right(s) => print!("{s}"),
                         Cell::Multi(v) => print!("{}", v.join(" ")),
+                        _ => (),
+                    }
+                }
+                println!();
+            }
+            _ => (),
+        }
+    }
+}
+
+fn print_table_csv(tbl: &Table) {
+    for row in &tbl.rows {
+        match row {
+            Row::Title(s) => println!("\n{s}\n"),
+            Row::Head(v) | Row::Data(v) | Row::Foot(v) => {
+                for (col, cell) in v.iter().enumerate() {
+                    if col > 0 {
+                        print!(",");
+                    }
+                    match cell {
+                        Cell::Left(s) | Cell::Right(s) => {
+                            if s.chars().all(|c| c.is_ascii_digit()) {
+                                print!("{s}");
+                            } else {
+                                print!("{s:?}");
+                            }
+                        }
+
+                        Cell::Multi(v) => {
+                            let s = v.join(" ");
+                            if s.chars().all(|c| c.is_ascii_digit()) {
+                                print!("{s}")
+                            } else {
+                                print!("{s:?}")
+                            }
+                        }
+
                         _ => (),
                     }
                 }

@@ -23,7 +23,7 @@ tjk @/ryhmä/suor/lyh/suku/etu/lisä@/...     Suoritusten jakauma (kaikki).
 
 tk          Tietokannan tilastoja.
 tlk tyyli   Vaihda taulukkotyyli: unicode (u), unicode-avoin (ua), ascii (a),
-            ascii-avoin (aa), emacs (e), tab (t), latex (l).
+            ascii-avoin (aa), emacs (e), tab (t), csv (c), latex (l).
 
 ?           Tämä ohje.
 ? aihe      Ohjeita aiheesta. Aihe voi olla komennon nimi tai jokin seuraavista:
