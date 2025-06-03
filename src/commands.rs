@@ -1088,6 +1088,7 @@ pub fn help(topic: &str) -> Result<(), String> {
     static TP: &str = include_str!("../help/command-tp.txt");
     static TJ: &str = include_str!("../help/command-tj.txt");
     static TK: &str = include_str!("../help/command-tk.txt");
+    static TLK: &str = include_str!("../help/command-tlk.txt");
 
     static QM: &str = include_str!("../help/command-qm.txt");
 
@@ -1111,23 +1112,20 @@ pub fn help(topic: &str) -> Result<(), String> {
 
         "tp" | "tpk" => println!("\n{TP}"),
         "tj" | "tjk" => println!("\n{TJ}"),
+
         "tk" => println!("\n{TK}"),
-
+        "tlk" => println!("\n{TLK}"),
         "?" => println!("\n{QM}"),
-
-        "tlk" => {
-            println!("\n(ohje puuttuu toistaiseksi)\n");
-        }
 
         "komennot" => println!(
             "\n{pre}\n{HO}\n{HR}\n{HS}\n{HAS}\n{HAO}\n{HAK}\n{M}\n{MS}\n{MA}\n{MD}\n{POISTA}\
-             \n{LO}\n{LS}\n{TP}\n{TJ}\n{TK}\n{QM}",
+             \n{LO}\n{LS}\n{TP}\n{TJ}\n{TK}\n{TLK}\n{QM}",
             pre = include_str!("../help/command.txt")
         ),
 
         "tietokanta" => println!("\n{}", include_str!("../help/database.txt")),
         "asetukset" => println!("\n{}", include_str!("../help/settings.txt")),
-        _ => Err(format!("Tuntematon ohjeiden aihe: ”{topic}”."))?,
+        u => Err(format!("Tuntematon ohjeiden aihe: ”{u}”."))?,
     }
     Ok(())
 }
