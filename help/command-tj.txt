@@ -1,7 +1,7 @@
 tj  @/ryhmä/suoritus/lyhenne/sukunimi/etunimi/lisätiedot@/...
 tjk @/ryhmä/suoritus/lyhenne/sukunimi/etunimi/lisätiedot@/...
 
-    Tulosta jakauma ja frekvenssit eri kouluarvosanoista. Ilman argumenttia
+    Tulostaa jakauman ja frekvenssit eri kouluarvosanoista. Ilman argumenttia
     tulostetaan jakauma kaikista arvosanoista, mutta argumentin avulla hakua
     voi rajata ryhmän, suorituksen nimen tai lyhenteen perusteella tai
     oppilaiden nimien tai lisätiedon perusteella. Komento ”tj” huomioi vain ne

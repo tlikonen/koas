@@ -1,20 +1,20 @@
 Komennot
 
-ho  /sukunimi/etunimi/ryhmät/lisätiedot     Hae oppilaita.
-hr  /ryhmä/lisätiedot                       Hae ryhmiä.
-hs  ryhmä                                   Hae suoritukset ryhmältä.
-has /ryhmä/suoritus/lyhenne                 Hae arvosanat ryhmiltä.
-hao /sukunimi/etunimi/ryhmä/lisätiedot      Hae arvosanat oppilailta.
-hak ryhmä                                   Hae ryhmän arvosanojen koonti.
+ho  /sukunimi/etunimi/ryhmät/lisätiedot     Hakee oppilaita.
+hr  /ryhmä/lisätiedot                       Hakee ryhmiä.
+hs  ryhmä                                   Hakee suoritukset ryhmältä.
+has /ryhmä/suoritus/lyhenne                 Hakee arvosanat ryhmiltä.
+hao /sukunimi/etunimi/ryhmä/lisätiedot      Hakee arvosanat oppilailta.
+hak ryhmä                                   Hakee ryhmän arvosanojen koonnin.
 
 m  tietueet /.../...            Muokkaa valittuja tietueita ja kenttiä.
 ms tietueet kenttä /.../...     Muokkaa tietueista samaa kenttää.
-ma tietueet                     Muuta arvosanat kouluarvosanaksi, jos mahdollista.
-md tietueet                     Muuta arvosanat desimaaliluvuksi, jos mahdollista.
-poista tietueet                 Poista tietueet.
+ma tietueet                     Muuttaa arvosanat kouluarvosanaksi, jos mahdollista.
+md tietueet                     Muuttaa arvosanat desimaaliluvuksi, jos mahdollista.
+poista tietueet                 Poistaa tietueet.
 
-lo /sukunimi/etunimi/ryhmät/lisätiedot          Lisää oppilas.
-ls /ryhmät/suoritus/lyhenne/painokerroin/järj   Lisää ryhmille suoritus.
+lo /sukunimi/etunimi/ryhmät/lisätiedot          Lisää uuden oppilaan.
+ls /ryhmät/suoritus/lyhenne/painokerroin/järj   Lisää ryhmille uuden suorituksen.
 
 tp  @/ryhmä/suor/lyh/suku/etu/lisä@/...     Oppilaiden paremmuusjärj. (painokertoimet).
 tpk @/ryhmä/suor/lyh/suku/etu/lisä@/...     Oppilaiden paremmuusjärj. (kaikki).
@@ -22,7 +22,7 @@ tj  @/ryhmä/suor/lyh/suku/etu/lisä@/...     Suoritusten jakauma (painokertoime
 tjk @/ryhmä/suor/lyh/suku/etu/lisä@/...     Suoritusten jakauma (kaikki).
 
 tk          Tietokannan tilastoja.
-tlk tyyli   Vaihda taulukkotyyli: unicode (u), unicode-avoin (ua), ascii (a),
+tlk tyyli   Vaihtaa taulukkotyylin: unicode (u), unicode-avoin (ua), ascii (a),
             ascii-avoin (aa), emacs (e), tab (t), csv (c), latex (l).
 
 ?           Tämä ohje.

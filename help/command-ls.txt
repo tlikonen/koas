@@ -1,10 +1,10 @@
 ls /ryhmät/suoritus/lyhenne/painokerroin/järjestys
 
-    Lisää ryhmille uusi suoritus. Pakollisia kenttiä ovat ”ryhmät”, ”suoritus”
-    ja ”lyhenne”. Kenttä ”ryhmät” on välilyönneillä erotettu luettelo
-    ryhmistä, joille suoritus lisätään. Jos annettua ryhmää ei ole olemassa,
-    se luodaan automaattisesti. Kenttä ”suoritus” on suorituksen nimi, ja
-    ”lyhenne” on suorituksen lyhenne.
+    Lisää ryhmille uuden suorituksen. Pakollisia kenttiä ovat ”ryhmät”,
+    ”suoritus” ja ”lyhenne”. Kenttä ”ryhmät” on välilyönneillä erotettu
+    luettelo ryhmistä, joille suoritus lisätään. Jos annettua ryhmää ei ole
+    olemassa, se luodaan automaattisesti. Kenttä ”suoritus” on suorituksen
+    nimi, ja ”lyhenne” on suorituksen lyhenne.
 
     Komennon argumentissa kenttien erotinmerkkinä on yllä vinoviiva ”/”, mutta
     se voi olla mikä tahansa muukin. Argumentin alussa oleva merkki määrittää,

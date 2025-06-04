@@ -1,6 +1,6 @@
 has /ryhmä/suoritus/lyhenne
 
-    Hae arvosanat suorituksiin, jotka täsmäävät hakukenttiin ryhmä, suoritus
+    Hakee arvosanat suorituksiin, jotka täsmäävät hakukenttiin ryhmä, suoritus
     tai sen lyhenne. Komento tulostaa kaikki hakuehtoihin täsmäävät
     suoritukset ja niiden oppilaskohtaiset arvosanat. Kentissä voi käyttää
     jokerimerkkiä ”*”. Jos hakukentät jättää tyhjäksi tai argumentin pois

@@ -1,9 +1,9 @@
 poista tietueet
 
-    Poista tietueet. Komento on käytettävissä vain vuorovaikutteisessa tilassa
-    ja tiettyjen hakukomentojen jälkeen. Muokkausmahdollisuus ilmaistaan
-    hakutulostaulukon alapuolella seuraavanlaisella rivillä, joka kertoo
-    muokattavat tietueet ja kentät.
+    Poistaa tietueet. Komento on käytettävissä vain vuorovaikutteisessa
+    tilassa ja tiettyjen hakukomentojen jälkeen. Muokkausmahdollisuus
+    ilmaistaan hakutulostaulukon alapuolella seuraavanlaisella rivillä, joka
+    kertoo muokattavat tietueet ja kentät.
 
         Tietueet 1–20. Kentät: / 1:Kentän nimi / 2:Toinen nimi / 3:Kolmas
 

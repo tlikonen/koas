@@ -1,7 +1,7 @@
 tp  @/ryhmä/suoritus/lyhenne/sukunimi/etunimi/lisätiedot@/...
 tpk @/ryhmä/suoritus/lyhenne/sukunimi/etunimi/lisätiedot@/...
 
-    Tulosta oppilaiden paremmuusjärjestys keskiarvon perusteella. Ilman
+    Tulostaa oppilaat paremmuusjärjestyksessä keskiarvon perusteella. Ilman
     argumenttia tulostetaan kaikki oppilaat, mutta argumentin avulla hakua voi
     rajata ryhmän, suorituksen nimen tai lyhenteen perusteella tai oppilaiden
     nimien tai lisätiedon perusteella.

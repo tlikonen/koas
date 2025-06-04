@@ -1,6 +1,6 @@
 ma tietueet
 
-    Muokkaa arvosanakenttiä ja muuta ne kouluarvosanoiksi, jos mahdollista.
+    Muokkaa arvosanakenttiä ja muuttaa ne kouluarvosanoiksi, jos mahdollista.
     Komento on käytettävissä vain vuorovaikutteisessa tilassa ja vain
     arvosanoja hakevan komennon jälkeen.
 

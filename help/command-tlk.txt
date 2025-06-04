@@ -1,5 +1,5 @@
 tlk tyyli
 
-    Vaihda taulukoiden tyyli. Argumentti ”tyyli” voi olla jokin seuraavista:
+    Vaihtaa taulukoiden tyylin. Argumentti ”tyyli” voi olla jokin seuraavista:
     unicode (u), unicode-avoin (ua), ascii (a), ascii-avoin (aa), emacs (e),
     tab (t), csv (c) ja latex (l).

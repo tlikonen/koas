@@ -1,6 +1,6 @@
 ho /sukunimi/etunimi/ryhmät/lisätiedot
 
-    Hae oppilaita sukunimen, etunimen, ryhmän tai oppilaan lisätietojen
+    Hakee oppilaita sukunimen, etunimen, ryhmän tai oppilaan lisätietojen
     perusteella. Kentissä voi käyttää jokerimerkkiä ”*”. Jos hakukentät jättää
     tyhjäksi tai argumentin pois kokonaan, tulostetaan kaikki oppilaat.
 

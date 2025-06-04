@@ -1,10 +1,10 @@
 hao /sukunimi/etunimi/ryhmä/lisätiedot
 
-    Hae arvosanat oppilailta, jotka täsmäävät hakukenttiin sukunimi, etunimi,
-    ryhmä tai oppilaan lisätiedot. Komento tulostaa oppilaiden suoritusten
-    arvosanat ryhmäkohtaisesti koottuna. Kentissä voi käyttää jokerimerkkiä
-    ”*”. Jos kentät jättää tyhjäksi tai argumentin pois kokonaan, tulostetaan
-    kaikkien oppilaiden kaikki suoritukset.
+    Hakee arvosanat oppilailta, jotka täsmäävät hakukenttiin sukunimi,
+    etunimi, ryhmä tai oppilaan lisätiedot. Komento tulostaa oppilaiden
+    suoritusten arvosanat ryhmäkohtaisesti koottuna. Kentissä voi käyttää
+    jokerimerkkiä ”*”. Jos kentät jättää tyhjäksi tai argumentin pois
+    kokonaan, tulostetaan kaikkien oppilaiden kaikki suoritukset.
 
     Komennon argumentissa kenttien erotinmerkkinä on yllä vinoviiva ”/”, mutta
     se voi olla mikä tahansa muukin. Argumentin alussa oleva merkki määrittää,
