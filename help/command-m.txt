@@ -12,7 +12,7 @@ m tietueet /.../...
 
     Toinen argumentti ”/.../...” sisältää uudet tiedot kenttien sisällöksi.
     Riippuu edellä tehdystä hakukomennosta, mitkä kentät ovat muokattavissa.
-    Argumentin ensimmäinen merkki (edellä ”/”) voi olla mikä tahansa ja se
+    Argumentin ensimmäinen merkki (yllä ”/”) voi olla mikä tahansa ja se
     määrittää, mikä erotinmerkki erottaa kentät toisistaan. Jos kentän jättää
     tyhjäksi, sen sisältöön ei kosketa. Jos kentän sisältönä on pelkkiä
     välilyöntejä, tyhjennetään tai poistetaan kyseinen kenttä. Arvosanatietue
