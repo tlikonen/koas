@@ -7,7 +7,6 @@ use koas::{
 use std::{error::Error, process::ExitCode};
 
 static PROGRAM_NAME: &str = env!("CARGO_PKG_NAME");
-static PROGRAM_VERSION: &str = env!("CARGO_PKG_VERSION");
 static PROGRAM_AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
 static PROGRAM_LICENSE: &str = env!("CARGO_PKG_LICENSE");
 
@@ -65,7 +64,7 @@ async fn main() -> ExitCode {
              Lisenssi: {license}",
             name = PROGRAM_NAME,
             db = koas::PROGRAM_DB_VERSION,
-            version = PROGRAM_VERSION,
+            version = koas::version(),
             author = PROGRAM_AUTHORS,
             license = PROGRAM_LICENSE
         );

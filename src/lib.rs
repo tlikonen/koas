@@ -16,7 +16,6 @@ use std::{error::Error, io};
 
 pub async fn command_stage(mut modes: Modes, config: Config) -> Result<(), Box<dyn Error>> {
     const PROGRAM_NAME: &str = env!("CARGO_PKG_NAME");
-    const PROGRAM_VERSION: &str = env!("CARGO_PKG_VERSION");
 
     let mut db = database::connect(&config).await?;
     database::init(&mut db, &modes).await?;
@@ -28,7 +27,7 @@ pub async fn command_stage(mut modes: Modes, config: Config) -> Result<(), Box<d
             println!(
                 "{prg} v{ver} (postgres://{user}@{host}:{port}/{db})",
                 prg = PROGRAM_NAME,
-                ver = PROGRAM_VERSION,
+                ver = version(),
                 user = config.user,
                 host = config.host,
                 port = config.port,
@@ -158,4 +157,17 @@ async fn non_interactive_commands(
         _ => return Ok(false),
     }
     Ok(true)
+}
+
+pub fn version() -> String {
+    let mut ver = format!("{}.{}",
+                          env!("CARGO_PKG_VERSION_MAJOR"),
+                          env!("CARGO_PKG_VERSION_MINOR")
+    );
+    let patch = env!("CARGO_PKG_VERSION_PATCH");
+    if patch != "0" {
+        ver.push('.');
+        ver.push_str(patch);
+    }
+    ver
 }
