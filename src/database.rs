@@ -417,7 +417,6 @@ impl Groups {
 
 #[derive(Clone, Default)]
 pub struct Assignment {
-    //pub group: String,
     pub rid: i32,
     pub sid: i32,
     pub assignment: String,
@@ -572,7 +571,6 @@ impl Assignments {
 
         while let Some(row) = rows.try_next().await? {
             list.push(Assignment {
-                //group: row.try_get("ryhma")?,
                 rid: row.try_get("rid")?,
                 sid: row.try_get("sid")?,
                 assignment: row.try_get("suoritus")?,
@@ -634,7 +632,6 @@ pub struct Grade {
     pub firstname: String,
     pub sid: i32,
     pub assignment: String,
-    //pub assignment_short: String,
     pub weight: Option<i32>,
     pub grade: Option<String>,
     pub grade_description: Option<String>,
@@ -643,7 +640,6 @@ pub struct Grade {
 pub struct GradesForAssignment {
     pub assignment: String,
     pub group: String,
-    //pub group_description: String,
     pub grades: Vec<Grade>,
 }
 
@@ -653,13 +649,9 @@ pub struct GradesForAssignments {
 }
 
 pub struct GradesForStudent {
-    //pub oid: i32,
     pub lastname: String,
     pub firstname: String,
-    //pub student_description: String,
-    //pub rid: i32,
     pub group: String,
-    //pub group_description: String,
     pub grades: Vec<Grade>,
 }
 
@@ -788,7 +780,6 @@ impl GradesForAssignments {
                 firstname: row.try_get("etunimi")?,
                 sid,
                 assignment: row.try_get("suoritus")?,
-                //assignment_short: row.try_get("lyhenne")?,
                 weight: row.try_get("painokerroin")?,
                 grade: row.try_get("arvosana")?,
                 grade_description: row.try_get("alt")?,
@@ -802,7 +793,6 @@ impl GradesForAssignments {
                         list.push(GradesForAssignment {
                             assignment: row.try_get("suoritus")?,
                             group: row.try_get("ryhma")?,
-                            //group_description: row.try_get("rlt")?,
                             grades,
                         });
                         grades = Vec::with_capacity(l);
@@ -814,7 +804,6 @@ impl GradesForAssignments {
                     list.push(GradesForAssignment {
                         assignment: row.try_get("suoritus")?,
                         group: row.try_get("ryhma")?,
-                        //group_description: row.try_get("rlt")?,
                         grades,
                     });
                     break;
@@ -882,7 +871,6 @@ impl GradesForStudents {
                 firstname: row.try_get("etunimi")?,
                 sid: row.try_get("sid")?,
                 assignment: row.try_get("suoritus")?,
-                //assignment_short: row.try_get("lyhenne")?,
                 weight: row.try_get("painokerroin")?,
                 grade: row.try_get("arvosana")?,
                 grade_description: row.try_get("alt")?,
@@ -895,13 +883,9 @@ impl GradesForStudents {
                     if next_oid != oid || next_rid != rid {
                         let l = grades.len();
                         list.push(GradesForStudent {
-                            //oid,
                             lastname: row.try_get("sukunimi")?,
                             firstname: row.try_get("etunimi")?,
-                            //student_description: row.try_get("olt")?,
-                            //rid: row.try_get("rid")?,
                             group: row.try_get("ryhma")?,
-                            //group_description: row.try_get("rlt")?,
                             grades,
                         });
                         grades = Vec::with_capacity(l);
@@ -911,13 +895,9 @@ impl GradesForStudents {
 
                 None => {
                     list.push(GradesForStudent {
-                        //oid,
                         lastname: row.try_get("sukunimi")?,
                         firstname: row.try_get("etunimi")?,
-                        //student_description: row.try_get("olt")?,
-                        //rid: row.try_get("rid")?,
                         group: row.try_get("ryhma")?,
-                        //group_description: row.try_get("rlt")?,
                         grades,
                     });
                     break;
@@ -976,7 +956,6 @@ impl GradesForGroup {
 
             while let Some(row) = rows.try_next().await? {
                 assignments.push(Assignment {
-                    //group: row.try_get("ryhma")?,
                     rid: row.try_get("rid")?,
                     sid: row.try_get("sid")?,
                     assignment: row.try_get("suoritus")?,
