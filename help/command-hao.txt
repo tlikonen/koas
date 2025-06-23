@@ -11,5 +11,6 @@ hao /sukunimi/etunimi/ryhmä/lisätiedot
     mikä merkki erottaa kentät toisistaan.
 
     Jos haku täsmää vain yhteen oppilaaseen ja yhteen hänen ryhmäänsä, on
-    komennon jälkeen mahdollista muokata eri suoritusten arvosanoja ja niiden
-    lisätietoja. Katso muokkauskomennot erillisistä ohjeista.
+    komennon suorittamisen jälkeen mahdollista muokata eri suoritusten
+    arvosanoja ja niiden lisätietoja. Katso muokkauskomennot erillisistä
+    ohjeista.

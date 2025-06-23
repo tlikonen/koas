@@ -8,8 +8,8 @@ hr /ryhmä/lisätiedot
     se voi olla mikä tahansa muukin. Argumentin alussa oleva merkki määrittää,
     mikä merkki erottaa kentät toisistaan.
 
-    Komennon jälkeen on mahdollista muokata ryhmätunnuksia ja niiden
-    lisätietoja. Katso muokkauskomennot erillisistä ohjeista.
+    Komennon suorittamisen jälkeen on mahdollista muokata ryhmätunnuksia ja
+    niiden lisätietoja. Katso muokkauskomennot erillisistä ohjeista.
 
     Uusia ryhmiä syntyy automaattisesti, kun oppilaan lisää ryhmään tai
     ryhmälle lisää suorituksen. Ryhmä poistuu itsestään, kun kaikki oppilaat

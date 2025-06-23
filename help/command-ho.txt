@@ -8,7 +8,8 @@ ho /sukunimi/etunimi/ryhmät/lisätiedot
     se voi olla mikä tahansa muukin. Argumentin alussa oleva merkki määrittää,
     mikä merkki erottaa kentät toisistaan.
 
-    Komennon jälkeen on mahdollista muokata oppilaiden sukunimiä, etunimiä,
-    ryhmiä tai lisätietoja. Oppilaan ryhmät-kentän muokkaamisessa täytyy
-    jokaisen ryhmätunnuksen alkuun kirjoittaa merkki ”+” (lisää ryhmään) tai
-    ”-” (poista ryhmästä). Katso muokkauskomennot erillisistä ohjeista.
+    Komennon suorittamisen jälkeen on mahdollista muokata oppilaiden
+    sukunimiä, etunimiä, ryhmiä tai lisätietoja. Oppilaan ryhmät-kentän
+    muokkaamisessa täytyy jokaisen ryhmätunnuksen alkuun kirjoittaa merkki ”+”
+    (lisää ryhmään) tai ”-” (poista ryhmästä). Katso muokkauskomennot
+    erillisistä ohjeista.

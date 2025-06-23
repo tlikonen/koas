@@ -10,6 +10,6 @@ has /ryhmä/suoritus/lyhenne
     se voi olla mikä tahansa muukin. Argumentin alussa oleva merkki määrittää,
     mikä merkki erottaa kentät toisistaan.
 
-    Jos haku täsmää vain yhteen ryhmään ja suoritukseen, on komennon jälkeen
-    mahdollista muokata eri oppilaiden arvosanoja ja niiden lisätietoja. Katso
-    muokkauskomennot erillisistä ohjeista.
+    Jos haku täsmää vain yhteen ryhmään ja suoritukseen, on komennon
+    suorittamisen jälkeen mahdollista muokata eri oppilaiden arvosanoja ja
+    niiden lisätietoja. Katso muokkauskomennot erillisistä ohjeista.
