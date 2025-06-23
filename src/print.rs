@@ -200,7 +200,7 @@ impl Groups {
         let mut rows = vec![
             Row::Toprule,
             Row::Head(vec![
-                Cell::Left("Nimi".to_string()),
+                Cell::Left("Ryhmä".to_string()),
                 Cell::Left("Lisätiedot".to_string()),
             ]),
             Row::Midrule,

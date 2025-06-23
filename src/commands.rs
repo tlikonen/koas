@@ -57,7 +57,7 @@ pub async fn groups(
     editable.clear();
 
     let mut fields = tools::split_sep(args);
-    let name = fields.next().unwrap_or(""); // nimi
+    let name = fields.next().unwrap_or(""); // ryhmä
     let desc = fields.next().unwrap_or(""); // lisätiedot
 
     let query = Groups::query(db, name, desc).await?.has_data()?;
@@ -65,7 +65,7 @@ pub async fn groups(
     if modes.is_interactive() {
         query.copy_to(editable);
         query.print_numbered(modes.output());
-        editable.print_fields(&["Nimi", "Lisätiedot"]);
+        editable.print_fields(&["Ryhmä", "Lisätiedot"]);
     } else {
         query.print(modes.output());
     }
@@ -474,7 +474,7 @@ async fn edit_groups(
     groups: &[Group],
     mut fields: impl Iterator<Item = &str>,
 ) -> Result<(), Box<dyn Error>> {
-    let mut name = fields.next().filter(|x| tools::has_content(x)); // nimi
+    let mut name = fields.next().filter(|x| tools::has_content(x)); // ryhmä
 
     let desc = fields
         .next()
