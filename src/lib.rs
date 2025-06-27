@@ -160,9 +160,10 @@ async fn non_interactive_commands(
 }
 
 pub fn version() -> String {
-    let mut ver = format!("{}.{}",
-                          env!("CARGO_PKG_VERSION_MAJOR"),
-                          env!("CARGO_PKG_VERSION_MINOR")
+    let mut ver = format!(
+        "{}.{}",
+        env!("CARGO_PKG_VERSION_MAJOR"),
+        env!("CARGO_PKG_VERSION_MINOR")
     );
     let patch = env!("CARGO_PKG_VERSION_PATCH");
     if patch != "0" {
