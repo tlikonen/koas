@@ -1,4 +1,4 @@
-Komennot
+KOMENNOT
 
 ho  /sukunimi/etunimi/ryhmät/lisätiedot     Hakee oppilaita.
 hr  /ryhmä/lisätiedot                       Hakee ryhmiä.

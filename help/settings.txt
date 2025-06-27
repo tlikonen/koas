@@ -1,4 +1,4 @@
-Asetukset
+ASETUKSET
 
 Ohjelman asetustiedoston (~/.config/koas) avulla asetetaan tietokannan yhteys-
 ja muita asetuksa. Se on tekstitiedosto, joka voi sisältää alla luetellut

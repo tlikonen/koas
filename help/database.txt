@@ -1,4 +1,4 @@
-Arvosanatietokanta
+ARVOSANATIETOKANTA
 
 Koas-ohjelma käyttää PostgreSQL-tietokantajärjestelmää arvosanojen
 tallentamiseen. Se on palvelinohjelmisto, johon asiakasohjelmat kuten Koas

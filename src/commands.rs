@@ -1083,9 +1083,10 @@ pub fn help(topic: &str) -> Result<(), String> {
     static TLK: &str = include_str!("../help/command-tlk.txt");
 
     static QM: &str = include_str!("../help/command-qm.txt");
+    static QUICK: &str = include_str!("../help/quick.txt");
 
     match topic {
-        "" => println!("\n{}", include_str!("../help/quick.txt")),
+        "" => println!("\n{QUICK}"),
         "ho" => println!("\n{HO}"),
         "hr" => println!("\n{HR}"),
         "hs" => println!("\n{HS}"),
@@ -1110,9 +1111,8 @@ pub fn help(topic: &str) -> Result<(), String> {
         "?" => println!("\n{QM}"),
 
         "komennot" => println!(
-            "\n{pre}\n{HO}\n{HR}\n{HS}\n{HAS}\n{HAO}\n{HAK}\n{M}\n{MS}\n{MA}\n{MD}\n{POISTA}\
-             \n{LO}\n{LS}\n{TP}\n{TJ}\n{TK}\n{TLK}\n{QM}",
-            pre = include_str!("../help/command.txt")
+            "\n{QUICK}\n{info}",
+            info = include_str!("../help/command.txt")
         ),
 
         "tietokanta" => println!("\n{}", include_str!("../help/database.txt")),
