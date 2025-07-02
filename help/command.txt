@@ -10,8 +10,8 @@ siitä eteenpäin. Esimerkiksi seuraavat toimivat samoin:
 Kaikkia kenttiä ei tarvitse kirjoittaa, eli joitakin kenttiä voi jättää
 tyhjäksi tai kokonaan pois.
 
-    /hakusana           haku ensimmäisen kentän perusteella; loput tyhjiä
-    ///hakusana         haku vain kolmannen kentän perusteella
+    /tekstiä            ensimmäinen kenttä määritetty; loput tyhjiä
+    ///tekstiä          kolmas kenttä määritetty; muut tyhjiä
 
 Hakukomentojen kentissä voi yleensä käyttää jokerimerkkiä ”*”, joka täsmää
 mihin tahansa merkkeihin, joita on nolla tai enemmän siinä kohdassa.
