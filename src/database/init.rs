@@ -107,6 +107,7 @@ pub async fn init(db: &mut PgConnection, modes: &Modes) -> Result<(), Box<dyn Er
             .await?;
 
         // Seuraavassa versiossa ehkä vaatimuksia: NOT NULL.
+        // Painokertoimeen ehkä vaatimus x IS NULL OR x >= 1.
         sqlx::query(
             "CREATE TABLE suoritukset \
              (sid SERIAL PRIMARY KEY, \

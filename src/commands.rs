@@ -545,9 +545,9 @@ async fn edit_assignments(
     }
 
     let weight = match weight {
-        Some(s) if !tools::has_content(s) => Some(0), // painokerroin: NULL
+        Some(s) if !tools::has_content(s) => Some(None), // painokerroin: NULL
         Some(s) => match s.trim().parse::<i32>() {
-            Ok(n) if n >= 1 => Some(n),
+            Ok(n) if n >= 1 => Some(Some(n)),
             _ => Err("Painokertoimen täytyy olla positiivinen kokonaisluku (tai tyhjä).")?,
         },
         None => None,
@@ -575,8 +575,8 @@ async fn edit_assignments(
             group_assignment.update_short(db, s).await?;
         }
 
-        if weight.is_some() {
-            group_assignment.update_weight(db, weight).await?;
+        if let Some(w) = weight {
+            group_assignment.update_weight(db, w).await?;
         }
 
         if let Some(p) = position {
