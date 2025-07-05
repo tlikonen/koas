@@ -283,10 +283,9 @@ pub async fn edit_series(
         }
     } else {
         print!(
-            "Syötä kentän {f} arvot riveittäin. Pelkkä välilyönti poistaa kentän arvon\n\
+            "Syötä kentän {field_num} arvot riveittäin. Pelkkä välilyönti poistaa kentän arvon\n\
              (paitsi eräitä pakollisia). Tyhjä rivi jättää kentän ennalleen. Ctrl-d lopettaa.\n\
-             Tietueet:",
-            f = field_num,
+             Tietueet:"
         );
         for i in &indexes {
             print!(" {i}");

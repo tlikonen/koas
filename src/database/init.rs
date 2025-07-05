@@ -23,11 +23,9 @@ pub async fn init(db: &mut PgConnection, modes: &Modes) -> Result<(), Box<dyn Er
             Ordering::Greater => {
                 let err_msg = || {
                     format!(
-                        "Nykyinen arvosanatietokannan versio on {db}, \
-                         mutta tämä ohjelma tukee vain versiota {prg}.\n\
-                         Päivitä ohjelma, koska se ei välttämättä toimi oikein.",
-                        db = db_version,
-                        prg = PROGRAM_DB_VERSION,
+                        "Nykyinen arvosanatietokannan versio on {db_version}, \
+                         mutta tämä ohjelma tukee vain versiota {PROGRAM_DB_VERSION}.\n\
+                         Päivitä ohjelma, koska se ei välttämättä toimi oikein."
                     )
                 };
 
@@ -41,12 +39,10 @@ pub async fn init(db: &mut PgConnection, modes: &Modes) -> Result<(), Box<dyn Er
             Ordering::Less => {
                 let err_msg = || {
                     format!(
-                        "Nykyinen arvosanatietokannan versio {db} on vanhentunut, \
-                         sillä tämä ohjelma on tehty versiolle {prg}.\n\
-                         Päivitä tietokanta vuorovaikutteisessa tilassa komennolla ”{cmd}”.",
-                        db = db_version,
-                        prg = PROGRAM_DB_VERSION,
-                        cmd = UPGRADE_COMMAND,
+                        "Nykyinen arvosanatietokannan versio {db_version} on vanhentunut, \
+                         sillä tämä ohjelma on tehty versiolle {PROGRAM_DB_VERSION}.\n\
+                         Päivitä tietokanta vuorovaikutteisessa tilassa komennolla \
+                         ”{UPGRADE_COMMAND}”."
                     )
                 };
 
