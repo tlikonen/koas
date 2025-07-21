@@ -532,20 +532,21 @@ impl Assignment {
         Ok(count)
     }
 
-    pub async fn insert(&self, db: &mut PgConnection, pos: i32) -> Result<(), sqlx::Error> {
-        sqlx::query(
+    pub async fn insert(&mut self, db: &mut PgConnection, pos: i32) -> Result<(), sqlx::Error> {
+        let row = sqlx::query(
             "INSERT INTO suoritukset (rid, nimi, lyhenne, painokerroin, sija) \
-             VALUES ($1, $2, $3, $4, $5)",
+             VALUES ($1, $2, $3, $4, $5) RETURNING sid",
         )
         .bind(self.rid)
         .bind(&self.assignment)
         .bind(&self.assignment_short)
         .bind(self.weight)
         .bind(pos)
-        .execute(&mut *db)
+        .fetch_one(&mut *db)
         .await?;
 
-        Assignments::reposition(db, self.rid).await?;
+        self.sid = row.try_get("sid")?;
+        self.update_position(db, pos).await?;
         Ok(())
     }
 

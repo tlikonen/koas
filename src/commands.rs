@@ -817,7 +817,7 @@ pub async fn insert_assignment(
     let mut ta = db.begin().await?;
 
     for g in groups.unwrap().split_whitespace() {
-        let group_assignment = Assignment {
+        let mut group_assignment = Assignment {
             rid: Group::get_or_insert(&mut ta, g).await?,
             assignment: assignment.clone().unwrap(),
             assignment_short: assignment_short.clone().unwrap(),
