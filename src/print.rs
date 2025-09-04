@@ -368,11 +368,11 @@ impl GradesForStudent {
                 Cell::Left(grade.assignment.clone()),
                 match &grade.grade {
                     Some(s) => {
-                        if let Some(f) = tools::parse_number(s) {
-                            if let Some(w) = grade.weight {
-                                sum += f * f64::from(w);
-                                count += w;
-                            }
+                        if let Some(f) = tools::parse_number(s)
+                            && let Some(w) = grade.weight
+                        {
+                            sum += f * f64::from(w);
+                            count += w;
                         }
                         Cell::Left(s.clone())
                     }

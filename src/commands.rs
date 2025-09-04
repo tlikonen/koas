@@ -661,12 +661,11 @@ pub async fn convert_to_grade(
                     None => Err("Ei muokattavia tietueita.")?,
                 };
 
-                if let Some(ss) = &student_grade.grade {
-                    if let Some(old) = tools::parse_number(ss) {
-                        if let Some(new) = tools::float_to_grade(old) {
-                            student_grade.update_grade(&mut ta, &new).await?;
-                        }
-                    }
+                if let Some(ss) = &student_grade.grade
+                    && let Some(old) = tools::parse_number(ss)
+                    && let Some(new) = tools::float_to_grade(old)
+                {
+                    student_grade.update_grade(&mut ta, &new).await?;
                 }
             }
         }
@@ -712,11 +711,11 @@ pub async fn convert_to_decimal(
                     None => Err("Ei muokattavia tietueita.")?,
                 };
 
-                if let Some(ss) = &student_grade.grade {
-                    if let Some(old) = tools::parse_number(ss) {
-                        let new = tools::format_decimal(old);
-                        student_grade.update_grade(&mut ta, &new).await?;
-                    }
+                if let Some(ss) = &student_grade.grade
+                    && let Some(old) = tools::parse_number(ss)
+                {
+                    let new = tools::format_decimal(old);
+                    student_grade.update_grade(&mut ta, &new).await?;
                 }
             }
         }

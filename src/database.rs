@@ -1068,32 +1068,32 @@ pub async fn query_student_ranking(
     .fetch(db);
 
     while let Some(row) = rows.try_next().await? {
-        if let Some(gr) = row.try_get("arvosana")? {
-            if let Some(grade) = tools::parse_number(gr) {
-                let weight: i32 = match row.try_get("painokerroin")? {
-                    Some(w) => w,
-                    None if all => 1,
-                    None => continue,
-                };
+        if let Some(gr) = row.try_get("arvosana")?
+            && let Some(grade) = tools::parse_number(gr)
+        {
+            let weight: i32 = match row.try_get("painokerroin")? {
+                Some(w) => w,
+                None if all => 1,
+                None => continue,
+            };
 
-                let oid: i32 = row.try_get("oid")?;
-                let rank = hash.entry(oid).or_default();
+            let oid: i32 = row.try_get("oid")?;
+            let rank = hash.entry(oid).or_default();
 
-                if rank.name.is_empty() {
-                    let lastname: String = row.try_get("sukunimi")?;
-                    let firstname: String = row.try_get("etunimi")?;
-                    rank.name = format!("{lastname}, {firstname}");
-                }
-
-                let group: String = row.try_get("ryhma")?;
-                if !rank.groups.contains(&group) {
-                    rank.groups.push(group.to_string());
-                }
-
-                rank.sum += grade * f64::from(weight);
-                rank.count += weight;
-                rank.grade_count += 1;
+            if rank.name.is_empty() {
+                let lastname: String = row.try_get("sukunimi")?;
+                let firstname: String = row.try_get("etunimi")?;
+                rank.name = format!("{lastname}, {firstname}");
             }
+
+            let group: String = row.try_get("ryhma")?;
+            if !rank.groups.contains(&group) {
+                rank.groups.push(group.to_string());
+            }
+
+            rank.sum += grade * f64::from(weight);
+            rank.count += weight;
+            rank.grade_count += 1;
         }
     }
 
@@ -1127,11 +1127,11 @@ pub async fn query_grade_distribution(
 
     while let Some(row) = rows.try_next().await? {
         let weight: Option<i32> = row.try_get("painokerroin")?;
-        if all || weight.is_some() {
-            if let Some(grade) = row.try_get("arvosana")? {
-                let count = hash.entry(grade).or_default();
-                *count += 1;
-            }
+        if (all || weight.is_some())
+            && let Some(grade) = row.try_get("arvosana")?
+        {
+            let count = hash.entry(grade).or_default();
+            *count += 1;
         }
     }
 
