@@ -3,6 +3,7 @@ name = "koas"
 description = "Kouluarvosanatietokanta"
 version = "2.1.0"
 edition = "2024"
+rust-version = "1.88.0"
 authors = ["Teemu Likonen <tlikonen@iki.fi>"]
 license = "GPL-3.0-or-later"
 publish = false
