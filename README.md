@@ -78,30 +78,30 @@ käynnistää antamalla argumentin `-h` tai `--ohje`.
 Tekijä ja tekijänoikeus
 -----------------------
 
-Ohjelman tekijä on Teemu Likonen <<tlikonen@iki.fi>> (OpenPGP-avain:
-[6965F03973F0D4CA22B9410F0F2CAE0E07608462][PGP]), ja ohjelmaa levitetään
-[The GNU General Public License][GPL] -nimisellä lisenssillä. Lisenssin
-teksti on linkin takana englanninkielisenä. Lisenssin ajatuksena on,
-että ohjelmaa saa käyttää ja levittää vapaasti. Ohjelmaan saa myös
-vapaasti tehdä omia muutoksia, mutta jos levittää omaa muunneltua
-versiota, täytyy ohjelman muunneltu lähdekoodi antaa muiden käyttöön.
-Muunnellut versiot täytyy jakaa tällä samalla ohjelmistolisenssillä (tai
-sen uudemmalla versiolla).
+Tekijä: Teemu Likonen <<tlikonen@iki.fi>> ([kotisivu][koti], [PGP][])
+
+Ohjelmaa levitetään [The GNU General Public License][GPL] -nimisellä
+lisenssillä. Lisenssin teksti on linkin takana englanninkielisenä.
+Lisenssin ajatuksena on, että ohjelmaa saa käyttää ja levittää vapaasti.
+Ohjelmaan saa myös vapaasti tehdä omia muutoksia, mutta jos levittää
+omaa muunneltua versiota, täytyy ohjelman muunneltu lähdekoodi antaa
+muiden käyttöön. Muunnellut versiot täytyy jakaa tällä samalla
+ohjelmistolisenssillä (tai sen uudemmalla versiolla).
 
 Ohjelmaa levitetään siinä toivossa, että siitä on hyötyä muille.
 Ohjelman tekijä ei kuitenkaan anna mitään takuita ohjelmalle, ei edes
 lupausta, että se sopii johonkin tiettyyn käyttötarkoitukseen.
 
-[GPL]: http://www.gnu.org/licenses/gpl-3.0.html
-[PGP]: http://www.iki.fi/tlikonen/pgp-key.asc
+[koti]: http://www.iki.fi/tlikonen/
+[PGP]:  http://www.iki.fi/tlikonen/teemu.pgp
+[GPL]:  http://www.gnu.org/licenses/gpl-3.0.html
 
 
 Copyright and Licence
 ---------------------
 
-Copyright (C) 2013-2022 Teemu Likonen <<tlikonen@iki.fi>>
-
-OpenPGP key: [6965F03973F0D4CA22B9410F0F2CAE0E07608462][PGP]
+Copyright (C) 2013-2022 Teemu Likonen <<tlikonen@iki.fi>> ([web][koti],
+[PGP][])
 
 This program is free software: you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the
