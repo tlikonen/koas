@@ -59,9 +59,7 @@ tietoa ohjelman komentoriviargumenteista.
 Tekijä ja tekijänoikeus
 -----------------------
 
-Tekijä: Teemu Likonen <<tlikonen@iki.fi>>
-
-OpenPGP-avain: [6965F03973F0D4CA22B9410F0F2CAE0E07608462][PGP]
+Tekijä: Teemu Likonen <<tlikonen@iki.fi>> ([kotisivu][koti], [PGP][])
 
 Ohjelmaa levitetään [The GNU General Public License][GPL] -nimisellä
 lisenssillä. Lisenssin teksti on linkin takana englanninkielisenä.
@@ -75,16 +73,15 @@ Ohjelmaa levitetään siinä toivossa, että siitä on hyötyä muille.
 Ohjelman tekijä ei kuitenkaan anna mitään takuita ohjelmalle, ei edes
 lupausta, että se sopii johonkin tiettyyn käyttötarkoitukseen.
 
-[GPL]: http://www.gnu.org/licenses/gpl-3.0.html
-[PGP]: http://www.iki.fi/tlikonen/pgp-key.asc
+[koti]: http://www.iki.fi/tlikonen/
+[PGP]:  http://www.iki.fi/tlikonen/teemu.pgp
+[GPL]:  http://www.gnu.org/licenses/gpl-3.0.html
 
 
 Copyright and Licence
 ---------------------
 
-Author: Teemu Likonen <<tlikonen@iki.fi>>
-
-OpenPGP key: [6965F03973F0D4CA22B9410F0F2CAE0E07608462][PGP]
+Author: Teemu Likonen <<tlikonen@iki.fi>> ([web][koti], [PGP][])
 
 This program is free software: you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the
