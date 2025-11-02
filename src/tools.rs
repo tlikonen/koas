@@ -192,7 +192,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn t_split_sep() {
+    fn split_sep_fn() {
         assert_eq!(
             vec!["eka", "toka"],
             split_sep("/eka/toka").collect::<Vec<&str>>()
@@ -225,7 +225,7 @@ mod tests {
     }
 
     #[test]
-    fn t_split_first() {
+    fn split_first_fn() {
         assert_eq!(("ainoa", ""), split_first(" ainoa "));
         assert_eq!(("eka", "toka kolmas"), split_first("eka toka kolmas"));
         assert_eq!(("eka", "toka kolmas"), split_first(" eka  toka kolmas"));
@@ -234,7 +234,7 @@ mod tests {
     }
 
     #[test]
-    fn t_parse_number() {
+    fn parse_number_fn() {
         assert_eq!(None, parse_number(""));
         assert_eq!(None, parse_number("+"));
         assert_eq!(None, parse_number("-"));
@@ -265,7 +265,7 @@ mod tests {
     }
 
     #[test]
-    fn t_float_to_grade() {
+    fn float_to_grade_fn() {
         assert_eq!(None, float_to_grade(-0.1));
         assert_eq!(None, float_to_grade(-5.0));
         assert_eq!(None, float_to_grade(5.13));
@@ -278,17 +278,20 @@ mod tests {
     }
 
     #[test]
-    fn t_parse_number_list() {
-        assert_eq!(false, parse_number_list("0").is_ok());
-        assert_eq!(false, parse_number_list(" 3").is_ok());
-        assert_eq!(false, parse_number_list("1,2,0").is_ok());
+    fn parse_number_list_fn() {
+        assert!(parse_number_list("0").is_err());
+        assert!(parse_number_list(" 3").is_err());
+        assert!(parse_number_list("1,2,0").is_err());
+
         assert_eq!(vec![1, 2, 3], parse_number_list("1,2,3").unwrap());
         assert_eq!(vec![1, 2, 3], parse_number_list(",1,,,2,3,").unwrap());
-        assert_eq!(false, parse_number_list("1,+2,3").is_ok());
-        assert_eq!(false, parse_number_list("1,2,x").is_ok());
-        assert_eq!(false, parse_number_list("1,2,a-b").is_ok());
-        assert_eq!(false, parse_number_list("1,2,3-").is_ok());
-        assert_eq!(false, parse_number_list("1,2,-3").is_ok());
+
+        assert!(parse_number_list("1,+2,3").is_err());
+        assert!(parse_number_list("1,2,x").is_err());
+        assert!(parse_number_list("1,2,a-b").is_err());
+        assert!(parse_number_list("1,2,3-").is_err());
+        assert!(parse_number_list("1,2,-3").is_err());
+
         assert_eq!(vec![1, 2, 3], parse_number_list("1-3").unwrap());
         assert_eq!(vec![1, 2, 3], parse_number_list("01-003").unwrap());
         assert_eq!(vec![3, 2, 1], parse_number_list("3-1").unwrap());
@@ -296,10 +299,12 @@ mod tests {
             vec![1, 2, 3, 3, 2, 1],
             parse_number_list("1-3,3-1").unwrap()
         );
-        assert_eq!(false, parse_number_list("0-5").is_ok());
-        assert_eq!(false, parse_number_list("000-5").is_ok());
-        assert_eq!(false, parse_number_list("5-0").is_ok());
-        assert_eq!(false, parse_number_list("2-5-6").is_ok());
+
+        assert!(parse_number_list("0-5").is_err());
+        assert!(parse_number_list("000-5").is_err());
+        assert!(parse_number_list("5-0").is_err());
+        assert!(parse_number_list("2-5-6").is_err());
+
         assert_eq!(
             vec![3, 4, 5, 6, 7, 10, 15, 14, 13, 12],
             parse_number_list("3-7,10,15-12").unwrap()
@@ -307,28 +312,29 @@ mod tests {
     }
 
     #[test]
-    fn t_is_all_digits() {
-        assert_eq!(true, is_all_digits("3"));
-        assert_eq!(true, is_all_digits("364"));
-        assert_eq!(true, is_all_digits("01234567890"));
-        assert_eq!(false, is_all_digits(""));
-        assert_eq!(false, is_all_digits(" "));
-        assert_eq!(false, is_all_digits("x"));
-        assert_eq!(false, is_all_digits("+6"));
-        assert_eq!(false, is_all_digits("-6"));
-        assert_eq!(false, is_all_digits(".6"));
-        assert_eq!(false, is_all_digits("6.0"));
+    fn is_all_digits_fn() {
+        assert!(is_all_digits("3"));
+        assert!(is_all_digits("364"));
+        assert!(is_all_digits("01234567890"));
+
+        assert!(!is_all_digits(""));
+        assert!(!is_all_digits(" "));
+        assert!(!is_all_digits("x"));
+        assert!(!is_all_digits("+6"));
+        assert!(!is_all_digits("-6"));
+        assert!(!is_all_digits(".6"));
+        assert!(!is_all_digits("6.0"));
     }
 
     #[test]
-    fn t_is_within_limits() {
-        assert_eq!(true, is_within_limits(10, &[3, 10, 4]));
-        assert_eq!(false, is_within_limits(10, &[3, 11, 10, 4]));
-        assert_eq!(true, is_within_limits(11, &[3, 11, 10, 4]));
+    fn is_within_limits_fn() {
+        assert!(is_within_limits(10, &[3, 10, 4]));
+        assert!(!is_within_limits(10, &[3, 11, 10, 4]));
+        assert!(is_within_limits(11, &[3, 11, 10, 4]));
     }
 
     #[test]
-    fn t_normalize_str() {
+    fn normalize_str_fn() {
         assert_eq!("abc 123", normalize_str("  abc   123  "));
         assert_eq!("abc", normalize_str("abc"));
         assert_eq!("abc", normalize_str(" abc "));
@@ -336,17 +342,17 @@ mod tests {
     }
 
     #[test]
-    fn t_has_content() {
-        assert_eq!(true, has_content("  abc   123  "));
-        assert_eq!(true, has_content("abc"));
-        assert_eq!(true, has_content(" abc "));
-        assert_eq!(false, has_content(" "));
-        assert_eq!(false, has_content("  \t  "));
-        assert_eq!(false, has_content(""));
+    fn has_content_fn() {
+        assert!(has_content("  abc   123  "));
+        assert!(has_content("abc"));
+        assert!(has_content(" abc "));
+        assert!(!has_content(" "));
+        assert!(!has_content("  \t  "));
+        assert!(!has_content(""));
     }
 
     #[test]
-    fn t_format_decimal() {
+    fn format_decimal_fn() {
         assert_eq!("5,00", format_decimal(5.0));
         assert_eq!("5,25", format_decimal(5.254));
         assert_eq!("5,26", format_decimal(5.255));

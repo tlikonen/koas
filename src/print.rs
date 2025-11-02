@@ -953,7 +953,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn t_row_widths() {
+    fn row_widths() {
         assert_eq!(
             vec![5, 4, 3],
             Row::Data(vec![
@@ -989,7 +989,7 @@ mod tests {
     }
 
     #[test]
-    fn t_table_widths() {
+    fn table_widths() {
         let table = Table {
             rows: vec![
                 Row::Toprule,
@@ -1015,7 +1015,7 @@ mod tests {
     }
 
     #[test]
-    fn t_cell_width() {
+    fn cell_width() {
         assert_eq!(0, Cell::Empty.width());
         assert_eq!(3, Cell::Left("123".to_string()).width());
         assert_eq!(4, Cell::Right("1234".to_string()).width());
@@ -1026,7 +1026,7 @@ mod tests {
     }
 
     #[test]
-    fn t_line_split() {
+    fn line_split_fn() {
         for i in 0..8 {
             assert_eq!(
                 vec!["€ka", "tøka", "kølmas"],
