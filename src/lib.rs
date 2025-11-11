@@ -14,9 +14,12 @@ use crate::{
 use sqlx::{Connection, PgConnection};
 use std::{error::Error, io};
 
-pub async fn command_stage(mut modes: Modes, config: Config) -> Result<(), Box<dyn Error>> {
-    const PROGRAM_NAME: &str = env!("CARGO_PKG_NAME");
+pub static PROGRAM_NAME: &str = env!("CARGO_PKG_NAME");
+pub static PROGRAM_VERSION: &str = env!("CARGO_PKG_VERSION");
+pub static PROGRAM_AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
+pub static PROGRAM_LICENSE: &str = env!("CARGO_PKG_LICENSE");
 
+pub async fn command_stage(mut modes: Modes, config: Config) -> Result<(), Box<dyn Error>> {
     let mut db = database::connect(&config).await?;
     database::init(&mut db, &modes).await?;
 
@@ -27,14 +30,14 @@ pub async fn command_stage(mut modes: Modes, config: Config) -> Result<(), Box<d
             println!(
                 "{prg} v{ver} (postgres://{user}@{host}:{port}/{db})",
                 prg = PROGRAM_NAME,
-                ver = version(),
+                ver = PROGRAM_VERSION,
                 user = config.user,
                 host = config.host,
                 port = config.port,
                 db = config.database,
             );
 
-            let prompt = format!("{}> ", env!("CARGO_PKG_NAME"));
+            let prompt = format!("{PROGRAM_NAME}> ");
             let mut rl = rustyline::DefaultEditor::new()?;
 
             loop {
@@ -157,18 +160,4 @@ async fn non_interactive_commands(
         _ => return Ok(false),
     }
     Ok(true)
-}
-
-pub fn version() -> String {
-    let mut ver = format!(
-        "{}.{}",
-        env!("CARGO_PKG_VERSION_MAJOR"),
-        env!("CARGO_PKG_VERSION_MINOR")
-    );
-    let patch = env!("CARGO_PKG_VERSION_PATCH");
-    if patch != "0" {
-        ver.push('.');
-        ver.push_str(patch);
-    }
-    ver
 }

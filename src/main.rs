@@ -6,10 +6,6 @@ use koas::{
 };
 use std::{error::Error, process::ExitCode};
 
-static PROGRAM_NAME: &str = env!("CARGO_PKG_NAME");
-static PROGRAM_AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
-static PROGRAM_LICENSE: &str = env!("CARGO_PKG_LICENSE");
-
 #[tokio::main]
 async fn main() -> ExitCode {
     let args = jg::OptSpecs::new()
@@ -40,7 +36,7 @@ async fn main() -> ExitCode {
     if args.option_exists("help") {
         println!(
             "Käyttö: {prg} [valitsimet] [--] [komento]\n\n{txt}",
-            prg = PROGRAM_NAME,
+            prg = koas::PROGRAM_NAME,
             txt = include_str!("../help/usage.txt")
         );
         return ExitCode::SUCCESS;
@@ -62,11 +58,11 @@ async fn main() -> ExitCode {
             "{name} v{version} (arvosanatietokanta v{db})\n\
              Tekijä:   {author}\n\
              Lisenssi: {license}",
-            name = PROGRAM_NAME,
+            name = koas::PROGRAM_NAME,
             db = koas::PROGRAM_DB_VERSION,
-            version = koas::version(),
-            author = PROGRAM_AUTHORS,
-            license = PROGRAM_LICENSE
+            version = koas::PROGRAM_VERSION,
+            author = koas::PROGRAM_AUTHORS,
+            license = koas::PROGRAM_LICENSE
         );
         return ExitCode::SUCCESS;
     }
