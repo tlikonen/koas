@@ -92,7 +92,7 @@ impl Stats {
              (SELECT count(*) FROM oppilaat) oppilaat, \
              (SELECT count(*) FROM ryhmat) ryhmat, \
              (SELECT count(*) FROM suoritukset) suoritukset, \
-             (SELECT count(*) FROM arvosanat WHERE arvosana LIKE '_%') arvosanat",
+             (SELECT count(*) FROM arvosanat WHERE arvosana LIKE '_%' ESCAPE '\\') arvosanat",
         )
         .fetch_one(db)
         .await?;
@@ -264,7 +264,8 @@ impl Students {
              JOIN (SELECT oid, string_agg(ryhma, ' ' ORDER BY ryhma) ryhmat \
              FROM view_oppilaat GROUP BY oid) ryhmat \
              ON view_oppilaat.oid = ryhmat.oid \
-             WHERE sukunimi LIKE $1 AND etunimi LIKE $2 AND ryhma LIKE $3 and olt LIKE $4
+             WHERE sukunimi LIKE $1 ESCAPE '\\' AND etunimi LIKE $2 ESCAPE '\\' \
+             AND ryhma LIKE $3 ESCAPE '\\' AND olt LIKE $4 ESCAPE '\\'
              ORDER BY sukunimi, etunimi, oid",
         )
         .bind(like_esc_wild(lastname))
@@ -371,7 +372,7 @@ impl Groups {
     ) -> Result<Self, sqlx::Error> {
         let mut rows = sqlx::query(
             "SELECT rid, nimi, lisatiedot FROM ryhmat \
-             WHERE nimi LIKE $1 AND lisatiedot LIKE $2 \
+             WHERE nimi LIKE $1 ESCAPE '\\' AND lisatiedot LIKE $2 ESCAPE '\\' \
              ORDER BY nimi, lisatiedot, rid",
         )
         .bind(like_esc_wild(group))
@@ -756,7 +757,8 @@ impl GradesForAssignments {
             "SELECT ryhma, rid, sija, sid, suoritus, painokerroin, \
              oid, sukunimi, etunimi, arvosana, alt \
              FROM view_arvosanat \
-             WHERE ryhma LIKE $1 AND suoritus LIKE $2 AND lyhenne LIKE $3 AND oid IS NOT NULL \
+             WHERE ryhma LIKE $1 ESCAPE '\\' AND suoritus LIKE $2 ESCAPE '\\' \
+             AND lyhenne LIKE $3 ESCAPE '\\' AND oid IS NOT NULL \
              ORDER BY ryhma, rid, sija, sid, sukunimi, etunimi, oid",
         )
         .bind(like_esc_wild(group))
@@ -844,7 +846,8 @@ impl GradesForStudents {
             "SELECT oid, sukunimi, etunimi, rid, ryhma, \
              sid, suoritus, painokerroin, arvosana, alt \
              FROM view_arvosanat \
-             WHERE sukunimi LIKE $1 AND etunimi LIKE $2 AND ryhma LIKE $3 AND olt LIKE $4 \
+             WHERE sukunimi LIKE $1 ESCAPE '\\' AND etunimi LIKE $2 ESCAPE '\\' \
+             AND ryhma LIKE $3 ESCAPE '\\' AND olt LIKE $4 ESCAPE '\\' \
              AND sid IS NOT NULL \
              ORDER BY sukunimi, etunimi, oid, ryhma, rid, sija, sid",
         )
@@ -1056,8 +1059,9 @@ pub async fn query_student_ranking(
 ) -> Result<(), sqlx::Error> {
     let mut rows = sqlx::query(
         "SELECT oid, sukunimi, etunimi, ryhma, arvosana, painokerroin FROM view_arvosanat \
-         WHERE sukunimi LIKE $1 AND etunimi LIKE $2 AND ryhma LIKE $3 \
-         AND olt LIKE $4 AND suoritus LIKE $5 AND lyhenne LIKE $6",
+         WHERE sukunimi LIKE $1 ESCAPE '\\' AND etunimi LIKE $2 ESCAPE '\\' \
+         AND ryhma LIKE $3 ESCAPE '\\' AND olt LIKE $4 ESCAPE '\\' \
+         AND suoritus LIKE $5 ESCAPE '\\' AND lyhenne LIKE $6 ESCAPE '\\'",
     )
     .bind(like_esc_wild(lastname))
     .bind(like_esc_wild(firstname))
@@ -1114,8 +1118,9 @@ pub async fn query_grade_distribution(
 ) -> Result<(), sqlx::Error> {
     let mut rows = sqlx::query(
         "SELECT arvosana, painokerroin FROM view_arvosanat \
-         WHERE sukunimi LIKE $1 AND etunimi LIKE $2 AND ryhma LIKE $3 \
-         AND olt LIKE $4 AND suoritus LIKE $5 AND lyhenne LIKE $6",
+         WHERE sukunimi LIKE $1 ESCAPE '\\' AND etunimi LIKE $2 ESCAPE '\\' \
+         AND ryhma LIKE $3 ESCAPE '\\' AND olt LIKE $4 ESCAPE '\\' \
+         AND suoritus LIKE $5 ESCAPE '\\' AND lyhenne LIKE $6 ESCAPE '\\'",
     )
     .bind(like_esc_wild(lastname))
     .bind(like_esc_wild(firstname))
