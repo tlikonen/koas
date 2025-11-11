@@ -35,9 +35,8 @@ async fn main() -> ExitCode {
 
     if args.option_exists("help") {
         println!(
-            "Käyttö: {prg} [valitsimet] [--] [komento]\n\n{txt}",
-            prg = koas::PROGRAM_NAME,
-            txt = include_str!("../help/usage.txt")
+            include_str!("../help/usage.txt"),
+            ohjelma = koas::PROGRAM_NAME,
         );
         return ExitCode::SUCCESS;
     }

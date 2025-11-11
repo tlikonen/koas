@@ -1,3 +1,5 @@
+Käyttö: {ohjelma} [valitsimet] [--] [komento]
+
   Ohjelma käynnistyy vuorovaikutteiseen tilaan, jos sen suorittaa ilman
   komentoargumenttia. Argumentiksi voi antaa yksittäisen komennon (ks.
   ”--ohje”).
