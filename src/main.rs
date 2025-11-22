@@ -91,7 +91,7 @@ async fn config_stage(args: jg::Args) -> Result<(), Box<dyn Error>> {
             "Luotiin asetustiedosto ”{}”.\n\
              Muokkaa tiedostoa tekstieditorilla ja aseta tietokannan yhteysasetukset.\n\
              Seuraavilla valitsimilla saa apua: ”--ohje=tietokanta” ja ”--ohje=asetukset”.",
-            config_file.to_string_lossy()
+            config_file.display()
         ))?;
     }
 

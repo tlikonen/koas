@@ -25,11 +25,10 @@ impl Config {
     }
 
     pub fn read(path: &Path) -> Result<Config, String> {
-        let path_str = || path.to_string_lossy();
         let contents = fs::read_to_string(path).map_err(|e| {
             format!(
                 "Asetustiedoston ”{}” lukeminen epäonnistui: {}",
-                path_str(),
+                path.display(),
                 e.kind()
             )
         })?;
@@ -49,7 +48,7 @@ impl Config {
             if n >= max {
                 eprintln!(
                     "Asetustiedostosta ”{}” käsitellään vain ensimmäiset {max} riviä.",
-                    path_str()
+                    path.display()
                 );
                 break;
             }
@@ -63,7 +62,7 @@ impl Config {
                 None => {
                     eprintln!(
                         "Asetustiedoston ”{}” rivi {} on sopimaton.",
-                        path_str(),
+                        path.display(),
                         n + 1
                     );
                     continue;
@@ -92,7 +91,7 @@ impl Config {
                         format!(
                             "Asetustiedostossa ”{}” kentän ”portti” arvo on\n\
                              sopimaton tietoliikenneportiksi.",
-                            path_str()
+                            path.display()
                         )
                     })?;
                     port = true;
@@ -103,7 +102,7 @@ impl Config {
                 }
                 _ => eprintln!(
                     "Asetustiedostossa ”{}” tuntematon kenttä ”{key}”.",
-                    path_str()
+                    path.display()
                 ),
             }
         }
@@ -116,14 +115,14 @@ impl Config {
         {
             Err(format!(
                 "Asetustiedostosta ”{}” puuttuu tärkeitä asetuksia. Tarkista ohjeet.",
-                path_str(),
+                path.display(),
             ))?;
         }
 
         if !config.tables.is_empty() && select_table_format(&config.tables).is_err() {
             eprintln!(
                 "Asetustiedostossa ”{}” sopimaton kentän ”taulukot” arvo.",
-                path_str()
+                path.display()
             );
         }
 
@@ -151,7 +150,7 @@ impl Config {
         .map_err(|e| {
             format!(
                 "Asetustiedoston ”{}” kirjoittaminen epäonnistui: {}",
-                path.to_string_lossy(),
+                path.display(),
                 e.kind()
             )
         })?;
