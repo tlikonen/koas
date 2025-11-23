@@ -1,12 +1,14 @@
-use crate::{
-    Output,
-    database::{
-        Assignments, GradesForAssignment, GradesForAssignments, GradesForGroup, GradesForStudent,
-        GradesForStudents, Groups, Stats, StudentRank, Students,
+use {
+    crate::{
+        Output,
+        database::{
+            Assignments, GradesForAssignment, GradesForAssignments, GradesForGroup,
+            GradesForStudent, GradesForStudents, Groups, Stats, StudentRank, Students,
+        },
+        tools,
     },
-    tools,
+    std::{cmp::Ordering, collections::HashMap},
 };
-use std::{cmp::Ordering, collections::HashMap};
 
 const GROUPS_WIDTH: usize = 42;
 

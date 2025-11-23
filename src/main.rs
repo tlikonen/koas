@@ -1,10 +1,12 @@
-use just_getopt as jg;
-use koas::{
-    config::{self, Config},
-    modes::{Mode, Modes, Output},
-    tools,
+use {
+    just_getopt as jg,
+    koas::{
+        config::{self, Config},
+        modes::{Mode, Modes, Output},
+        tools,
+    },
+    std::{error::Error, process::ExitCode},
 };
-use std::{error::Error, process::ExitCode};
 
 #[tokio::main]
 async fn main() -> ExitCode {

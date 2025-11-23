@@ -1,13 +1,16 @@
-use crate::{
-    Modes, config,
-    database::{
-        self, Assignment, Assignments, Editable, EditableItem, Grade, GradesForAssignments,
-        GradesForGroup, GradesForStudents, Group, Groups, Stats, Student, StudentRank, Students,
+use {
+    crate::{
+        Modes, config,
+        database::{
+            self, Assignment, Assignments, Editable, EditableItem, Grade, GradesForAssignments,
+            GradesForGroup, GradesForStudents, Group, Groups, Stats, Student, StudentRank,
+            Students,
+        },
+        print, tools,
     },
-    print, tools,
+    sqlx::{Connection, PgConnection},
+    std::{collections::HashMap, error::Error, io},
 };
-use sqlx::{Connection, PgConnection};
-use std::{collections::HashMap, error::Error, io};
 
 pub async fn stats(
     modes: &Modes,

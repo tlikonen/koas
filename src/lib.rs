@@ -6,13 +6,15 @@ mod print;
 pub mod tools;
 
 pub use crate::{commands::help, database::PROGRAM_DB_VERSION};
-use crate::{
-    config::Config,
-    database::Editable,
-    modes::{Mode, Modes, Output},
+use {
+    crate::{
+        config::Config,
+        database::Editable,
+        modes::{Mode, Modes, Output},
+    },
+    sqlx::{Connection, PgConnection},
+    std::{error::Error, io},
 };
-use sqlx::{Connection, PgConnection};
-use std::{error::Error, io};
 
 pub static PROGRAM_NAME: &str = env!("CARGO_PKG_NAME");
 pub static PROGRAM_VERSION: &str = env!("CARGO_PKG_VERSION");

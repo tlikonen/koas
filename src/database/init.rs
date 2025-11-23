@@ -1,6 +1,8 @@
-use super::{Connection, PgConnection, Row};
-use crate::modes::Modes;
-use std::{cmp::Ordering, error::Error};
+use {
+    super::{Connection, PgConnection, Row},
+    crate::modes::Modes,
+    std::{cmp::Ordering, error::Error},
+};
 
 pub const PROGRAM_DB_VERSION: i32 = 10;
 const UPGRADE_COMMAND: &str = "päivitä";
