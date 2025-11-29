@@ -1,4 +1,4 @@
-use std::error::Error;
+use crate::prelude::*;
 
 pub fn parse_number_list(s: &str) -> Result<Vec<usize>, Box<dyn Error>> {
     let mut vec: Vec<usize> = Vec::with_capacity(25);

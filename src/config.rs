@@ -1,11 +1,5 @@
-use {
-    crate::modes::Output,
-    std::{
-        error::Error,
-        fs,
-        path::{Path, PathBuf},
-    },
-};
+use crate::prelude::*;
+use std::path::{Path, PathBuf};
 
 static CONFIG_FILE: &str = env!("CARGO_PKG_NAME");
 

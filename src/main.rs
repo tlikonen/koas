@@ -1,21 +1,15 @@
-use {
-    just_getopt as jg,
-    koas::{
-        config::{self, Config},
-        modes::{Mode, Modes, Output},
-        tools,
-    },
-    std::{error::Error, process::ExitCode},
-};
+use just_getopt::{Args, OptFlags, OptSpecs, OptValue};
+use koas::prelude::*;
+use std::{error::Error, process::ExitCode};
 
 #[tokio::main]
 async fn main() -> ExitCode {
-    let args = jg::OptSpecs::new()
-        .option("taulukot", "taulukot", jg::OptValue::RequiredNonEmpty)
-        .option("ohje", "ohje", jg::OptValue::OptionalNonEmpty)
-        .option("help", "h", jg::OptValue::None)
-        .option("version", "version", jg::OptValue::None)
-        .flag(jg::OptFlags::PrefixMatchLongOptions)
+    let args = OptSpecs::new()
+        .option("taulukot", "taulukot", OptValue::RequiredNonEmpty)
+        .option("ohje", "ohje", OptValue::OptionalNonEmpty)
+        .option("help", "h", OptValue::None)
+        .option("version", "version", OptValue::None)
+        .flag(OptFlags::PrefixMatchLongOptions)
         .getopt(std::env::args().skip(1));
 
     let mut error = false;
@@ -45,7 +39,7 @@ async fn main() -> ExitCode {
 
     if args.option_exists("ohje") {
         let topic = args.options_value_last("ohje").map_or("", |v| v);
-        match koas::help(topic) {
+        match commands::help(topic) {
             Ok(_) => return ExitCode::SUCCESS,
             Err(e) => {
                 eprintln!("{e}");
@@ -77,7 +71,7 @@ async fn main() -> ExitCode {
     }
 }
 
-async fn config_stage(args: jg::Args) -> Result<(), Box<dyn Error>> {
+async fn config_stage(args: Args) -> Result<(), Box<dyn Error>> {
     let config_file = Config::file()?;
     let config: Config;
     let mut output: Output = Default::default();
