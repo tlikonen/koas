@@ -115,7 +115,7 @@ impl Config {
             ))?;
         }
 
-        if !config.tables.is_empty() && select_table_format(&config.tables).is_err() {
+        if !config.tables.is_empty() && Output::select(&config.tables).is_err() {
             eprintln!(
                 "Asetustiedostossa ”{}” sopimaton kentän ”taulukot” arvo.",
                 path.display()
@@ -165,19 +165,4 @@ impl Default for Config {
             tables: "unicode".to_string(),
         }
     }
-}
-
-pub fn select_table_format(value: &str) -> Result<Output, Box<dyn Error>> {
-    let out = match value.to_lowercase().as_str() {
-        "unicode" | "u" => Output::Unicode,
-        "unicode-avoin" | "ua" => Output::UnicodeOpen,
-        "ascii" | "a" => Output::Ascii,
-        "ascii-avoin" | "aa" => Output::AsciiOpen,
-        "emacs" | "e" => Output::Orgmode,
-        "tab" | "t" => Output::Tab,
-        "csv" | "c" => Output::Csv,
-        "latex" | "l" => Output::Latex,
-        _ => Err(value.to_string())?,
-    };
-    Ok(out)
 }

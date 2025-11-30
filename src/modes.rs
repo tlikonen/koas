@@ -1,3 +1,5 @@
+use crate::prelude::*;
+
 pub enum Mode {
     Interactive,
     Single(String),
@@ -16,6 +18,23 @@ pub enum Output {
     Tab,
     Csv,
     Latex,
+}
+
+impl Output {
+    pub fn select(value: &str) -> Result<Self, Box<dyn Error>> {
+        let out = match value.to_lowercase().as_str() {
+            "unicode" | "u" => Output::Unicode,
+            "unicode-avoin" | "ua" => Output::UnicodeOpen,
+            "ascii" | "a" => Output::Ascii,
+            "ascii-avoin" | "aa" => Output::AsciiOpen,
+            "emacs" | "e" => Output::Orgmode,
+            "tab" | "t" => Output::Tab,
+            "csv" | "c" => Output::Csv,
+            "latex" | "l" => Output::Latex,
+            _ => Err(value.to_string())?,
+        };
+        Ok(out)
+    }
 }
 
 #[derive(Default)]

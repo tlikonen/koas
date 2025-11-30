@@ -13,7 +13,7 @@ pub(crate) use {
 
 pub use crate::{
     commands,
-    config::{self, Config},
+    config::Config,
     modes::{Mode, Modes, Output},
     tools,
 };

@@ -93,11 +93,11 @@ async fn config_stage(args: Args) -> Result<(), Box<dyn Error>> {
 
     // Table-printing format.
     if !config.tables.is_empty() {
-        output = config::select_table_format(&config.tables).unwrap_or_default();
+        output = Output::select(&config.tables).unwrap_or_default();
     }
 
     if let Some(value) = args.options_value_last("taulukot") {
-        output = config::select_table_format(value)
+        output = Output::select(value)
             .map_err(|e| format!("Sopimaton arvo valitsimelle: ”--taulukot={e}”."))?;
     }
 
