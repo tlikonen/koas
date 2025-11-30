@@ -3,7 +3,7 @@ use crate::prelude::*;
 pub const PROGRAM_DB_VERSION: i32 = 10;
 const UPGRADE_COMMAND: &str = "päivitä";
 
-pub async fn init(db: &mut PgConnection, modes: &Modes) -> Result<(), Box<dyn Error>> {
+pub async fn initialize(db: &mut PgConnection, modes: &Modes) -> Result<(), Box<dyn Error>> {
     let db_exists = sqlx::query("SELECT 1 FROM pg_tables WHERE tablename = 'hallinto'")
         .fetch_optional(&mut *db)
         .await?

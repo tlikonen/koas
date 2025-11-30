@@ -1,10 +1,10 @@
 mod init;
 
-pub use self::init::{PROGRAM_DB_VERSION, init};
+pub use self::init::PROGRAM_DB_VERSION;
 use crate::prelude::*;
 use futures::TryStreamExt;
 
-pub async fn connect(config: &Config) -> Result<PgConnection, sqlx::Error> {
+pub async fn connect(config: &Config, modes: &Modes) -> Result<PgConnection, Box<dyn Error>> {
     let connect_string = format!(
         "postgres://{user}:{password}@{host}:{port}/{db}",
         user = config.user,
@@ -13,7 +13,10 @@ pub async fn connect(config: &Config) -> Result<PgConnection, sqlx::Error> {
         port = config.port,
         db = config.database,
     );
-    PgConnection::connect(&connect_string).await
+
+    let mut db = PgConnection::connect(&connect_string).await?;
+    init::initialize(&mut db, modes).await?;
+    Ok(db)
 }
 
 pub enum EditableItem {

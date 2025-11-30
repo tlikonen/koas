@@ -14,9 +14,7 @@ pub static PROGRAM_AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
 pub static PROGRAM_LICENSE: &str = env!("CARGO_PKG_LICENSE");
 
 pub async fn command_stage(mut modes: Modes, config: Config) -> Result<(), Box<dyn Error>> {
-    let mut db = database::connect(&config).await?;
-    database::init(&mut db, &modes).await?;
-
+    let mut db = database::connect(&config, &modes).await?;
     let mut editable: Editable = Default::default();
 
     match modes.clone().mode() {
