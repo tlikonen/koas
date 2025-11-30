@@ -1,5 +1,5 @@
 use just_getopt::{Args, OptFlags, OptSpecs, OptValue};
-use koas::prelude::*;
+use koas::*;
 use std::{error::Error, process::ExitCode};
 
 #[tokio::main]
@@ -39,7 +39,7 @@ async fn main() -> ExitCode {
 
     if args.option_exists("ohje") {
         let topic = args.options_value_last("ohje").map_or("", |v| v);
-        match commands::help(topic) {
+        match koas::help(topic) {
             Ok(_) => return ExitCode::SUCCESS,
             Err(e) => {
                 eprintln!("{e}");
@@ -76,7 +76,7 @@ async fn config_stage(args: Args) -> Result<(), Box<dyn Error>> {
     let config: Config;
     let mut output: Output = Default::default();
 
-    tools::umask(0o077);
+    koas::umask(0o077);
 
     if config_file.exists() {
         config = Config::read(&config_file)?;

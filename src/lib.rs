@@ -1,13 +1,12 @@
-pub mod commands;
-pub mod config;
-pub mod database;
-pub mod modes;
-pub mod prelude;
-pub mod print;
-pub mod tools;
+mod commands;
+mod config;
+mod database;
+mod modes;
+mod prelude;
+mod print;
+mod tools;
 
-pub use crate::database::PROGRAM_DB_VERSION;
-use crate::prelude::*;
+pub use crate::prelude::*;
 
 pub static PROGRAM_NAME: &str = env!("CARGO_PKG_NAME");
 pub static PROGRAM_VERSION: &str = env!("CARGO_PKG_VERSION");

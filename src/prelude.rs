@@ -5,15 +5,16 @@ pub(crate) use {
             GradesForAssignments, GradesForGroup, GradesForStudent, GradesForStudents, Group,
             Groups, Stats, Student, StudentRank, Students,
         },
-        print,
+        print, tools,
     },
     sqlx::{Connection, PgConnection, Row as _},
     std::{cmp::Ordering, collections::HashMap, error::Error, fs, io},
 };
 
 pub use crate::{
-    commands,
+    commands::help,
     config::Config,
+    database::PROGRAM_DB_VERSION,
     modes::{Mode, Modes, Output},
-    tools,
+    tools::umask,
 };
