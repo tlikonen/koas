@@ -42,6 +42,7 @@ impl Output {
 pub struct Modes {
     mode: Option<Mode>,
     output: Option<Output>,
+    // upgrade: bool,
 }
 
 impl Modes {
@@ -64,4 +65,12 @@ impl Modes {
     pub fn is_interactive(&self) -> bool {
         matches!(self.mode(), Mode::Interactive)
     }
+
+    // pub fn upgrade(&self) -> bool {
+    //     self.upgrade
+    // }
+
+    // pub fn set_upgrade(&mut self) {
+    //     self.upgrade = true;
+    // }
 }

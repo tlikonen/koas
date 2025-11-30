@@ -42,6 +42,7 @@ pub async fn command_stage(mut modes: Modes, config: Config) -> Result<(), Box<d
                 rl.add_history_entry(&line)?;
 
                 let (cmd, args) = tools::split_first(&line);
+                // if modes.upgrade() && cmd == UPGRADE_COMMAND {}
 
                 match commands(&mut modes, &mut db, &mut editable, cmd, args).await {
                     Ok(Ok(())) => (),

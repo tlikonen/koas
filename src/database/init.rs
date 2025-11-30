@@ -46,6 +46,7 @@ pub async fn init(db: &mut PgConnection, modes: &Modes) -> Result<(), Box<dyn Er
 
                 if modes.is_interactive() {
                     eprintln!("{}", err_msg());
+                    // modes.set_upgrade();
                 } else {
                     Err(err_msg())?;
                 }
