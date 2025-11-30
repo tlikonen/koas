@@ -76,7 +76,7 @@ async fn config_stage(args: Args) -> Result<(), Box<dyn Error>> {
     let config: Config;
     let mut output: Output = Default::default();
 
-    koas::umask(0o077);
+    koas::umask();
 
     if config_file.exists() {
         config = Config::read(&config_file)?;

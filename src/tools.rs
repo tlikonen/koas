@@ -183,8 +183,10 @@ pub fn format_decimal(num: f64) -> String {
     format!("{:.2}", (num * PRECISION).round() / PRECISION).replace(".", ",")
 }
 
-pub fn umask(mask: u32) -> u32 {
-    unsafe { libc::umask(mask) }
+pub fn umask() {
+    unsafe {
+        libc::umask(0o077);
+    }
 }
 
 #[cfg(test)]
