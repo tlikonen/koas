@@ -1,5 +1,6 @@
 use crate::prelude::*;
 
+#[derive(Clone)]
 pub enum Mode {
     Interactive,
     Single(String),
@@ -7,7 +8,7 @@ pub enum Mode {
 }
 
 #[non_exhaustive]
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub enum Output {
     #[default]
     Unicode,
@@ -37,7 +38,7 @@ impl Output {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Modes {
     mode: Option<Mode>,
     output: Option<Output>,

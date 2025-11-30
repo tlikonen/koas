@@ -19,7 +19,7 @@ pub async fn command_stage(mut modes: Modes, config: Config) -> Result<(), Box<d
 
     let mut editable: Editable = Default::default();
 
-    match modes.mode() {
+    match modes.clone().mode() {
         Mode::Interactive => {
             println!(
                 "{prg} v{ver} (postgres://{user}@{host}:{port}/{db})",
@@ -43,9 +43,9 @@ pub async fn command_stage(mut modes: Modes, config: Config) -> Result<(), Box<d
 
                 let (cmd, args) = tools::split_first(&line);
 
-                match interactive_commands(&mut modes, &mut db, &mut editable, cmd, args).await {
-                    Ok(true) => (),
-                    Ok(false) => eprintln!("Tuntematon komento ”{cmd}”. Apua saa ?:llä."),
+                match commands(&mut modes, &mut db, &mut editable, cmd, args).await {
+                    Ok(Ok(())) => (),
+                    Ok(Err(e)) => eprintln!("{e} Apua saa ?:llä."),
                     Err(e) => eprintln!("{e}"),
                 }
             }
@@ -53,10 +53,8 @@ pub async fn command_stage(mut modes: Modes, config: Config) -> Result<(), Box<d
 
         Mode::Single(line) => {
             let (cmd, args) = tools::split_first(line);
-            if !non_interactive_commands(&modes, &mut db, &mut editable, cmd, args).await? {
-                Err(format!(
-                    "Tuntematon komento ”{cmd}”. Apua saa valitsimella ”--ohje”."
-                ))?;
+            if let Err(e) = commands(&mut modes, &mut db, &mut editable, cmd, args).await? {
+                Err(format!("{e} Apua saa valitsimella ”--ohje”."))?;
             }
         }
 
@@ -66,10 +64,8 @@ pub async fn command_stage(mut modes: Modes, config: Config) -> Result<(), Box<d
                 let line = item?;
                 if !line.is_empty() {
                     let (cmd, args) = tools::split_first(&line);
-                    if !non_interactive_commands(&modes, &mut ta, &mut editable, cmd, args).await? {
-                        Err(format!(
-                            "Tuntematon komento ”{cmd}”. Apua saa valitsimella ”--ohje”."
-                        ))?;
+                    if let Err(e) = commands(&mut modes, &mut ta, &mut editable, cmd, args).await? {
+                        Err(format!("{e} Apua saa valitsimella ”--ohje”."))?;
                     }
                 }
             }
@@ -79,79 +75,44 @@ pub async fn command_stage(mut modes: Modes, config: Config) -> Result<(), Box<d
     Ok(())
 }
 
-async fn interactive_commands(
+async fn commands(
     modes: &mut Modes,
     db: &mut PgConnection,
     editable: &mut Editable,
     cmd: &str,
     args: &str,
-) -> Result<bool, Box<dyn Error>> {
-    match cmd {
-        "ho" => commands::students(modes, db, editable, args).await?,
-        "hr" => commands::groups(modes, db, editable, args).await?,
-        "hs" => commands::assignments(modes, db, editable, args).await?,
-        "has" => commands::grades_for_assignments(modes, db, editable, args).await?,
-        "hao" => commands::grades_for_students(modes, db, editable, args).await?,
-        "hak" => commands::grades_for_group(modes, db, editable, args).await?,
+) -> Result<Result<(), String>, Box<dyn Error>> {
+    match (cmd, modes.mode()) {
+        ("ho", _) => commands::students(modes, db, editable, args).await?,
+        ("hr", _) => commands::groups(modes, db, editable, args).await?,
+        ("hs", _) => commands::assignments(modes, db, editable, args).await?,
+        ("has", _) => commands::grades_for_assignments(modes, db, editable, args).await?,
+        ("hao", _) => commands::grades_for_students(modes, db, editable, args).await?,
+        ("hak", _) => commands::grades_for_group(modes, db, editable, args).await?,
 
-        "tp" => commands::student_ranking(modes, db, editable, args, false).await?,
-        "tpk" => commands::student_ranking(modes, db, editable, args, true).await?,
-        "tj" => commands::grade_distribution(modes, db, editable, args, false).await?,
-        "tjk" => commands::grade_distribution(modes, db, editable, args, true).await?,
+        ("tp", _) => commands::student_ranking(modes, db, editable, args, false).await?,
+        ("tpk", _) => commands::student_ranking(modes, db, editable, args, true).await?,
+        ("tj", _) => commands::grade_distribution(modes, db, editable, args, false).await?,
+        ("tjk", _) => commands::grade_distribution(modes, db, editable, args, true).await?,
 
-        "lo" => commands::insert_student(db, editable, args).await?,
-        "ls" => commands::insert_assignment(db, editable, args).await?,
+        ("lo", _) => commands::insert_student(db, editable, args).await?,
+        ("ls", _) => commands::insert_assignment(db, editable, args).await?,
 
-        "m" => commands::edit(db, editable, args).await?,
-        "ms" => commands::edit_series(db, editable, args).await?,
-        "ma" => commands::convert_to_grade(db, editable, args).await?,
-        "md" => commands::convert_to_decimal(db, editable, args).await?,
-        "poista" => commands::delete(db, editable, args).await?,
+        ("m", Mode::Interactive) => commands::edit(db, editable, args).await?,
+        ("ms", Mode::Interactive) => commands::edit_series(db, editable, args).await?,
+        ("ma", Mode::Interactive) => commands::convert_to_grade(db, editable, args).await?,
+        ("md", Mode::Interactive) => commands::convert_to_decimal(db, editable, args).await?,
+        ("poista", Mode::Interactive) => commands::delete(db, editable, args).await?,
 
-        "tlk" => commands::table_format(modes, args)?,
-        "tk" => commands::stats(modes, db, editable).await?,
+        ("tlk", _) => commands::table_format(modes, args)?,
+        ("tk", _) => commands::stats(modes, db, editable).await?,
 
-        "?" => {
+        ("?", _) => {
             editable.clear();
             commands::help(args)?;
         }
 
-        _ => return Ok(false),
+        (c, _) => return Ok(Err(format!("Tuntematon komento ”{c}”."))),
     }
-    Ok(true)
-}
-
-async fn non_interactive_commands(
-    modes: &Modes,
-    db: &mut PgConnection,
-    editable: &mut Editable,
-    cmd: &str,
-    args: &str,
-) -> Result<bool, Box<dyn Error>> {
-    match cmd {
-        "ho" => commands::students(modes, db, editable, args).await?,
-        "hr" => commands::groups(modes, db, editable, args).await?,
-        "hs" => commands::assignments(modes, db, editable, args).await?,
-        "has" => commands::grades_for_assignments(modes, db, editable, args).await?,
-        "hao" => commands::grades_for_students(modes, db, editable, args).await?,
-        "hak" => commands::grades_for_group(modes, db, editable, args).await?,
-
-        "tp" => commands::student_ranking(modes, db, editable, args, false).await?,
-        "tpk" => commands::student_ranking(modes, db, editable, args, true).await?,
-        "tj" => commands::grade_distribution(modes, db, editable, args, false).await?,
-        "tjk" => commands::grade_distribution(modes, db, editable, args, true).await?,
-
-        "lo" => commands::insert_student(db, editable, args).await?,
-        "ls" => commands::insert_assignment(db, editable, args).await?,
-
-        "tk" => commands::stats(modes, db, editable).await?,
-
-        "?" => {
-            editable.clear();
-            commands::help(args)?;
-        }
-
-        _ => return Ok(false),
-    }
-    Ok(true)
+    Ok(Ok(()))
 }
