@@ -2,6 +2,7 @@ mod commands;
 mod config;
 mod database;
 mod modes;
+mod objects;
 mod prelude;
 mod print;
 mod tools;

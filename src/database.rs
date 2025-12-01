@@ -19,26 +19,6 @@ pub async fn connect(config: &Config, modes: &Modes) -> Result<PgConnection, Box
     Ok(db)
 }
 
-pub enum EditableItem {
-    None,
-    Students(Vec<Student>),
-    Groups(Vec<Group>),
-    Assignments(Vec<Assignment>),
-    Grades(Vec<Grade>),
-}
-
-pub struct Editable {
-    item: EditableItem,
-}
-
-impl Default for Editable {
-    fn default() -> Self {
-        Self {
-            item: EditableItem::None,
-        }
-    }
-}
-
 impl Editable {
     pub fn clear(&mut self) {
         self.item = EditableItem::None;
@@ -79,13 +59,6 @@ impl Editable {
     }
 }
 
-pub struct Stats {
-    pub students: i64,
-    pub groups: i64,
-    pub assignments: i64,
-    pub grades: i64,
-}
-
 impl Stats {
     pub async fn query(db: &mut PgConnection) -> Result<Self, sqlx::Error> {
         let row = sqlx::query(
@@ -105,19 +78,6 @@ impl Stats {
             grades: row.try_get("arvosanat")?,
         })
     }
-}
-
-#[derive(Default, Clone)]
-pub struct Student {
-    pub oid: i32,
-    pub lastname: String,
-    pub firstname: String,
-    pub groups: String,
-    pub description: String,
-}
-
-pub struct Students {
-    pub list: Vec<Student>,
 }
 
 impl Student {
@@ -289,27 +249,15 @@ impl Students {
         Ok(Self { list })
     }
 
-    pub fn has_data(self) -> Result<Self, String> {
-        match self.list.is_empty() {
-            false => Ok(self),
-            true => Err("Ei löytynyt.")?,
-        }
-    }
-
     pub fn copy_to(&self, ed: &mut Editable) {
         ed.item = EditableItem::Students(self.list.clone());
     }
 }
 
-#[derive(Clone)]
-pub struct Group {
-    pub rid: i32,
-    pub name: String,
-    pub description: String,
-}
-
-pub struct Groups {
-    pub list: Vec<Group>,
+impl HasData for Students {
+    fn is_empty(&self) -> bool {
+        self.list.is_empty()
+    }
 }
 
 impl Group {
@@ -392,13 +340,6 @@ impl Groups {
         Ok(Self { list })
     }
 
-    pub fn has_data(self) -> Result<Self, String> {
-        match self.list.is_empty() {
-            false => Ok(self),
-            true => Err("Ei löytynyt.")?,
-        }
-    }
-
     pub fn copy_to(&self, ed: &mut Editable) {
         ed.item = EditableItem::Groups(self.list.clone());
     }
@@ -417,18 +358,10 @@ impl Groups {
     }
 }
 
-#[derive(Clone, Default)]
-pub struct Assignment {
-    pub rid: i32,
-    pub sid: i32,
-    pub assignment: String,
-    pub assignment_short: String,
-    pub weight: Option<i32>,
-}
-
-pub struct Assignments {
-    pub group: String,
-    pub list: Vec<Assignment>,
+impl HasData for Groups {
+    fn is_empty(&self) -> bool {
+        self.list.is_empty()
+    }
 }
 
 impl Assignment {
@@ -588,13 +521,6 @@ impl Assignments {
         })
     }
 
-    pub fn has_data(self) -> Result<Self, String> {
-        match self.list.is_empty() {
-            false => Ok(self),
-            true => Err("Ei löytynyt.")?,
-        }
-    }
-
     pub fn copy_to(&self, ed: &mut Editable) {
         ed.item = EditableItem::Assignments(self.list.clone());
     }
@@ -628,39 +554,10 @@ impl Assignments {
     }
 }
 
-#[derive(Clone)]
-pub struct Grade {
-    pub oid: i32,
-    pub lastname: String,
-    pub firstname: String,
-    pub sid: i32,
-    pub assignment: String,
-    pub weight: Option<i32>,
-    pub grade: Option<String>,
-    pub grade_description: Option<String>,
-}
-
-pub struct GradesForAssignment {
-    pub assignment: String,
-    pub group: String,
-    pub grades: Vec<Grade>,
-}
-
-#[derive(Default)]
-pub struct GradesForAssignments {
-    pub list: Vec<GradesForAssignment>,
-}
-
-pub struct GradesForStudent {
-    pub lastname: String,
-    pub firstname: String,
-    pub group: String,
-    pub grades: Vec<Grade>,
-}
-
-#[derive(Default)]
-pub struct GradesForStudents {
-    pub list: Vec<GradesForStudent>,
+impl HasData for Assignments {
+    fn is_empty(&self) -> bool {
+        self.list.is_empty()
+    }
 }
 
 impl Grade {
@@ -818,13 +715,6 @@ impl GradesForAssignments {
         Ok(Self { list })
     }
 
-    pub fn has_data(self) -> Result<Self, String> {
-        match self.list.is_empty() {
-            false => Ok(self),
-            true => Err("Ei löytynyt.")?,
-        }
-    }
-
     pub fn count(&self) -> usize {
         self.list.len()
     }
@@ -832,6 +722,12 @@ impl GradesForAssignments {
     pub fn copy_to(&self, ed: &mut Editable) {
         assert!(self.count() == 1);
         ed.item = EditableItem::Grades(self.list[0].grades.clone());
+    }
+}
+
+impl HasData for GradesForAssignments {
+    fn is_empty(&self) -> bool {
+        self.list.is_empty()
     }
 }
 
@@ -913,13 +809,6 @@ impl GradesForStudents {
         Ok(Self { list })
     }
 
-    pub fn has_data(self) -> Result<Self, String> {
-        match self.list.is_empty() {
-            false => Ok(self),
-            true => Err("Ei löytynyt.")?,
-        }
-    }
-
     pub fn count(&self) -> usize {
         self.list.len()
     }
@@ -930,21 +819,10 @@ impl GradesForStudents {
     }
 }
 
-#[derive(Default)]
-pub struct GradesForGroup {
-    pub group: String,
-    pub students: Vec<SimpleStudent>,
-    pub assignments: Vec<Assignment>,
-}
-
-pub struct SimpleStudent {
-    pub name: String,
-    pub grades: Vec<SimpleGrade>,
-}
-
-pub struct SimpleGrade {
-    pub weight: Option<i32>,
-    pub grade: Option<String>,
+impl HasData for GradesForStudents {
+    fn is_empty(&self) -> bool {
+        self.list.is_empty()
+    }
 }
 
 impl GradesForGroup {
@@ -1028,22 +906,12 @@ impl GradesForGroup {
             assignments,
         })
     }
-
-    pub fn has_data(self) -> Result<Self, String> {
-        match self.assignments.is_empty() {
-            false => Ok(self),
-            true => Err("Ei löytynyt.")?,
-        }
-    }
 }
 
-#[derive(Default)]
-pub struct StudentRank {
-    pub name: String,
-    pub groups: Vec<String>,
-    pub sum: f64,
-    pub count: i32,
-    pub grade_count: usize,
+impl HasData for GradesForGroup {
+    fn is_empty(&self) -> bool {
+        self.assignments.is_empty()
+    }
 }
 
 #[allow(clippy::too_many_arguments)]
