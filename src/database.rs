@@ -21,29 +21,25 @@ pub async fn connect(config: &Config, modes: &Modes) -> Result<PgConnection, Box
 
 impl Editable {
     pub fn clear(&mut self) {
-        self.item = EditableItem::None;
+        self.set(EditableItem::None);
     }
 
     pub fn is_none(&self) -> bool {
-        matches!(self.item, EditableItem::None)
+        matches!(self.item(), EditableItem::None)
     }
 
     pub fn is_grade(&self) -> bool {
-        matches!(self.item, EditableItem::Grades(_))
+        matches!(self.item(), EditableItem::Grades(_))
     }
 
     pub fn count(&self) -> usize {
-        match &self.item {
+        match &self.item() {
             EditableItem::None => 0,
             EditableItem::Students(v) => v.len(),
             EditableItem::Groups(v) => v.len(),
             EditableItem::Assignments(v) => v.len(),
             EditableItem::Grades(v) => v.len(),
         }
-    }
-
-    pub fn item(&self) -> &EditableItem {
-        &self.item
     }
 
     pub fn print_fields(&self, fields: &[&str]) {
@@ -735,7 +731,7 @@ impl HasData for GradesForAssignments {
 impl CopyToEditable for GradesForAssignments {
     fn copy_to(&self, ed: &mut Editable) {
         assert!(self.count() == 1);
-        ed.item = self.item()
+        ed.set(self.item());
     }
 
     fn item(&self) -> EditableItem {
@@ -835,7 +831,7 @@ impl HasData for GradesForStudents {
 impl CopyToEditable for GradesForStudents {
     fn copy_to(&self, ed: &mut Editable) {
         assert!(self.count() == 1);
-        ed.item = self.item();
+        ed.set(self.item());
     }
 
     fn item(&self) -> EditableItem {

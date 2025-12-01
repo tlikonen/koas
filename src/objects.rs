@@ -14,7 +14,7 @@ pub trait HasData {
 
 pub trait CopyToEditable {
     fn copy_to(&self, ed: &mut Editable) {
-        ed.item = self.item();
+        ed.set(self.item());
     }
 
     fn item(&self) -> EditableItem;
@@ -28,15 +28,21 @@ pub enum EditableItem {
     Grades(Vec<Grade>),
 }
 
-pub struct Editable {
-    pub item: EditableItem,
+pub struct Editable(EditableItem);
+
+impl Editable {
+    pub fn set(&mut self, value: EditableItem) {
+        self.0 = value;
+    }
+
+    pub fn item(&self) -> &EditableItem {
+        &self.0
+    }
 }
 
 impl Default for Editable {
     fn default() -> Self {
-        Self {
-            item: EditableItem::None,
-        }
+        Self(EditableItem::None)
     }
 }
 
