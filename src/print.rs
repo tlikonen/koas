@@ -2,11 +2,27 @@ use crate::prelude::*;
 
 const GROUPS_WIDTH: usize = 42;
 
-trait IntoTable {
+pub trait PrintTable: IntoTable {
+    fn print(&self, out: &Output) {
+        self.table().print(out);
+    }
+
+    fn print_numbered(&self, out: &Output) {
+        self.table().numbering().print(out);
+    }
+}
+
+impl PrintTable for Students {}
+impl PrintTable for Groups {}
+impl PrintTable for Assignments {}
+impl PrintTable for GradesForAssignment {}
+impl PrintTable for GradesForStudent {}
+
+pub trait IntoTable {
     fn table(&self) -> Table;
 }
 
-struct Table {
+pub struct Table {
     rows: Vec<Row>,
 }
 
@@ -146,16 +162,6 @@ impl IntoTable for Stats {
     }
 }
 
-impl Students {
-    pub fn print(&self, out: &Output) {
-        self.table().print(out);
-    }
-
-    pub fn print_numbered(&self, out: &Output) {
-        self.table().numbering().print(out);
-    }
-}
-
 impl IntoTable for Students {
     fn table(&self) -> Table {
         const DESC_WIDTH: usize = 36;
@@ -185,16 +191,6 @@ impl IntoTable for Students {
     }
 }
 
-impl Groups {
-    pub fn print(&self, out: &Output) {
-        self.table().print(out);
-    }
-
-    pub fn print_numbered(&self, out: &Output) {
-        self.table().numbering().print(out);
-    }
-}
-
 impl IntoTable for Groups {
     fn table(&self) -> Table {
         const DESCRIPTION_WIDTH: usize = 70;
@@ -217,16 +213,6 @@ impl IntoTable for Groups {
 
         rows.push(Row::Bottomrule);
         Table { rows }
-    }
-}
-
-impl Assignments {
-    pub fn print(&self, out: &Output) {
-        self.table().print(out);
-    }
-
-    pub fn print_numbered(&self, out: &Output) {
-        self.table().numbering().print(out);
     }
 }
 
@@ -256,16 +242,6 @@ impl IntoTable for Assignments {
 
         rows.push(Row::Bottomrule);
         Table { rows }
-    }
-}
-
-impl GradesForAssignment {
-    pub fn print(&self, out: &Output) {
-        self.table().print(out);
-    }
-
-    pub fn print_numbered(&self, out: &Output) {
-        self.table().numbering().print(out);
     }
 }
 
@@ -334,16 +310,6 @@ impl GradesForAssignments {
     pub fn print_numbered(&self, out: &Output) {
         assert!(self.count() == 1);
         self.list[0].print_numbered(out);
-    }
-}
-
-impl GradesForStudent {
-    pub fn print(&self, out: &Output) {
-        self.table().print(out);
-    }
-
-    pub fn print_numbered(&self, out: &Output) {
-        self.table().numbering().print(out);
     }
 }
 
@@ -428,14 +394,12 @@ impl GradesForStudents {
     }
 }
 
-impl GradesForGroup {
-    pub fn print(&self, out: &Output) {
+impl PrintTable for GradesForGroup {
+    fn print(&self, out: &Output) {
         self.table().print(out);
         println!();
-        self.table_assignments().print(out);
-    }
 
-    fn table_assignments(&self) -> Table {
+        // Table of assignments
         let mut rows = vec![
             Row::Toprule,
             Row::Head(vec![
@@ -458,7 +422,7 @@ impl GradesForGroup {
         ]));
 
         rows.push(Row::Bottomrule);
-        Table { rows }
+        Table { rows }.print(out);
     }
 }
 
