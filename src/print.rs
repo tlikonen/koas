@@ -2,6 +2,10 @@ use crate::prelude::*;
 
 const GROUPS_WIDTH: usize = 42;
 
+trait IntoTable {
+    fn table(&self) -> Table;
+}
+
 struct Table {
     rows: Vec<Row>,
 }
@@ -113,7 +117,9 @@ impl Stats {
     pub fn print(&self, out: &Output) {
         self.table().print(out);
     }
+}
 
+impl IntoTable for Stats {
     fn table(&self) -> Table {
         let rows = vec![
             Row::Toprule,
@@ -148,7 +154,9 @@ impl Students {
     pub fn print_numbered(&self, out: &Output) {
         self.table().numbering().print(out);
     }
+}
 
+impl IntoTable for Students {
     fn table(&self) -> Table {
         const DESC_WIDTH: usize = 36;
 
@@ -185,7 +193,9 @@ impl Groups {
     pub fn print_numbered(&self, out: &Output) {
         self.table().numbering().print(out);
     }
+}
 
+impl IntoTable for Groups {
     fn table(&self) -> Table {
         const DESCRIPTION_WIDTH: usize = 70;
 
@@ -218,7 +228,9 @@ impl Assignments {
     pub fn print_numbered(&self, out: &Output) {
         self.table().numbering().print(out);
     }
+}
 
+impl IntoTable for Assignments {
     fn table(&self) -> Table {
         let mut rows = vec![
             Row::Title(self.group.clone()),
@@ -255,7 +267,9 @@ impl GradesForAssignment {
     pub fn print_numbered(&self, out: &Output) {
         self.table().numbering().print(out);
     }
+}
 
+impl IntoTable for GradesForAssignment {
     fn table(&self) -> Table {
         const DESC_WIDTH: usize = 50;
 
@@ -331,7 +345,9 @@ impl GradesForStudent {
     pub fn print_numbered(&self, out: &Output) {
         self.table().numbering().print(out);
     }
+}
 
+impl IntoTable for GradesForStudent {
     fn table(&self) -> Table {
         const DESC_WIDTH: usize = 50;
 
@@ -419,6 +435,34 @@ impl GradesForGroup {
         self.table_assignments().print(out);
     }
 
+    fn table_assignments(&self) -> Table {
+        let mut rows = vec![
+            Row::Toprule,
+            Row::Head(vec![
+                Cell::Left("Lyh".to_string()),
+                Cell::Left("Suoritus".to_string()),
+            ]),
+            Row::Midrule,
+        ];
+
+        for assign in &self.assignments {
+            rows.push(Row::Data(vec![
+                Cell::Left(assign.assignment_short.clone()),
+                Cell::Left(assign.assignment.clone()),
+            ]));
+        }
+
+        rows.push(Row::Data(vec![
+            Cell::Left("ka".to_string()),
+            Cell::Left("Keskiarvo".to_string()),
+        ]));
+
+        rows.push(Row::Bottomrule);
+        Table { rows }
+    }
+}
+
+impl IntoTable for GradesForGroup {
     fn table(&self) -> Table {
         let mut rows = vec![Row::Title(self.group.clone()), Row::Toprule];
 
@@ -508,32 +552,6 @@ impl GradesForGroup {
         });
 
         rows.push(Row::Foot(totals));
-        rows.push(Row::Bottomrule);
-        Table { rows }
-    }
-
-    fn table_assignments(&self) -> Table {
-        let mut rows = vec![
-            Row::Toprule,
-            Row::Head(vec![
-                Cell::Left("Lyh".to_string()),
-                Cell::Left("Suoritus".to_string()),
-            ]),
-            Row::Midrule,
-        ];
-
-        for assign in &self.assignments {
-            rows.push(Row::Data(vec![
-                Cell::Left(assign.assignment_short.clone()),
-                Cell::Left(assign.assignment.clone()),
-            ]));
-        }
-
-        rows.push(Row::Data(vec![
-            Cell::Left("ka".to_string()),
-            Cell::Left("Keskiarvo".to_string()),
-        ]));
-
         rows.push(Row::Bottomrule);
         Table { rows }
     }
