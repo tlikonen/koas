@@ -988,7 +988,7 @@ pub async fn student_ranking(
 }
 
 impl HasData for HashMap<i32, StudentRank> {
-    fn is_empty(&self) -> bool {
+    fn empty_data(&self) -> bool {
         self.is_empty()
     }
 }
@@ -1036,7 +1036,7 @@ pub async fn grade_distribution(
 }
 
 impl HasData for HashMap<String, i32> {
-    fn is_empty(&self) -> bool {
+    fn empty_data(&self) -> bool {
         self.is_empty()
     }
 }
