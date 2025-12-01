@@ -983,12 +983,14 @@ pub async fn student_ranking(
         .await?;
     }
 
-    if hash.is_empty() {
-        Err("Ei löytynyt.")?;
-    }
-
-    print::student_ranking(&mut hash, modes.output());
+    print::student_ranking(&mut hash.has_data()?, modes.output());
     Ok(())
+}
+
+impl HasData for HashMap<i32, StudentRank> {
+    fn is_empty(&self) -> bool {
+        self.is_empty()
+    }
 }
 
 pub async fn grade_distribution(
@@ -1029,12 +1031,14 @@ pub async fn grade_distribution(
         .await?;
     }
 
-    if hash.is_empty() {
-        Err("Ei löytynyt.")?;
-    }
-
-    print::grade_distribution(&hash, modes.output());
+    print::grade_distribution(&hash.has_data()?, modes.output());
     Ok(())
+}
+
+impl HasData for HashMap<String, i32> {
+    fn is_empty(&self) -> bool {
+        self.is_empty()
+    }
 }
 
 pub fn table_format(modes: &mut Modes, args: &str) -> Result<(), Box<dyn Error>> {
