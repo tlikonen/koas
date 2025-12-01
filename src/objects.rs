@@ -12,6 +12,14 @@ pub trait HasData {
     fn is_empty(&self) -> bool;
 }
 
+pub trait CopyToEditable {
+    fn copy_to(&self, ed: &mut Editable) {
+        ed.item = self.item();
+    }
+
+    fn item(&self) -> EditableItem;
+}
+
 pub enum EditableItem {
     None,
     Students(Vec<Student>),

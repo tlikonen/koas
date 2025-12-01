@@ -248,15 +248,17 @@ impl Students {
 
         Ok(Self { list })
     }
-
-    pub fn copy_to(&self, ed: &mut Editable) {
-        ed.item = EditableItem::Students(self.list.clone());
-    }
 }
 
 impl HasData for Students {
     fn is_empty(&self) -> bool {
         self.list.is_empty()
+    }
+}
+
+impl CopyToEditable for Students {
+    fn item(&self) -> EditableItem {
+        EditableItem::Students(self.list.clone())
     }
 }
 
@@ -340,10 +342,6 @@ impl Groups {
         Ok(Self { list })
     }
 
-    pub fn copy_to(&self, ed: &mut Editable) {
-        ed.item = EditableItem::Groups(self.list.clone());
-    }
-
     pub async fn delete_empty(db: &mut PgConnection) -> Result<(), sqlx::Error> {
         sqlx::query(
             "DELETE FROM ryhmat WHERE rid IN \
@@ -361,6 +359,12 @@ impl Groups {
 impl HasData for Groups {
     fn is_empty(&self) -> bool {
         self.list.is_empty()
+    }
+}
+
+impl CopyToEditable for Groups {
+    fn item(&self) -> EditableItem {
+        EditableItem::Groups(self.list.clone())
     }
 }
 
@@ -521,10 +525,6 @@ impl Assignments {
         })
     }
 
-    pub fn copy_to(&self, ed: &mut Editable) {
-        ed.item = EditableItem::Assignments(self.list.clone());
-    }
-
     pub async fn reposition(db: &mut PgConnection, rid: i32) -> Result<(), sqlx::Error> {
         let mut sid_list = Vec::with_capacity(10);
 
@@ -557,6 +557,12 @@ impl Assignments {
 impl HasData for Assignments {
     fn is_empty(&self) -> bool {
         self.list.is_empty()
+    }
+}
+
+impl CopyToEditable for Assignments {
+    fn item(&self) -> EditableItem {
+        EditableItem::Assignments(self.list.clone())
     }
 }
 
@@ -718,16 +724,22 @@ impl GradesForAssignments {
     pub fn count(&self) -> usize {
         self.list.len()
     }
-
-    pub fn copy_to(&self, ed: &mut Editable) {
-        assert!(self.count() == 1);
-        ed.item = EditableItem::Grades(self.list[0].grades.clone());
-    }
 }
 
 impl HasData for GradesForAssignments {
     fn is_empty(&self) -> bool {
         self.list.is_empty()
+    }
+}
+
+impl CopyToEditable for GradesForAssignments {
+    fn copy_to(&self, ed: &mut Editable) {
+        assert!(self.count() == 1);
+        ed.item = self.item()
+    }
+
+    fn item(&self) -> EditableItem {
+        EditableItem::Grades(self.list[0].grades.clone())
     }
 }
 
@@ -812,16 +824,22 @@ impl GradesForStudents {
     pub fn count(&self) -> usize {
         self.list.len()
     }
-
-    pub fn copy_to(&self, ed: &mut Editable) {
-        assert!(self.count() == 1);
-        ed.item = EditableItem::Grades(self.list[0].grades.clone());
-    }
 }
 
 impl HasData for GradesForStudents {
     fn is_empty(&self) -> bool {
         self.list.is_empty()
+    }
+}
+
+impl CopyToEditable for GradesForStudents {
+    fn copy_to(&self, ed: &mut Editable) {
+        assert!(self.count() == 1);
+        ed.item = self.item();
+    }
+
+    fn item(&self) -> EditableItem {
+        EditableItem::Grades(self.list[0].grades.clone())
     }
 }
 

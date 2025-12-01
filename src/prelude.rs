@@ -2,9 +2,10 @@ pub(crate) use {
     crate::{
         database,
         objects::{
-            Assignment, Assignments, Editable, EditableItem, Grade, GradesForAssignment,
-            GradesForAssignments, GradesForGroup, GradesForStudent, GradesForStudents, Group,
-            Groups, HasData, SimpleGrade, SimpleStudent, Stats, Student, StudentRank, Students,
+            Assignment, Assignments, CopyToEditable, Editable, EditableItem, Grade,
+            GradesForAssignment, GradesForAssignments, GradesForGroup, GradesForStudent,
+            GradesForStudents, Group, Groups, HasData, SimpleGrade, SimpleStudent, Stats, Student,
+            StudentRank, Students,
         },
         print, tools,
     },
