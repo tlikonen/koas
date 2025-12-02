@@ -7,7 +7,15 @@ mod prelude;
 mod print;
 mod tools;
 
-pub use crate::prelude::*;
+use crate::prelude::*;
+
+pub use crate::{
+    commands::help,
+    config::Config,
+    database::PROGRAM_DB_VERSION,
+    modes::{Mode, Modes, Output},
+    tools::umask,
+};
 
 pub static PROGRAM_NAME: &str = env!("CARGO_PKG_NAME");
 pub static PROGRAM_VERSION: &str = env!("CARGO_PKG_VERSION");

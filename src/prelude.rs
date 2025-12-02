@@ -1,6 +1,8 @@
 pub(crate) use {
     crate::{
+        config::Config,
         database,
+        modes::{Modes, Output},
         objects::{
             Assignment, Assignments, CopyToEditable, Editable, EditableItem, Grade,
             GradesForAssignment, GradesForAssignments, GradesForGroup, GradesForStudent,
@@ -12,12 +14,4 @@ pub(crate) use {
     },
     sqlx::{Connection, PgConnection, Row as _},
     std::{cmp::Ordering, collections::HashMap, error::Error, fs, io},
-};
-
-pub use crate::{
-    commands::help,
-    config::Config,
-    database::PROGRAM_DB_VERSION,
-    modes::{Mode, Modes, Output},
-    tools::umask,
 };
