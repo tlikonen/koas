@@ -1005,7 +1005,7 @@ pub async fn grade_distribution(
         args = "@";
     }
 
-    let mut hash: HashMap<String, i32> = HashMap::new();
+    let mut gd = GradeDistribution::new(modes.output());
 
     let field_groups = tools::split_sep(args);
     for field_string in field_groups {
@@ -1017,9 +1017,8 @@ pub async fn grade_distribution(
         let firstname = fields.next().unwrap_or(""); // etunimi
         let desc = fields.next().unwrap_or(""); // lisätiedot
 
-        database::query_grade_distribution(
+        gd.query(
             db,
-            &mut hash,
             all,
             group,
             assign,
@@ -1031,14 +1030,8 @@ pub async fn grade_distribution(
         .await?;
     }
 
-    print::grade_distribution(&hash.has_data()?, modes.output());
+    gd.has_data()?.print(modes.output());
     Ok(())
-}
-
-impl HasData for HashMap<String, i32> {
-    fn empty_data(&self) -> bool {
-        self.is_empty()
-    }
 }
 
 pub fn table_format(modes: &mut Modes, args: &str) -> Result<(), Box<dyn Error>> {

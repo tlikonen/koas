@@ -987,43 +987,58 @@ pub async fn query_student_ranking(
     Ok(())
 }
 
-#[allow(clippy::too_many_arguments)]
-pub async fn query_grade_distribution(
-    db: &mut PgConnection,
-    hash: &mut HashMap<String, i32>,
-    all: bool,
-    group: &str,
-    assign: &str,
-    assign_short: &str,
-    lastname: &str,
-    firstname: &str,
-    desc: &str,
-) -> Result<(), sqlx::Error> {
-    let mut rows = sqlx::query(
-        "SELECT arvosana, painokerroin FROM view_arvosanat \
-         WHERE sukunimi LIKE $1 ESCAPE '\\' AND etunimi LIKE $2 ESCAPE '\\' \
-         AND ryhma LIKE $3 ESCAPE '\\' AND olt LIKE $4 ESCAPE '\\' \
-         AND suoritus LIKE $5 ESCAPE '\\' AND lyhenne LIKE $6 ESCAPE '\\'",
-    )
-    .bind(like_esc_wild(lastname))
-    .bind(like_esc_wild(firstname))
-    .bind(like_esc_wild(group))
-    .bind(like_esc_wild(desc))
-    .bind(like_esc_wild(assign))
-    .bind(like_esc_wild(assign_short))
-    .fetch(db);
-
-    while let Some(row) = rows.try_next().await? {
-        let weight: Option<i32> = row.try_get("painokerroin")?;
-        if (all || weight.is_some())
-            && let Some(grade) = row.try_get("arvosana")?
-        {
-            let count = hash.entry(grade).or_default();
-            *count += 1;
+impl GradeDistribution {
+    pub fn new(out: &Output) -> Self {
+        Self {
+            data: HashMap::with_capacity(28),
+            output: out.clone(),
         }
     }
 
-    Ok(())
+    #[allow(clippy::too_many_arguments)]
+    pub async fn query(
+        &mut self,
+        db: &mut PgConnection,
+        all: bool,
+        group: &str,
+        assign: &str,
+        assign_short: &str,
+        lastname: &str,
+        firstname: &str,
+        desc: &str,
+    ) -> Result<(), sqlx::Error> {
+        let mut rows = sqlx::query(
+            "SELECT arvosana, painokerroin FROM view_arvosanat \
+             WHERE sukunimi LIKE $1 ESCAPE '\\' AND etunimi LIKE $2 ESCAPE '\\' \
+             AND ryhma LIKE $3 ESCAPE '\\' AND olt LIKE $4 ESCAPE '\\' \
+             AND suoritus LIKE $5 ESCAPE '\\' AND lyhenne LIKE $6 ESCAPE '\\'",
+        )
+        .bind(like_esc_wild(lastname))
+        .bind(like_esc_wild(firstname))
+        .bind(like_esc_wild(group))
+        .bind(like_esc_wild(desc))
+        .bind(like_esc_wild(assign))
+        .bind(like_esc_wild(assign_short))
+        .fetch(db);
+
+        while let Some(row) = rows.try_next().await? {
+            let weight: Option<i32> = row.try_get("painokerroin")?;
+            if (all || weight.is_some())
+                && let Some(grade) = row.try_get("arvosana")?
+            {
+                let count = self.data.entry(grade).or_default();
+                *count += 1;
+            }
+        }
+
+        Ok(())
+    }
+}
+
+impl HasData for GradeDistribution {
+    fn empty_data(&self) -> bool {
+        self.data.is_empty()
+    }
 }
 
 fn like_esc_wild(string: &str) -> String {

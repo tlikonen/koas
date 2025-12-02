@@ -1,3 +1,5 @@
+use crate::prelude::*;
+
 pub trait HasData {
     fn has_data(self) -> Result<Self, String>
     where
@@ -150,4 +152,9 @@ pub struct StudentRank {
     pub sum: f64,
     pub count: i32,
     pub grade_count: usize,
+}
+
+pub struct GradeDistribution {
+    pub data: HashMap<String, i32>,
+    pub output: Output,
 }
