@@ -962,23 +962,20 @@ pub async fn student_ranking(
     let field_groups = tools::split_sep(args);
     for field_string in field_groups {
         let mut fields = tools::split_sep(field_string);
-        let group = fields.next().unwrap_or(""); // ryhmä
-        let assign = fields.next().unwrap_or(""); // suoritus
-        let assign_short = fields.next().unwrap_or(""); // lyhenne
-        let lastname = fields.next().unwrap_or(""); // sukunimi
-        let firstname = fields.next().unwrap_or(""); // etunimi
-        let desc = fields.next().unwrap_or(""); // lisätiedot
 
         database::query_student_ranking(
             db,
             &mut hash,
             all,
-            group,
-            assign,
-            assign_short,
-            lastname,
-            firstname,
-            desc,
+            FullQuery {
+                // Keep the order!
+                group: fields.next().unwrap_or(""),
+                assignment: fields.next().unwrap_or(""),
+                assignment_short: fields.next().unwrap_or(""),
+                lastname: fields.next().unwrap_or(""),
+                firstname: fields.next().unwrap_or(""),
+                description: fields.next().unwrap_or(""),
+            },
         )
         .await?;
     }
@@ -1010,22 +1007,19 @@ pub async fn grade_distribution(
     let field_groups = tools::split_sep(args);
     for field_string in field_groups {
         let mut fields = tools::split_sep(field_string);
-        let group = fields.next().unwrap_or(""); // ryhmä
-        let assign = fields.next().unwrap_or(""); // suoritus
-        let assign_short = fields.next().unwrap_or(""); // lyhenne
-        let lastname = fields.next().unwrap_or(""); // sukunimi
-        let firstname = fields.next().unwrap_or(""); // etunimi
-        let desc = fields.next().unwrap_or(""); // lisätiedot
 
         gd.query(
             db,
             all,
-            group,
-            assign,
-            assign_short,
-            lastname,
-            firstname,
-            desc,
+            FullQuery {
+                // Keep the order!
+                group: fields.next().unwrap_or(""),
+                assignment: fields.next().unwrap_or(""),
+                assignment_short: fields.next().unwrap_or(""),
+                lastname: fields.next().unwrap_or(""),
+                firstname: fields.next().unwrap_or(""),
+                description: fields.next().unwrap_or(""),
+            },
         )
         .await?;
     }

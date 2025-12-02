@@ -928,17 +928,11 @@ impl HasData for GradesForGroup {
     }
 }
 
-#[allow(clippy::too_many_arguments)]
 pub async fn query_student_ranking(
     db: &mut PgConnection,
     hash: &mut HashMap<i32, StudentRank>,
     all: bool,
-    group: &str,
-    assign: &str,
-    assign_short: &str,
-    lastname: &str,
-    firstname: &str,
-    desc: &str,
+    args: FullQuery<'_>,
 ) -> Result<(), sqlx::Error> {
     let mut rows = sqlx::query(
         "SELECT oid, sukunimi, etunimi, ryhma, arvosana, painokerroin FROM view_arvosanat \
@@ -946,12 +940,12 @@ pub async fn query_student_ranking(
          AND ryhma LIKE $3 ESCAPE '\\' AND olt LIKE $4 ESCAPE '\\' \
          AND suoritus LIKE $5 ESCAPE '\\' AND lyhenne LIKE $6 ESCAPE '\\'",
     )
-    .bind(like_esc_wild(lastname))
-    .bind(like_esc_wild(firstname))
-    .bind(like_esc_wild(group))
-    .bind(like_esc_wild(desc))
-    .bind(like_esc_wild(assign))
-    .bind(like_esc_wild(assign_short))
+    .bind(like_esc_wild(args.lastname))
+    .bind(like_esc_wild(args.firstname))
+    .bind(like_esc_wild(args.group))
+    .bind(like_esc_wild(args.description))
+    .bind(like_esc_wild(args.assignment))
+    .bind(like_esc_wild(args.assignment_short))
     .fetch(db);
 
     while let Some(row) = rows.try_next().await? {
@@ -996,17 +990,11 @@ impl GradeDistribution {
         }
     }
 
-    #[allow(clippy::too_many_arguments)]
     pub async fn query(
         &mut self,
         db: &mut PgConnection,
         all: bool,
-        group: &str,
-        assign: &str,
-        assign_short: &str,
-        lastname: &str,
-        firstname: &str,
-        desc: &str,
+        args: FullQuery<'_>,
     ) -> Result<(), sqlx::Error> {
         let mut rows = sqlx::query(
             "SELECT arvosana, painokerroin FROM view_arvosanat \
@@ -1014,12 +1002,12 @@ impl GradeDistribution {
              AND ryhma LIKE $3 ESCAPE '\\' AND olt LIKE $4 ESCAPE '\\' \
              AND suoritus LIKE $5 ESCAPE '\\' AND lyhenne LIKE $6 ESCAPE '\\'",
         )
-        .bind(like_esc_wild(lastname))
-        .bind(like_esc_wild(firstname))
-        .bind(like_esc_wild(group))
-        .bind(like_esc_wild(desc))
-        .bind(like_esc_wild(assign))
-        .bind(like_esc_wild(assign_short))
+        .bind(like_esc_wild(args.lastname))
+        .bind(like_esc_wild(args.firstname))
+        .bind(like_esc_wild(args.group))
+        .bind(like_esc_wild(args.description))
+        .bind(like_esc_wild(args.assignment))
+        .bind(like_esc_wild(args.assignment_short))
         .fetch(db);
 
         while let Some(row) = rows.try_next().await? {

@@ -158,3 +158,12 @@ pub struct GradeDistribution {
     pub data: HashMap<String, i32>,
     pub output: Output,
 }
+
+pub struct FullQuery<'a> {
+    pub group: &'a str,
+    pub assignment: &'a str,
+    pub assignment_short: &'a str,
+    pub lastname: &'a str,
+    pub firstname: &'a str,
+    pub description: &'a str,
+}

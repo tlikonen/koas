@@ -4,7 +4,7 @@ pub(crate) use {
         database,
         modes::{Modes, Output},
         objects::{
-            Assignment, Assignments, CopyToEditable, Editable, EditableItem, Grade,
+            Assignment, Assignments, CopyToEditable, Editable, EditableItem, FullQuery, Grade,
             GradeDistribution, GradesForAssignment, GradesForAssignments, GradesForGroup,
             GradesForStudent, GradesForStudents, Group, Groups, HasData, SimpleGrade,
             SimpleStudent, Stats, Student, StudentRank, Students,
