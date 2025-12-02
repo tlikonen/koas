@@ -968,9 +968,9 @@ pub async fn query_student_ranking(
             let rank = hash.entry(oid).or_default();
 
             if rank.name.is_empty() {
-                let lastname: String = row.try_get("sukunimi")?;
-                let firstname: String = row.try_get("etunimi")?;
-                rank.name = format!("{lastname}, {firstname}");
+                rank.name.push_str(row.try_get("sukunimi")?);
+                rank.name.push_str(", ");
+                rank.name.push_str(row.try_get("etunimi")?);
             }
 
             let group: String = row.try_get("ryhma")?;
