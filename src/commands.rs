@@ -983,7 +983,7 @@ pub async fn student_ranking(
         .await?;
     }
 
-    print::student_ranking(&mut hash.has_data()?, modes.output());
+    print::student_ranking(&hash.has_data()?, modes.output());
     Ok(())
 }
 

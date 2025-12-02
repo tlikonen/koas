@@ -522,7 +522,7 @@ impl IntoTable for GradesForGroup {
     }
 }
 
-pub fn student_ranking(hash: &mut HashMap<i32, StudentRank>, out: &Output) {
+pub fn student_ranking(hash: &HashMap<i32, StudentRank>, out: &Output) {
     let mut rows = vec![
         Row::Toprule,
         Row::Head(vec![
@@ -539,9 +539,7 @@ pub fn student_ranking(hash: &mut HashMap<i32, StudentRank>, out: &Output) {
     let mut total_count = 0;
 
     let mut list: Vec<(String, String, f64, usize)> = Vec::with_capacity(30);
-    for student in hash.values_mut() {
-        student.groups.sort();
-
+    for student in hash.values() {
         let avg = student.sum / f64::from(student.count);
 
         list.push((

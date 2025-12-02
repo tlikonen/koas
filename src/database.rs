@@ -976,6 +976,7 @@ pub async fn query_student_ranking(
             let group: String = row.try_get("ryhma")?;
             if !rank.groups.contains(&group) {
                 rank.groups.push(group.to_string());
+                rank.groups.sort();
             }
 
             rank.sum += grade * f64::from(weight);
