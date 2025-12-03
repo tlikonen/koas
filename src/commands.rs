@@ -31,7 +31,7 @@ pub async fn students(
 
     if modes.is_interactive() {
         query.copy_to(editable);
-        query.print_numbered(modes.output());
+        query.print_num(modes.output());
         editable.print_fields(&["Sukunimi", "Etunimi", "Ryhmät", "Lisätiedot"]);
     } else {
         query.print(modes.output());
@@ -55,7 +55,7 @@ pub async fn groups(
 
     if modes.is_interactive() {
         query.copy_to(editable);
-        query.print_numbered(modes.output());
+        query.print_num(modes.output());
         editable.print_fields(&["Ryhmä", "Lisätiedot"]);
     } else {
         query.print(modes.output());
@@ -83,7 +83,7 @@ pub async fn assignments(
 
     if modes.is_interactive() {
         query.copy_to(editable);
-        query.print_numbered(modes.output());
+        query.print_num(modes.output());
         editable.print_fields(&["Suoritus", "Lyhenne(Lyh)", "Painokerroin(K)", "Järjestys"]);
     } else {
         query.print(modes.output());
@@ -113,7 +113,7 @@ pub async fn grades_for_assignments(
         1 if modes.is_interactive() => {
             let tbl = &query.list[0];
             tbl.copy_to(editable);
-            tbl.print_numbered(modes.output());
+            tbl.print_num(modes.output());
             editable.print_fields(&["Arvosana(As)", "Lisätiedot"]);
         }
         _ => query.print(modes.output()),
@@ -145,7 +145,7 @@ pub async fn grades_for_students(
         1 if modes.is_interactive() => {
             let tbl = &query.list[0];
             tbl.copy_to(editable);
-            tbl.print_numbered(modes.output());
+            tbl.print_num(modes.output());
             editable.print_fields(&["Arvosana(As)", "Lisätiedot"]);
         }
         _ => query.print(modes.output()),

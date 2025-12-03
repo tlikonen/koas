@@ -11,7 +11,7 @@ pub trait PrintTable {
 }
 
 pub trait PrintTableNum: PrintTable {
-    fn print_numbered(&self, out: &Output) {
+    fn print_num(&self, out: &Output) {
         self.table().numbering().print(out);
     }
 }
