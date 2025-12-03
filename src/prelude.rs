@@ -8,7 +8,7 @@ pub(crate) use {
             GradesForStudent, GradesForStudents, Group, Groups, HasData, SimpleGrade,
             SimpleStudent, Stats, Student, StudentRanking, Students,
         },
-        print::{PrintTable as _, PrintTableList as _},
+        print::{PrintTable, PrintTableList, PrintTableNum},
         tools,
     },
     sqlx::{Connection, PgConnection, Row as _},

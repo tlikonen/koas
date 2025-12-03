@@ -7,12 +7,20 @@ pub trait PrintTable {
         self.table().print(out);
     }
 
+    fn table(&self) -> Table;
+}
+
+pub trait PrintTableNum: PrintTable {
     fn print_numbered(&self, out: &Output) {
         self.table().numbering().print(out);
     }
-
-    fn table(&self) -> Table;
 }
+
+impl PrintTableNum for Students {}
+impl PrintTableNum for Groups {}
+impl PrintTableNum for Assignments {}
+impl PrintTableNum for GradesForAssignment {}
+impl PrintTableNum for GradesForStudent {}
 
 pub trait PrintTableList {
     fn print(&self, out: &Output) {
