@@ -728,14 +728,9 @@ impl HasData for GradesForAssignments {
     }
 }
 
-impl CopyToEditable for GradesForAssignments {
-    fn copy_to(&self, ed: &mut Editable) {
-        assert!(self.count() == 1);
-        ed.set(self.item());
-    }
-
+impl CopyToEditable for GradesForAssignment {
     fn item(&self) -> EditableItem {
-        EditableItem::Grades(self.list[0].grades.clone())
+        EditableItem::Grades(self.grades.clone())
     }
 }
 
@@ -828,14 +823,9 @@ impl HasData for GradesForStudents {
     }
 }
 
-impl CopyToEditable for GradesForStudents {
-    fn copy_to(&self, ed: &mut Editable) {
-        assert!(self.count() == 1);
-        ed.set(self.item());
-    }
-
+impl CopyToEditable for GradesForStudent {
     fn item(&self) -> EditableItem {
-        EditableItem::Grades(self.list[0].grades.clone())
+        EditableItem::Grades(self.grades.clone())
     }
 }
 

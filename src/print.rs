@@ -21,10 +21,6 @@ pub trait PrintTableList {
         }
     }
 
-    fn print_numbered(&self, out: &Output) {
-        self.list().next().expect("empty query").print_numbered(out);
-    }
-
     fn list(&self) -> impl Iterator<Item = &impl PrintTable>;
 }
 
