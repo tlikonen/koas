@@ -928,58 +928,72 @@ impl HasData for GradesForGroup {
     }
 }
 
-pub async fn query_student_ranking(
-    db: &mut PgConnection,
-    hash: &mut HashMap<i32, StudentRank>,
-    all: bool,
-    args: FullQuery<'_>,
-) -> Result<(), sqlx::Error> {
-    let mut rows = sqlx::query(
-        "SELECT oid, sukunimi, etunimi, ryhma, arvosana, painokerroin FROM view_arvosanat \
-         WHERE sukunimi LIKE $1 ESCAPE '\\' AND etunimi LIKE $2 ESCAPE '\\' \
-         AND ryhma LIKE $3 ESCAPE '\\' AND olt LIKE $4 ESCAPE '\\' \
-         AND suoritus LIKE $5 ESCAPE '\\' AND lyhenne LIKE $6 ESCAPE '\\'",
-    )
-    .bind(like_esc_wild(args.lastname))
-    .bind(like_esc_wild(args.firstname))
-    .bind(like_esc_wild(args.group))
-    .bind(like_esc_wild(args.description))
-    .bind(like_esc_wild(args.assignment))
-    .bind(like_esc_wild(args.assignment_short))
-    .fetch(db);
-
-    while let Some(row) = rows.try_next().await? {
-        if let Some(gr) = row.try_get("arvosana")?
-            && let Some(grade) = tools::parse_number(gr)
-        {
-            let weight: i32 = match row.try_get("painokerroin")? {
-                Some(w) => w,
-                None if all => 1,
-                None => continue,
-            };
-
-            let oid: i32 = row.try_get("oid")?;
-            let rank = hash.entry(oid).or_default();
-
-            if rank.name.is_empty() {
-                rank.name.push_str(row.try_get("sukunimi")?);
-                rank.name.push_str(", ");
-                rank.name.push_str(row.try_get("etunimi")?);
-            }
-
-            let group: String = row.try_get("ryhma")?;
-            if !rank.groups.contains(&group) {
-                rank.groups.push(group.to_string());
-                rank.groups.sort();
-            }
-
-            rank.sum += grade * f64::from(weight);
-            rank.count += weight;
-            rank.grade_count += 1;
+impl StudentRanking {
+    pub fn new() -> Self {
+        Self {
+            data: HashMap::with_capacity(50),
         }
     }
 
-    Ok(())
+    pub async fn query(
+        &mut self,
+        db: &mut PgConnection,
+        all: bool,
+        args: FullQuery<'_>,
+    ) -> Result<(), sqlx::Error> {
+        let mut rows = sqlx::query(
+            "SELECT oid, sukunimi, etunimi, ryhma, arvosana, painokerroin FROM view_arvosanat \
+         WHERE sukunimi LIKE $1 ESCAPE '\\' AND etunimi LIKE $2 ESCAPE '\\' \
+         AND ryhma LIKE $3 ESCAPE '\\' AND olt LIKE $4 ESCAPE '\\' \
+         AND suoritus LIKE $5 ESCAPE '\\' AND lyhenne LIKE $6 ESCAPE '\\'",
+        )
+        .bind(like_esc_wild(args.lastname))
+        .bind(like_esc_wild(args.firstname))
+        .bind(like_esc_wild(args.group))
+        .bind(like_esc_wild(args.description))
+        .bind(like_esc_wild(args.assignment))
+        .bind(like_esc_wild(args.assignment_short))
+        .fetch(db);
+
+        while let Some(row) = rows.try_next().await? {
+            if let Some(gr) = row.try_get("arvosana")?
+                && let Some(grade) = tools::parse_number(gr)
+            {
+                let weight: i32 = match row.try_get("painokerroin")? {
+                    Some(w) => w,
+                    None if all => 1,
+                    None => continue,
+                };
+
+                let oid: i32 = row.try_get("oid")?;
+                let rank = self.data.entry(oid).or_default();
+
+                if rank.name.is_empty() {
+                    rank.name.push_str(row.try_get("sukunimi")?);
+                    rank.name.push_str(", ");
+                    rank.name.push_str(row.try_get("etunimi")?);
+                }
+
+                let group: String = row.try_get("ryhma")?;
+                if !rank.groups.contains(&group) {
+                    rank.groups.push(group.to_string());
+                    rank.groups.sort();
+                }
+
+                rank.sum += grade * f64::from(weight);
+                rank.count += weight;
+                rank.grade_count += 1;
+            }
+        }
+
+        Ok(())
+    }
+}
+
+impl HasData for StudentRanking {
+    fn empty_data(&self) -> bool {
+        self.data.is_empty()
+    }
 }
 
 impl GradeDistribution {

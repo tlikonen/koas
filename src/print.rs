@@ -2,7 +2,7 @@ use crate::prelude::*;
 
 const GROUPS_WIDTH: usize = 42;
 
-pub trait PrintTable: IntoTable {
+pub trait PrintTable {
     fn print(&self, out: &Output) {
         self.table().print(out);
     }
@@ -10,17 +10,22 @@ pub trait PrintTable: IntoTable {
     fn print_numbered(&self, out: &Output) {
         self.table().numbering().print(out);
     }
+
+    fn table(&self) -> Table;
 }
 
-impl PrintTable for Students {}
-impl PrintTable for Groups {}
-impl PrintTable for Assignments {}
-impl PrintTable for GradesForAssignment {}
-impl PrintTable for GradesForStudent {}
-impl PrintTable for GradeDistribution {}
+pub trait PrintTableList {
+    fn print(&self, out: &Output) {
+        for t in self.list() {
+            t.print(out);
+        }
+    }
 
-pub trait IntoTable {
-    fn table(&self) -> Table;
+    fn print_numbered(&self, out: &Output) {
+        self.list().next().expect("empty query").print_numbered(out);
+    }
+
+    fn list(&self) -> impl Iterator<Item = &impl PrintTable>;
 }
 
 pub struct Table {
@@ -130,13 +135,7 @@ impl Cell {
     }
 }
 
-impl Stats {
-    pub fn print(&self, out: &Output) {
-        self.table().print(out);
-    }
-}
-
-impl IntoTable for Stats {
+impl PrintTable for Stats {
     fn table(&self) -> Table {
         let rows = vec![
             Row::Toprule,
@@ -163,7 +162,7 @@ impl IntoTable for Stats {
     }
 }
 
-impl IntoTable for Students {
+impl PrintTable for Students {
     fn table(&self) -> Table {
         const DESC_WIDTH: usize = 36;
 
@@ -192,7 +191,7 @@ impl IntoTable for Students {
     }
 }
 
-impl IntoTable for Groups {
+impl PrintTable for Groups {
     fn table(&self) -> Table {
         const DESCRIPTION_WIDTH: usize = 70;
 
@@ -217,7 +216,7 @@ impl IntoTable for Groups {
     }
 }
 
-impl IntoTable for Assignments {
+impl PrintTable for Assignments {
     fn table(&self) -> Table {
         let mut rows = vec![
             Row::Title(self.group.clone()),
@@ -246,7 +245,7 @@ impl IntoTable for Assignments {
     }
 }
 
-impl IntoTable for GradesForAssignment {
+impl PrintTable for GradesForAssignment {
     fn table(&self) -> Table {
         const DESC_WIDTH: usize = 50;
 
@@ -301,20 +300,13 @@ impl IntoTable for GradesForAssignment {
     }
 }
 
-impl GradesForAssignments {
-    pub fn print(&self, out: &Output) {
-        for t in &self.list {
-            t.print(out);
-        }
-    }
-
-    pub fn print_numbered(&self, out: &Output) {
-        assert!(self.count() == 1);
-        self.list[0].print_numbered(out);
+impl PrintTableList for GradesForAssignments {
+    fn list(&self) -> impl Iterator<Item = &impl PrintTable> {
+        self.list.iter()
     }
 }
 
-impl IntoTable for GradesForStudent {
+impl PrintTable for GradesForStudent {
     fn table(&self) -> Table {
         const DESC_WIDTH: usize = 50;
 
@@ -382,16 +374,9 @@ impl IntoTable for GradesForStudent {
     }
 }
 
-impl GradesForStudents {
-    pub fn print(&self, out: &Output) {
-        for t in &self.list {
-            t.print(out);
-        }
-    }
-
-    pub fn print_numbered(&self, out: &Output) {
-        assert!(self.count() == 1);
-        self.list[0].print_numbered(out);
+impl PrintTableList for GradesForStudents {
+    fn list(&self) -> impl Iterator<Item = &impl PrintTable> {
+        self.list.iter()
     }
 }
 
@@ -425,9 +410,7 @@ impl PrintTable for GradesForGroup {
         rows.push(Row::Bottomrule);
         Table { rows }.print(out);
     }
-}
 
-impl IntoTable for GradesForGroup {
     fn table(&self) -> Table {
         let mut rows = vec![Row::Title(self.group.clone()), Row::Toprule];
 
@@ -522,76 +505,78 @@ impl IntoTable for GradesForGroup {
     }
 }
 
-pub fn student_ranking(hash: &HashMap<i32, StudentRank>, out: &Output) {
-    let mut rows = vec![
-        Row::Toprule,
-        Row::Head(vec![
+impl PrintTable for StudentRanking {
+    fn table(&self) -> Table {
+        let mut rows = vec![
+            Row::Toprule,
+            Row::Head(vec![
+                Cell::Empty,
+                Cell::Left("Oppilas".to_string()),
+                Cell::Left("Ryhmät".to_string()),
+                Cell::Left("Ka".to_string()),
+                Cell::Left("Lkm".to_string()),
+            ]),
+            Row::Midrule,
+        ];
+
+        let mut total_sum = 0.0;
+        let mut total_count = 0;
+
+        let mut list: Vec<(String, String, f64, usize)> = Vec::with_capacity(30);
+        for student in self.data.values() {
+            let avg = student.sum / f64::from(student.count);
+
+            list.push((
+                student.name.clone(),
+                student.groups.join(" "),
+                avg,
+                student.grade_count,
+            ));
+
+            total_sum += avg;
+            total_count += 1;
+        }
+
+        list.sort_by(|left, right| match right.2.total_cmp(&left.2) {
+            Ordering::Equal => left.0.cmp(&right.0),
+            ord => ord,
+        });
+
+        let mut average_last = 0.0;
+        for (n, student) in list.iter().enumerate() {
+            rows.push(Row::Data(vec![
+                if student.2 == average_last {
+                    Cell::Empty
+                } else {
+                    Cell::Right(format!("{}.", n + 1))
+                },
+                Cell::Left(student.0.clone()),
+                Cell::Multi(line_split(&student.1, GROUPS_WIDTH)),
+                Cell::Right(tools::format_decimal(student.2)),
+                Cell::Right(student.3.to_string()),
+            ]));
+            average_last = student.2;
+        }
+
+        rows.push(Row::Midrule);
+        rows.push(Row::Foot(vec![
             Cell::Empty,
-            Cell::Left("Oppilas".to_string()),
-            Cell::Left("Ryhmät".to_string()),
-            Cell::Left("Ka".to_string()),
-            Cell::Left("Lkm".to_string()),
-        ]),
-        Row::Midrule,
-    ];
-
-    let mut total_sum = 0.0;
-    let mut total_count = 0;
-
-    let mut list: Vec<(String, String, f64, usize)> = Vec::with_capacity(30);
-    for student in hash.values() {
-        let avg = student.sum / f64::from(student.count);
-
-        list.push((
-            student.name.clone(),
-            student.groups.join(" "),
-            avg,
-            student.grade_count,
-        ));
-
-        total_sum += avg;
-        total_count += 1;
-    }
-
-    list.sort_by(|left, right| match right.2.total_cmp(&left.2) {
-        Ordering::Equal => left.0.cmp(&right.0),
-        ord => ord,
-    });
-
-    let mut average_last = 0.0;
-    for (n, student) in list.iter().enumerate() {
-        rows.push(Row::Data(vec![
-            if student.2 == average_last {
-                Cell::Empty
+            Cell::Left("Keskiarvo".to_string()),
+            Cell::Empty,
+            if total_count > 0 {
+                Cell::Right(tools::format_decimal(total_sum / f64::from(total_count)))
             } else {
-                Cell::Right(format!("{}.", n + 1))
+                Cell::Empty
             },
-            Cell::Left(student.0.clone()),
-            Cell::Multi(line_split(&student.1, GROUPS_WIDTH)),
-            Cell::Right(tools::format_decimal(student.2)),
-            Cell::Right(student.3.to_string()),
+            Cell::Empty,
         ]));
-        average_last = student.2;
+        rows.push(Row::Bottomrule);
+
+        Table { rows }
     }
-
-    rows.push(Row::Midrule);
-    rows.push(Row::Foot(vec![
-        Cell::Empty,
-        Cell::Left("Keskiarvo".to_string()),
-        Cell::Empty,
-        if total_count > 0 {
-            Cell::Right(tools::format_decimal(total_sum / f64::from(total_count)))
-        } else {
-            Cell::Empty
-        },
-        Cell::Empty,
-    ]));
-    rows.push(Row::Bottomrule);
-
-    Table { rows }.print(out);
 }
 
-impl IntoTable for GradeDistribution {
+impl PrintTable for GradeDistribution {
     fn table(&self) -> Table {
         const BAR_WIDTH: i32 = 40;
 

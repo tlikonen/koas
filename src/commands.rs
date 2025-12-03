@@ -957,37 +957,26 @@ pub async fn student_ranking(
         args = "@";
     }
 
-    let mut hash: HashMap<i32, StudentRank> = HashMap::new();
+    let mut ranks = StudentRanking::new();
 
     let field_groups = tools::split_sep(args);
     for field_string in field_groups {
         let mut fields = tools::split_sep(field_string);
+        let query_terms = FullQuery {
+            // Keep the order!
+            group: fields.next().unwrap_or(""),
+            assignment: fields.next().unwrap_or(""),
+            assignment_short: fields.next().unwrap_or(""),
+            lastname: fields.next().unwrap_or(""),
+            firstname: fields.next().unwrap_or(""),
+            description: fields.next().unwrap_or(""),
+        };
 
-        database::query_student_ranking(
-            db,
-            &mut hash,
-            all,
-            FullQuery {
-                // Keep the order!
-                group: fields.next().unwrap_or(""),
-                assignment: fields.next().unwrap_or(""),
-                assignment_short: fields.next().unwrap_or(""),
-                lastname: fields.next().unwrap_or(""),
-                firstname: fields.next().unwrap_or(""),
-                description: fields.next().unwrap_or(""),
-            },
-        )
-        .await?;
+        ranks.query(db, all, query_terms).await?;
     }
 
-    print::student_ranking(&hash.has_data()?, modes.output());
+    ranks.has_data()?.print(modes.output());
     Ok(())
-}
-
-impl HasData for HashMap<i32, StudentRank> {
-    fn empty_data(&self) -> bool {
-        self.is_empty()
-    }
 }
 
 pub async fn grade_distribution(
@@ -1002,29 +991,25 @@ pub async fn grade_distribution(
         args = "@";
     }
 
-    let mut gd = GradeDistribution::new(modes.output());
+    let mut dist = GradeDistribution::new(modes.output());
 
     let field_groups = tools::split_sep(args);
     for field_string in field_groups {
         let mut fields = tools::split_sep(field_string);
+        let query_terms = FullQuery {
+            // Keep the order!
+            group: fields.next().unwrap_or(""),
+            assignment: fields.next().unwrap_or(""),
+            assignment_short: fields.next().unwrap_or(""),
+            lastname: fields.next().unwrap_or(""),
+            firstname: fields.next().unwrap_or(""),
+            description: fields.next().unwrap_or(""),
+        };
 
-        gd.query(
-            db,
-            all,
-            FullQuery {
-                // Keep the order!
-                group: fields.next().unwrap_or(""),
-                assignment: fields.next().unwrap_or(""),
-                assignment_short: fields.next().unwrap_or(""),
-                lastname: fields.next().unwrap_or(""),
-                firstname: fields.next().unwrap_or(""),
-                description: fields.next().unwrap_or(""),
-            },
-        )
-        .await?;
+        dist.query(db, all, query_terms).await?;
     }
 
-    gd.has_data()?.print(modes.output());
+    dist.has_data()?.print(modes.output());
     Ok(())
 }
 

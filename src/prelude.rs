@@ -1,15 +1,14 @@
 pub(crate) use {
     crate::{
         config::Config,
-        database,
         modes::{Modes, Output},
         objects::{
             Assignment, Assignments, CopyToEditable, Editable, EditableItem, FullQuery, Grade,
             GradeDistribution, GradesForAssignment, GradesForAssignments, GradesForGroup,
             GradesForStudent, GradesForStudents, Group, Groups, HasData, SimpleGrade,
-            SimpleStudent, Stats, Student, StudentRank, Students,
+            SimpleStudent, Stats, Student, StudentRanking, Students,
         },
-        print::{self, PrintTable as _},
+        print::{PrintTable as _, PrintTableList as _},
         tools,
     },
     sqlx::{Connection, PgConnection, Row as _},
