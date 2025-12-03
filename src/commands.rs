@@ -108,7 +108,7 @@ pub async fn grades_for_assignments(
         .await?
         .has_data()?;
 
-    match query.count() {
+    match query.list.len() {
         0 => panic!(),
         1 if modes.is_interactive() => {
             let tbl = &query.list[0];
@@ -140,7 +140,7 @@ pub async fn grades_for_students(
         .await?
         .has_data()?;
 
-    match query.count() {
+    match query.list.len() {
         0 => panic!(),
         1 if modes.is_interactive() => {
             let tbl = &query.list[0];

@@ -716,10 +716,6 @@ impl GradesForAssignments {
 
         Ok(Self { list })
     }
-
-    pub fn count(&self) -> usize {
-        self.list.len()
-    }
 }
 
 impl HasData for GradesForAssignments {
@@ -810,10 +806,6 @@ impl GradesForStudents {
         }
 
         Ok(Self { list })
-    }
-
-    pub fn count(&self) -> usize {
-        self.list.len()
     }
 }
 
