@@ -715,7 +715,7 @@ checksum = "a84f07fb7ea03221c75cb728769a4a72cc1e7bfe6672b91a123fc1c4ba4300bd"
 
 [[package]]
 name = "koas"
-version = "2.3.0"
+version = "2.4.0"
 dependencies = [
  "futures",
  "just-getopt",
