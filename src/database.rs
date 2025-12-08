@@ -869,17 +869,12 @@ impl StudentRanking {
         }
     }
 
-    pub async fn query(
-        &mut self,
-        db: &mut DBase,
-        all: bool,
-        args: FullQuery<'_>,
-    ) -> ResultDE<()> {
+    pub async fn query(&mut self, db: &mut DBase, args: FullQuery<'_>) -> ResultDE<()> {
         let mut rows = sqlx::query(
             "SELECT oid, sukunimi, etunimi, ryhma, arvosana, painokerroin FROM view_arvosanat \
-         WHERE sukunimi LIKE $1 ESCAPE '\\' AND etunimi LIKE $2 ESCAPE '\\' \
-         AND ryhma LIKE $3 ESCAPE '\\' AND olt LIKE $4 ESCAPE '\\' \
-         AND suoritus LIKE $5 ESCAPE '\\' AND lyhenne LIKE $6 ESCAPE '\\'",
+             WHERE sukunimi LIKE $1 ESCAPE '\\' AND etunimi LIKE $2 ESCAPE '\\' \
+             AND ryhma LIKE $3 ESCAPE '\\' AND olt LIKE $4 ESCAPE '\\' \
+             AND suoritus LIKE $5 ESCAPE '\\' AND lyhenne LIKE $6 ESCAPE '\\'",
         )
         .bind(like_esc_wild(args.lastname))
         .bind(like_esc_wild(args.firstname))
@@ -895,7 +890,7 @@ impl StudentRanking {
             {
                 let weight: i32 = match row.try_get("painokerroin")? {
                     Some(w) => w,
-                    None if all => 1,
+                    None if args.all => 1,
                     None => continue,
                 };
 
@@ -938,12 +933,7 @@ impl<'a> GradeDistribution<'a> {
         }
     }
 
-    pub async fn query(
-        &mut self,
-        db: &mut DBase,
-        all: bool,
-        args: FullQuery<'_>,
-    ) -> ResultDE<()> {
+    pub async fn query(&mut self, db: &mut DBase, args: FullQuery<'_>) -> ResultDE<()> {
         let mut rows = sqlx::query(
             "SELECT arvosana, painokerroin FROM view_arvosanat \
              WHERE sukunimi LIKE $1 ESCAPE '\\' AND etunimi LIKE $2 ESCAPE '\\' \
@@ -960,7 +950,7 @@ impl<'a> GradeDistribution<'a> {
 
         while let Some(row) = rows.try_next().await? {
             let weight: Option<i32> = row.try_get("painokerroin")?;
-            if (all || weight.is_some())
+            if (args.all || weight.is_some())
                 && let Some(grade) = row.try_get("arvosana")?
             {
                 let count = self.data.entry(grade).or_default();

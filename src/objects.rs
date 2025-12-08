@@ -172,4 +172,5 @@ pub struct FullQuery<'a> {
     pub lastname: &'a str,
     pub firstname: &'a str,
     pub description: &'a str,
+    pub all: bool,
 }

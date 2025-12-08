@@ -944,9 +944,10 @@ pub async fn student_ranking(
             lastname: fields.next().unwrap_or(""),
             firstname: fields.next().unwrap_or(""),
             description: fields.next().unwrap_or(""),
+            all,
         };
 
-        ranks.query(db, all, query_terms).await?;
+        ranks.query(db, query_terms).await?;
     }
 
     ranks.has_data()?.print(modes.output());
@@ -978,9 +979,10 @@ pub async fn grade_distribution(
             lastname: fields.next().unwrap_or(""),
             firstname: fields.next().unwrap_or(""),
             description: fields.next().unwrap_or(""),
+            all,
         };
 
-        dist.query(db, all, query_terms).await?;
+        dist.query(db, query_terms).await?;
     }
 
     dist.has_data()?.print(modes.output());
