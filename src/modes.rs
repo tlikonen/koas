@@ -22,7 +22,7 @@ pub enum Output {
 }
 
 impl Output {
-    pub fn select(value: &str) -> Result<Self, Box<dyn Error>> {
+    pub fn select(value: &str) -> ResultDE<Self> {
         let out = match value.to_lowercase().as_str() {
             "unicode" | "u" => Output::Unicode,
             "unicode-avoin" | "ua" => Output::UnicodeOpen,

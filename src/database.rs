@@ -4,7 +4,7 @@ pub use self::init::PROGRAM_DB_VERSION;
 use crate::prelude::*;
 use futures::TryStreamExt;
 
-pub async fn connect(config: &Config, modes: &Modes) -> Result<PgConnection, Box<dyn Error>> {
+pub async fn connect(config: &Config, modes: &Modes) -> ResultDE<DBase> {
     let connect_string = format!(
         "postgres://{user}:{password}@{host}:{port}/{db}",
         user = config.user,
@@ -14,7 +14,7 @@ pub async fn connect(config: &Config, modes: &Modes) -> Result<PgConnection, Box
         db = config.database,
     );
 
-    let mut db = PgConnection::connect(&connect_string).await?;
+    let mut db = DBase::connect(&connect_string).await?;
     init::initialize(&mut db, modes).await?;
     Ok(db)
 }
@@ -56,7 +56,7 @@ impl Editable {
 }
 
 impl Stats {
-    pub async fn query(db: &mut PgConnection) -> Result<Self, sqlx::Error> {
+    pub async fn query(db: &mut DBase) -> Result<Self, sqlx::Error> {
         let row = sqlx::query(
             "SELECT \
              (SELECT count(*) FROM oppilaat) oppilaat, \
@@ -77,7 +77,7 @@ impl Stats {
 }
 
 impl Student {
-    pub async fn in_group(&self, db: &mut PgConnection, rid: i32) -> Result<bool, sqlx::Error> {
+    pub async fn in_group(&self, db: &mut DBase, rid: i32) -> ResultDE<bool> {
         let result = sqlx::query("SELECT 1 FROM oppilaat_ryhmat WHERE oid = $1 AND rid = $2")
             .bind(self.oid)
             .bind(rid)
@@ -87,7 +87,7 @@ impl Student {
         Ok(result)
     }
 
-    pub async fn add_to_group(&self, db: &mut PgConnection, rid: i32) -> Result<(), sqlx::Error> {
+    pub async fn add_to_group(&self, db: &mut DBase, rid: i32) -> ResultDE<()> {
         sqlx::query("INSERT INTO oppilaat_ryhmat (oid, rid) VALUES ($1, $2)")
             .bind(self.oid)
             .bind(rid)
@@ -96,11 +96,7 @@ impl Student {
         Ok(())
     }
 
-    pub async fn remove_from_group(
-        &self,
-        db: &mut PgConnection,
-        rid: i32,
-    ) -> Result<(), sqlx::Error> {
+    pub async fn remove_from_group(&self, db: &mut DBase, rid: i32) -> ResultDE<()> {
         sqlx::query("DELETE FROM oppilaat_ryhmat WHERE oid = $1 AND rid = $2")
             .bind(self.oid)
             .bind(rid)
@@ -109,7 +105,7 @@ impl Student {
         Ok(())
     }
 
-    pub async fn only_one_group(&self, db: &mut PgConnection) -> Result<bool, sqlx::Error> {
+    pub async fn only_one_group(&self, db: &mut DBase) -> ResultDE<bool> {
         let row = sqlx::query("SELECT count(*) count FROM oppilaat_ryhmat WHERE oid = $1")
             .bind(self.oid)
             .fetch_one(db)
@@ -118,11 +114,7 @@ impl Student {
         Ok(count <= 1)
     }
 
-    pub async fn update_lastname(
-        &self,
-        db: &mut PgConnection,
-        lastname: &str,
-    ) -> Result<(), sqlx::Error> {
+    pub async fn update_lastname(&self, db: &mut DBase, lastname: &str) -> ResultDE<()> {
         sqlx::query("UPDATE oppilaat SET sukunimi = $1 WHERE oid = $2")
             .bind(lastname)
             .bind(self.oid)
@@ -131,11 +123,7 @@ impl Student {
         Ok(())
     }
 
-    pub async fn update_firstname(
-        &self,
-        db: &mut PgConnection,
-        firstname: &str,
-    ) -> Result<(), sqlx::Error> {
+    pub async fn update_firstname(&self, db: &mut DBase, firstname: &str) -> ResultDE<()> {
         sqlx::query("UPDATE oppilaat SET etunimi = $1 WHERE oid = $2")
             .bind(firstname)
             .bind(self.oid)
@@ -144,11 +132,7 @@ impl Student {
         Ok(())
     }
 
-    pub async fn update_description(
-        &self,
-        db: &mut PgConnection,
-        desc: &str,
-    ) -> Result<(), sqlx::Error> {
+    pub async fn update_description(&self, db: &mut DBase, desc: &str) -> ResultDE<()> {
         sqlx::query("UPDATE oppilaat SET lisatiedot = $1 WHERE oid = $2")
             .bind(desc)
             .bind(self.oid)
@@ -157,7 +141,7 @@ impl Student {
         Ok(())
     }
 
-    pub async fn count_grades(&self, db: &mut PgConnection) -> Result<i64, sqlx::Error> {
+    pub async fn count_grades(&self, db: &mut DBase) -> ResultDE<i64> {
         let count: i64 = sqlx::query("SELECT count(*) AS count FROM arvosanat WHERE oid = $1")
             .bind(self.oid)
             .fetch_one(db)
@@ -166,11 +150,7 @@ impl Student {
         Ok(count)
     }
 
-    pub async fn count_grades_group(
-        &self,
-        db: &mut PgConnection,
-        rid: i32,
-    ) -> Result<i64, sqlx::Error> {
+    pub async fn count_grades_group(&self, db: &mut DBase, rid: i32) -> ResultDE<i64> {
         let count: i64 = sqlx::query(
             "SELECT count(*) AS count FROM arvosanat AS a \
              JOIN suoritukset AS s ON a.sid = s.sid \
@@ -184,7 +164,7 @@ impl Student {
         Ok(count)
     }
 
-    pub async fn insert(&mut self, db: &mut PgConnection) -> Result<(), sqlx::Error> {
+    pub async fn insert(&mut self, db: &mut DBase) -> ResultDE<()> {
         let row = sqlx::query(
             "INSERT INTO oppilaat (sukunimi, etunimi, lisatiedot) \
              VALUES ($1, $2, $3) RETURNING oid",
@@ -199,7 +179,7 @@ impl Student {
         Ok(())
     }
 
-    pub async fn delete(&self, db: &mut PgConnection) -> Result<(), sqlx::Error> {
+    pub async fn delete(&self, db: &mut DBase) -> ResultDE<()> {
         sqlx::query("DELETE FROM oppilaat WHERE oid = $1")
             .bind(self.oid)
             .execute(db)
@@ -210,12 +190,12 @@ impl Student {
 
 impl Students {
     pub async fn query(
-        db: &mut PgConnection,
+        db: &mut DBase,
         lastname: &str,
         firstname: &str,
         group: &str,
         desc: &str,
-    ) -> Result<Self, sqlx::Error> {
+    ) -> ResultDE<Self> {
         let mut rows = sqlx::query(
             "SELECT DISTINCT view_oppilaat.oid, sukunimi, etunimi, ryhmat, olt FROM view_oppilaat \
              JOIN (SELECT oid, string_agg(ryhma, ' ' ORDER BY ryhma) ryhmat \
@@ -259,7 +239,7 @@ impl CopyToEditable for Students {
 }
 
 impl Group {
-    pub async fn get_or_insert(db: &mut PgConnection, name: &str) -> Result<i32, sqlx::Error> {
+    pub async fn get_or_insert(db: &mut DBase, name: &str) -> ResultDE<i32> {
         let rid = match Self::get_id(db, name).await? {
             Some(id) => id,
             None => {
@@ -274,7 +254,7 @@ impl Group {
         Ok(rid)
     }
 
-    pub async fn get_id(db: &mut PgConnection, name: &str) -> Result<Option<i32>, sqlx::Error> {
+    pub async fn get_id(db: &mut DBase, name: &str) -> ResultDE<Option<i32>> {
         match sqlx::query("SELECT rid FROM ryhmat WHERE nimi = $1")
             .bind(name)
             .fetch_optional(db)
@@ -288,7 +268,7 @@ impl Group {
         }
     }
 
-    pub async fn update_name(&self, db: &mut PgConnection, name: &str) -> Result<(), sqlx::Error> {
+    pub async fn update_name(&self, db: &mut DBase, name: &str) -> ResultDE<()> {
         sqlx::query("UPDATE ryhmat SET nimi = $1 WHERE rid = $2")
             .bind(name)
             .bind(self.rid)
@@ -297,11 +277,7 @@ impl Group {
         Ok(())
     }
 
-    pub async fn update_description(
-        &self,
-        db: &mut PgConnection,
-        desc: &str,
-    ) -> Result<(), sqlx::Error> {
+    pub async fn update_description(&self, db: &mut DBase, desc: &str) -> ResultDE<()> {
         sqlx::query("UPDATE ryhmat SET lisatiedot = $1 WHERE rid = $2")
             .bind(desc)
             .bind(self.rid)
@@ -312,11 +288,7 @@ impl Group {
 }
 
 impl Groups {
-    pub async fn query(
-        db: &mut PgConnection,
-        group: &str,
-        desc: &str,
-    ) -> Result<Self, sqlx::Error> {
+    pub async fn query(db: &mut DBase, group: &str, desc: &str) -> ResultDE<Self> {
         let mut rows = sqlx::query(
             "SELECT rid, nimi, lisatiedot FROM ryhmat \
              WHERE nimi LIKE $1 ESCAPE '\\' AND lisatiedot LIKE $2 ESCAPE '\\' \
@@ -338,7 +310,7 @@ impl Groups {
         Ok(Self { list })
     }
 
-    pub async fn delete_empty(db: &mut PgConnection) -> Result<(), sqlx::Error> {
+    pub async fn delete_empty(db: &mut DBase) -> ResultDE<()> {
         sqlx::query(
             "DELETE FROM ryhmat WHERE rid IN \
              (SELECT r.rid FROM ryhmat AS r \
@@ -365,7 +337,7 @@ impl CopyToEditable for Groups {
 }
 
 impl Assignment {
-    pub async fn update_name(&self, db: &mut PgConnection, name: &str) -> Result<(), sqlx::Error> {
+    pub async fn update_name(&self, db: &mut DBase, name: &str) -> ResultDE<()> {
         sqlx::query("UPDATE suoritukset SET nimi = $1 WHERE sid = $2")
             .bind(name)
             .bind(self.sid)
@@ -374,11 +346,7 @@ impl Assignment {
         Ok(())
     }
 
-    pub async fn update_short(
-        &self,
-        db: &mut PgConnection,
-        short: &str,
-    ) -> Result<(), sqlx::Error> {
+    pub async fn update_short(&self, db: &mut DBase, short: &str) -> ResultDE<()> {
         sqlx::query("UPDATE suoritukset SET lyhenne = $1 WHERE sid = $2")
             .bind(short)
             .bind(self.sid)
@@ -387,11 +355,7 @@ impl Assignment {
         Ok(())
     }
 
-    pub async fn update_weight(
-        &self,
-        db: &mut PgConnection,
-        weight: Option<i32>,
-    ) -> Result<(), sqlx::Error> {
+    pub async fn update_weight(&self, db: &mut DBase, weight: Option<i32>) -> ResultDE<()> {
         let value = match weight {
             Some(n) if n < 1 => None,
             v => v,
@@ -404,11 +368,7 @@ impl Assignment {
         Ok(())
     }
 
-    pub async fn update_position(
-        &self,
-        db: &mut PgConnection,
-        mut pos: i32,
-    ) -> Result<(), sqlx::Error> {
+    pub async fn update_position(&self, db: &mut DBase, mut pos: i32) -> ResultDE<()> {
         let mut other_sids = Vec::with_capacity(10);
 
         {
@@ -458,7 +418,7 @@ impl Assignment {
         Ok(())
     }
 
-    pub async fn count_grades(&self, db: &mut PgConnection) -> Result<i64, sqlx::Error> {
+    pub async fn count_grades(&self, db: &mut DBase) -> ResultDE<i64> {
         let count: i64 = sqlx::query("SELECT count(*) AS count FROM arvosanat WHERE sid = $1")
             .bind(self.sid)
             .fetch_one(db)
@@ -467,7 +427,7 @@ impl Assignment {
         Ok(count)
     }
 
-    pub async fn insert(&mut self, db: &mut PgConnection, pos: i32) -> Result<(), sqlx::Error> {
+    pub async fn insert(&mut self, db: &mut DBase, pos: i32) -> ResultDE<()> {
         let row = sqlx::query(
             "INSERT INTO suoritukset (rid, nimi, lyhenne, painokerroin, sija) \
              VALUES ($1, $2, $3, $4, $5) RETURNING sid",
@@ -485,7 +445,7 @@ impl Assignment {
         Ok(())
     }
 
-    pub async fn delete(&self, db: &mut PgConnection) -> Result<(), sqlx::Error> {
+    pub async fn delete(&self, db: &mut DBase) -> ResultDE<()> {
         sqlx::query("DELETE FROM suoritukset WHERE sid = $1")
             .bind(self.sid)
             .execute(db)
@@ -495,7 +455,7 @@ impl Assignment {
 }
 
 impl Assignments {
-    pub async fn query(db: &mut PgConnection, group: &str) -> Result<Self, sqlx::Error> {
+    pub async fn query(db: &mut DBase, group: &str) -> ResultDE<Self> {
         let mut rows = sqlx::query(
             "SELECT rid, sid, suoritus, lyhenne, painokerroin FROM view_suoritukset \
              WHERE ryhma = $1 ORDER BY sija, sid",
@@ -521,7 +481,7 @@ impl Assignments {
         })
     }
 
-    pub async fn reposition(db: &mut PgConnection, rid: i32) -> Result<(), sqlx::Error> {
+    pub async fn reposition(db: &mut DBase, rid: i32) -> ResultDE<()> {
         let mut sid_list = Vec::with_capacity(10);
 
         {
@@ -563,7 +523,7 @@ impl CopyToEditable for Assignments {
 }
 
 impl Grade {
-    async fn exists(&self, db: &mut PgConnection) -> Result<bool, sqlx::Error> {
+    async fn exists(&self, db: &mut DBase) -> ResultDE<bool> {
         let result = sqlx::query("SELECT 1 FROM arvosanat WHERE sid = $1 AND oid = $2")
             .bind(self.sid)
             .bind(self.oid)
@@ -573,11 +533,7 @@ impl Grade {
         Ok(result)
     }
 
-    pub async fn update_grade(
-        &self,
-        db: &mut PgConnection,
-        grade: &str,
-    ) -> Result<(), sqlx::Error> {
+    pub async fn update_grade(&self, db: &mut DBase, grade: &str) -> ResultDE<()> {
         let value = if grade.is_empty() { None } else { Some(grade) };
 
         if self.exists(db).await? {
@@ -598,11 +554,7 @@ impl Grade {
         Ok(())
     }
 
-    pub async fn update_description(
-        &self,
-        db: &mut PgConnection,
-        desc: &str,
-    ) -> Result<(), sqlx::Error> {
+    pub async fn update_description(&self, db: &mut DBase, desc: &str) -> ResultDE<()> {
         let value = if desc.is_empty() { None } else { Some(desc) };
 
         if self.exists(db).await? {
@@ -623,7 +575,7 @@ impl Grade {
         Ok(())
     }
 
-    pub async fn delete(&self, db: &mut PgConnection) -> Result<(), sqlx::Error> {
+    pub async fn delete(&self, db: &mut DBase) -> ResultDE<()> {
         sqlx::query("DELETE FROM arvosanat WHERE sid = $1 AND oid = $2")
             .bind(self.sid)
             .bind(self.oid)
@@ -632,7 +584,7 @@ impl Grade {
         Ok(())
     }
 
-    pub async fn delete_if_empty(&self, db: &mut PgConnection) -> Result<(), sqlx::Error> {
+    pub async fn delete_if_empty(&self, db: &mut DBase) -> ResultDE<()> {
         sqlx::query(
             "DELETE FROM arvosanat \
              WHERE sid = $1 AND oid = $2 \
@@ -648,11 +600,11 @@ impl Grade {
 
 impl GradesForAssignments {
     pub async fn query(
-        db: &mut PgConnection,
+        db: &mut DBase,
         group: &str,
         assign: &str,
         assign_short: &str,
-    ) -> Result<Self, sqlx::Error> {
+    ) -> ResultDE<Self> {
         let mut rows = sqlx::query(
             "SELECT ryhma, rid, sija, sid, suoritus, painokerroin, \
              oid, sukunimi, etunimi, arvosana, alt \
@@ -732,12 +684,12 @@ impl CopyToEditable for GradesForAssignment {
 
 impl GradesForStudents {
     pub async fn query(
-        db: &mut PgConnection,
+        db: &mut DBase,
         lastname: &str,
         firstname: &str,
         group: &str,
         student_desc: &str,
-    ) -> Result<Self, sqlx::Error> {
+    ) -> ResultDE<Self> {
         let mut rows = sqlx::query(
             "SELECT oid, sukunimi, etunimi, rid, ryhma, \
              sid, suoritus, painokerroin, arvosana, alt \
@@ -822,7 +774,7 @@ impl CopyToEditable for GradesForStudent {
 }
 
 impl GradesForGroup {
-    pub async fn query(db: &mut PgConnection, group: &str) -> Result<Self, sqlx::Error> {
+    pub async fn query(db: &mut DBase, group: &str) -> ResultDE<Self> {
         let mut assignments = Vec::with_capacity(10);
 
         {
@@ -919,10 +871,10 @@ impl StudentRanking {
 
     pub async fn query(
         &mut self,
-        db: &mut PgConnection,
+        db: &mut DBase,
         all: bool,
         args: FullQuery<'_>,
-    ) -> Result<(), sqlx::Error> {
+    ) -> ResultDE<()> {
         let mut rows = sqlx::query(
             "SELECT oid, sukunimi, etunimi, ryhma, arvosana, painokerroin FROM view_arvosanat \
          WHERE sukunimi LIKE $1 ESCAPE '\\' AND etunimi LIKE $2 ESCAPE '\\' \
@@ -988,10 +940,10 @@ impl<'a> GradeDistribution<'a> {
 
     pub async fn query(
         &mut self,
-        db: &mut PgConnection,
+        db: &mut DBase,
         all: bool,
         args: FullQuery<'_>,
-    ) -> Result<(), sqlx::Error> {
+    ) -> ResultDE<()> {
         let mut rows = sqlx::query(
             "SELECT arvosana, painokerroin FROM view_arvosanat \
              WHERE sukunimi LIKE $1 ESCAPE '\\' AND etunimi LIKE $2 ESCAPE '\\' \

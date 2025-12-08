@@ -5,12 +5,12 @@ pub(crate) use {
         objects::{
             Assignment, Assignments, CopyToEditable, Editable, EditableItem, FullQuery, Grade,
             GradeDistribution, GradesForAssignment, GradesForAssignments, GradesForGroup,
-            GradesForStudent, GradesForStudents, Group, Groups, HasData, SimpleGrade,
+            GradesForStudent, GradesForStudents, Group, Groups, HasData, ResultDE, SimpleGrade,
             SimpleStudent, Stats, Student, StudentRanking, Students,
         },
         print::{PrintTable, PrintTableList, PrintTableNum},
         tools,
     },
-    sqlx::{Connection, PgConnection, Row as _},
-    std::{cmp::Ordering, collections::HashMap, error::Error, fs, io},
+    sqlx::{Connection as _, PgConnection as DBase, Row as _},
+    std::{cmp::Ordering, collections::HashMap, fs, io},
 };

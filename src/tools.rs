@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-pub fn parse_number_list(s: &str) -> Result<Vec<usize>, Box<dyn Error>> {
+pub fn parse_number_list(s: &str) -> ResultDE<Vec<usize>> {
     let mut vec: Vec<usize> = Vec::with_capacity(25);
     let errmsg = |v| format!("Sopimaton tietueen numero: ”{v}”.");
 

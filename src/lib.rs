@@ -22,7 +22,7 @@ pub static PROGRAM_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub static PROGRAM_AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
 pub static PROGRAM_LICENSE: &str = env!("CARGO_PKG_LICENSE");
 
-pub async fn command_stage(mut modes: Modes, config: Config) -> Result<(), Box<dyn Error>> {
+pub async fn command_stage(mut modes: Modes, config: Config) -> ResultDE<()> {
     let mut db = database::connect(&config, &modes).await?;
     let mut editable: Editable = Default::default();
 
@@ -85,11 +85,11 @@ pub async fn command_stage(mut modes: Modes, config: Config) -> Result<(), Box<d
 
 async fn commands(
     modes: &mut Modes,
-    db: &mut PgConnection,
+    db: &mut DBase,
     editable: &mut Editable,
     cmd: &str,
     args: &str,
-) -> Result<Result<(), String>, Box<dyn Error>> {
+) -> ResultDE<Result<(), String>> {
     match (cmd, modes.mode()) {
         ("ho", _) => commands::students(modes, db, editable, args).await?,
         ("hr", _) => commands::groups(modes, db, editable, args).await?,

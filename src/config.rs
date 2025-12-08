@@ -13,7 +13,7 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn file() -> Result<PathBuf, Box<dyn Error>> {
+    pub fn file() -> ResultDE<PathBuf> {
         let path = xdg::BaseDirectories::new()
             .place_config_file(CONFIG_FILE)
             .map_err(|e| format!("Asetustiedoston alustus epäonnistui: {}", e.kind()))?;
@@ -125,7 +125,7 @@ impl Config {
         Ok(config)
     }
 
-    pub fn write(&self, path: &Path) -> Result<(), Box<dyn Error>> {
+    pub fn write(&self, path: &Path) -> ResultDE<()> {
         fs::write(
             path,
             format!(

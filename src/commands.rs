@@ -1,10 +1,6 @@
 use crate::prelude::*;
 
-pub async fn stats(
-    modes: &Modes,
-    db: &mut PgConnection,
-    editable: &mut Editable,
-) -> Result<(), Box<dyn Error>> {
+pub async fn stats(modes: &Modes, db: &mut DBase, editable: &mut Editable) -> ResultDE<()> {
     editable.clear();
 
     Stats::query(db).await?.print(modes.output());
@@ -13,10 +9,10 @@ pub async fn stats(
 
 pub async fn students(
     modes: &Modes,
-    db: &mut PgConnection,
+    db: &mut DBase,
     editable: &mut Editable,
     args: &str,
-) -> Result<(), Box<dyn Error>> {
+) -> ResultDE<()> {
     editable.clear();
 
     let mut fields = tools::split_sep(args);
@@ -41,10 +37,10 @@ pub async fn students(
 
 pub async fn groups(
     modes: &Modes,
-    db: &mut PgConnection,
+    db: &mut DBase,
     editable: &mut Editable,
     args: &str,
-) -> Result<(), Box<dyn Error>> {
+) -> ResultDE<()> {
     editable.clear();
 
     let mut fields = tools::split_sep(args);
@@ -65,10 +61,10 @@ pub async fn groups(
 
 pub async fn assignments(
     modes: &Modes,
-    db: &mut PgConnection,
+    db: &mut DBase,
     editable: &mut Editable,
     args: &str,
-) -> Result<(), Box<dyn Error>> {
+) -> ResultDE<()> {
     editable.clear();
 
     let group = {
@@ -93,10 +89,10 @@ pub async fn assignments(
 
 pub async fn grades_for_assignments(
     modes: &Modes,
-    db: &mut PgConnection,
+    db: &mut DBase,
     editable: &mut Editable,
     args: &str,
-) -> Result<(), Box<dyn Error>> {
+) -> ResultDE<()> {
     editable.clear();
 
     let mut fields = tools::split_sep(args);
@@ -124,10 +120,10 @@ pub async fn grades_for_assignments(
 
 pub async fn grades_for_students(
     modes: &Modes,
-    db: &mut PgConnection,
+    db: &mut DBase,
     editable: &mut Editable,
     args: &str,
-) -> Result<(), Box<dyn Error>> {
+) -> ResultDE<()> {
     editable.clear();
 
     let mut fields = tools::split_sep(args);
@@ -156,10 +152,10 @@ pub async fn grades_for_students(
 
 pub async fn grades_for_group(
     modes: &Modes,
-    db: &mut PgConnection,
+    db: &mut DBase,
     editable: &mut Editable,
     args: &str,
-) -> Result<(), Box<dyn Error>> {
+) -> ResultDE<()> {
     editable.clear();
 
     let group = {
@@ -175,11 +171,7 @@ pub async fn grades_for_group(
     Ok(())
 }
 
-pub async fn edit(
-    db: &mut PgConnection,
-    editable: &mut Editable,
-    args: &str,
-) -> Result<(), Box<dyn Error>> {
+pub async fn edit(db: &mut DBase, editable: &mut Editable, args: &str) -> ResultDE<()> {
     if editable.is_none() {
         Err("Edellinen komento ei sisällä muokattavia tietueita.")?;
     }
@@ -221,11 +213,7 @@ pub async fn edit(
     Ok(())
 }
 
-pub async fn edit_series(
-    db: &mut PgConnection,
-    editable: &mut Editable,
-    args: &str,
-) -> Result<(), Box<dyn Error>> {
+pub async fn edit_series(db: &mut DBase, editable: &mut Editable, args: &str) -> ResultDE<()> {
     if editable.is_none() {
         Err("Edellinen komento ei sisällä muokattavia tietueita.")?;
     }
@@ -351,11 +339,11 @@ pub async fn edit_series(
 }
 
 async fn edit_students(
-    db: &mut PgConnection,
+    db: &mut DBase,
     indexes: Vec<usize>,
     students: &[Student],
     mut fields: impl Iterator<Item = &str>,
-) -> Result<(), Box<dyn Error>> {
+) -> ResultDE<()> {
     let lastname = fields
         .next()
         .filter(|x| tools::has_content(x))
@@ -461,11 +449,11 @@ async fn edit_students(
 }
 
 async fn edit_groups(
-    db: &mut PgConnection,
+    db: &mut DBase,
     indexes: Vec<usize>,
     groups: &[Group],
     mut fields: impl Iterator<Item = &str>,
-) -> Result<(), Box<dyn Error>> {
+) -> ResultDE<()> {
     let mut name = fields.next().filter(|x| tools::has_content(x)); // ryhmä
 
     let desc = fields
@@ -511,11 +499,11 @@ async fn edit_groups(
 }
 
 async fn edit_assignments(
-    db: &mut PgConnection,
+    db: &mut DBase,
     indexes: Vec<usize>,
     group_assignments: &[Assignment],
     mut fields: impl Iterator<Item = &str>,
-) -> Result<(), Box<dyn Error>> {
+) -> ResultDE<()> {
     let name = fields
         .next()
         .filter(|x| tools::has_content(x))
@@ -580,11 +568,11 @@ async fn edit_assignments(
 }
 
 async fn edit_grades(
-    db: &mut PgConnection,
+    db: &mut DBase,
     indexes: Vec<usize>,
     student_grades: &[Grade],
     mut fields: impl Iterator<Item = &str>,
-) -> Result<(), Box<dyn Error>> {
+) -> ResultDE<()> {
     let grade = fields
         .next()
         .filter(|x| !x.is_empty())
@@ -618,11 +606,7 @@ async fn edit_grades(
     Ok(())
 }
 
-pub async fn convert_to_grade(
-    db: &mut PgConnection,
-    editable: &mut Editable,
-    args: &str,
-) -> Result<(), Box<dyn Error>> {
+pub async fn convert_to_grade(db: &mut DBase, editable: &mut Editable, args: &str) -> ResultDE<()> {
     if editable.is_none() {
         Err("Edellinen komento ei sisällä muokattavia tietueita.")?;
     }
@@ -669,10 +653,10 @@ pub async fn convert_to_grade(
 }
 
 pub async fn convert_to_decimal(
-    db: &mut PgConnection,
+    db: &mut DBase,
     editable: &mut Editable,
     args: &str,
-) -> Result<(), Box<dyn Error>> {
+) -> ResultDE<()> {
     if editable.is_none() {
         Err("Edellinen komento ei sisällä muokattavia tietueita.")?;
     }
@@ -718,11 +702,7 @@ pub async fn convert_to_decimal(
     Ok(())
 }
 
-pub async fn insert_student(
-    db: &mut PgConnection,
-    editable: &mut Editable,
-    args: &str,
-) -> Result<(), Box<dyn Error>> {
+pub async fn insert_student(db: &mut DBase, editable: &mut Editable, args: &str) -> ResultDE<()> {
     editable.clear();
 
     let mut fields = tools::split_sep(args);
@@ -764,10 +744,10 @@ pub async fn insert_student(
 }
 
 pub async fn insert_assignment(
-    db: &mut PgConnection,
+    db: &mut DBase,
     editable: &mut Editable,
     args: &str,
-) -> Result<(), Box<dyn Error>> {
+) -> ResultDE<()> {
     editable.clear();
 
     let mut fields = tools::split_sep(args);
@@ -824,11 +804,7 @@ pub async fn insert_assignment(
     Ok(())
 }
 
-pub async fn delete(
-    db: &mut PgConnection,
-    editable: &mut Editable,
-    args: &str,
-) -> Result<(), Box<dyn Error>> {
+pub async fn delete(db: &mut DBase, editable: &mut Editable, args: &str) -> ResultDE<()> {
     if editable.is_none() {
         Err("Edellinen komento ei sisällä poistettavia tietueita.")?;
     }
@@ -869,10 +845,10 @@ pub async fn delete(
 }
 
 async fn delete_students(
-    db: &mut PgConnection,
+    db: &mut DBase,
     indexes: Vec<usize>,
     students: &[Student],
-) -> Result<(), Box<dyn Error>> {
+) -> ResultDE<()> {
     for i in indexes {
         let student = match students.get(i - 1) {
             None => Err("Poistettavia oppilaita ei ole.")?,
@@ -896,10 +872,10 @@ async fn delete_students(
 }
 
 async fn delete_assignments(
-    db: &mut PgConnection,
+    db: &mut DBase,
     indexes: Vec<usize>,
     assignments: &[Assignment],
-) -> Result<(), Box<dyn Error>> {
+) -> ResultDE<()> {
     let mut rid_list = Vec::with_capacity(1);
     for i in indexes {
         let assignment = match assignments.get(i - 1) {
@@ -932,11 +908,7 @@ async fn delete_assignments(
     Ok(())
 }
 
-async fn delete_grades(
-    db: &mut PgConnection,
-    indexes: Vec<usize>,
-    grades: &[Grade],
-) -> Result<(), Box<dyn Error>> {
+async fn delete_grades(db: &mut DBase, indexes: Vec<usize>, grades: &[Grade]) -> ResultDE<()> {
     for i in indexes {
         let grade = match grades.get(i - 1) {
             None => Err("Poistettavia arvosanoja ei ole.")?,
@@ -949,11 +921,11 @@ async fn delete_grades(
 
 pub async fn student_ranking(
     modes: &Modes,
-    db: &mut PgConnection,
+    db: &mut DBase,
     editable: &mut Editable,
     mut args: &str,
     all: bool,
-) -> Result<(), Box<dyn Error>> {
+) -> ResultDE<()> {
     editable.clear();
     if args.is_empty() {
         args = "@";
@@ -983,11 +955,11 @@ pub async fn student_ranking(
 
 pub async fn grade_distribution(
     modes: &Modes,
-    db: &mut PgConnection,
+    db: &mut DBase,
     editable: &mut Editable,
     mut args: &str,
     all: bool,
-) -> Result<(), Box<dyn Error>> {
+) -> ResultDE<()> {
     editable.clear();
     if args.is_empty() {
         args = "@";
@@ -1015,7 +987,7 @@ pub async fn grade_distribution(
     Ok(())
 }
 
-pub fn table_format(modes: &mut Modes, args: &str) -> Result<(), Box<dyn Error>> {
+pub fn table_format(modes: &mut Modes, args: &str) -> ResultDE<()> {
     let (first, _) = tools::split_first(args);
     if first.is_empty() {
         Err("Anna argumentiksi taulukkotyyli. Apua saa ?:llä.")?;

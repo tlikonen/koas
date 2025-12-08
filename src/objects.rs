@@ -1,5 +1,7 @@
 use crate::prelude::*;
 
+pub type ResultDE<T> = Result<T, Box<dyn std::error::Error>>;
+
 pub trait HasData {
     fn has_data(self) -> Result<Self, String>
     where
