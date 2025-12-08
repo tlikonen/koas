@@ -12,7 +12,6 @@ use crate::prelude::*;
 pub use crate::{
     commands::help,
     config::Config,
-    database::PROGRAM_DB_VERSION,
     modes::{Mode, Modes, Output},
     tools::umask,
 };

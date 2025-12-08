@@ -20,10 +20,9 @@ pub async fn initialize(db: &mut DBase, modes: &Modes) -> ResultDE<()> {
 
             Ordering::Greater => {
                 let err_msg = || {
-                    format!(
-                        "Nykyinen arvosanatietokannan versio on {db_version}, \
-                         mutta tämä ohjelma tukee vain versiota {PROGRAM_DB_VERSION}.\n\
-                         Päivitä ohjelma, koska se ei välttämättä toimi oikein."
+                    String::from(
+                        "Arvosanatietokannan versio on uudempi kuin tämä ohjelma tukee.\n\
+                         Päivitä ohjelma, koska se ei välttämättä toimi oikein.",
                     )
                 };
 
@@ -37,10 +36,8 @@ pub async fn initialize(db: &mut DBase, modes: &Modes) -> ResultDE<()> {
             Ordering::Less => {
                 let err_msg = || {
                     format!(
-                        "Nykyinen arvosanatietokannan versio {db_version} on vanhentunut, \
-                         sillä tämä ohjelma on tehty versiolle {PROGRAM_DB_VERSION}.\n\
-                         Päivitä tietokanta vuorovaikutteisessa tilassa komennolla \
-                         ”{UPGRADE_COMMAND}”."
+                        "Arvosanatietokannan versio on vanhentunut, eikä se ehkä toimi oikein.\n\
+                         Päivitä tietokanta vuorovaikutteisessa tilassa komennolla ”{UPGRADE_COMMAND}”."
                     )
                 };
 

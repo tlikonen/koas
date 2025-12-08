@@ -1,6 +1,5 @@
 mod init;
 
-pub use self::init::PROGRAM_DB_VERSION;
 use crate::prelude::*;
 use futures::TryStreamExt;
 
