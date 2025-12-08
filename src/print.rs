@@ -580,7 +580,7 @@ impl PrintTable for StudentRanking {
     }
 }
 
-impl PrintTable for GradeDistribution {
+impl PrintTable for GradeDistribution<'_> {
     fn table(&self) -> Table {
         const BAR_WIDTH: i32 = 40;
 

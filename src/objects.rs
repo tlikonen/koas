@@ -158,9 +158,9 @@ pub struct StudentRanking {
     pub data: HashMap<i32, StudentRank>,
 }
 
-pub struct GradeDistribution {
+pub struct GradeDistribution<'a> {
     pub data: HashMap<String, i32>,
-    pub output: Output,
+    pub output: &'a Output,
 }
 
 pub struct FullQuery<'a> {

@@ -978,11 +978,11 @@ impl HasData for StudentRanking {
     }
 }
 
-impl GradeDistribution {
-    pub fn new(out: &Output) -> Self {
+impl<'a> GradeDistribution<'a> {
+    pub fn new(out: &'a Output) -> Self {
         Self {
             data: HashMap::with_capacity(28),
-            output: out.clone(),
+            output: out,
         }
     }
 
@@ -1020,7 +1020,7 @@ impl GradeDistribution {
     }
 }
 
-impl HasData for GradeDistribution {
+impl HasData for GradeDistribution<'_> {
     fn empty_data(&self) -> bool {
         self.data.is_empty()
     }
