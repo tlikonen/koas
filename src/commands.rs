@@ -199,7 +199,7 @@ pub async fn edit(db: &mut DBase, editable: &mut Editable, args: &str) -> Result
             edit_students(&mut ta, EditItems::new(students, indexes), fields).await?;
         }
         EditableItem::Groups(groups) => {
-            edit_groups(&mut ta, indexes, groups, fields).await?;
+            edit_groups(&mut ta, EditItems::new(groups, indexes), fields).await?;
         }
         EditableItem::Assignments(assignments) => {
             edit_assignments(&mut ta, indexes, assignments, fields).await?;
@@ -322,7 +322,7 @@ pub async fn edit_series(db: &mut DBase, editable: &mut Editable, args: &str) ->
                 edit_students(&mut ta, EditItems::new(students, index), fields).await?;
             }
             EditableItem::Groups(groups) => {
-                edit_groups(&mut ta, index, groups, fields).await?;
+                edit_groups(&mut ta, EditItems::new(groups, index), fields).await?;
             }
             EditableItem::Assignments(assignments) => {
                 edit_assignments(&mut ta, index, assignments, fields).await?;
@@ -444,8 +444,7 @@ async fn edit_students(
 
 async fn edit_groups(
     db: &mut DBase,
-    indexes: Vec<usize>,
-    groups: &[Group],
+    groups: EditItems<'_, Group>,
     mut fields: impl Iterator<Item = &str>,
 ) -> ResultDE<()> {
     let mut name = fields.next().filter(|x| tools::has_content(x)); // ryhmä
@@ -459,7 +458,7 @@ async fn edit_groups(
         Err("Anna muokattavia kenttiä.")?;
     }
 
-    if name.is_some() && indexes.len() > 1 {
+    if name.is_some() && groups.count() > 1 {
         Err("Usealle ryhmälle ei voi antaa samaa nimeä.")?;
     }
 
@@ -475,12 +474,7 @@ async fn edit_groups(
         None => None,
     };
 
-    for i in indexes {
-        let group = match groups.get(i - 1) {
-            None => Err("Muokattavia ryhmiä ei ole.")?,
-            Some(g) => g,
-        };
-
+    for group in groups.iter() {
         if let Some(n) = name {
             group.update_name(db, n).await?;
         }
