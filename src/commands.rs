@@ -205,7 +205,7 @@ pub async fn edit(db: &mut DBase, editable: &mut Editable, args: &str) -> Result
             edit_assignments(&mut ta, EditItems::new(assignments, indexes), fields).await?;
         }
         EditableItem::Grades(grades) => {
-            edit_grades(&mut ta, indexes, grades, fields).await?;
+            edit_grades(&mut ta, EditItems::new(grades, indexes), fields).await?;
         }
         EditableItem::None => panic!(),
     }
@@ -328,7 +328,7 @@ pub async fn edit_series(db: &mut DBase, editable: &mut Editable, args: &str) ->
                 edit_assignments(&mut ta, EditItems::new(assignments, index), fields).await?;
             }
             EditableItem::Grades(grades) => {
-                edit_grades(&mut ta, index, grades, fields).await?;
+                edit_grades(&mut ta, EditItems::new(grades, index), fields).await?;
             }
             EditableItem::None => panic!(),
         }
@@ -551,8 +551,7 @@ async fn edit_assignments(
 
 async fn edit_grades(
     db: &mut DBase,
-    indexes: Vec<usize>,
-    student_grades: &[Grade],
+    student_grades: EditItems<'_, Grade>,
     mut fields: impl Iterator<Item = &str>,
 ) -> ResultDE<()> {
     let grade = fields
@@ -569,12 +568,7 @@ async fn edit_grades(
         Err("Anna muokattavia kenttiä.")?;
     }
 
-    for i in indexes {
-        let student_grade = match student_grades.get(i - 1) {
-            None => Err("Muokattavia arvosanoja ei ole.")?,
-            Some(v) => v,
-        };
-
+    for student_grade in student_grades.iter() {
         if let Some(s) = &grade {
             student_grade.update_grade(db, s).await?;
         }
