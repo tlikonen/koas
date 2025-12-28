@@ -202,7 +202,7 @@ pub async fn edit(db: &mut DBase, editable: &mut Editable, args: &str) -> Result
             edit_groups(&mut ta, EditItems::new(groups, indexes), fields).await?;
         }
         EditableItem::Assignments(assignments) => {
-            edit_assignments(&mut ta, indexes, assignments, fields).await?;
+            edit_assignments(&mut ta, EditItems::new(assignments, indexes), fields).await?;
         }
         EditableItem::Grades(grades) => {
             edit_grades(&mut ta, indexes, grades, fields).await?;
@@ -325,7 +325,7 @@ pub async fn edit_series(db: &mut DBase, editable: &mut Editable, args: &str) ->
                 edit_groups(&mut ta, EditItems::new(groups, index), fields).await?;
             }
             EditableItem::Assignments(assignments) => {
-                edit_assignments(&mut ta, index, assignments, fields).await?;
+                edit_assignments(&mut ta, EditItems::new(assignments, index), fields).await?;
             }
             EditableItem::Grades(grades) => {
                 edit_grades(&mut ta, index, grades, fields).await?;
@@ -488,8 +488,7 @@ async fn edit_groups(
 
 async fn edit_assignments(
     db: &mut DBase,
-    indexes: Vec<usize>,
-    group_assignments: &[Assignment],
+    group_assignments: EditItems<'_, Assignment>,
     mut fields: impl Iterator<Item = &str>,
 ) -> ResultDE<()> {
     let name = fields
@@ -509,7 +508,7 @@ async fn edit_assignments(
         Err("Anna muokattavia kenttiä.")?;
     }
 
-    if position.is_some() && indexes.len() > 1 {
+    if position.is_some() && group_assignments.count() > 1 {
         Err("Usealle suoritukselle ei voi asettaa samaa järjestysnumeroa.")?;
     }
 
@@ -530,12 +529,7 @@ async fn edit_assignments(
         None => None,
     };
 
-    for i in indexes {
-        let group_assignment = match group_assignments.get(i - 1) {
-            None => Err("Muokattavia suorituksia ei ole.")?,
-            Some(v) => v,
-        };
-
+    for group_assignment in group_assignments.iter() {
         if let Some(n) = &name {
             group_assignment.update_name(db, n).await?;
         }
