@@ -196,7 +196,7 @@ pub async fn edit(db: &mut DBase, editable: &mut Editable, args: &str) -> Result
     let mut ta = db.begin().await?;
     match editable.item() {
         EditableItem::Students(students) => {
-            edit_students(&mut ta, indexes, students, fields).await?;
+            edit_students(&mut ta, EditItems::new(students, indexes), fields).await?;
         }
         EditableItem::Groups(groups) => {
             edit_groups(&mut ta, indexes, groups, fields).await?;
@@ -319,7 +319,7 @@ pub async fn edit_series(db: &mut DBase, editable: &mut Editable, args: &str) ->
 
         match editable.item() {
             EditableItem::Students(students) => {
-                edit_students(&mut ta, index, students, fields).await?;
+                edit_students(&mut ta, EditItems::new(students, index), fields).await?;
             }
             EditableItem::Groups(groups) => {
                 edit_groups(&mut ta, index, groups, fields).await?;
@@ -340,8 +340,7 @@ pub async fn edit_series(db: &mut DBase, editable: &mut Editable, args: &str) ->
 
 async fn edit_students(
     db: &mut DBase,
-    indexes: Vec<usize>,
-    students: &[Student],
+    students: EditItems<'_, Student>,
     mut fields: impl Iterator<Item = &str>,
 ) -> ResultDE<()> {
     let lastname = fields
@@ -361,7 +360,7 @@ async fn edit_students(
         Err("Anna muokattavia kenttiä.")?;
     }
 
-    if (lastname.is_some() || firstname.is_some()) && indexes.len() > 1 {
+    if (lastname.is_some() || firstname.is_some()) && students.count() > 1 {
         Err("Usealle henkilölle ei voi muuttaa kerralla samaa nimeä.\n\
              Muuta yksi kerrallaan, jos se on tarkoituksena.")?;
     }
@@ -387,12 +386,7 @@ async fn edit_students(
         }
     }
 
-    for i in indexes {
-        let student = match students.get(i - 1) {
-            None => Err("Ei muokattavia oppilaita.")?,
-            Some(v) => v,
-        };
-
+    for student in students.iter() {
         if let Some(last) = &lastname {
             student.update_lastname(db, last).await?;
         }

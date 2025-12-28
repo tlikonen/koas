@@ -174,3 +174,22 @@ pub struct FullQuery<'a> {
     pub description: &'a str,
     pub all: bool,
 }
+
+pub struct EditItems<'a, T> {
+    items: &'a Vec<T>,
+    indexes: Vec<usize>,
+}
+
+impl<'a, T> EditItems<'a, T> {
+    pub fn new(items: &'a Vec<T>, indexes: Vec<usize>) -> Self {
+        Self { items, indexes }
+    }
+
+    pub fn count(&self) -> usize {
+        self.indexes.len()
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = &T> {
+        self.indexes.iter().filter_map(|i| self.items.get(i - 1))
+    }
+}
