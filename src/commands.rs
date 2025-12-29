@@ -577,12 +577,8 @@ pub async fn convert_to_grade(db: &mut DBase, editable: &mut Editable, args: &st
     let mut ta = db.begin().await?;
     match editable.item() {
         EditableItem::Grades(student_grades) => {
-            for i in indexes {
-                let student_grade = match student_grades.value().get(i - 1) {
-                    Some(v) => v,
-                    None => Err("Ei muokattavia tietueita.")?,
-                };
-
+            let updates = student_grades.updates(indexes, [""; 0]); // empty fields
+            for student_grade in updates.iter() {
                 if let Some(ss) = &student_grade.grade
                     && let Some(old) = tools::parse_number(ss)
                     && let Some(new) = tools::float_to_grade(old)
@@ -627,12 +623,8 @@ pub async fn convert_to_decimal(
     let mut ta = db.begin().await?;
     match editable.item() {
         EditableItem::Grades(student_grades) => {
-            for i in indexes {
-                let student_grade = match student_grades.value().get(i - 1) {
-                    Some(v) => v,
-                    None => Err("Ei muokattavia tietueita.")?,
-                };
-
+            let updates = student_grades.updates(indexes, [""; 0]); // empty fields
+            for student_grade in updates.iter() {
                 if let Some(ss) = &student_grade.grade
                     && let Some(old) = tools::parse_number(ss)
                 {
