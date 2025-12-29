@@ -339,24 +339,16 @@ pub async fn edit_series(db: &mut DBase, editable: &mut Editable, args: &str) ->
 }
 
 async fn edit_students(db: &mut DBase, edit_students: EditItems<'_, Student>) -> ResultDE<()> {
-    let lastname = edit_students
-        .field(0)
-        .filter(|x| tools::has_content(x))
-        .map(|s| tools::normalize_str(s)); // sukunimi
+    let lastname = edit_students.field(0); // sukunimi
+    let firstname = edit_students.field(1); // etunimi
+    let groups = edit_students.field(2); // ryhmät
+    let desc = edit_students.field(3); // lisätiedot
 
-    let firstname = edit_students
-        .field(1)
-        .filter(|x| tools::has_content(x))
-        .map(|s| tools::normalize_str(s)); // etunimi
-
-    let groups = edit_students.field(2).filter(|x| tools::has_content(x)); // ryhmät
-    let desc = edit_students.field(3).map(|s| tools::normalize_str(s)); // lisätiedot
-
-    if lastname.is_none() && firstname.is_none() && groups.is_none() && desc.is_none() {
+    if !lastname.has_value() && !firstname.has_value() && !groups.has_value() && desc.is_none() {
         Err("Anna muokattavia kenttiä.")?;
     }
 
-    if (lastname.is_some() || firstname.is_some()) && edit_students.count() > 1 {
+    if (lastname.has_value() || firstname.has_value()) && edit_students.count() > 1 {
         Err("Usealle henkilölle ei voi muuttaa kerralla samaa nimeä.\n\
              Muuta yksi kerrallaan, jos se on tarkoituksena.")?;
     }
@@ -364,7 +356,7 @@ async fn edit_students(db: &mut DBase, edit_students: EditItems<'_, Student>) ->
     let mut groups_add: Vec<String> = Vec::with_capacity(3);
     let mut groups_remove: Vec<String> = Vec::with_capacity(1);
 
-    if let Some(groups) = groups {
+    if let Field::Value(groups) = groups {
         for g in groups.split_whitespace() {
             let mut chars = g.chars();
             match chars.next() {
@@ -383,11 +375,11 @@ async fn edit_students(db: &mut DBase, edit_students: EditItems<'_, Student>) ->
     }
 
     for student in edit_students.iter() {
-        if let Some(last) = &lastname {
+        if let Field::Value(last) = &lastname {
             student.update_lastname(db, last).await?;
         }
 
-        if let Some(first) = &firstname {
+        if let Field::Value(first) = &firstname {
             student.update_firstname(db, first).await?;
         }
 
@@ -429,8 +421,10 @@ async fn edit_students(db: &mut DBase, edit_students: EditItems<'_, Student>) ->
             }
         }
 
-        if let Some(d) = &desc {
-            student.update_description(db, d).await?;
+        match &desc {
+            Field::Value(d) => student.update_description(db, d).await?,
+            Field::ValueEmpty => student.update_description(db, "").await?,
+            Field::None => (),
         }
     }
 
@@ -439,38 +433,32 @@ async fn edit_students(db: &mut DBase, edit_students: EditItems<'_, Student>) ->
 }
 
 async fn edit_groups(db: &mut DBase, edit_groups: EditItems<'_, Group>) -> ResultDE<()> {
-    let mut name = edit_groups.field(0).filter(|x| tools::has_content(x)); // ryhmä
+    let name = edit_groups.field(0); // ryhmä
+    let desc = edit_groups.field(1); // lisätiedot
 
-    let desc = edit_groups
-        .field(1)
-        .filter(|x| tools::has_content(x))
-        .map(|s| tools::normalize_str(s)); // lisätiedot
-
-    if name.is_none() && desc.is_none() {
+    if !name.has_value() && desc.is_none() {
         Err("Anna muokattavia kenttiä.")?;
     }
 
-    if name.is_some() && edit_groups.count() > 1 {
+    if name.has_value() && edit_groups.count() > 1 {
         Err("Usealle ryhmälle ei voi antaa samaa nimeä.")?;
     }
 
-    name = match name {
-        Some(s) => {
-            if s.split_whitespace().nth(1).is_some() {
-                Err("Ryhmätunnuksen pitää olla yksi sana.")?;
-            }
-            Some(s)
-        }
-        None => None,
-    };
+    if let Field::Value(s) = &name
+        && s.split_whitespace().nth(1).is_some()
+    {
+        Err("Ryhmätunnuksen pitää olla yksi sana.")?;
+    }
 
     for group in edit_groups.iter() {
-        if let Some(n) = name {
+        if let Field::Value(n) = name {
             group.update_name(db, n).await?;
         }
 
-        if let Some(d) = &desc {
-            group.update_description(db, d).await?;
+        match &desc {
+            Field::Value(d) => group.update_description(db, d).await?,
+            Field::ValueEmpty => group.update_description(db, "").await?,
+            Field::None => (),
         }
     }
     Ok(())
@@ -480,53 +468,42 @@ async fn edit_assignments(
     db: &mut DBase,
     edit_group_assignments: EditItems<'_, Assignment>,
 ) -> ResultDE<()> {
-    let name = edit_group_assignments
-        .field(0)
-        .filter(|x| tools::has_content(x))
-        .map(|s| tools::normalize_str(s)); // suoritus
+    let name = edit_group_assignments.field(0); // suoritus
+    let short = edit_group_assignments.field(1); // lyhenne
+    let weight = edit_group_assignments.field(2); // painokerroin
+    let position = edit_group_assignments.field(3); // sija
 
-    let short = edit_group_assignments
-        .field(1)
-        .filter(|x| tools::has_content(x))
-        .map(|s| tools::normalize_str(s)); // lyhenne
-
-    let weight = edit_group_assignments.field(2).filter(|x| !x.is_empty()); // painokerroin
-
-    let position = edit_group_assignments
-        .field(3)
-        .filter(|x| tools::has_content(x)); // sija
-
-    if name.is_none() && short.is_none() && weight.is_none() && position.is_none() {
+    if !name.has_value() && !short.has_value() && weight.is_none() && !position.has_value() {
         Err("Anna muokattavia kenttiä.")?;
     }
 
-    if position.is_some() && edit_group_assignments.count() > 1 {
+    if position.has_value() && edit_group_assignments.count() > 1 {
         Err("Usealle suoritukselle ei voi asettaa samaa järjestysnumeroa.")?;
     }
 
     let weight = match weight {
-        Some(s) if !tools::has_content(s) => Some(None), // painokerroin: NULL
-        Some(s) => match s.trim().parse::<i32>() {
+        Field::Value(s) => match s.trim().parse::<i32>() {
             Ok(n) if n >= 1 => Some(Some(n)),
             _ => Err("Painokertoimen täytyy olla positiivinen kokonaisluku (tai tyhjä).")?,
         },
-        None => None,
+        Field::ValueEmpty => Some(None), // painokerroin: NULL
+        Field::None => None,
     };
 
     let position = match position {
-        Some(s) => match s.trim().parse::<i32>() {
+        Field::Value(s) => match s.trim().parse::<i32>() {
             Ok(n) => Some(n),
             _ => Err("Järjestysnumeron täytyy olla kokonaisluku.")?,
         },
-        None => None,
+        _ => None,
     };
 
     for group_assignment in edit_group_assignments.iter() {
-        if let Some(n) = &name {
+        if let Field::Value(n) = &name {
             group_assignment.update_name(db, n).await?;
         }
 
-        if let Some(s) = &short {
+        if let Field::Value(s) = &short {
             group_assignment.update_short(db, s).await?;
         }
 
@@ -542,27 +519,24 @@ async fn edit_assignments(
 }
 
 async fn edit_grades(db: &mut DBase, edit_student_grades: EditItems<'_, Grade>) -> ResultDE<()> {
-    let grade = edit_student_grades
-        .field(0)
-        .filter(|x| !x.is_empty())
-        .map(|s| tools::normalize_str(s)); // arvosana
-
-    let desc = edit_student_grades
-        .field(1)
-        .filter(|x| !x.is_empty())
-        .map(|s| tools::normalize_str(s)); // lisätiedot
+    let grade = edit_student_grades.field(0); // arvosana
+    let desc = edit_student_grades.field(1); // lisätiedot
 
     if grade.is_none() && desc.is_none() {
         Err("Anna muokattavia kenttiä.")?;
     }
 
     for student_grade in edit_student_grades.iter() {
-        if let Some(s) = &grade {
-            student_grade.update_grade(db, s).await?;
+        match &grade {
+            Field::Value(s) => student_grade.update_grade(db, s).await?,
+            Field::ValueEmpty => student_grade.update_grade(db, "").await?,
+            Field::None => (),
         }
 
-        if let Some(d) = &desc {
-            student_grade.update_description(db, d).await?;
+        match &desc {
+            Field::Value(d) => student_grade.update_description(db, d).await?,
+            Field::ValueEmpty => student_grade.update_description(db, "").await?,
+            Field::None => (),
         }
 
         student_grade.delete_if_empty(db).await?;

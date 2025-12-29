@@ -178,7 +178,7 @@ pub struct FullQuery<'a> {
 pub struct EditItems<'a, T> {
     items: &'a Vec<T>,
     indexes: Vec<usize>,
-    fields: Vec<String>,
+    fields: Vec<Field>,
 }
 
 impl<'a, T> EditItems<'a, T> {
@@ -187,10 +187,21 @@ impl<'a, T> EditItems<'a, T> {
         I: IntoIterator<Item = S>,
         S: ToString,
     {
+        let mut normalized = Vec::with_capacity(4);
+        for field in fields.into_iter().map(|x| x.to_string()) {
+            normalized.push(if field.is_empty() {
+                Field::None
+            } else if !tools::has_content(&field) {
+                Field::ValueEmpty
+            } else {
+                Field::Value(tools::normalize_str(&field))
+            });
+        }
+
         Self {
             items,
             indexes,
-            fields: fields.into_iter().map(|x| x.to_string()).collect(),
+            fields: normalized,
         }
     }
 
@@ -202,7 +213,26 @@ impl<'a, T> EditItems<'a, T> {
         self.indexes.iter().filter_map(|i| self.items.get(i - 1))
     }
 
-    pub fn field(&self, n: usize) -> Option<&String> {
-        self.fields.get(n)
+    pub fn field(&self, n: usize) -> &Field {
+        match self.fields.get(n) {
+            Some(f) => f,
+            None => &Field::None,
+        }
+    }
+}
+
+pub enum Field {
+    None,
+    ValueEmpty,
+    Value(String),
+}
+
+impl Field {
+    pub fn is_none(&self) -> bool {
+        matches!(self, Field::None)
+    }
+
+    pub fn has_value(&self) -> bool {
+        matches!(self, Field::Value(_))
     }
 }
