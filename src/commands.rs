@@ -294,7 +294,7 @@ pub async fn edit_series(db: &mut DBase, editable: &mut Editable, args: &str) ->
     }
 
     if values.iter().all(|x| x.is_empty()) {
-        Err("Ei tehty muutoksia.")?;
+        Err("Ei muutoksia.")?;
     }
 
     let mut ta = db.begin().await?;
