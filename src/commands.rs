@@ -196,24 +196,16 @@ pub async fn edit(db: &mut DBase, editable: &mut Editable, args: &str) -> Result
     let mut ta = db.begin().await?;
     match editable.item() {
         EditableItem::Students(students) => {
-            EditItems::new(students, indexes, fields)
-                .edit(&mut ta)
-                .await?;
+            students.updates(indexes, fields).edit(&mut ta).await?;
         }
         EditableItem::Groups(groups) => {
-            EditItems::new(groups, indexes, fields)
-                .edit(&mut ta)
-                .await?;
+            groups.updates(indexes, fields).edit(&mut ta).await?;
         }
         EditableItem::Assignments(assignments) => {
-            EditItems::new(assignments, indexes, fields)
-                .edit(&mut ta)
-                .await?;
+            assignments.updates(indexes, fields).edit(&mut ta).await?;
         }
         EditableItem::Grades(grades) => {
-            EditItems::new(grades, indexes, fields)
-                .edit(&mut ta)
-                .await?;
+            grades.updates(indexes, fields).edit(&mut ta).await?;
         }
         EditableItem::None => panic!(),
     }
@@ -327,20 +319,16 @@ pub async fn edit_series(db: &mut DBase, editable: &mut Editable, args: &str) ->
 
         match editable.item() {
             EditableItem::Students(students) => {
-                EditItems::new(students, index, fields)
-                    .edit(&mut ta)
-                    .await?;
+                students.updates(index, fields).edit(&mut ta).await?;
             }
             EditableItem::Groups(groups) => {
-                EditItems::new(groups, index, fields).edit(&mut ta).await?;
+                groups.updates(index, fields).edit(&mut ta).await?;
             }
             EditableItem::Assignments(assignments) => {
-                EditItems::new(assignments, index, fields)
-                    .edit(&mut ta)
-                    .await?;
+                assignments.updates(index, fields).edit(&mut ta).await?;
             }
             EditableItem::Grades(grades) => {
-                EditItems::new(grades, index, fields).edit(&mut ta).await?;
+                grades.updates(index, fields).edit(&mut ta).await?;
             }
             EditableItem::None => panic!(),
         }
@@ -590,7 +578,7 @@ pub async fn convert_to_grade(db: &mut DBase, editable: &mut Editable, args: &st
     match editable.item() {
         EditableItem::Grades(student_grades) => {
             for i in indexes {
-                let student_grade = match student_grades.get(i - 1) {
+                let student_grade = match student_grades.value().get(i - 1) {
                     Some(v) => v,
                     None => Err("Ei muokattavia tietueita.")?,
                 };
@@ -640,7 +628,7 @@ pub async fn convert_to_decimal(
     match editable.item() {
         EditableItem::Grades(student_grades) => {
             for i in indexes {
-                let student_grade = match student_grades.get(i - 1) {
+                let student_grade = match student_grades.value().get(i - 1) {
                     Some(v) => v,
                     None => Err("Ei muokattavia tietueita.")?,
                 };
@@ -783,17 +771,17 @@ pub async fn delete(db: &mut DBase, editable: &mut Editable, args: &str) -> Resu
     let mut ta = db.begin().await?;
     match editable.item() {
         EditableItem::Students(students) => {
-            delete_students(&mut ta, indexes, students).await?;
+            delete_students(&mut ta, indexes, students.value()).await?;
         }
         EditableItem::Groups(_) => {
             Err("Ryhmiä ei voi poistaa näin. Ryhmä poistuu itsestään,\n\
                  kun siltä poistaa kaikki oppilaat ja suoritukset.")?;
         }
         EditableItem::Assignments(assignments) => {
-            delete_assignments(&mut ta, indexes, assignments).await?;
+            delete_assignments(&mut ta, indexes, assignments.value()).await?;
         }
         EditableItem::Grades(grades) => {
-            delete_grades(&mut ta, indexes, grades).await?;
+            delete_grades(&mut ta, indexes, grades.value()).await?;
         }
         EditableItem::None => panic!(),
     }

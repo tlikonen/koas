@@ -4,9 +4,10 @@ pub(crate) use {
         modes::{Modes, Output},
         objects::{
             Assignment, Assignments, CopyToEditable, Edit, EditItems, Editable, EditableItem,
-            Field, FullQuery, Grade, GradeDistribution, GradesForAssignment, GradesForAssignments,
-            GradesForGroup, GradesForStudent, GradesForStudents, Group, Groups, HasData, ResultDE,
-            SimpleGrade, SimpleStudent, Stats, Student, StudentRanking, Students,
+            EditableValue, Field, FullQuery, Grade, GradeDistribution, GradesForAssignment,
+            GradesForAssignments, GradesForGroup, GradesForStudent, GradesForStudents, Group,
+            Groups, HasData, ResultDE, SimpleGrade, SimpleStudent, Stats, Student, StudentRanking,
+            Students, Updates,
         },
         print::{PrintTable, PrintTableList, PrintTableNum},
         tools,

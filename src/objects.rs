@@ -26,10 +26,26 @@ pub trait CopyToEditable {
 
 pub enum EditableItem {
     None,
-    Students(Vec<Student>),
-    Groups(Vec<Group>),
-    Assignments(Vec<Assignment>),
-    Grades(Vec<Grade>),
+    Students(EditableValue<Student>),
+    Groups(EditableValue<Group>),
+    Assignments(EditableValue<Assignment>),
+    Grades(EditableValue<Grade>),
+}
+
+pub struct EditableValue<T>(Vec<T>);
+
+impl<T> EditableValue<T> {
+    pub fn from(value: Vec<T>) -> Self {
+        Self(value)
+    }
+
+    pub fn value(&self) -> &Vec<T> {
+        &self.0
+    }
+
+    pub fn count(&self) -> usize {
+        self.0.len()
+    }
 }
 
 pub struct Editable(EditableItem);
@@ -182,29 +198,6 @@ pub struct EditItems<'a, T> {
 }
 
 impl<'a, T> EditItems<'a, T> {
-    pub fn new<I, S>(items: &'a Vec<T>, indexes: Vec<usize>, fields: I) -> Self
-    where
-        I: IntoIterator<Item = S>,
-        S: ToString,
-    {
-        let mut normalized = Vec::with_capacity(4);
-        for field in fields.into_iter().map(|x| x.to_string()) {
-            normalized.push(if field.is_empty() {
-                Field::None
-            } else if !tools::has_content(&field) {
-                Field::ValueEmpty
-            } else {
-                Field::Value(tools::normalize_str(&field))
-            });
-        }
-
-        Self {
-            items,
-            indexes,
-            fields: normalized,
-        }
-    }
-
     pub fn count(&self) -> usize {
         self.indexes.len()
     }
@@ -234,6 +227,39 @@ impl Field {
 
     pub fn has_value(&self) -> bool {
         matches!(self, Field::Value(_))
+    }
+}
+
+pub trait Updates<T> {
+    fn updates<'a, I, S>(&'a self, indexes: Vec<usize>, fields: I) -> EditItems<'a, T>
+    where
+        I: IntoIterator<Item = S>,
+        S: ToString,
+    {
+        let mut normalized = Vec::with_capacity(4);
+        for field in fields.into_iter().map(|x| x.to_string()) {
+            normalized.push(if field.is_empty() {
+                Field::None
+            } else if !tools::has_content(&field) {
+                Field::ValueEmpty
+            } else {
+                Field::Value(tools::normalize_str(&field))
+            });
+        }
+
+        EditItems {
+            items: self.items(),
+            indexes,
+            fields: normalized,
+        }
+    }
+
+    fn items(&self) -> &Vec<T>;
+}
+
+impl<T> Updates<T> for EditableValue<T> {
+    fn items(&self) -> &Vec<T> {
+        self.value()
     }
 }
 

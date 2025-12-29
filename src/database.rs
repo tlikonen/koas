@@ -34,10 +34,10 @@ impl Editable {
     pub fn count(&self) -> usize {
         match &self.item() {
             EditableItem::None => 0,
-            EditableItem::Students(v) => v.len(),
-            EditableItem::Groups(v) => v.len(),
-            EditableItem::Assignments(v) => v.len(),
-            EditableItem::Grades(v) => v.len(),
+            EditableItem::Students(v) => v.count(),
+            EditableItem::Groups(v) => v.count(),
+            EditableItem::Assignments(v) => v.count(),
+            EditableItem::Grades(v) => v.count(),
         }
     }
 
@@ -233,7 +233,7 @@ impl HasData for Students {
 
 impl CopyToEditable for Students {
     fn item(&self) -> EditableItem {
-        EditableItem::Students(self.list.clone())
+        EditableItem::Students(EditableValue::from(self.list.clone()))
     }
 }
 
@@ -331,7 +331,7 @@ impl HasData for Groups {
 
 impl CopyToEditable for Groups {
     fn item(&self) -> EditableItem {
-        EditableItem::Groups(self.list.clone())
+        EditableItem::Groups(EditableValue::from(self.list.clone()))
     }
 }
 
@@ -517,7 +517,7 @@ impl HasData for Assignments {
 
 impl CopyToEditable for Assignments {
     fn item(&self) -> EditableItem {
-        EditableItem::Assignments(self.list.clone())
+        EditableItem::Assignments(EditableValue::from(self.list.clone()))
     }
 }
 
@@ -673,7 +673,7 @@ impl HasData for GradesForAssignments {
 
 impl CopyToEditable for GradesForAssignment {
     fn item(&self) -> EditableItem {
-        EditableItem::Grades(self.grades.clone())
+        EditableItem::Grades(EditableValue::from(self.grades.clone()))
     }
 }
 
@@ -764,7 +764,7 @@ impl HasData for GradesForStudents {
 
 impl CopyToEditable for GradesForStudent {
     fn item(&self) -> EditableItem {
-        EditableItem::Grades(self.grades.clone())
+        EditableItem::Grades(EditableValue::from(self.grades.clone()))
     }
 }
 
