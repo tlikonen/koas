@@ -178,11 +178,20 @@ pub struct FullQuery<'a> {
 pub struct EditItems<'a, T> {
     items: &'a Vec<T>,
     indexes: Vec<usize>,
+    fields: Vec<String>,
 }
 
 impl<'a, T> EditItems<'a, T> {
-    pub fn new(items: &'a Vec<T>, indexes: Vec<usize>) -> Self {
-        Self { items, indexes }
+    pub fn new<I, S>(items: &'a Vec<T>, indexes: Vec<usize>, fields: I) -> Self
+    where
+        I: IntoIterator<Item = S>,
+        S: ToString,
+    {
+        Self {
+            items,
+            indexes,
+            fields: fields.into_iter().map(|x| x.to_string()).collect(),
+        }
     }
 
     pub fn count(&self) -> usize {
@@ -191,5 +200,9 @@ impl<'a, T> EditItems<'a, T> {
 
     pub fn iter(&self) -> impl Iterator<Item = &T> {
         self.indexes.iter().filter_map(|i| self.items.get(i - 1))
+    }
+
+    pub fn field(&self, n: usize) -> Option<&String> {
+        self.fields.get(n)
     }
 }
