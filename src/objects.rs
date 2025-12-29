@@ -236,3 +236,7 @@ impl Field {
         matches!(self, Field::Value(_))
     }
 }
+
+pub trait Edit {
+    async fn edit(&self, db: &mut DBase) -> ResultDE<()>;
+}

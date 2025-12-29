@@ -3,8 +3,8 @@ pub(crate) use {
         config::Config,
         modes::{Modes, Output},
         objects::{
-            Assignment, Assignments, CopyToEditable, EditItems, Editable, EditableItem, Field,
-            FullQuery, Grade, GradeDistribution, GradesForAssignment, GradesForAssignments,
+            Assignment, Assignments, CopyToEditable, Edit, EditItems, Editable, EditableItem,
+            Field, FullQuery, Grade, GradeDistribution, GradesForAssignment, GradesForAssignments,
             GradesForGroup, GradesForStudent, GradesForStudents, Group, Groups, HasData, ResultDE,
             SimpleGrade, SimpleStudent, Stats, Student, StudentRanking, Students,
         },
