@@ -532,12 +532,10 @@ impl Grade {
         Ok(result)
     }
 
-    pub async fn update_grade(&self, db: &mut DBase, grade: &str) -> ResultDE<()> {
-        let value = if grade.is_empty() { None } else { Some(grade) };
-
+    pub async fn update_grade(&self, db: &mut DBase, grade: Option<&str>) -> ResultDE<()> {
         if self.exists(db).await? {
             sqlx::query("UPDATE arvosanat SET arvosana = $1 WHERE sid = $2 AND oid = $3")
-                .bind(value)
+                .bind(grade)
                 .bind(self.sid)
                 .bind(self.oid)
                 .execute(db)
@@ -546,19 +544,17 @@ impl Grade {
             sqlx::query("INSERT INTO arvosanat (sid, oid, arvosana) VALUES ($1, $2, $3)")
                 .bind(self.sid)
                 .bind(self.oid)
-                .bind(value)
+                .bind(grade)
                 .execute(db)
                 .await?;
         }
         Ok(())
     }
 
-    pub async fn update_description(&self, db: &mut DBase, desc: &str) -> ResultDE<()> {
-        let value = if desc.is_empty() { None } else { Some(desc) };
-
+    pub async fn update_description(&self, db: &mut DBase, desc: Option<&str>) -> ResultDE<()> {
         if self.exists(db).await? {
             sqlx::query("UPDATE arvosanat SET lisatiedot = $1 WHERE sid = $2 AND oid = $3")
-                .bind(value)
+                .bind(desc)
                 .bind(self.sid)
                 .bind(self.oid)
                 .execute(db)
@@ -567,7 +563,7 @@ impl Grade {
             sqlx::query("INSERT INTO arvosanat (sid, oid, lisatiedot) VALUES ($1, $2, $3)")
                 .bind(self.sid)
                 .bind(self.oid)
-                .bind(value)
+                .bind(desc)
                 .execute(db)
                 .await?;
         }

@@ -528,14 +528,14 @@ async fn edit_grades(db: &mut DBase, edit_student_grades: EditItems<'_, Grade>) 
 
     for student_grade in edit_student_grades.iter() {
         match &grade {
-            Field::Value(s) => student_grade.update_grade(db, s).await?,
-            Field::ValueEmpty => student_grade.update_grade(db, "").await?,
+            Field::Value(s) => student_grade.update_grade(db, Some(s)).await?,
+            Field::ValueEmpty => student_grade.update_grade(db, None).await?,
             Field::None => (),
         }
 
         match &desc {
-            Field::Value(d) => student_grade.update_description(db, d).await?,
-            Field::ValueEmpty => student_grade.update_description(db, "").await?,
+            Field::Value(d) => student_grade.update_description(db, Some(d)).await?,
+            Field::ValueEmpty => student_grade.update_description(db, None).await?,
             Field::None => (),
         }
 
@@ -580,7 +580,7 @@ pub async fn convert_to_grade(db: &mut DBase, editable: &mut Editable, args: &st
                     && let Some(old) = tools::parse_number(ss)
                     && let Some(new) = tools::float_to_grade(old)
                 {
-                    student_grade.update_grade(&mut ta, &new).await?;
+                    student_grade.update_grade(&mut ta, Some(&new)).await?;
                 }
             }
         }
@@ -630,7 +630,7 @@ pub async fn convert_to_decimal(
                     && let Some(old) = tools::parse_number(ss)
                 {
                     let new = tools::format_decimal(old);
-                    student_grade.update_grade(&mut ta, &new).await?;
+                    student_grade.update_grade(&mut ta, Some(&new)).await?;
                 }
             }
         }
