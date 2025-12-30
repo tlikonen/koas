@@ -34,10 +34,10 @@ impl Editable {
     pub fn count(&self) -> usize {
         match &self.item() {
             EditableItem::None => 0,
-            EditableItem::Students(v) => v.len(),
-            EditableItem::Groups(v) => v.len(),
-            EditableItem::Assignments(v) => v.len(),
-            EditableItem::Grades(v) => v.len(),
+            EditableItem::Students(v) => v.count(),
+            EditableItem::Groups(v) => v.count(),
+            EditableItem::Assignments(v) => v.count(),
+            EditableItem::Grades(v) => v.count(),
         }
     }
 
@@ -233,7 +233,7 @@ impl HasData for Students {
 
 impl CopyToEditable for Students {
     fn item(&self) -> EditableItem {
-        EditableItem::Students(self.list.clone())
+        EditableItem::Students(EditableValue::from(self.list.clone()))
     }
 }
 
@@ -331,7 +331,7 @@ impl HasData for Groups {
 
 impl CopyToEditable for Groups {
     fn item(&self) -> EditableItem {
-        EditableItem::Groups(self.list.clone())
+        EditableItem::Groups(EditableValue::from(self.list.clone()))
     }
 }
 
@@ -354,13 +354,15 @@ impl Assignment {
         Ok(())
     }
 
-    pub async fn update_weight(&self, db: &mut DBase, weight: Option<i32>) -> ResultDE<()> {
-        let value = match weight {
-            Some(n) if n < 1 => None,
-            v => v,
-        };
+    pub async fn update_weight(&self, db: &mut DBase, mut weight: Option<i32>) -> ResultDE<()> {
+        if let Some(n) = weight
+            && n < 1
+        {
+            weight = None;
+        }
+
         sqlx::query("UPDATE suoritukset SET painokerroin = $1 WHERE sid = $2")
-            .bind(value)
+            .bind(weight)
             .bind(self.sid)
             .execute(db)
             .await?;
@@ -517,7 +519,7 @@ impl HasData for Assignments {
 
 impl CopyToEditable for Assignments {
     fn item(&self) -> EditableItem {
-        EditableItem::Assignments(self.list.clone())
+        EditableItem::Assignments(EditableValue::from(self.list.clone()))
     }
 }
 
@@ -532,12 +534,16 @@ impl Grade {
         Ok(result)
     }
 
-    pub async fn update_grade(&self, db: &mut DBase, grade: &str) -> ResultDE<()> {
-        let value = if grade.is_empty() { None } else { Some(grade) };
+    pub async fn update_grade(&self, db: &mut DBase, mut grade: Option<&str>) -> ResultDE<()> {
+        if let Some(s) = grade
+            && s.is_empty()
+        {
+            grade = None;
+        }
 
         if self.exists(db).await? {
             sqlx::query("UPDATE arvosanat SET arvosana = $1 WHERE sid = $2 AND oid = $3")
-                .bind(value)
+                .bind(grade)
                 .bind(self.sid)
                 .bind(self.oid)
                 .execute(db)
@@ -546,19 +552,23 @@ impl Grade {
             sqlx::query("INSERT INTO arvosanat (sid, oid, arvosana) VALUES ($1, $2, $3)")
                 .bind(self.sid)
                 .bind(self.oid)
-                .bind(value)
+                .bind(grade)
                 .execute(db)
                 .await?;
         }
         Ok(())
     }
 
-    pub async fn update_description(&self, db: &mut DBase, desc: &str) -> ResultDE<()> {
-        let value = if desc.is_empty() { None } else { Some(desc) };
+    pub async fn update_description(&self, db: &mut DBase, mut desc: Option<&str>) -> ResultDE<()> {
+        if let Some(s) = desc
+            && s.is_empty()
+        {
+            desc = None;
+        }
 
         if self.exists(db).await? {
             sqlx::query("UPDATE arvosanat SET lisatiedot = $1 WHERE sid = $2 AND oid = $3")
-                .bind(value)
+                .bind(desc)
                 .bind(self.sid)
                 .bind(self.oid)
                 .execute(db)
@@ -567,7 +577,7 @@ impl Grade {
             sqlx::query("INSERT INTO arvosanat (sid, oid, lisatiedot) VALUES ($1, $2, $3)")
                 .bind(self.sid)
                 .bind(self.oid)
-                .bind(value)
+                .bind(desc)
                 .execute(db)
                 .await?;
         }
@@ -677,7 +687,7 @@ impl HasData for GradesForAssignments {
 
 impl CopyToEditable for GradesForAssignment {
     fn item(&self) -> EditableItem {
-        EditableItem::Grades(self.grades.clone())
+        EditableItem::Grades(EditableValue::from(self.grades.clone()))
     }
 }
 
@@ -768,7 +778,7 @@ impl HasData for GradesForStudents {
 
 impl CopyToEditable for GradesForStudent {
     fn item(&self) -> EditableItem {
-        EditableItem::Grades(self.grades.clone())
+        EditableItem::Grades(EditableValue::from(self.grades.clone()))
     }
 }
 

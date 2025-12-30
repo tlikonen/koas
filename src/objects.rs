@@ -26,10 +26,26 @@ pub trait CopyToEditable {
 
 pub enum EditableItem {
     None,
-    Students(Vec<Student>),
-    Groups(Vec<Group>),
-    Assignments(Vec<Assignment>),
-    Grades(Vec<Grade>),
+    Students(EditableValue<Student>),
+    Groups(EditableValue<Group>),
+    Assignments(EditableValue<Assignment>),
+    Grades(EditableValue<Grade>),
+}
+
+pub struct EditableValue<T>(Vec<T>);
+
+impl<T> EditableValue<T> {
+    pub fn from(value: Vec<T>) -> Self {
+        Self(value)
+    }
+
+    fn value(&self) -> &Vec<T> {
+        &self.0
+    }
+
+    pub fn count(&self) -> usize {
+        self.0.len()
+    }
 }
 
 pub struct Editable(EditableItem);
@@ -178,13 +194,10 @@ pub struct FullQuery<'a> {
 pub struct EditItems<'a, T> {
     items: &'a Vec<T>,
     indexes: Vec<usize>,
+    fields: Vec<Field>,
 }
 
 impl<'a, T> EditItems<'a, T> {
-    pub fn new(items: &'a Vec<T>, indexes: Vec<usize>) -> Self {
-        Self { items, indexes }
-    }
-
     pub fn count(&self) -> usize {
         self.indexes.len()
     }
@@ -192,4 +205,96 @@ impl<'a, T> EditItems<'a, T> {
     pub fn iter(&self) -> impl Iterator<Item = &T> {
         self.indexes.iter().filter_map(|i| self.items.get(i - 1))
     }
+
+    pub fn field(&self, n: usize) -> &Field {
+        match self.fields.get(n) {
+            Some(f) => f,
+            None => &Field::None,
+        }
+    }
+}
+
+pub enum Field {
+    None,
+    ValueEmpty,
+    Value(String),
+}
+
+impl Field {
+    pub fn is_none(&self) -> bool {
+        matches!(self, Field::None)
+    }
+
+    pub fn has_value(&self) -> bool {
+        matches!(self, Field::Value(_))
+    }
+}
+
+pub trait ForEdit<T> {
+    fn for_edit<'a, I, S>(&'a self, indexes: Vec<usize>, fields: I) -> EditItems<'a, T>
+    where
+        I: IntoIterator<Item = S>,
+        S: ToString,
+    {
+        let mut normalized = Vec::with_capacity(4);
+        for field in fields.into_iter().map(|x| x.to_string()) {
+            normalized.push(if field.is_empty() {
+                Field::None
+            } else if !tools::has_content(&field) {
+                Field::ValueEmpty
+            } else {
+                Field::Value(tools::normalize_str(&field))
+            });
+        }
+
+        EditItems {
+            items: self.items(),
+            indexes,
+            fields: normalized,
+        }
+    }
+
+    fn items(&self) -> &Vec<T>;
+}
+
+impl<T> ForEdit<T> for EditableValue<T> {
+    fn items(&self) -> &Vec<T> {
+        self.value()
+    }
+}
+
+pub trait Edit {
+    async fn edit(&self, db: &mut DBase) -> ResultDE<()>;
+}
+
+pub struct DeleteItems<'a, T> {
+    items: &'a Vec<T>,
+    indexes: Vec<usize>,
+}
+
+impl<'a, T> DeleteItems<'a, T> {
+    pub fn iter(&self) -> impl Iterator<Item = &T> {
+        self.indexes.iter().filter_map(|i| self.items.get(i - 1))
+    }
+}
+
+pub trait ForDelete<T> {
+    fn for_delete<'a>(&'a self, indexes: Vec<usize>) -> DeleteItems<'a, T> {
+        DeleteItems {
+            items: self.items(),
+            indexes,
+        }
+    }
+
+    fn items(&self) -> &Vec<T>;
+}
+
+impl<T> ForDelete<T> for EditableValue<T> {
+    fn items(&self) -> &Vec<T> {
+        self.value()
+    }
+}
+
+pub trait Delete {
+    async fn delete(&self, db: &mut DBase) -> ResultDE<()>;
 }
