@@ -1,7 +1,6 @@
 mod init;
 
-use crate::prelude::*;
-use futures::TryStreamExt;
+use {crate::prelude::*, futures::TryStreamExt};
 
 pub async fn connect(config: &Config, modes: &Modes) -> ResultDE<DBase> {
     let connect_string = format!(

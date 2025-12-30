@@ -1,6 +1,8 @@
-use just_getopt::{Args, OptFlags, OptSpecs, OptValue};
-use koas::*;
-use std::{error::Error, process::ExitCode};
+use {
+    just_getopt::{Args, OptFlags, OptSpecs, OptValue},
+    koas::*,
+    std::{error::Error, process::ExitCode},
+};
 
 #[tokio::main]
 async fn main() -> ExitCode {
