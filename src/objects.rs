@@ -230,8 +230,8 @@ impl Field {
     }
 }
 
-pub trait Updates<T> {
-    fn updates<'a, I, S>(&'a self, indexes: Vec<usize>, fields: I) -> EditItems<'a, T>
+pub trait ForEdit<T> {
+    fn for_edit<'a, I, S>(&'a self, indexes: Vec<usize>, fields: I) -> EditItems<'a, T>
     where
         I: IntoIterator<Item = S>,
         S: ToString,
@@ -257,7 +257,7 @@ pub trait Updates<T> {
     fn items(&self) -> &Vec<T>;
 }
 
-impl<T> Updates<T> for EditableValue<T> {
+impl<T> ForEdit<T> for EditableValue<T> {
     fn items(&self) -> &Vec<T> {
         self.value()
     }

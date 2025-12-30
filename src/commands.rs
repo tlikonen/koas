@@ -196,16 +196,16 @@ pub async fn edit(db: &mut DBase, editable: &mut Editable, args: &str) -> Result
     let mut ta = db.begin().await?;
     match editable.item() {
         EditableItem::Students(students) => {
-            students.updates(indexes, fields).edit(&mut ta).await?;
+            students.for_edit(indexes, fields).edit(&mut ta).await?;
         }
         EditableItem::Groups(groups) => {
-            groups.updates(indexes, fields).edit(&mut ta).await?;
+            groups.for_edit(indexes, fields).edit(&mut ta).await?;
         }
         EditableItem::Assignments(assignments) => {
-            assignments.updates(indexes, fields).edit(&mut ta).await?;
+            assignments.for_edit(indexes, fields).edit(&mut ta).await?;
         }
         EditableItem::Grades(grades) => {
-            grades.updates(indexes, fields).edit(&mut ta).await?;
+            grades.for_edit(indexes, fields).edit(&mut ta).await?;
         }
         EditableItem::None => panic!(),
     }
@@ -319,16 +319,16 @@ pub async fn edit_series(db: &mut DBase, editable: &mut Editable, args: &str) ->
 
         match editable.item() {
             EditableItem::Students(students) => {
-                students.updates(index, fields).edit(&mut ta).await?;
+                students.for_edit(index, fields).edit(&mut ta).await?;
             }
             EditableItem::Groups(groups) => {
-                groups.updates(index, fields).edit(&mut ta).await?;
+                groups.for_edit(index, fields).edit(&mut ta).await?;
             }
             EditableItem::Assignments(assignments) => {
-                assignments.updates(index, fields).edit(&mut ta).await?;
+                assignments.for_edit(index, fields).edit(&mut ta).await?;
             }
             EditableItem::Grades(grades) => {
-                grades.updates(index, fields).edit(&mut ta).await?;
+                grades.for_edit(index, fields).edit(&mut ta).await?;
             }
             EditableItem::None => panic!(),
         }
@@ -577,8 +577,8 @@ pub async fn convert_to_grade(db: &mut DBase, editable: &mut Editable, args: &st
     let mut ta = db.begin().await?;
     match editable.item() {
         EditableItem::Grades(student_grades) => {
-            let updates = student_grades.updates(indexes, [""; 0]); // empty fields
-            for student_grade in updates.iter() {
+            let edits = student_grades.for_edit(indexes, [""; 0]); // empty fields
+            for student_grade in edits.iter() {
                 if let Some(ss) = &student_grade.grade
                     && let Some(old) = tools::parse_number(ss)
                     && let Some(new) = tools::float_to_grade(old)
@@ -623,8 +623,8 @@ pub async fn convert_to_decimal(
     let mut ta = db.begin().await?;
     match editable.item() {
         EditableItem::Grades(student_grades) => {
-            let updates = student_grades.updates(indexes, [""; 0]); // empty fields
-            for student_grade in updates.iter() {
+            let edits = student_grades.for_edit(indexes, [""; 0]); // empty fields
+            for student_grade in edits.iter() {
                 if let Some(ss) = &student_grade.grade
                     && let Some(old) = tools::parse_number(ss)
                 {
