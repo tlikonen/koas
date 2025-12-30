@@ -354,13 +354,15 @@ impl Assignment {
         Ok(())
     }
 
-    pub async fn update_weight(&self, db: &mut DBase, weight: Option<i32>) -> ResultDE<()> {
-        let value = match weight {
-            Some(n) if n < 1 => None,
-            v => v,
-        };
+    pub async fn update_weight(&self, db: &mut DBase, mut weight: Option<i32>) -> ResultDE<()> {
+        if let Some(n) = weight
+            && n < 1
+        {
+            weight = None;
+        }
+
         sqlx::query("UPDATE suoritukset SET painokerroin = $1 WHERE sid = $2")
-            .bind(value)
+            .bind(weight)
             .bind(self.sid)
             .execute(db)
             .await?;
