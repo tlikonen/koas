@@ -39,7 +39,7 @@ impl<T> EditableValue<T> {
         Self(value)
     }
 
-    pub fn value(&self) -> &Vec<T> {
+    fn value(&self) -> &Vec<T> {
         &self.0
     }
 
@@ -265,4 +265,36 @@ impl<T> Updates<T> for EditableValue<T> {
 
 pub trait Edit {
     async fn edit(&self, db: &mut DBase) -> ResultDE<()>;
+}
+
+pub struct DeleteItems<'a, T> {
+    items: &'a Vec<T>,
+    indexes: Vec<usize>,
+}
+
+impl<'a, T> DeleteItems<'a, T> {
+    pub fn iter(&self) -> impl Iterator<Item = &T> {
+        self.indexes.iter().filter_map(|i| self.items.get(i - 1))
+    }
+}
+
+pub trait ForDelete<T> {
+    fn for_delete<'a>(&'a self, indexes: Vec<usize>) -> DeleteItems<'a, T> {
+        DeleteItems {
+            items: self.items(),
+            indexes,
+        }
+    }
+
+    fn items(&self) -> &Vec<T>;
+}
+
+impl<T> ForDelete<T> for EditableValue<T> {
+    fn items(&self) -> &Vec<T> {
+        self.value()
+    }
+}
+
+pub trait Delete {
+    async fn delete(&self, db: &mut DBase) -> ResultDE<()>;
 }

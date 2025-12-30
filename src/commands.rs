@@ -763,17 +763,17 @@ pub async fn delete(db: &mut DBase, editable: &mut Editable, args: &str) -> Resu
     let mut ta = db.begin().await?;
     match editable.item() {
         EditableItem::Students(students) => {
-            delete_students(&mut ta, indexes, students.value()).await?;
+            students.for_delete(indexes).delete(&mut ta).await?;
         }
         EditableItem::Groups(_) => {
             Err("Ryhmiä ei voi poistaa näin. Ryhmä poistuu itsestään,\n\
                  kun siltä poistaa kaikki oppilaat ja suoritukset.")?;
         }
         EditableItem::Assignments(assignments) => {
-            delete_assignments(&mut ta, indexes, assignments.value()).await?;
+            assignments.for_delete(indexes).delete(&mut ta).await?;
         }
         EditableItem::Grades(grades) => {
-            delete_grades(&mut ta, indexes, grades.value()).await?;
+            grades.for_delete(indexes).delete(&mut ta).await?;
         }
         EditableItem::None => panic!(),
     }
@@ -781,79 +781,63 @@ pub async fn delete(db: &mut DBase, editable: &mut Editable, args: &str) -> Resu
     Ok(())
 }
 
-async fn delete_students(
-    db: &mut DBase,
-    indexes: Vec<usize>,
-    students: &[Student],
-) -> ResultDE<()> {
-    for i in indexes {
-        let student = match students.get(i - 1) {
-            None => Err("Poistettavia oppilaita ei ole.")?,
-            Some(v) => v,
-        };
+impl Delete for DeleteItems<'_, Student> {
+    async fn delete(&self, db: &mut DBase) -> ResultDE<()> {
+        for student in self.iter() {
+            let count = student.count_grades(db).await?;
+            if count > 0 {
+                Err(format!(
+                    "Oppilaalle ”{l}, {f}” on kirjattu {c} arvosana(a). Poista ne ensin.",
+                    l = student.lastname,
+                    f = student.firstname,
+                    c = count
+                ))?;
+            }
 
-        let count = student.count_grades(db).await?;
-        if count > 0 {
-            Err(format!(
-                "Oppilaalle ”{l}, {f}” on kirjattu {c} arvosana(a). Poista ne ensin.",
-                l = student.lastname,
-                f = student.firstname,
-                c = count
-            ))?;
+            student.delete(db).await?;
         }
-
-        student.delete(db).await?;
+        Groups::delete_empty(db).await?;
+        Ok(())
     }
-    Groups::delete_empty(db).await?;
-    Ok(())
 }
 
-async fn delete_assignments(
-    db: &mut DBase,
-    indexes: Vec<usize>,
-    assignments: &[Assignment],
-) -> ResultDE<()> {
-    let mut rid_list = Vec::with_capacity(1);
-    for i in indexes {
-        let assignment = match assignments.get(i - 1) {
-            None => Err("Poistettavia suorituksia ei ole.")?,
-            Some(v) => v,
-        };
+impl Delete for DeleteItems<'_, Assignment> {
+    async fn delete(&self, db: &mut DBase) -> ResultDE<()> {
+        let mut rid_list = Vec::with_capacity(1);
+        for assignment in self.iter() {
+            let count = assignment.count_grades(db).await?;
+            if count > 0 {
+                Err(format!(
+                    "Suoritukselle ”{a}” on kirjattu {c} arvosana(a). Poista ne ensin.",
+                    a = assignment.assignment,
+                    c = count,
+                ))?;
+            }
 
-        let count = assignment.count_grades(db).await?;
-        if count > 0 {
-            Err(format!(
-                "Suoritukselle ”{a}” on kirjattu {c} arvosana(a). Poista ne ensin.",
-                a = assignment.assignment,
-                c = count,
-            ))?;
+            assignment.delete(db).await?;
+
+            if !rid_list.contains(&assignment.rid) {
+                rid_list.push(assignment.rid);
+            }
         }
 
-        assignment.delete(db).await?;
+        Groups::delete_empty(db).await?;
 
-        if !rid_list.contains(&assignment.rid) {
-            rid_list.push(assignment.rid);
+        for rid in rid_list {
+            Assignments::reposition(db, rid).await?;
         }
+
+        Ok(())
     }
-
-    Groups::delete_empty(db).await?;
-
-    for rid in rid_list {
-        Assignments::reposition(db, rid).await?;
-    }
-
-    Ok(())
 }
 
-async fn delete_grades(db: &mut DBase, indexes: Vec<usize>, grades: &[Grade]) -> ResultDE<()> {
-    for i in indexes {
-        let grade = match grades.get(i - 1) {
-            None => Err("Poistettavia arvosanoja ei ole.")?,
-            Some(v) => v,
-        };
-        grade.delete(db).await?;
+impl Delete for DeleteItems<'_, Grade> {
+    async fn delete(&self, db: &mut DBase) -> ResultDE<()> {
+        for grade in self.iter() {
+            grade.delete(db).await?;
+        }
+        Ok(())
     }
-    Ok(())
 }
 
 pub async fn student_ranking(
