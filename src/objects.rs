@@ -17,11 +17,7 @@ pub trait HasData {
 }
 
 pub trait CopyToEditable {
-    fn copy_to(&self, ed: &mut Editable) {
-        ed.set(self.item());
-    }
-
-    fn item(&self) -> EditableItem;
+    fn copy_to(&self, ed: &mut Editable);
 }
 
 pub enum EditableItem {

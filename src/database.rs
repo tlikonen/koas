@@ -232,8 +232,10 @@ impl HasData for Students {
 }
 
 impl CopyToEditable for Students {
-    fn item(&self) -> EditableItem {
-        EditableItem::Students(EditableValue::from(self.list.clone()))
+    fn copy_to(&self, ed: &mut Editable) {
+        ed.set(EditableItem::Students(EditableValue::from(
+            self.list.clone(),
+        )));
     }
 }
 
@@ -330,8 +332,8 @@ impl HasData for Groups {
 }
 
 impl CopyToEditable for Groups {
-    fn item(&self) -> EditableItem {
-        EditableItem::Groups(EditableValue::from(self.list.clone()))
+    fn copy_to(&self, ed: &mut Editable) {
+        ed.set(EditableItem::Groups(EditableValue::from(self.list.clone())));
     }
 }
 
@@ -518,8 +520,10 @@ impl HasData for Assignments {
 }
 
 impl CopyToEditable for Assignments {
-    fn item(&self) -> EditableItem {
-        EditableItem::Assignments(EditableValue::from(self.list.clone()))
+    fn copy_to(&self, ed: &mut Editable) {
+        ed.set(EditableItem::Assignments(EditableValue::from(
+            self.list.clone(),
+        )));
     }
 }
 
@@ -686,8 +690,10 @@ impl HasData for GradesForAssignments {
 }
 
 impl CopyToEditable for GradesForAssignment {
-    fn item(&self) -> EditableItem {
-        EditableItem::Grades(EditableValue::from(self.grades.clone()))
+    fn copy_to(&self, ed: &mut Editable) {
+        ed.set(EditableItem::Grades(EditableValue::from(
+            self.grades.clone(),
+        )));
     }
 }
 
@@ -777,8 +783,10 @@ impl HasData for GradesForStudents {
 }
 
 impl CopyToEditable for GradesForStudent {
-    fn item(&self) -> EditableItem {
-        EditableItem::Grades(EditableValue::from(self.grades.clone()))
+    fn copy_to(&self, ed: &mut Editable) {
+        ed.set(EditableItem::Grades(EditableValue::from(
+            self.grades.clone(),
+        )));
     }
 }
 
