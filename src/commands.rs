@@ -858,7 +858,7 @@ pub async fn student_ranking(
     for field_string in field_groups {
         let mut fields = tools::split_sep(field_string);
         let query_terms = FullQuery {
-            // Keep the order!
+            // Keep the order because of the next() method.
             group: fields.next().unwrap_or(""),
             assignment: fields.next().unwrap_or(""),
             assignment_short: fields.next().unwrap_or(""),
@@ -893,7 +893,7 @@ pub async fn grade_distribution(
     for field_string in field_groups {
         let mut fields = tools::split_sep(field_string);
         let query_terms = FullQuery {
-            // Keep the order!
+            // Keep the order because of the next() method.
             group: fields.next().unwrap_or(""),
             assignment: fields.next().unwrap_or(""),
             assignment_short: fields.next().unwrap_or(""),
