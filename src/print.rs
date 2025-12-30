@@ -32,14 +32,24 @@ pub trait PrintTableList {
     fn list(&self) -> impl Iterator<Item = &impl PrintTable>;
 }
 
-pub struct Table {
-    rows: Vec<Row>,
-}
+pub struct Table(Vec<Row>);
 
 impl Table {
+    fn rows(&self) -> &Vec<Row> {
+        &self.0
+    }
+
+    fn rows_mut(&mut self) -> &mut Vec<Row> {
+        &mut self.0
+    }
+
+    fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
     fn widths(&self) -> Vec<usize> {
         let mut vec = Vec::with_capacity(10);
-        for row in &self.rows {
+        for row in self.rows() {
             match row.widths() {
                 None => continue,
                 Some(widths) => {
@@ -58,7 +68,7 @@ impl Table {
 
     fn numbering(mut self) -> Self {
         let mut n = 1;
-        for row in &mut self.rows {
+        for row in self.rows_mut() {
             match row {
                 Row::Head(v) | Row::Foot(v) => v.insert(0, Cell::Empty),
                 Row::Data(v) => {
@@ -72,7 +82,7 @@ impl Table {
     }
 
     fn print(&self, output: &Output) {
-        if self.rows.is_empty() {
+        if self.is_empty() {
             return;
         }
         match output {
@@ -162,7 +172,7 @@ impl PrintTable for Stats {
             Row::Bottomrule,
         ];
 
-        Table { rows }
+        Table(rows)
     }
 }
 
@@ -191,7 +201,7 @@ impl PrintTable for Students {
         }
 
         rows.push(Row::Bottomrule);
-        Table { rows }
+        Table(rows)
     }
 }
 
@@ -216,7 +226,7 @@ impl PrintTable for Groups {
         }
 
         rows.push(Row::Bottomrule);
-        Table { rows }
+        Table(rows)
     }
 }
 
@@ -245,7 +255,7 @@ impl PrintTable for Assignments {
         }
 
         rows.push(Row::Bottomrule);
-        Table { rows }
+        Table(rows)
     }
 }
 
@@ -300,7 +310,7 @@ impl PrintTable for GradesForAssignment {
             Cell::Empty,
         ]));
         rows.push(Row::Bottomrule);
-        Table { rows }
+        Table(rows)
     }
 }
 
@@ -374,7 +384,7 @@ impl PrintTable for GradesForStudent {
             Cell::Empty,
         ]));
         rows.push(Row::Bottomrule);
-        Table { rows }
+        Table(rows)
     }
 }
 
@@ -412,7 +422,7 @@ impl PrintTable for GradesForGroup {
         ]));
 
         rows.push(Row::Bottomrule);
-        Table { rows }.print(out);
+        Table(rows).print(out);
     }
 
     fn table(&self) -> Table {
@@ -505,7 +515,7 @@ impl PrintTable for GradesForGroup {
 
         rows.push(Row::Foot(totals));
         rows.push(Row::Bottomrule);
-        Table { rows }
+        Table(rows)
     }
 }
 
@@ -576,7 +586,7 @@ impl PrintTable for StudentRanking {
         ]));
         rows.push(Row::Bottomrule);
 
-        Table { rows }
+        Table(rows)
     }
 }
 
@@ -647,7 +657,7 @@ impl PrintTable for GradeDistribution<'_> {
         }
 
         rows.push(Row::Bottomrule);
-        Table { rows }
+        Table(rows)
     }
 }
 
@@ -722,7 +732,7 @@ fn print_table(tbl: &Table, tbl_chars: [&str; 15]) {
     };
 
     let widths = tbl.widths();
-    for row in &tbl.rows {
+    for row in tbl.rows() {
         match row {
             Row::Title(s) => println!("\n{s}\n"),
             Row::Toprule => {
@@ -813,7 +823,7 @@ fn print_table(tbl: &Table, tbl_chars: [&str; 15]) {
 }
 
 fn print_table_tab(tbl: &Table) {
-    for row in &tbl.rows {
+    for row in tbl.rows() {
         match row {
             Row::Title(s) => println!("\n{s}\n"),
             Row::Head(v) | Row::Data(v) | Row::Foot(v) => {
@@ -835,7 +845,7 @@ fn print_table_tab(tbl: &Table) {
 }
 
 fn print_table_csv(tbl: &Table) {
-    for row in &tbl.rows {
+    for row in tbl.rows() {
         match row {
             Row::Title(s) => println!("\n{s}\n"),
             Row::Head(v) | Row::Data(v) | Row::Foot(v) => {
@@ -872,7 +882,7 @@ fn print_table_csv(tbl: &Table) {
 }
 
 fn print_table_latex(tbl: &Table) {
-    for row in &tbl.rows {
+    for row in tbl.rows() {
         match row {
             Row::Title(s) => println!("\n{s}\n"),
             Row::Head(v) | Row::Data(v) | Row::Foot(v) => {
