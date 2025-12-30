@@ -532,7 +532,13 @@ impl Grade {
         Ok(result)
     }
 
-    pub async fn update_grade(&self, db: &mut DBase, grade: Option<&str>) -> ResultDE<()> {
+    pub async fn update_grade(&self, db: &mut DBase, mut grade: Option<&str>) -> ResultDE<()> {
+        if let Some(s) = grade
+            && s.is_empty()
+        {
+            grade = None;
+        }
+
         if self.exists(db).await? {
             sqlx::query("UPDATE arvosanat SET arvosana = $1 WHERE sid = $2 AND oid = $3")
                 .bind(grade)
@@ -551,7 +557,13 @@ impl Grade {
         Ok(())
     }
 
-    pub async fn update_description(&self, db: &mut DBase, desc: Option<&str>) -> ResultDE<()> {
+    pub async fn update_description(&self, db: &mut DBase, mut desc: Option<&str>) -> ResultDE<()> {
+        if let Some(s) = desc
+            && s.is_empty()
+        {
+            desc = None;
+        }
+
         if self.exists(db).await? {
             sqlx::query("UPDATE arvosanat SET lisatiedot = $1 WHERE sid = $2 AND oid = $3")
                 .bind(desc)
