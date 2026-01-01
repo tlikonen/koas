@@ -239,10 +239,10 @@ pub async fn edit_series(db: &mut DBase, editable: &mut Editable, args: &str) ->
 
     let (field_num, rest) = {
         let field_num_max = match editable.item() {
-            EditableItem::Students(_) => 4, // sukunimi, etunimi, ryhmä, lisätiedot
+            EditableItem::Students(_) => 4, // sukunimi, etunimi, ryhmät, lisätiedot
             EditableItem::Groups(_) => 2,   // ryhmä, lisätiedot
             EditableItem::Assignments(_) => 4, // suoritus, lyhenne, painokerroin, järjestys
-            EditableItem::Grades(_) => 2,   // ryhmä, lisätiedot
+            EditableItem::Grades(_) => 2,   // arvosana, lisätiedot
             EditableItem::None => panic!(),
         };
 
