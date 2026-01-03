@@ -190,7 +190,7 @@ pub struct FullQuery<'a> {
 pub struct EditItems<'a, T> {
     items: &'a Vec<T>,
     indexes: Vec<usize>,
-    fields: Vec<Field>,
+    fields: Vec<Field<String>>,
 }
 
 impl<'a, T> EditItems<'a, T> {
@@ -202,7 +202,7 @@ impl<'a, T> EditItems<'a, T> {
         self.indexes.iter().filter_map(|i| self.items.get(i - 1))
     }
 
-    pub fn field(&self, n: usize) -> &Field {
+    pub fn field(&self, n: usize) -> &Field<String> {
         match self.fields.get(n) {
             Some(f) => f,
             None => &Field::None,
@@ -210,13 +210,13 @@ impl<'a, T> EditItems<'a, T> {
     }
 }
 
-pub enum Field {
+pub enum Field<T> {
     None,
     ValueEmpty,
-    Value(String),
+    Value(T),
 }
 
-impl Field {
+impl<T> Field<T> {
     pub fn is_none(&self) -> bool {
         matches!(self, Field::None)
     }

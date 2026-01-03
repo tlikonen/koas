@@ -485,21 +485,23 @@ impl Edit for EditItems<'_, Assignment> {
             Err("Usealle suoritukselle ei voi asettaa samaa järjestysnumeroa.")?;
         }
 
+        // Convert from &Field<String> to Field<i32>.
         let weight = match weight {
             Field::Value(s) => match s.trim().parse::<i32>() {
-                Ok(n) if n >= 1 => Some(Some(n)),
+                Ok(n) if n >= 1 => Field::Value(n),
                 _ => Err("Painokertoimen täytyy olla positiivinen kokonaisluku (tai tyhjä).")?,
             },
-            Field::ValueEmpty => Some(None), // painokerroin: NULL
-            Field::None => None,
+            Field::ValueEmpty => Field::ValueEmpty,
+            Field::None => Field::None,
         };
 
+        // Convert from &Field<String> to Field<i32>.
         let position = match position {
             Field::Value(s) => match s.trim().parse::<i32>() {
-                Ok(n) => Some(n),
+                Ok(n) => Field::Value(n),
                 _ => Err("Järjestysnumeron täytyy olla kokonaisluku.")?,
             },
-            _ => None,
+            Field::ValueEmpty | Field::None => Field::None,
         };
 
         for group_assignment in self.iter() {
@@ -511,11 +513,13 @@ impl Edit for EditItems<'_, Assignment> {
                 group_assignment.update_short(db, s).await?;
             }
 
-            if let Some(w) = weight {
-                group_assignment.update_weight(db, w).await?;
+            match weight {
+                Field::Value(w) => group_assignment.update_weight(db, Some(w)).await?,
+                Field::ValueEmpty => group_assignment.update_weight(db, None).await?,
+                Field::None => (),
             }
 
-            if let Some(p) = position {
+            if let Field::Value(p) = position {
                 group_assignment.update_position(db, p).await?;
             }
         }
