@@ -378,11 +378,11 @@ impl Edit for EditItems<'_, Student> {
         }
 
         for student in self.iter() {
-            if let Field::Value(last) = &lastname {
+            if let Field::Value(last) = lastname {
                 student.update_lastname(db, last).await?;
             }
 
-            if let Field::Value(first) = &firstname {
+            if let Field::Value(first) = firstname {
                 student.update_firstname(db, first).await?;
             }
 
@@ -424,7 +424,7 @@ impl Edit for EditItems<'_, Student> {
                 }
             }
 
-            match &desc {
+            match desc {
                 Field::Value(d) => student.update_description(db, d).await?,
                 Field::ValueEmpty => student.update_description(db, "").await?,
                 Field::None => (),
@@ -460,7 +460,7 @@ impl Edit for EditItems<'_, Group> {
                 group.update_name(db, n).await?;
             }
 
-            match &desc {
+            match desc {
                 Field::Value(d) => group.update_description(db, d).await?,
                 Field::ValueEmpty => group.update_description(db, "").await?,
                 Field::None => (),
@@ -503,11 +503,11 @@ impl Edit for EditItems<'_, Assignment> {
         };
 
         for group_assignment in self.iter() {
-            if let Field::Value(n) = &name {
+            if let Field::Value(n) = name {
                 group_assignment.update_name(db, n).await?;
             }
 
-            if let Field::Value(s) = &short {
+            if let Field::Value(s) = short {
                 group_assignment.update_short(db, s).await?;
             }
 
@@ -533,13 +533,13 @@ impl Edit for EditItems<'_, Grade> {
         }
 
         for student_grade in self.iter() {
-            match &grade {
+            match grade {
                 Field::Value(s) => student_grade.update_grade(db, Some(s)).await?,
                 Field::ValueEmpty => student_grade.update_grade(db, None).await?,
                 Field::None => (),
             }
 
-            match &desc {
+            match desc {
                 Field::Value(d) => student_grade.update_description(db, Some(d)).await?,
                 Field::ValueEmpty => student_grade.update_description(db, None).await?,
                 Field::None => (),
