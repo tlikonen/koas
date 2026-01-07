@@ -965,26 +965,24 @@ mod tests {
 
     #[test]
     fn table_widths() {
-        let table = Table {
-            rows: vec![
-                Row::Toprule,
-                Row::Head(vec![
-                    Cell::Left("12".to_string()),
-                    Cell::Left("1".to_string()),
-                    Cell::Right("1234".to_string()),
-                ]),
-                Row::Data(vec![
-                    Cell::Left("€".to_string()),
-                    Cell::Left("€€".to_string()),
-                    Cell::Right("€€€".to_string()),
-                ]),
-                Row::Data(vec![
-                    Cell::Left("€".to_string()),
-                    Cell::Left("€€€".to_string()),
-                    Cell::Right("€€€€".to_string()),
-                ]),
-            ],
-        };
+        let table = Table(vec![
+            Row::Toprule,
+            Row::Head(vec![
+                Cell::Left("12".to_string()),
+                Cell::Left("1".to_string()),
+                Cell::Right("1234".to_string()),
+            ]),
+            Row::Data(vec![
+                Cell::Left("€".to_string()),
+                Cell::Left("€€".to_string()),
+                Cell::Right("€€€".to_string()),
+            ]),
+            Row::Data(vec![
+                Cell::Left("€".to_string()),
+                Cell::Left("€€€".to_string()),
+                Cell::Right("€€€€".to_string()),
+            ]),
+        ]);
 
         assert_eq!(vec![2, 3, 4], table.widths());
     }
