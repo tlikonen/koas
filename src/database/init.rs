@@ -29,7 +29,7 @@ pub async fn initialize(db: &mut DBase, modes: &Modes) -> ResultDE<()> {
                 if modes.is_interactive() {
                     eprintln!("{}", err_msg());
                 } else {
-                    Err(err_msg())?;
+                    return Err(err_msg().into());
                 }
             }
 
@@ -45,7 +45,7 @@ pub async fn initialize(db: &mut DBase, modes: &Modes) -> ResultDE<()> {
                     eprintln!("{}", err_msg());
                     // modes.set_upgrade();
                 } else {
-                    Err(err_msg())?;
+                    return Err(err_msg().into());
                 }
             }
         }
