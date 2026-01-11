@@ -8,24 +8,24 @@ pub fn parse_number_list(s: &str) -> ResultDE<Vec<usize>> {
         if is_all_digits(part) {
             let num = part.parse::<usize>()?;
             if num == 0 {
-                Err(errmsg(part))?;
+                return Err(errmsg(part).into());
             }
             vec.push(num);
             continue;
         }
 
         let (start, end) = match part.split_once('-') {
-            None => Err(errmsg(part))?,
+            None => return Err(errmsg(part).into()),
             Some((s, e)) => {
                 if !is_all_digits(s) || !is_all_digits(e) {
-                    Err(format!("Sopimaton tietueiden sarja: ”{s}-{e}”."))?;
+                    return Err(format!("Sopimaton tietueiden sarja: ”{s}-{e}”.").into());
                 }
                 (s.parse::<usize>()?, e.parse::<usize>()?)
             }
         };
 
         if start == 0 || end == 0 {
-            Err(errmsg("0"))?;
+            return Err(errmsg("0").into());
         }
 
         if start == end {

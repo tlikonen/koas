@@ -61,7 +61,7 @@ pub async fn command_stage(mut modes: Modes, config: Config) -> ResultDE<()> {
         Mode::Single(line) => {
             let (cmd, args) = tools::split_first(line);
             if let Err(e) = commands(&mut modes, &mut db, &mut editable, cmd, args).await? {
-                Err(format!("{e} Apua saa valitsimella ”--ohje”."))?;
+                return Err(format!("{e} Apua saa valitsimella ”--ohje”.").into());
             }
         }
 
@@ -72,7 +72,7 @@ pub async fn command_stage(mut modes: Modes, config: Config) -> ResultDE<()> {
                 if !line.is_empty() {
                     let (cmd, args) = tools::split_first(&line);
                     if let Err(e) = commands(&mut modes, &mut ta, &mut editable, cmd, args).await? {
-                        Err(format!("{e} Apua saa valitsimella ”--ohje”."))?;
+                        return Err(format!("{e} Apua saa valitsimella ”--ohje”.").into());
                     }
                 }
             }

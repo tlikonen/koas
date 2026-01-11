@@ -74,23 +74,23 @@ async fn main() -> ExitCode {
 
 async fn config_stage(args: Args) -> Result<(), Box<dyn Error>> {
     let config_file = Config::file()?;
-    let config: Config;
     let mut output: Output = Default::default();
 
     koas::umask();
 
-    if config_file.exists() {
-        config = Config::read(&config_file)?;
+    let config: Config = if config_file.exists() {
+        Config::read(&config_file)?
     } else {
-        config = Default::default();
-        config.write(&config_file)?;
-        Err(format!(
+        let c: Config = Default::default();
+        c.write(&config_file)?;
+        return Err(format!(
             "Luotiin asetustiedosto ”{}”.\n\
              Muokkaa tiedostoa tekstieditorilla ja aseta tietokannan yhteysasetukset.\n\
              Seuraavilla valitsimilla saa apua: ”--ohje=tietokanta” ja ”--ohje=asetukset”.",
             config_file.display()
-        ))?;
-    }
+        )
+        .into());
+    };
 
     // Table-printing format.
     if !config.tables.is_empty() {

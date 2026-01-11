@@ -9,7 +9,7 @@ pub trait HasData {
     {
         match self.empty_data() {
             false => Ok(self),
-            true => Err("Ei löytynyt.")?,
+            true => Err("Ei löytynyt.".to_string()),
         }
     }
 

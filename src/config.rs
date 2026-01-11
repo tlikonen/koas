@@ -111,10 +111,10 @@ impl Config {
             || config.host.is_empty()
             || !port
         {
-            Err(format!(
+            return Err(format!(
                 "Asetustiedostosta ”{}” puuttuu tärkeitä asetuksia. Tarkista ohjeet.",
                 path.display(),
-            ))?;
+            ));
         }
 
         if !config.tables.is_empty() && Output::select(&config.tables).is_err() {

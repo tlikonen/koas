@@ -70,7 +70,7 @@ pub async fn assignments(
     let group = {
         let (g, _) = tools::split_first(args);
         if g.is_empty() {
-            Err("Argumentiksi pitää antaa ryhmän nimi.")?;
+            return Err("Argumentiksi pitää antaa ryhmän nimi.".into());
         }
         g
     };
@@ -161,7 +161,7 @@ pub async fn grades_for_group(
     let group = {
         let (g, _) = tools::split_first(args);
         if g.is_empty() {
-            Err("Argumentiksi pitää antaa ryhmän nimi.")?;
+            return Err("Argumentiksi pitää antaa ryhmän nimi.".into());
         }
         g
     };
@@ -173,11 +173,11 @@ pub async fn grades_for_group(
 
 pub async fn edit(db: &mut DBase, editable: &mut Editable, args: &str) -> ResultDE<()> {
     if editable.is_none() {
-        Err("Edellinen komento ei sisällä muokattavia tietueita.")?;
+        return Err("Edellinen komento ei sisällä muokattavia tietueita.".into());
     }
 
     if args.is_empty() {
-        Err("Argumentiksi pitää antaa tietueiden numerot ja muokattavat kentät.")?;
+        return Err("Argumentiksi pitää antaa tietueiden numerot ja muokattavat kentät.".into());
     }
 
     let (indexes, fields) = {
@@ -187,7 +187,7 @@ pub async fn edit(db: &mut DBase, editable: &mut Editable, args: &str) -> Result
 
         let max = editable.count();
         if !tools::is_within_limits(max, &n) {
-            Err(format!("Suurin muokattava tietue on {max}."))?;
+            return Err(format!("Suurin muokattava tietue on {max}.").into());
         }
 
         (n, f)
@@ -215,23 +215,23 @@ pub async fn edit(db: &mut DBase, editable: &mut Editable, args: &str) -> Result
 
 pub async fn edit_series(db: &mut DBase, editable: &mut Editable, args: &str) -> ResultDE<()> {
     if editable.is_none() {
-        Err("Edellinen komento ei sisällä muokattavia tietueita.")?;
+        return Err("Edellinen komento ei sisällä muokattavia tietueita.".into());
     }
 
     if args.is_empty() {
-        Err("Argumentiksi pitää antaa tietueiden numerot ja kentän numero.")?;
+        return Err("Argumentiksi pitää antaa tietueiden numerot ja kentän numero.".into());
     }
 
     let (indexes, rest) = {
         let (first, rest) = tools::split_first(args);
         if rest.is_empty() {
-            Err("Toiseksi argumentiksi täytyy antaa kentän numero.")?;
+            return Err("Toiseksi argumentiksi täytyy antaa kentän numero.".into());
         }
         let i = tools::parse_number_list(first)?;
 
         let max = editable.count();
         if !tools::is_within_limits(max, &i) {
-            Err(format!("Suurin muokattava tietue on {max}."))?;
+            return Err(format!("Suurin muokattava tietue on {max}.").into());
         }
 
         (i, rest)
@@ -252,7 +252,7 @@ pub async fn edit_series(db: &mut DBase, editable: &mut Editable, args: &str) ->
         let (n, rest) = tools::split_first(rest);
         let n = n.parse::<usize>().map_err(|_| field_num_err())?;
         if n < 1 || n > field_num_max {
-            Err(field_num_err())?;
+            return Err(field_num_err().into());
         }
         (n, rest)
     };
@@ -294,7 +294,7 @@ pub async fn edit_series(db: &mut DBase, editable: &mut Editable, args: &str) ->
     }
 
     if values.iter().all(|x| x.is_empty()) {
-        Err("Ei muutoksia.")?;
+        return Err("Ei muutoksia.".into());
     }
 
     let mut ta = db.begin().await?;
@@ -347,12 +347,13 @@ impl Edit for EditItems<'_, Student> {
 
         if !lastname.has_value() && !firstname.has_value() && !groups.has_value() && desc.is_none()
         {
-            Err("Anna muokattavia kenttiä.")?;
+            return Err("Anna muokattavia kenttiä.".into());
         }
 
         if (lastname.has_value() || firstname.has_value()) && self.count() > 1 {
-            Err("Usealle henkilölle ei voi muuttaa kerralla samaa nimeä.\n\
-                 Muuta yksi kerrallaan, jos se on tarkoituksena.")?;
+            return Err("Usealle henkilölle ei voi muuttaa kerralla samaa nimeä.\n\
+                        Muuta yksi kerrallaan, jos se on tarkoituksena."
+                .into());
         }
 
         let mut groups_add: Vec<String> = Vec::with_capacity(3);
@@ -364,16 +365,21 @@ impl Edit for EditItems<'_, Student> {
                 match chars.next() {
                     Some('+') => groups_add.push(chars.collect()),
                     Some('-') => groups_remove.push(chars.collect()),
-                    _ => Err(
-                        "Kirjoita oppilaan ryhmätunnuksen alkuun merkki ”+” (lisää ryhmä) \
-                         tai ”-” (poista ryhmä).\nErota eri ryhmät välilyönnillä.",
-                    )?,
+                    _ => {
+                        return Err(
+                            "Kirjoita oppilaan ryhmätunnuksen alkuun merkki ”+” (lisää ryhmä) \
+                             tai ”-” (poista ryhmä).\nErota eri ryhmät välilyönnillä."
+                                .into(),
+                        );
+                    }
                 }
             }
 
             if groups_add.iter().any(|s| s.is_empty()) || groups_remove.iter().any(|s| s.is_empty())
             {
-                Err("Ryhmän nimiä puuttuu. Kirjoita merkin ”+” tai ”-” jälkeen ryhmätunnus.")?;
+                return Err(
+                    "Ryhmän nimiä puuttuu. Kirjoita merkin ”+” tai ”-” jälkeen ryhmätunnus.".into(),
+                );
             }
         }
 
@@ -407,18 +413,19 @@ impl Edit for EditItems<'_, Student> {
 
                 let count = student.count_grades_group(db, rid).await?;
                 if count > 0 {
-                    Err(format!(
+                    return Err(format!(
                         "Oppilaalle ”{l}, {f}” on ryhmässä ”{g}” kirjattu {c} arvosana(a).\n\
                          Säilytetään ryhmät ja perutaan toiminto.",
                         l = student.lastname,
                         f = student.firstname,
                         c = count,
                         g = name,
-                    ))?;
+                    )
+                    .into());
                 }
 
                 if student.only_one_group(db).await? {
-                    Err("Oppilaan pitää kuulua vähintään yhteen ryhmään.")?;
+                    return Err("Oppilaan pitää kuulua vähintään yhteen ryhmään.".into());
                 } else {
                     student.remove_from_group(db, rid).await?;
                 }
@@ -442,17 +449,17 @@ impl Edit for EditItems<'_, Group> {
         let desc = self.field(1); // lisätiedot
 
         if !name.has_value() && desc.is_none() {
-            Err("Anna muokattavia kenttiä.")?;
+            return Err("Anna muokattavia kenttiä.".into());
         }
 
         if name.has_value() && self.count() > 1 {
-            Err("Usealle ryhmälle ei voi antaa samaa nimeä.")?;
+            return Err("Usealle ryhmälle ei voi antaa samaa nimeä.".into());
         }
 
         if let Field::Value(s) = &name
             && s.split_whitespace().nth(1).is_some()
         {
-            Err("Ryhmätunnuksen pitää olla yksi sana.")?;
+            return Err("Ryhmätunnuksen pitää olla yksi sana.".into());
         }
 
         for group in self.iter() {
@@ -478,18 +485,22 @@ impl Edit for EditItems<'_, Assignment> {
         let position = self.field(3); // sija
 
         if !name.has_value() && !short.has_value() && weight.is_none() && !position.has_value() {
-            Err("Anna muokattavia kenttiä.")?;
+            return Err("Anna muokattavia kenttiä.".into());
         }
 
         if position.has_value() && self.count() > 1 {
-            Err("Usealle suoritukselle ei voi asettaa samaa järjestysnumeroa.")?;
+            return Err("Usealle suoritukselle ei voi asettaa samaa järjestysnumeroa.".into());
         }
 
         // Convert from &Field<String> to Field<i32>.
         let weight = match weight {
             Field::Value(s) => match s.trim().parse::<i32>() {
                 Ok(n) if n >= 1 => Field::Value(n),
-                _ => Err("Painokertoimen täytyy olla positiivinen kokonaisluku (tai tyhjä).")?,
+                _ => {
+                    return Err(
+                        "Painokertoimen täytyy olla positiivinen kokonaisluku (tai tyhjä).".into(),
+                    );
+                }
             },
             Field::ValueEmpty => Field::ValueEmpty,
             Field::None => Field::None,
@@ -499,7 +510,7 @@ impl Edit for EditItems<'_, Assignment> {
         let position = match position {
             Field::Value(s) => match s.trim().parse::<i32>() {
                 Ok(n) => Field::Value(n),
-                _ => Err("Järjestysnumeron täytyy olla kokonaisluku.")?,
+                _ => return Err("Järjestysnumeron täytyy olla kokonaisluku.".into()),
             },
             Field::ValueEmpty | Field::None => Field::None,
         };
@@ -533,7 +544,7 @@ impl Edit for EditItems<'_, Grade> {
         let desc = self.field(1); // lisätiedot
 
         if grade.is_none() && desc.is_none() {
-            Err("Anna muokattavia kenttiä.")?;
+            return Err("Anna muokattavia kenttiä.".into());
         }
 
         for student_grade in self.iter() {
@@ -557,15 +568,15 @@ impl Edit for EditItems<'_, Grade> {
 
 pub async fn convert_to_grade(db: &mut DBase, editable: &mut Editable, args: &str) -> ResultDE<()> {
     if editable.is_none() {
-        Err("Edellinen komento ei sisällä muokattavia tietueita.")?;
+        return Err("Edellinen komento ei sisällä muokattavia tietueita.".into());
     }
 
     if !editable.is_grade() {
-        Err("Vain arvosanoja voi muokata tällä komennolla.")?;
+        return Err("Vain arvosanoja voi muokata tällä komennolla.".into());
     }
 
     if args.is_empty() {
-        Err("Puuttuu tietueiden numerot.")?;
+        return Err("Puuttuu tietueiden numerot.".into());
     }
 
     let indexes = {
@@ -573,7 +584,7 @@ pub async fn convert_to_grade(db: &mut DBase, editable: &mut Editable, args: &st
         let i = tools::parse_number_list(first)?;
         let max = editable.count();
         if !tools::is_within_limits(max, &i) {
-            Err(format!("Suurin muokattava tietue on {max}."))?;
+            return Err(format!("Suurin muokattava tietue on {max}.").into());
         }
         i
     };
@@ -603,15 +614,15 @@ pub async fn convert_to_decimal(
     args: &str,
 ) -> ResultDE<()> {
     if editable.is_none() {
-        Err("Edellinen komento ei sisällä muokattavia tietueita.")?;
+        return Err("Edellinen komento ei sisällä muokattavia tietueita.".into());
     }
 
     if !editable.is_grade() {
-        Err("Vain arvosanoja voi muokata tällä komennolla.")?;
+        return Err("Vain arvosanoja voi muokata tällä komennolla.".into());
     }
 
     if args.is_empty() {
-        Err("Puuttuu tietueiden numerot.")?;
+        return Err("Puuttuu tietueiden numerot.".into());
     }
 
     let indexes = {
@@ -619,7 +630,7 @@ pub async fn convert_to_decimal(
         let i = tools::parse_number_list(first)?;
         let max = editable.count();
         if !tools::is_within_limits(max, &i) {
-            Err(format!("Suurin muokattava tietue on {max}."))?;
+            return Err(format!("Suurin muokattava tietue on {max}.").into());
         }
         i
     };
@@ -662,7 +673,7 @@ pub async fn insert_student(db: &mut DBase, editable: &mut Editable, args: &str)
     let desc = fields.next().or(Some("")).map(tools::normalize_str); // lisätiedot
 
     if lastname.is_none() || firstname.is_none() || groups.is_none() {
-        Err("Pitää antaa vähintään sukunimi, etunimi ja ryhmä.")?;
+        return Err("Pitää antaa vähintään sukunimi, etunimi ja ryhmä.".into());
     }
 
     let mut student = Student {
@@ -708,13 +719,17 @@ pub async fn insert_assignment(
     let position = fields.next().filter(|x| tools::has_content(x)); // sija
 
     if groups.is_none() || assignment.is_none() || assignment_short.is_none() {
-        Err("Pitää antaa vähintään ryhmä, suorituksen nimi ja lyhenne.")?;
+        return Err("Pitää antaa vähintään ryhmä, suorituksen nimi ja lyhenne.".into());
     }
 
     let weight = match weight {
         Some(s) => match s.trim().parse::<i32>() {
             Ok(n) if n >= 1 => Some(n),
-            _ => Err("Painokertoimen täytyy olla positiivinen kokonaisluku (tai tyhjä).")?,
+            _ => {
+                return Err(
+                    "Painokertoimen täytyy olla positiivinen kokonaisluku (tai tyhjä).".into(),
+                );
+            }
         },
         None => None,
     };
@@ -722,7 +737,7 @@ pub async fn insert_assignment(
     let position = match position {
         Some(s) => match s.trim().parse::<i32>() {
             Ok(n) => n,
-            _ => Err("Järjestysnumeron täytyy olla kokonaisluku.")?,
+            _ => return Err("Järjestysnumeron täytyy olla kokonaisluku.".into()),
         },
         None => i32::MAX,
     };
@@ -747,11 +762,11 @@ pub async fn insert_assignment(
 
 pub async fn delete(db: &mut DBase, editable: &mut Editable, args: &str) -> ResultDE<()> {
     if editable.is_none() {
-        Err("Edellinen komento ei sisällä poistettavia tietueita.")?;
+        return Err("Edellinen komento ei sisällä poistettavia tietueita.".into());
     }
 
     if args.is_empty() {
-        Err("Puuttuu tietueiden numerot.")?;
+        return Err("Puuttuu tietueiden numerot.".into());
     }
 
     let indexes = {
@@ -759,7 +774,7 @@ pub async fn delete(db: &mut DBase, editable: &mut Editable, args: &str) -> Resu
         let i = tools::parse_number_list(first)?;
         let max = editable.count();
         if !tools::is_within_limits(max, &i) {
-            Err(format!("Suurin poistettava tietue on {max}."))?;
+            return Err(format!("Suurin poistettava tietue on {max}.").into());
         }
         i
     };
@@ -770,8 +785,9 @@ pub async fn delete(db: &mut DBase, editable: &mut Editable, args: &str) -> Resu
             students.for_delete(indexes).delete(&mut ta).await?;
         }
         EditableItem::Groups(_) => {
-            Err("Ryhmiä ei voi poistaa näin. Ryhmä poistuu itsestään,\n\
-                 kun siltä poistaa kaikki oppilaat ja suoritukset.")?;
+            return Err("Ryhmiä ei voi poistaa näin. Ryhmä poistuu itsestään,\n\
+                        kun siltä poistaa kaikki oppilaat ja suoritukset."
+                .into());
         }
         EditableItem::Assignments(assignments) => {
             assignments.for_delete(indexes).delete(&mut ta).await?;
@@ -790,12 +806,13 @@ impl Delete for DeleteItems<'_, Student> {
         for student in self.iter() {
             let count = student.count_grades(db).await?;
             if count > 0 {
-                Err(format!(
+                return Err(format!(
                     "Oppilaalle ”{l}, {f}” on kirjattu {c} arvosana(a). Poista ne ensin.",
                     l = student.lastname,
                     f = student.firstname,
                     c = count
-                ))?;
+                )
+                .into());
             }
 
             student.delete(db).await?;
@@ -811,11 +828,12 @@ impl Delete for DeleteItems<'_, Assignment> {
         for assignment in self.iter() {
             let count = assignment.count_grades(db).await?;
             if count > 0 {
-                Err(format!(
+                return Err(format!(
                     "Suoritukselle ”{a}” on kirjattu {c} arvosana(a). Poista ne ensin.",
                     a = assignment.assignment,
                     c = count,
-                ))?;
+                )
+                .into());
             }
 
             assignment.delete(db).await?;
@@ -917,7 +935,7 @@ pub async fn grade_distribution(
 pub fn table_format(modes: &mut Modes, args: &str) -> ResultDE<()> {
     let (first, _) = tools::split_first(args);
     if first.is_empty() {
-        Err("Anna argumentiksi taulukkotyyli. Apua saa ?:llä.")?;
+        return Err("Anna argumentiksi taulukkotyyli. Apua saa ?:llä.".into());
     }
 
     let new = Output::select(first)
@@ -983,7 +1001,7 @@ pub fn help(topic: &str) -> Result<(), String> {
 
         "tietokanta" => println!("\n{}", include_str!("../help/database.txt")),
         "asetukset" => println!("\n{}", include_str!("../help/settings.txt")),
-        u => Err(format!("Tuntematon ohjeiden aihe: ”{u}”."))?,
+        u => return Err(format!("Tuntematon ohjeiden aihe: ”{u}”.")),
     }
     Ok(())
 }

@@ -32,7 +32,7 @@ impl Output {
             "tab" | "t" => Output::Tab,
             "csv" | "c" => Output::Csv,
             "latex" | "l" => Output::Latex,
-            _ => Err(value.to_string())?,
+            _ => return Err(value.into()),
         };
         Ok(out)
     }
