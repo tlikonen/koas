@@ -557,12 +557,12 @@ impl PrintTable for StudentRanking {
         });
 
         let mut average_last = 0.0;
-        for (n, student) in list.iter().enumerate() {
+        for (n, student) in (1..).zip(list) {
             rows.push(Row::Data(vec![
                 if student.2 == average_last {
                     Cell::Empty
                 } else {
-                    Cell::Right(format!("{}.", n + 1))
+                    Cell::Right(format!("{}.", n))
                 },
                 Cell::Left(student.0.clone()),
                 Cell::Multi(line_split(&student.1, GROUPS_WIDTH)),

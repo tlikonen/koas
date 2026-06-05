@@ -42,8 +42,8 @@ impl Editable {
 
     pub fn print_fields(&self, fields: &[&str]) {
         let mut s = String::with_capacity(50);
-        for (n, f) in fields.iter().enumerate() {
-            s.push_str(&format!(" / {}:{}", n + 1, f));
+        for (n, f) in (1..).zip(fields) {
+            s.push_str(&format!(" / {}:{}", n, f));
         }
         match self.count() {
             0 => (),

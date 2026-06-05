@@ -42,8 +42,8 @@ impl Config {
         let mut port = false;
         let max = 10;
 
-        for (n, line) in contents.lines().enumerate() {
-            if n >= max {
+        for (n, line) in (1..).zip(contents.lines()) {
+            if n > max {
                 eprintln!(
                     "Asetustiedostosta ”{}” käsitellään vain ensimmäiset {max} riviä.",
                     path.display()
@@ -61,7 +61,7 @@ impl Config {
                     eprintln!(
                         "Asetustiedoston ”{}” rivi {} on sopimaton.",
                         path.display(),
-                        n + 1
+                        n
                     );
                     continue;
                 }
