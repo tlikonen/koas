@@ -27,7 +27,7 @@ pub async fn initialize(db: &mut DBase, modes: &Modes) -> ResultDE<()> {
                 };
 
                 if modes.is_interactive() {
-                    eprintln!("{}", err_msg());
+                    let _ = writeln!(io::stderr(), "{}", err_msg());
                 } else {
                     return Err(err_msg().into());
                 }
@@ -42,7 +42,7 @@ pub async fn initialize(db: &mut DBase, modes: &Modes) -> ResultDE<()> {
                 };
 
                 if modes.is_interactive() {
-                    eprintln!("{}", err_msg());
+                    let _ = writeln!(io::stderr(), "{}", err_msg());
                     // modes.set_upgrade();
                 } else {
                     return Err(err_msg().into());
@@ -51,7 +51,7 @@ pub async fn initialize(db: &mut DBase, modes: &Modes) -> ResultDE<()> {
         }
     } else {
         // Database objects don't exist. Create all.
-        eprintln!("Valmistellaan arvosanatietokanta.");
+        let _ = writeln!(io::stderr(), "Valmistellaan arvosanatietokanta.");
 
         let mut ta = db.begin().await?;
 
