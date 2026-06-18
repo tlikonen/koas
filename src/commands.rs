@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-pub async fn stats(modes: &Modes, db: &mut DBase, editable: &mut Editable) -> ResultDE<()> {
+pub async fn stats(modes: &Modes, db: &mut DBase, editable: &mut Editable) -> ResultApp<()> {
     editable.clear();
 
     Stats::query(db).await?.print(modes.output())?;
@@ -12,7 +12,7 @@ pub async fn students(
     db: &mut DBase,
     editable: &mut Editable,
     args: &str,
-) -> ResultDE<()> {
+) -> ResultApp<()> {
     editable.clear();
 
     let mut fields = tools::split_sep(args);
@@ -40,7 +40,7 @@ pub async fn groups(
     db: &mut DBase,
     editable: &mut Editable,
     args: &str,
-) -> ResultDE<()> {
+) -> ResultApp<()> {
     editable.clear();
 
     let mut fields = tools::split_sep(args);
@@ -64,7 +64,7 @@ pub async fn assignments(
     db: &mut DBase,
     editable: &mut Editable,
     args: &str,
-) -> ResultDE<()> {
+) -> ResultApp<()> {
     editable.clear();
 
     let group = {
@@ -92,7 +92,7 @@ pub async fn grades_for_assignments(
     db: &mut DBase,
     editable: &mut Editable,
     args: &str,
-) -> ResultDE<()> {
+) -> ResultApp<()> {
     editable.clear();
 
     let mut fields = tools::split_sep(args);
@@ -123,7 +123,7 @@ pub async fn grades_for_students(
     db: &mut DBase,
     editable: &mut Editable,
     args: &str,
-) -> ResultDE<()> {
+) -> ResultApp<()> {
     editable.clear();
 
     let mut fields = tools::split_sep(args);
@@ -155,7 +155,7 @@ pub async fn grades_for_group(
     db: &mut DBase,
     editable: &mut Editable,
     args: &str,
-) -> ResultDE<()> {
+) -> ResultApp<()> {
     editable.clear();
 
     let group = {
@@ -171,7 +171,7 @@ pub async fn grades_for_group(
     Ok(())
 }
 
-pub async fn edit(db: &mut DBase, editable: &mut Editable, args: &str) -> ResultDE<()> {
+pub async fn edit(db: &mut DBase, editable: &mut Editable, args: &str) -> ResultApp<()> {
     if editable.is_none() {
         return Err("Edellinen komento ei sisällä muokattavia tietueita.".into());
     }
@@ -213,7 +213,7 @@ pub async fn edit(db: &mut DBase, editable: &mut Editable, args: &str) -> Result
     Ok(())
 }
 
-pub async fn edit_series(db: &mut DBase, editable: &mut Editable, args: &str) -> ResultDE<()> {
+pub async fn edit_series(db: &mut DBase, editable: &mut Editable, args: &str) -> ResultApp<()> {
     if editable.is_none() {
         return Err("Edellinen komento ei sisällä muokattavia tietueita.".into());
     }
@@ -340,7 +340,7 @@ pub async fn edit_series(db: &mut DBase, editable: &mut Editable, args: &str) ->
 }
 
 impl Edit for EditItems<'_, Student> {
-    async fn edit(&self, db: &mut DBase) -> ResultDE<()> {
+    async fn edit(&self, db: &mut DBase) -> ResultApp<()> {
         let lastname = self.field(0); // sukunimi
         let firstname = self.field(1); // etunimi
         let groups = self.field(2); // ryhmät
@@ -445,7 +445,7 @@ impl Edit for EditItems<'_, Student> {
 }
 
 impl Edit for EditItems<'_, Group> {
-    async fn edit(&self, db: &mut DBase) -> ResultDE<()> {
+    async fn edit(&self, db: &mut DBase) -> ResultApp<()> {
         let name = self.field(0); // ryhmä
         let desc = self.field(1); // lisätiedot
 
@@ -479,7 +479,7 @@ impl Edit for EditItems<'_, Group> {
 }
 
 impl Edit for EditItems<'_, Assignment> {
-    async fn edit(&self, db: &mut DBase) -> ResultDE<()> {
+    async fn edit(&self, db: &mut DBase) -> ResultApp<()> {
         let name = self.field(0); // suoritus
         let short = self.field(1); // lyhenne
         let weight = self.field(2); // painokerroin
@@ -540,7 +540,7 @@ impl Edit for EditItems<'_, Assignment> {
 }
 
 impl Edit for EditItems<'_, Grade> {
-    async fn edit(&self, db: &mut DBase) -> ResultDE<()> {
+    async fn edit(&self, db: &mut DBase) -> ResultApp<()> {
         let grade = self.field(0); // arvosana
         let desc = self.field(1); // lisätiedot
 
@@ -567,7 +567,11 @@ impl Edit for EditItems<'_, Grade> {
     }
 }
 
-pub async fn convert_to_grade(db: &mut DBase, editable: &mut Editable, args: &str) -> ResultDE<()> {
+pub async fn convert_to_grade(
+    db: &mut DBase,
+    editable: &mut Editable,
+    args: &str,
+) -> ResultApp<()> {
     if editable.is_none() {
         return Err("Edellinen komento ei sisällä muokattavia tietueita.".into());
     }
@@ -613,7 +617,7 @@ pub async fn convert_to_decimal(
     db: &mut DBase,
     editable: &mut Editable,
     args: &str,
-) -> ResultDE<()> {
+) -> ResultApp<()> {
     if editable.is_none() {
         return Err("Edellinen komento ei sisällä muokattavia tietueita.".into());
     }
@@ -655,7 +659,7 @@ pub async fn convert_to_decimal(
     Ok(())
 }
 
-pub async fn insert_student(db: &mut DBase, editable: &mut Editable, args: &str) -> ResultDE<()> {
+pub async fn insert_student(db: &mut DBase, editable: &mut Editable, args: &str) -> ResultApp<()> {
     editable.clear();
 
     let mut fields = tools::split_sep(args);
@@ -700,7 +704,7 @@ pub async fn insert_assignment(
     db: &mut DBase,
     editable: &mut Editable,
     args: &str,
-) -> ResultDE<()> {
+) -> ResultApp<()> {
     editable.clear();
 
     let mut fields = tools::split_sep(args);
@@ -761,7 +765,7 @@ pub async fn insert_assignment(
     Ok(())
 }
 
-pub async fn delete(db: &mut DBase, editable: &mut Editable, args: &str) -> ResultDE<()> {
+pub async fn delete(db: &mut DBase, editable: &mut Editable, args: &str) -> ResultApp<()> {
     if editable.is_none() {
         return Err("Edellinen komento ei sisällä poistettavia tietueita.".into());
     }
@@ -803,7 +807,7 @@ pub async fn delete(db: &mut DBase, editable: &mut Editable, args: &str) -> Resu
 }
 
 impl Delete for DeleteItems<'_, Student> {
-    async fn delete(&self, db: &mut DBase) -> ResultDE<()> {
+    async fn delete(&self, db: &mut DBase) -> ResultApp<()> {
         for student in self.iter() {
             let count = student.count_grades(db).await?;
             if count > 0 {
@@ -824,7 +828,7 @@ impl Delete for DeleteItems<'_, Student> {
 }
 
 impl Delete for DeleteItems<'_, Assignment> {
-    async fn delete(&self, db: &mut DBase) -> ResultDE<()> {
+    async fn delete(&self, db: &mut DBase) -> ResultApp<()> {
         let mut rid_list = Vec::with_capacity(1);
         for assignment in self.iter() {
             let count = assignment.count_grades(db).await?;
@@ -855,7 +859,7 @@ impl Delete for DeleteItems<'_, Assignment> {
 }
 
 impl Delete for DeleteItems<'_, Grade> {
-    async fn delete(&self, db: &mut DBase) -> ResultDE<()> {
+    async fn delete(&self, db: &mut DBase) -> ResultApp<()> {
         for grade in self.iter() {
             grade.delete(db).await?;
         }
@@ -869,7 +873,7 @@ pub async fn student_ranking(
     editable: &mut Editable,
     mut args: &str,
     all: bool,
-) -> ResultDE<()> {
+) -> ResultApp<()> {
     editable.clear();
     if args.is_empty() {
         args = "@";
@@ -904,7 +908,7 @@ pub async fn grade_distribution(
     editable: &mut Editable,
     mut args: &str,
     all: bool,
-) -> ResultDE<()> {
+) -> ResultApp<()> {
     editable.clear();
     if args.is_empty() {
         args = "@";
@@ -933,7 +937,7 @@ pub async fn grade_distribution(
     Ok(())
 }
 
-pub fn table_format(modes: &mut Modes, args: &str) -> ResultDE<()> {
+pub fn table_format(modes: &mut Modes, args: &str) -> ResultApp<()> {
     let (first, _) = tools::split_first(args);
     if first.is_empty() {
         return Err("Anna argumentiksi taulukkotyyli. Apua saa ?:llä.".into());
@@ -945,7 +949,7 @@ pub fn table_format(modes: &mut Modes, args: &str) -> ResultDE<()> {
     Ok(())
 }
 
-pub fn help(topic: &str) -> Result<(), String> {
+pub fn help(topic: &str) -> ResultApp<()> {
     static HO: &str = include_str!("../help/command-ho.txt");
     static HR: &str = include_str!("../help/command-hr.txt");
     static HS: &str = include_str!("../help/command-hs.txt");
@@ -970,84 +974,42 @@ pub fn help(topic: &str) -> Result<(), String> {
     static QM: &str = include_str!("../help/command-qm.txt");
     static QUICK: &str = include_str!("../help/quick.txt");
 
+    let mut stdout = io::stdout();
+
     match topic {
-        "" => {
-            let _ = writeln!(io::stdout(), "\n{QUICK}");
-        }
-        "ho" => {
-            let _ = writeln!(io::stdout(), "\n{HO}");
-        }
-        "hr" => {
-            let _ = writeln!(io::stdout(), "\n{HR}");
-        }
-        "hs" => {
-            let _ = writeln!(io::stdout(), "\n{HS}");
-        }
-        "has" => {
-            let _ = writeln!(io::stdout(), "\n{HAS}");
-        }
-        "hao" => {
-            let _ = writeln!(io::stdout(), "\n{HAO}");
-        }
-        "hak" => {
-            let _ = writeln!(io::stdout(), "\n{HAK}");
-        }
+        "" => writeln!(stdout, "\n{QUICK}")?,
 
-        "m" => {
-            let _ = writeln!(io::stdout(), "\n{M}");
-        }
-        "ms" => {
-            let _ = writeln!(io::stdout(), "\n{MS}");
-        }
-        "ma" => {
-            let _ = writeln!(io::stdout(), "\n{MA}");
-        }
-        "md" => {
-            let _ = writeln!(io::stdout(), "\n{MD}");
-        }
-        "poista" => {
-            let _ = writeln!(io::stdout(), "\n{POISTA}");
-        }
+        "ho" => writeln!(stdout, "\n{HO}")?,
+        "hr" => writeln!(stdout, "\n{HR}")?,
+        "hs" => writeln!(stdout, "\n{HS}")?,
+        "has" => writeln!(stdout, "\n{HAS}")?,
+        "hao" => writeln!(stdout, "\n{HAO}")?,
+        "hak" => writeln!(stdout, "\n{HAK}")?,
 
-        "lo" => {
-            let _ = writeln!(io::stdout(), "\n{LO}");
-        }
-        "ls" => {
-            let _ = writeln!(io::stdout(), "\n{LS}");
-        }
+        "m" => writeln!(stdout, "\n{M}")?,
+        "ms" => writeln!(stdout, "\n{MS}")?,
+        "ma" => writeln!(stdout, "\n{MA}")?,
+        "md" => writeln!(stdout, "\n{MD}")?,
+        "poista" => writeln!(stdout, "\n{POISTA}")?,
+        "lo" => writeln!(stdout, "\n{LO}")?,
+        "ls" => writeln!(stdout, "\n{LS}")?,
 
-        "tp" | "tpk" => {
-            let _ = writeln!(io::stdout(), "\n{TP}");
-        }
-        "tj" | "tjk" => {
-            let _ = writeln!(io::stdout(), "\n{TJ}");
-        }
+        "tp" | "tpk" => writeln!(stdout, "\n{TP}")?,
+        "tj" | "tjk" => writeln!(stdout, "\n{TJ}")?,
+        "tk" => writeln!(stdout, "\n{TK}")?,
 
-        "tk" => {
-            let _ = writeln!(io::stdout(), "\n{TK}");
-        }
-        "tlk" => {
-            let _ = writeln!(io::stdout(), "\n{TLK}");
-        }
-        "?" => {
-            let _ = writeln!(io::stdout(), "\n{QM}");
-        }
+        "tlk" => writeln!(stdout, "\n{TLK}")?,
 
-        "komennot" => {
-            let _ = writeln!(
-                io::stdout(),
-                "\n{QUICK}\n{info}",
-                info = include_str!("../help/command.txt")
-            );
-        }
+        "?" => writeln!(stdout, "\n{QM}")?,
+        "komennot" => writeln!(
+            stdout,
+            "\n{QUICK}\n{info}",
+            info = include_str!("../help/command.txt")
+        )?,
+        "tietokanta" => writeln!(stdout, "\n{}", include_str!("../help/database.txt"))?,
+        "asetukset" => writeln!(stdout, "\n{}", include_str!("../help/settings.txt"))?,
 
-        "tietokanta" => {
-            let _ = writeln!(io::stdout(), "\n{}", include_str!("../help/database.txt"));
-        }
-        "asetukset" => {
-            let _ = writeln!(io::stdout(), "\n{}", include_str!("../help/settings.txt"));
-        }
-        u => return Err(format!("Tuntematon ohjeiden aihe: ”{u}”.")),
+        u => return Err(format!("Tuntematon ohjeiden aihe: ”{u}”.").into()),
     }
     Ok(())
 }

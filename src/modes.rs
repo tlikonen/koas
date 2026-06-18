@@ -1,5 +1,3 @@
-use crate::prelude::*;
-
 #[derive(Clone)]
 pub enum Mode {
     Interactive,
@@ -22,7 +20,7 @@ pub enum Output {
 }
 
 impl Output {
-    pub fn select(value: &str) -> ResultDE<Self> {
+    pub fn select(value: &str) -> Result<Self, String> {
         let out = match value.to_lowercase().as_str() {
             "unicode" | "u" => Output::Unicode,
             "unicode-avoin" | "ua" => Output::UnicodeOpen,
@@ -32,7 +30,7 @@ impl Output {
             "tab" | "t" => Output::Tab,
             "csv" | "c" => Output::Csv,
             "latex" | "l" => Output::Latex,
-            _ => return Err(value.into()),
+            _ => return Err(value.to_string()),
         };
         Ok(out)
     }

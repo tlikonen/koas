@@ -13,6 +13,7 @@ pub use crate::{
     commands::help,
     config::Config,
     modes::{Mode, Modes, Output},
+    objects::{AppError, ResultApp},
     tools::umask,
 };
 
@@ -21,7 +22,7 @@ pub static PROGRAM_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub static PROGRAM_AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
 pub static PROGRAM_LICENSE: &str = env!("CARGO_PKG_LICENSE");
 
-pub async fn command_stage(mut modes: Modes, config: Config) -> ResultDE<()> {
+pub async fn command_stage(mut modes: Modes, config: Config) -> ResultApp<()> {
     let mut db = database::connect(&config, &modes).await?;
     let mut editable: Editable = Default::default();
     let mut stdout = io::stdout();
@@ -54,9 +55,9 @@ pub async fn command_stage(mut modes: Modes, config: Config) -> ResultDE<()> {
                 // if modes.upgrade() && cmd == UPGRADE_COMMAND {}
 
                 match commands(&mut modes, &mut db, &mut editable, cmd, args).await {
-                    Ok(Ok(())) => (),
-                    Ok(Err(e)) => {
-                        let _ = writeln!(stderr, "{e} Apua saa ?:llä.");
+                    Ok(_) => (),
+                    Err(AppError::UnknownCmd(cmd)) => {
+                        let _ = writeln!(stderr, "Tuntematon komento ”{cmd}”. Apua saa ?:llä.");
                     }
                     Err(e) => {
                         let _ = writeln!(stderr, "{e}");
@@ -67,8 +68,16 @@ pub async fn command_stage(mut modes: Modes, config: Config) -> ResultDE<()> {
 
         Mode::Single(line) => {
             let (cmd, args) = tools::split_first(line);
-            if let Err(e) = commands(&mut modes, &mut db, &mut editable, cmd, args).await? {
-                return Err(format!("{e} Apua saa valitsimella ”--ohje”.").into());
+            match commands(&mut modes, &mut db, &mut editable, cmd, args).await {
+                Ok(_) => (),
+                Err(AppError::UnknownCmd(cmd)) => {
+                    let _ = writeln!(
+                        stderr,
+                        "Tuntematon komento ”{cmd}”. Apua saa valitsimella ”--ohje”."
+                    );
+                    return Err(AppError::Silent);
+                }
+                err => return err,
             }
         }
 
@@ -78,8 +87,16 @@ pub async fn command_stage(mut modes: Modes, config: Config) -> ResultDE<()> {
                 let line = item?;
                 if !line.is_empty() {
                     let (cmd, args) = tools::split_first(&line);
-                    if let Err(e) = commands(&mut modes, &mut ta, &mut editable, cmd, args).await? {
-                        return Err(format!("{e} Apua saa valitsimella ”--ohje”.").into());
+                    match commands(&mut modes, &mut ta, &mut editable, cmd, args).await {
+                        Ok(_) => (),
+                        Err(AppError::UnknownCmd(cmd)) => {
+                            let _ = writeln!(
+                                stderr,
+                                "Tuntematon komento ”{cmd}”. Apua saa valitsimella ”--ohje”."
+                            );
+                            return Err(AppError::Silent);
+                        }
+                        err => return err,
                     }
                 }
             }
@@ -95,7 +112,7 @@ async fn commands(
     editable: &mut Editable,
     cmd: &str,
     args: &str,
-) -> ResultDE<Result<(), String>> {
+) -> ResultApp<()> {
     match (cmd, modes.mode()) {
         ("ho", _) => commands::students(modes, db, editable, args).await?,
         ("hr", _) => commands::groups(modes, db, editable, args).await?,
@@ -126,7 +143,7 @@ async fn commands(
             commands::help(args)?;
         }
 
-        (c, _) => return Ok(Err(format!("Tuntematon komento ”{c}”."))),
+        (c, _) => return Err(AppError::unknown_cmd(c)),
     }
-    Ok(Ok(()))
+    Ok(())
 }

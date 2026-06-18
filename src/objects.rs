@@ -1,15 +1,80 @@
 use crate::prelude::*;
+use rustyline::error::ReadlineError;
+use std::fmt;
 
-pub type ResultDE<T> = Result<T, Box<dyn std::error::Error>>;
+pub type ResultApp<T> = Result<T, AppError>;
+
+#[derive(Debug)]
+pub enum AppError {
+    Generic(String),
+    Io(io::Error),
+    Db(sqlx::Error),
+    UnknownCmd(String),
+    Silent,
+}
+
+impl AppError {
+    pub fn unknown_cmd(err: impl Into<String>) -> Self {
+        Self::UnknownCmd(err.into())
+    }
+}
+
+impl fmt::Display for AppError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Generic(v) => write!(f, "{v}"),
+            Self::Io(v) => write!(f, "Tiedonsiirtovirhe: {v}"),
+            Self::Db(v) => write!(f, "Tietokantavirhe: {v}"),
+            Self::UnknownCmd(v) => write!(f, "Tuntematon komento ”{v}”"),
+            _ => write!(f, ""),
+        }
+    }
+}
+
+impl From<&str> for AppError {
+    fn from(err: &str) -> Self {
+        Self::Generic(err.to_string())
+    }
+}
+
+impl From<String> for AppError {
+    fn from(err: String) -> Self {
+        Self::Generic(err)
+    }
+}
+
+impl From<sqlx::Error> for AppError {
+    fn from(err: sqlx::Error) -> Self {
+        Self::Db(err)
+    }
+}
+
+impl From<io::Error> for AppError {
+    fn from(err: io::Error) -> Self {
+        Self::Io(err)
+    }
+}
+
+impl From<ParseIntError> for AppError {
+    fn from(err: ParseIntError) -> Self {
+        Self::Generic(format!("{err}"))
+    }
+}
+
+impl From<ReadlineError> for AppError {
+    fn from(err: ReadlineError) -> Self {
+        Self::Generic(format!("{err}"))
+    }
+}
 
 pub trait HasData {
-    fn has_data(self) -> Result<Self, String>
+    fn has_data(self) -> ResultApp<Self>
     where
         Self: Sized,
     {
         match self.empty_data() {
             false => Ok(self),
-            true => Err("Ei löytynyt.".to_string()),
+            true => Err("Ei löytynyt.".into()),
         }
     }
 
@@ -260,7 +325,7 @@ impl<T> ForEdit<T> for EditableValue<T> {
 }
 
 pub trait Edit {
-    async fn edit(&self, db: &mut DBase) -> ResultDE<()>;
+    async fn edit(&self, db: &mut DBase) -> ResultApp<()>;
 }
 
 pub struct DeleteItems<'a, T> {
@@ -292,5 +357,5 @@ impl<T> ForDelete<T> for EditableValue<T> {
 }
 
 pub trait Delete {
-    async fn delete(&self, db: &mut DBase) -> ResultDE<()>;
+    async fn delete(&self, db: &mut DBase) -> ResultApp<()>;
 }

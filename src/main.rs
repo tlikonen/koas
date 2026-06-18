@@ -2,7 +2,6 @@ use {
     just_getopt::{Args, OptFlags, OptSpecs, OptValue},
     koas::*,
     std::{
-        error::Error,
         io::{self, Write as _},
         process::ExitCode,
     },
@@ -73,21 +72,20 @@ async fn main() -> ExitCode {
 
     match config_stage(args).await {
         Ok(_) => ExitCode::SUCCESS,
-        Err(e) => {
-            if let Some(io) = e.downcast_ref::<io::Error>()
-                && let io::ErrorKind::BrokenPipe = io.kind()
-            {
-                // Broken pipe: exit silently.
-            } else {
-                let _ = writeln!(stderr, "{e}");
+        Err(err) => {
+            match err {
+                AppError::Io(e) if matches!(e.kind(), io::ErrorKind::BrokenPipe) => (),
+                AppError::Silent => (),
+                other => {
+                    let _ = writeln!(stderr, "{other}");
+                }
             }
-
             ExitCode::FAILURE
         }
     }
 }
 
-async fn config_stage(args: Args) -> Result<(), Box<dyn Error>> {
+async fn config_stage(args: Args) -> ResultApp<()> {
     let config_file = Config::file()?;
     let mut output: Output = Default::default();
 

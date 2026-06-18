@@ -6,7 +6,7 @@ pub(crate) use {
             Assignment, Assignments, CopyToEditable, Delete, DeleteItems, Edit, EditItems,
             Editable, EditableItem, EditableValue, Field, ForDelete, ForEdit, FullQuery, Grade,
             GradeDistribution, GradesForAssignment, GradesForAssignments, GradesForGroup,
-            GradesForStudent, GradesForStudents, Group, Groups, HasData, ResultDE, SimpleGrade,
+            GradesForStudent, GradesForStudents, Group, Groups, HasData, ResultApp, SimpleGrade,
             SimpleStudent, Stats, Student, StudentRanking, Students,
         },
         print::{PrintTable, PrintTableList, PrintTableNum},
@@ -18,5 +18,6 @@ pub(crate) use {
         collections::HashMap,
         fs,
         io::{self, Write as _},
+        num::ParseIntError,
     },
 };
