@@ -27,7 +27,8 @@ pub async fn command_stage(mut modes: Modes, config: Config) -> ResultDE<()> {
 
     match modes.clone().mode() {
         Mode::Interactive => {
-            println!(
+            let _ = writeln!(
+                io::stdout(),
                 "{prg} v{ver} (postgres://{user}@{host}:{port}/{db})",
                 prg = PROGRAM_NAME,
                 ver = PROGRAM_VERSION,
@@ -52,8 +53,12 @@ pub async fn command_stage(mut modes: Modes, config: Config) -> ResultDE<()> {
 
                 match commands(&mut modes, &mut db, &mut editable, cmd, args).await {
                     Ok(Ok(())) => (),
-                    Ok(Err(e)) => eprintln!("{e} Apua saa ?:llä."),
-                    Err(e) => eprintln!("{e}"),
+                    Ok(Err(e)) => {
+                        let _ = writeln!(io::stderr(), "{e} Apua saa ?:llä.");
+                    }
+                    Err(e) => {
+                        let _ = writeln!(io::stderr(), "{e}");
+                    }
                 }
             }
         }
