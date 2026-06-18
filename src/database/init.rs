@@ -4,6 +4,8 @@ pub const PROGRAM_DB_VERSION: i32 = 10;
 const UPGRADE_COMMAND: &str = "päivitä";
 
 pub async fn initialize(db: &mut DBase, modes: &Modes) -> ResultDE<()> {
+    let mut stderr = io::stderr();
+
     let db_exists = sqlx::query("SELECT 1 FROM pg_tables WHERE tablename = 'hallinto'")
         .fetch_optional(&mut *db)
         .await?
@@ -27,7 +29,7 @@ pub async fn initialize(db: &mut DBase, modes: &Modes) -> ResultDE<()> {
                 };
 
                 if modes.is_interactive() {
-                    let _ = writeln!(io::stderr(), "{}", err_msg());
+                    let _ = writeln!(stderr, "{}", err_msg());
                 } else {
                     return Err(err_msg().into());
                 }
@@ -42,7 +44,7 @@ pub async fn initialize(db: &mut DBase, modes: &Modes) -> ResultDE<()> {
                 };
 
                 if modes.is_interactive() {
-                    let _ = writeln!(io::stderr(), "{}", err_msg());
+                    let _ = writeln!(stderr, "{}", err_msg());
                     // modes.set_upgrade();
                 } else {
                     return Err(err_msg().into());
@@ -51,7 +53,7 @@ pub async fn initialize(db: &mut DBase, modes: &Modes) -> ResultDE<()> {
         }
     } else {
         // Database objects don't exist. Create all.
-        let _ = writeln!(io::stderr(), "Valmistellaan arvosanatietokanta.");
+        let _ = writeln!(stderr, "Valmistellaan arvosanatietokanta.");
 
         let mut ta = db.begin().await?;
 
