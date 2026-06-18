@@ -44,7 +44,8 @@ impl Config {
 
         for (n, line) in (1..).zip(contents.lines()) {
             if n > max {
-                eprintln!(
+                let _ = writeln!(
+                    io::stderr(),
                     "Asetustiedostosta ”{}” käsitellään vain ensimmäiset {max} riviä.",
                     path.display()
                 );
@@ -58,7 +59,8 @@ impl Config {
             let (key, value) = match line.split_once('=') {
                 Some(kv) => kv,
                 None => {
-                    eprintln!(
+                    let _ = writeln!(
+                        io::stderr(),
                         "Asetustiedoston ”{}” rivi {} on sopimaton.",
                         path.display(),
                         n
@@ -98,10 +100,13 @@ impl Config {
                     config.tables.clear();
                     config.tables.push_str(value);
                 }
-                _ => eprintln!(
-                    "Asetustiedostossa ”{}” tuntematon kenttä ”{key}”.",
-                    path.display()
-                ),
+                _ => {
+                    let _ = writeln!(
+                        io::stderr(),
+                        "Asetustiedostossa ”{}” tuntematon kenttä ”{key}”.",
+                        path.display()
+                    );
+                }
             }
         }
 
@@ -118,7 +123,8 @@ impl Config {
         }
 
         if !config.tables.is_empty() && Output::select(&config.tables).is_err() {
-            eprintln!(
+            let _ = writeln!(
+                io::stderr(),
                 "Asetustiedostossa ”{}” sopimaton kentän ”taulukot” arvo.",
                 path.display()
             );
