@@ -263,22 +263,23 @@ pub async fn edit_series(db: &mut DBase, editable: &mut Editable, args: &str) ->
             values.push(s);
         }
     } else {
-        print!(
+        let _ = write!(
+            io::stdout(),
             "Syötä kentän {field_num} arvot riveittäin. Pelkkä välilyönti poistaa kentän arvon\n\
              (paitsi eräitä pakollisia). Tyhjä rivi jättää kentän ennalleen. Ctrl-d lopettaa.\n\
              Tietueet:"
         );
         for i in &indexes {
-            print!(" {i}");
+            let _ = write!(io::stdout(), " {i}");
         }
-        println!("\n---");
+        let _ = writeln!(io::stdout(), "\n---");
 
         let mut input = io::stdin().lines();
         let mut i = 0;
 
         loop {
             if i >= indexes.len() {
-                println!("Kaikki tiedot kerätty. Lopeta Ctrl-d:llä.");
+                let _ = writeln!(io::stdout(), "Kaikki tiedot kerätty. Lopeta Ctrl-d:llä.");
             }
 
             let line = match input.next() {
@@ -970,37 +971,82 @@ pub fn help(topic: &str) -> Result<(), String> {
     static QUICK: &str = include_str!("../help/quick.txt");
 
     match topic {
-        "" => println!("\n{QUICK}"),
-        "ho" => println!("\n{HO}"),
-        "hr" => println!("\n{HR}"),
-        "hs" => println!("\n{HS}"),
-        "has" => println!("\n{HAS}"),
-        "hao" => println!("\n{HAO}"),
-        "hak" => println!("\n{HAK}"),
+        "" => {
+            let _ = writeln!(io::stdout(), "\n{QUICK}");
+        }
+        "ho" => {
+            let _ = writeln!(io::stdout(), "\n{HO}");
+        }
+        "hr" => {
+            let _ = writeln!(io::stdout(), "\n{HR}");
+        }
+        "hs" => {
+            let _ = writeln!(io::stdout(), "\n{HS}");
+        }
+        "has" => {
+            let _ = writeln!(io::stdout(), "\n{HAS}");
+        }
+        "hao" => {
+            let _ = writeln!(io::stdout(), "\n{HAO}");
+        }
+        "hak" => {
+            let _ = writeln!(io::stdout(), "\n{HAK}");
+        }
 
-        "m" => println!("\n{M}"),
-        "ms" => println!("\n{MS}"),
-        "ma" => println!("\n{MA}"),
-        "md" => println!("\n{MD}"),
-        "poista" => println!("\n{POISTA}"),
+        "m" => {
+            let _ = writeln!(io::stdout(), "\n{M}");
+        }
+        "ms" => {
+            let _ = writeln!(io::stdout(), "\n{MS}");
+        }
+        "ma" => {
+            let _ = writeln!(io::stdout(), "\n{MA}");
+        }
+        "md" => {
+            let _ = writeln!(io::stdout(), "\n{MD}");
+        }
+        "poista" => {
+            let _ = writeln!(io::stdout(), "\n{POISTA}");
+        }
 
-        "lo" => println!("\n{LO}"),
-        "ls" => println!("\n{LS}"),
+        "lo" => {
+            let _ = writeln!(io::stdout(), "\n{LO}");
+        }
+        "ls" => {
+            let _ = writeln!(io::stdout(), "\n{LS}");
+        }
 
-        "tp" | "tpk" => println!("\n{TP}"),
-        "tj" | "tjk" => println!("\n{TJ}"),
+        "tp" | "tpk" => {
+            let _ = writeln!(io::stdout(), "\n{TP}");
+        }
+        "tj" | "tjk" => {
+            let _ = writeln!(io::stdout(), "\n{TJ}");
+        }
 
-        "tk" => println!("\n{TK}"),
-        "tlk" => println!("\n{TLK}"),
-        "?" => println!("\n{QM}"),
+        "tk" => {
+            let _ = writeln!(io::stdout(), "\n{TK}");
+        }
+        "tlk" => {
+            let _ = writeln!(io::stdout(), "\n{TLK}");
+        }
+        "?" => {
+            let _ = writeln!(io::stdout(), "\n{QM}");
+        }
 
-        "komennot" => println!(
-            "\n{QUICK}\n{info}",
-            info = include_str!("../help/command.txt")
-        ),
+        "komennot" => {
+            let _ = writeln!(
+                io::stdout(),
+                "\n{QUICK}\n{info}",
+                info = include_str!("../help/command.txt")
+            );
+        }
 
-        "tietokanta" => println!("\n{}", include_str!("../help/database.txt")),
-        "asetukset" => println!("\n{}", include_str!("../help/settings.txt")),
+        "tietokanta" => {
+            let _ = writeln!(io::stdout(), "\n{}", include_str!("../help/database.txt"));
+        }
+        "asetukset" => {
+            let _ = writeln!(io::stdout(), "\n{}", include_str!("../help/settings.txt"));
+        }
         u => return Err(format!("Tuntematon ohjeiden aihe: ”{u}”.")),
     }
     Ok(())
