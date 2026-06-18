@@ -74,7 +74,14 @@ async fn main() -> ExitCode {
     match config_stage(args).await {
         Ok(_) => ExitCode::SUCCESS,
         Err(e) => {
-            let _ = writeln!(stderr, "{e}");
+            if let Some(io) = e.downcast_ref::<io::Error>()
+                && let io::ErrorKind::BrokenPipe = io.kind()
+            {
+                // Broken pipe: exit silently.
+            } else {
+                let _ = writeln!(stderr, "{e}");
+            }
+
             ExitCode::FAILURE
         }
     }
