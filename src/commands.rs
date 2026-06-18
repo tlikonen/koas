@@ -3,7 +3,7 @@ use crate::prelude::*;
 pub async fn stats(modes: &Modes, db: &mut DBase, editable: &mut Editable) -> ResultDE<()> {
     editable.clear();
 
-    Stats::query(db).await?.print(modes.output());
+    Stats::query(db).await?.print(modes.output())?;
     Ok(())
 }
 
@@ -27,10 +27,10 @@ pub async fn students(
 
     if modes.is_interactive() {
         query.copy_to(editable);
-        query.print_num(modes.output());
+        query.print_num(modes.output())?;
         editable.print_fields(&["Sukunimi", "Etunimi", "Ryhmät", "Lisätiedot"]);
     } else {
-        query.print(modes.output());
+        query.print(modes.output())?;
     }
     Ok(())
 }
@@ -51,10 +51,10 @@ pub async fn groups(
 
     if modes.is_interactive() {
         query.copy_to(editable);
-        query.print_num(modes.output());
+        query.print_num(modes.output())?;
         editable.print_fields(&["Ryhmä", "Lisätiedot"]);
     } else {
-        query.print(modes.output());
+        query.print(modes.output())?;
     }
     Ok(())
 }
@@ -79,10 +79,10 @@ pub async fn assignments(
 
     if modes.is_interactive() {
         query.copy_to(editable);
-        query.print_num(modes.output());
+        query.print_num(modes.output())?;
         editable.print_fields(&["Suoritus", "Lyhenne(Lyh)", "Painokerroin(K)", "Järjestys"]);
     } else {
-        query.print(modes.output());
+        query.print(modes.output())?;
     }
     Ok(())
 }
@@ -109,10 +109,10 @@ pub async fn grades_for_assignments(
         1 if modes.is_interactive() => {
             let tbl = &query.list[0];
             tbl.copy_to(editable);
-            tbl.print_num(modes.output());
+            tbl.print_num(modes.output())?;
             editable.print_fields(&["Arvosana(As)", "Lisätiedot"]);
         }
-        _ => query.print(modes.output()),
+        _ => query.print(modes.output())?,
     }
 
     Ok(())
@@ -141,10 +141,10 @@ pub async fn grades_for_students(
         1 if modes.is_interactive() => {
             let tbl = &query.list[0];
             tbl.copy_to(editable);
-            tbl.print_num(modes.output());
+            tbl.print_num(modes.output())?;
             editable.print_fields(&["Arvosana(As)", "Lisätiedot"]);
         }
-        _ => query.print(modes.output()),
+        _ => query.print(modes.output())?,
     }
 
     Ok(())
@@ -167,7 +167,7 @@ pub async fn grades_for_group(
     };
 
     let query = GradesForGroup::query(db, group).await?.has_data()?;
-    query.print(modes.output());
+    query.print(modes.output())?;
     Ok(())
 }
 
@@ -894,7 +894,7 @@ pub async fn student_ranking(
         ranks.query(db, query_terms).await?;
     }
 
-    ranks.has_data()?.print(modes.output());
+    ranks.has_data()?.print(modes.output())?;
     Ok(())
 }
 
@@ -929,7 +929,7 @@ pub async fn grade_distribution(
         dist.query(db, query_terms).await?;
     }
 
-    dist.has_data()?.print(modes.output());
+    dist.has_data()?.print(modes.output())?;
     Ok(())
 }
 
