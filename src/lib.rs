@@ -24,11 +24,13 @@ pub static PROGRAM_LICENSE: &str = env!("CARGO_PKG_LICENSE");
 pub async fn command_stage(mut modes: Modes, config: Config) -> ResultDE<()> {
     let mut db = database::connect(&config, &modes).await?;
     let mut editable: Editable = Default::default();
+    let mut stdout = io::stdout();
+    let mut stderr = io::stderr();
 
     match modes.clone().mode() {
         Mode::Interactive => {
             let _ = writeln!(
-                io::stdout(),
+                stdout,
                 "{prg} v{ver} (postgres://{user}@{host}:{port}/{db})",
                 prg = PROGRAM_NAME,
                 ver = PROGRAM_VERSION,
@@ -54,10 +56,10 @@ pub async fn command_stage(mut modes: Modes, config: Config) -> ResultDE<()> {
                 match commands(&mut modes, &mut db, &mut editable, cmd, args).await {
                     Ok(Ok(())) => (),
                     Ok(Err(e)) => {
-                        let _ = writeln!(io::stderr(), "{e} Apua saa ?:llä.");
+                        let _ = writeln!(stderr, "{e} Apua saa ?:llä.");
                     }
                     Err(e) => {
-                        let _ = writeln!(io::stderr(), "{e}");
+                        let _ = writeln!(stderr, "{e}");
                     }
                 }
             }

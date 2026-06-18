@@ -18,26 +18,28 @@ async fn main() -> ExitCode {
         .flag(OptFlags::PrefixMatchLongOptions)
         .getopt(std::env::args().skip(1));
 
+    let mut stdout = io::stdout();
+    let mut stderr = io::stderr();
     let mut error = false;
 
     for u in args.unknown_options() {
-        let _ = writeln!(io::stderr(), "Tuntematon valitsin ”{u}”.");
+        let _ = writeln!(stderr, "Tuntematon valitsin ”{u}”.");
         error = true;
     }
 
     for o in args.required_value_missing() {
-        let _ = writeln!(io::stderr(), "Valitsimelle ”{}” täytyy antaa arvo.", o.id);
+        let _ = writeln!(stderr, "Valitsimelle ”{}” täytyy antaa arvo.", o.id);
         error = true;
     }
 
     if error {
-        let _ = writeln!(io::stderr(), "Valitsin ”-h” tulostaa apua.");
+        let _ = writeln!(stderr, "Valitsin ”-h” tulostaa apua.");
         return ExitCode::FAILURE;
     }
 
     if args.option_exists("help") {
         let _ = writeln!(
-            io::stdout(),
+            stdout,
             include_str!("../help/usage.txt"),
             ohjelma = koas::PROGRAM_NAME,
         );
@@ -49,7 +51,7 @@ async fn main() -> ExitCode {
         match koas::help(topic) {
             Ok(_) => return ExitCode::SUCCESS,
             Err(e) => {
-                let _ = writeln!(io::stderr(), "{e}");
+                let _ = writeln!(stderr, "{e}");
                 return ExitCode::FAILURE;
             }
         }
@@ -57,7 +59,7 @@ async fn main() -> ExitCode {
 
     if args.option_exists("version") {
         let _ = writeln!(
-            io::stdout(),
+            stdout,
             "{name} v{version}\n\
              Tekijä:   {author}\n\
              Lisenssi: {license}",
@@ -72,7 +74,7 @@ async fn main() -> ExitCode {
     match config_stage(args).await {
         Ok(_) => ExitCode::SUCCESS,
         Err(e) => {
-            let _ = writeln!(io::stderr(), "{e}");
+            let _ = writeln!(stderr, "{e}");
             ExitCode::FAILURE
         }
     }
