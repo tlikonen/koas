@@ -117,17 +117,16 @@ async fn config_stage(args: Args) -> Result<(), Box<dyn Error>> {
             .map_err(|e| format!("Sopimaton arvo valitsimelle: ”--taulukot={e}”."))?;
     }
 
-    // Choose the command stage: stdin, single or interactive.
+    // Choose the mode for command stage: stdin, single or interactive.
     let mut modes: Modes = Default::default();
     modes.set_output(output);
     if args.other.len() == 1 && args.other[0] == "-" {
         modes.set_mode(Mode::Stdin);
-        koas::command_stage(modes, config).await
     } else if !args.other.is_empty() {
         modes.set_mode(Mode::Single(args.other.join(" ")));
-        koas::command_stage(modes, config).await
     } else {
         modes.set_mode(Mode::Interactive);
-        koas::command_stage(modes, config).await
     }
+
+    koas::command_stage(modes, config).await
 }
