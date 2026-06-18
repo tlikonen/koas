@@ -397,7 +397,7 @@ impl PrintTableList for GradesForStudents {
 impl PrintTable for GradesForGroup {
     fn print(&self, out: &Output) {
         self.table().print(out);
-        println!();
+        let _ = writeln!(io::stdout());
 
         // Table of assignments
         let mut rows = vec![
@@ -723,7 +723,7 @@ fn print_table(tbl: &Table, tbl_chars: [&str; 15]) {
 
     let series = |c, n| {
         for _ in 0..n {
-            print!("{c}");
+            let _ = write!(io::stdout(), "{c}");
         }
     };
 
@@ -734,58 +734,64 @@ fn print_table(tbl: &Table, tbl_chars: [&str; 15]) {
     let widths = tbl.widths();
     for row in tbl.rows() {
         match row {
-            Row::Title(s) => println!("\n{s}\n"),
+            Row::Title(s) => {
+                let _ = writeln!(io::stdout(), "\n{s}\n");
+            }
             Row::Toprule => {
-                print!("{top_left}");
+                let _ = write!(io::stdout(), "{top_left}");
                 for i in 0..widths.len() {
                     series(top_line, widths[i]);
                     if widths.get(i + 1).is_some() {
-                        print!("{top_mid}");
+                        let _ = write!(io::stdout(), "{top_mid}");
                     } else {
-                        print!("{top_right}");
+                        let _ = write!(io::stdout(), "{top_right}");
                     }
                 }
-                println!();
+                let _ = writeln!(io::stdout());
             }
             Row::Midrule => {
-                print!("{mid_left}");
+                let _ = write!(io::stdout(), "{mid_left}");
                 for i in 0..widths.len() {
                     series(mid_line, widths[i]);
                     if widths.get(i + 1).is_some() {
-                        print!("{mid_mid}");
+                        let _ = write!(io::stdout(), "{mid_mid}");
                     } else {
-                        print!("{mid_right}");
+                        let _ = write!(io::stdout(), "{mid_right}");
                     }
                 }
-                println!();
+                let _ = writeln!(io::stdout());
             }
             Row::Bottomrule => {
-                print!("{bottom_left}");
+                let _ = write!(io::stdout(), "{bottom_left}");
                 for i in 0..widths.len() {
                     series(bottom_line, widths[i]);
                     if widths.get(i + 1).is_some() {
-                        print!("{bottom_mid}");
+                        let _ = write!(io::stdout(), "{bottom_mid}");
                     } else {
-                        print!("{bottom_right}");
+                        let _ = write!(io::stdout(), "{bottom_right}");
                     }
                 }
-                println!();
+                let _ = writeln!(io::stdout());
             }
             Row::Data(v) | Row::Head(v) | Row::Foot(v) => {
                 let mut multi_max = 0;
                 let mut multi = 0;
                 loop {
-                    print!("{vert_left}");
+                    let _ = write!(io::stdout(), "{vert_left}");
                     for (col, cell) in v.iter().enumerate() {
                         let width = widths[col];
                         match multi {
                             0 => match cell {
                                 Cell::Empty => empty_cell(width),
-                                Cell::Left(s) => print!("{s:<width$}"),
-                                Cell::Right(s) => print!("{s:>width$}"),
+                                Cell::Left(s) => {
+                                    let _ = write!(io::stdout(), "{s:<width$}");
+                                }
+                                Cell::Right(s) => {
+                                    let _ = write!(io::stdout(), "{s:>width$}");
+                                }
                                 Cell::Multi(v) => {
                                     if let Some(s) = v.get(multi) {
-                                        print!("{s:<width$}");
+                                        let _ = write!(io::stdout(), "{s:<width$}");
                                     } else {
                                         empty_cell(width);
                                     }
@@ -797,7 +803,7 @@ fn print_table(tbl: &Table, tbl_chars: [&str; 15]) {
                             _ => match cell {
                                 Cell::Multi(v) => {
                                     if let Some(s) = v.get(multi) {
-                                        print!("{s:<width$}");
+                                        let _ = write!(io::stdout(), "{s:<width$}");
                                     } else {
                                         empty_cell(width);
                                     }
@@ -806,12 +812,12 @@ fn print_table(tbl: &Table, tbl_chars: [&str; 15]) {
                             },
                         }
                         if widths.get(col + 1).is_some() {
-                            print!("{vert_mid}");
+                            let _ = write!(io::stdout(), "{vert_mid}");
                         } else {
-                            print!("{vert_right}");
+                            let _ = write!(io::stdout(), "{vert_right}");
                         }
                     }
-                    println!();
+                    let _ = writeln!(io::stdout());
                     multi += 1;
                     if multi >= multi_max {
                         break;
@@ -825,19 +831,25 @@ fn print_table(tbl: &Table, tbl_chars: [&str; 15]) {
 fn print_table_tab(tbl: &Table) {
     for row in tbl.rows() {
         match row {
-            Row::Title(s) => println!("\n{s}\n"),
+            Row::Title(s) => {
+                let _ = writeln!(io::stdout(), "\n{s}\n");
+            }
             Row::Head(v) | Row::Data(v) | Row::Foot(v) => {
                 for (col, cell) in v.iter().enumerate() {
                     if col > 0 {
-                        print!("\t");
+                        let _ = write!(io::stdout(), "\t");
                     }
                     match cell {
-                        Cell::Left(s) | Cell::Right(s) => print!("{s}"),
-                        Cell::Multi(v) => print!("{}", v.join(" ")),
+                        Cell::Left(s) | Cell::Right(s) => {
+                            let _ = write!(io::stdout(), "{s}");
+                        }
+                        Cell::Multi(v) => {
+                            let _ = write!(io::stdout(), "{}", v.join(" "));
+                        }
                         _ => (),
                     }
                 }
-                println!();
+                let _ = writeln!(io::stdout());
             }
             _ => (),
         }
@@ -847,34 +859,36 @@ fn print_table_tab(tbl: &Table) {
 fn print_table_csv(tbl: &Table) {
     for row in tbl.rows() {
         match row {
-            Row::Title(s) => println!("\n{s}\n"),
+            Row::Title(s) => {
+                let _ = writeln!(io::stdout(), "\n{s}\n");
+            }
             Row::Head(v) | Row::Data(v) | Row::Foot(v) => {
                 for (col, cell) in v.iter().enumerate() {
                     if col > 0 {
-                        print!(",");
+                        let _ = write!(io::stdout(), ",");
                     }
                     match cell {
                         Cell::Left(s) | Cell::Right(s) => {
                             if s.chars().all(|c| c.is_ascii_digit()) {
-                                print!("{s}");
+                                let _ = write!(io::stdout(), "{s}");
                             } else {
-                                print!("{s:?}");
+                                let _ = write!(io::stdout(), "{s:?}");
                             }
                         }
 
                         Cell::Multi(v) => {
                             let s = v.join(" ");
                             if s.chars().all(|c| c.is_ascii_digit()) {
-                                print!("{s}")
+                                let _ = write!(io::stdout(), "{s}");
                             } else {
-                                print!("{s:?}")
+                                let _ = write!(io::stdout(), "{s:?}");
                             }
                         }
 
                         _ => (),
                     }
                 }
-                println!();
+                let _ = writeln!(io::stdout());
             }
             _ => (),
         }
@@ -884,17 +898,25 @@ fn print_table_csv(tbl: &Table) {
 fn print_table_latex(tbl: &Table) {
     for row in tbl.rows() {
         match row {
-            Row::Title(s) => println!("\n{s}\n"),
+            Row::Title(s) => {
+                let _ = writeln!(io::stdout(), "\n{s}\n");
+            }
             Row::Head(v) | Row::Data(v) | Row::Foot(v) => {
-                print!("\\rivi");
+                let _ = write!(io::stdout(), "\\rivi");
                 for cell in v {
                     match cell {
-                        Cell::Empty => print!("{{}}"),
-                        Cell::Left(s) | Cell::Right(s) => print!("{{{s}}}"),
-                        Cell::Multi(v) => print!("{{{}}}", v.join(" ")),
+                        Cell::Empty => {
+                            let _ = write!(io::stdout(), "{{}}");
+                        }
+                        Cell::Left(s) | Cell::Right(s) => {
+                            let _ = write!(io::stdout(), "{{{s}}}");
+                        }
+                        Cell::Multi(v) => {
+                            let _ = write!(io::stdout(), "{{{}}}", v.join(" "));
+                        }
                     }
                 }
-                println!();
+                let _ = writeln!(io::stdout());
             }
             _ => (),
         }
