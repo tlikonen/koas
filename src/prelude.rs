@@ -1,13 +1,13 @@
 pub(crate) use {
     crate::{
         config::Config,
-        error::Error,
+        error::{Error, Result},
         modes::{Modes, Output},
         objects::{
             Assignment, Assignments, CopyToEditable, Delete, DeleteItems, Edit, EditItems,
             Editable, EditableItem, EditableValue, Field, ForDelete, ForEdit, FullQuery, Grade,
             GradeDistribution, GradesForAssignment, GradesForAssignments, GradesForGroup,
-            GradesForStudent, GradesForStudents, Group, Groups, HasData, Result, SimpleGrade,
+            GradesForStudent, GradesForStudents, Group, Groups, HasData, SimpleGrade,
             SimpleStudent, Stats, Student, StudentRanking, Students,
         },
         print::{PrintTable, PrintTableList, PrintTableNum},

@@ -13,9 +13,8 @@ use crate::prelude::*;
 pub use crate::{
     commands::help,
     config::Config,
-    error::Error,
+    error::{Error, Result},
     modes::{Mode, Modes, Output},
-    objects::Result,
     tools::umask,
 };
 

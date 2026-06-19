@@ -1,7 +1,5 @@
 use crate::prelude::*;
 
-pub type Result<T> = std::result::Result<T, Error>;
-
 pub trait HasData {
     fn has_data(self) -> Result<Self>
     where
