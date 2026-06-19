@@ -30,7 +30,7 @@ pub async fn command_stage(mut modes: Modes, config: Config) -> Result<()> {
 
     match modes.clone().mode() {
         Mode::Interactive => {
-            let _ = writeln!(
+            writeln!(
                 stdout,
                 "{prg} v{ver} (postgres://{user}@{host}:{port}/{db})",
                 prg = PROGRAM_NAME,
@@ -39,7 +39,7 @@ pub async fn command_stage(mut modes: Modes, config: Config) -> Result<()> {
                 host = config.host,
                 port = config.port,
                 db = config.database,
-            );
+            )?;
 
             let prompt = format!("{PROGRAM_NAME}> ");
             let mut rl = rustyline::DefaultEditor::new()?;
@@ -57,14 +57,13 @@ pub async fn command_stage(mut modes: Modes, config: Config) -> Result<()> {
                 match commands(&mut modes, &mut db, &mut editable, cmd, args).await {
                     Ok(_) => (),
                     Err(Error::UnknownCmd(cmd)) => {
-                        let _ = writeln!(stderr, "Tuntematon komento ”{cmd}”. Apua saa ?:llä.");
+                        writeln!(stderr, "Tuntematon komento ”{cmd}”. Apua saa ?:llä.")?;
                     }
                     Err(Error::UnknownTbl(tbl)) => {
-                        let _ =
-                            writeln!(stderr, "Tuntematon taulukkotyyppi ”{tbl}”. Apua saa ?:llä.");
+                        writeln!(stderr, "Tuntematon taulukkotyyppi ”{tbl}”. Apua saa ?:llä.")?;
                     }
                     Err(e) => {
-                        let _ = writeln!(stderr, "{e}");
+                        writeln!(stderr, "{e}")?;
                     }
                 }
             }

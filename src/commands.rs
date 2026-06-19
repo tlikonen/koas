@@ -28,7 +28,7 @@ pub async fn students(
     if modes.is_interactive() {
         query.copy_to(editable);
         query.print_num(modes.output())?;
-        editable.print_fields(&["Sukunimi", "Etunimi", "Ryhmät", "Lisätiedot"]);
+        editable.print_fields(&["Sukunimi", "Etunimi", "Ryhmät", "Lisätiedot"])?;
     } else {
         query.print(modes.output())?;
     }
@@ -52,7 +52,7 @@ pub async fn groups(
     if modes.is_interactive() {
         query.copy_to(editable);
         query.print_num(modes.output())?;
-        editable.print_fields(&["Ryhmä", "Lisätiedot"]);
+        editable.print_fields(&["Ryhmä", "Lisätiedot"])?;
     } else {
         query.print(modes.output())?;
     }
@@ -80,7 +80,7 @@ pub async fn assignments(
     if modes.is_interactive() {
         query.copy_to(editable);
         query.print_num(modes.output())?;
-        editable.print_fields(&["Suoritus", "Lyhenne(Lyh)", "Painokerroin(K)", "Järjestys"]);
+        editable.print_fields(&["Suoritus", "Lyhenne(Lyh)", "Painokerroin(K)", "Järjestys"])?;
     } else {
         query.print(modes.output())?;
     }
@@ -110,7 +110,7 @@ pub async fn grades_for_assignments(
             let tbl = &query.list[0];
             tbl.copy_to(editable);
             tbl.print_num(modes.output())?;
-            editable.print_fields(&["Arvosana(As)", "Lisätiedot"]);
+            editable.print_fields(&["Arvosana(As)", "Lisätiedot"])?;
         }
         _ => query.print(modes.output())?,
     }
@@ -142,7 +142,7 @@ pub async fn grades_for_students(
             let tbl = &query.list[0];
             tbl.copy_to(editable);
             tbl.print_num(modes.output())?;
-            editable.print_fields(&["Arvosana(As)", "Lisätiedot"]);
+            editable.print_fields(&["Arvosana(As)", "Lisätiedot"])?;
         }
         _ => query.print(modes.output())?,
     }
@@ -214,6 +214,8 @@ pub async fn edit(db: &mut DBase, editable: &mut Editable, args: &str) -> Result
 }
 
 pub async fn edit_series(db: &mut DBase, editable: &mut Editable, args: &str) -> Result<()> {
+    let mut stdout = io::stdout();
+
     if editable.is_none() {
         return Err("Edellinen komento ei sisällä muokattavia tietueita.".into());
     }
@@ -263,23 +265,23 @@ pub async fn edit_series(db: &mut DBase, editable: &mut Editable, args: &str) ->
             values.push(s);
         }
     } else {
-        let _ = write!(
-            io::stdout(),
+        write!(
+            stdout,
             "Syötä kentän {field_num} arvot riveittäin. Pelkkä välilyönti poistaa kentän arvon\n\
              (paitsi eräitä pakollisia). Tyhjä rivi jättää kentän ennalleen. Ctrl-d lopettaa.\n\
              Tietueet:"
-        );
+        )?;
         for i in &indexes {
-            let _ = write!(io::stdout(), " {i}");
+            write!(stdout, " {i}")?;
         }
-        let _ = writeln!(io::stdout(), "\n---");
+        writeln!(stdout, "\n---")?;
 
         let mut input = io::stdin().lines();
         let mut i = 0;
 
         loop {
             if i >= indexes.len() {
-                let _ = writeln!(io::stdout(), "Kaikki tiedot kerätty. Lopeta Ctrl-d:llä.");
+                writeln!(stdout, "Kaikki tiedot kerätty. Lopeta Ctrl-d:llä.")?;
             }
 
             let line = match input.next() {

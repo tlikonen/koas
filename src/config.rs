@@ -23,6 +23,8 @@ impl Config {
     }
 
     pub fn read(path: &Path) -> Result<Config> {
+        let mut stderr = io::stderr();
+
         let contents = fs::read_to_string(path).map_err(|e| {
             format!(
                 "Asetustiedoston ”{}” lukeminen epäonnistui: {}",
@@ -44,11 +46,11 @@ impl Config {
 
         for (n, line) in (1..).zip(contents.lines()) {
             if n > max {
-                let _ = writeln!(
-                    io::stderr(),
+                writeln!(
+                    stderr,
                     "Asetustiedostosta ”{}” käsitellään vain ensimmäiset {max} riviä.",
                     path.display()
-                );
+                )?;
                 break;
             }
 
@@ -59,12 +61,12 @@ impl Config {
             let (key, value) = match line.split_once('=') {
                 Some(kv) => kv,
                 None => {
-                    let _ = writeln!(
-                        io::stderr(),
+                    writeln!(
+                        stderr,
                         "Asetustiedoston ”{}” rivi {} on sopimaton.",
                         path.display(),
                         n
-                    );
+                    )?;
                     continue;
                 }
             };
@@ -101,11 +103,11 @@ impl Config {
                     config.tables.push_str(value);
                 }
                 _ => {
-                    let _ = writeln!(
-                        io::stderr(),
+                    writeln!(
+                        stderr,
                         "Asetustiedostossa ”{}” tuntematon kenttä ”{key}”.",
                         path.display()
-                    );
+                    )?;
                 }
             }
         }
@@ -124,11 +126,11 @@ impl Config {
         }
 
         if !config.tables.is_empty() && Output::select(&config.tables).is_err() {
-            let _ = writeln!(
-                io::stderr(),
+            writeln!(
+                stderr,
                 "Asetustiedostossa ”{}” sopimaton kentän ”taulukot” arvo.",
                 path.display()
-            );
+            )?;
         }
 
         Ok(config)

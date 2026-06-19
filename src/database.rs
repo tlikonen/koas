@@ -40,20 +40,20 @@ impl Editable {
         }
     }
 
-    pub fn print_fields(&self, fields: &[&str]) {
+    pub fn print_fields(&self, fields: &[&str]) -> Result<()> {
         let mut s = String::with_capacity(50);
+        let mut stdout = io::stdout();
+
         for (n, f) in (1..).zip(fields) {
             s.push_str(&format!(" / {}:{}", n, f));
         }
+
         match self.count() {
             0 => (),
-            1 => {
-                let _ = writeln!(io::stdout(), "Tietue: 1. Kentät:{s}");
-            }
-            n => {
-                let _ = writeln!(io::stdout(), "Tietueet: 1–{n}. Kentät:{s}");
-            }
+            1 => writeln!(stdout, "Tietue: 1. Kentät:{s}")?,
+            n => writeln!(stdout, "Tietueet: 1–{n}. Kentät:{s}")?,
         }
+        Ok(())
     }
 }
 
