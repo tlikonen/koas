@@ -72,13 +72,14 @@ async fn main() -> ExitCode {
 
     match config_stage(args).await {
         Ok(_) => ExitCode::SUCCESS,
-        Err(err) => {
-            match err {
-                Error::Io(e) if matches!(e.kind(), io::ErrorKind::BrokenPipe) => (),
-                other => {
-                    let _ = writeln!(stderr, "{other}");
-                }
-            }
+
+        Err(Error::Io {
+            kind: io::ErrorKind::BrokenPipe,
+            ..
+        }) => ExitCode::FAILURE,
+
+        Err(other) => {
+            let _ = writeln!(stderr, "{other}");
             ExitCode::FAILURE
         }
     }
