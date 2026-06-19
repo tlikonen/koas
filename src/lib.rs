@@ -1,6 +1,7 @@
 mod commands;
 mod config;
 mod database;
+mod error;
 mod modes;
 mod objects;
 mod prelude;
@@ -12,8 +13,9 @@ use crate::prelude::*;
 pub use crate::{
     commands::help,
     config::Config,
+    error::Error,
     modes::{Mode, Modes, Output},
-    objects::{Error, Result},
+    objects::Result,
     tools::umask,
 };
 
