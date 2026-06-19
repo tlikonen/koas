@@ -1,6 +1,6 @@
 use crate::prelude::*;
 use rustyline::error::ReadlineError;
-use std::fmt;
+use std::{fmt, num::ParseIntError};
 
 pub type ResultApp<T> = Result<T, AppError>;
 
