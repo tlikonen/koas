@@ -15,12 +15,12 @@ pub enum Error {
 }
 
 impl Error {
-    pub fn unknown_cmd(err: impl ToString) -> Self {
-        Self::UnknownCmd(err.to_string())
+    pub fn unknown_cmd(cmd: impl ToString) -> Self {
+        Self::UnknownCmd(cmd.to_string())
     }
 
-    pub fn unknown_tbl(err: impl ToString) -> Self {
-        Self::UnknownTbl(err.to_string())
+    pub fn unknown_tbl(tbl: impl ToString) -> Self {
+        Self::UnknownTbl(tbl.to_string())
     }
 }
 
