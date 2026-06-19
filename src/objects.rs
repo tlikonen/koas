@@ -11,7 +11,6 @@ pub enum AppError {
     Db(sqlx::Error),
     UnknownCmd(String),
     UnknownTbl(String),
-    Silent,
 }
 
 impl AppError {
@@ -32,7 +31,6 @@ impl fmt::Display for AppError {
             Self::Db(v) => write!(f, "Tietokantavirhe: {v}"),
             Self::UnknownCmd(v) => write!(f, "Tuntematon komento ”{v}”."),
             Self::UnknownTbl(v) => write!(f, "Tuntematon taulukkotyyppi ”{v}”."),
-            _ => write!(f, ""),
         }
     }
 }

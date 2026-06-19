@@ -75,11 +75,10 @@ pub async fn command_stage(mut modes: Modes, config: Config) -> ResultApp<()> {
             match commands(&mut modes, &mut db, &mut editable, cmd, args).await {
                 Ok(_) => (),
                 Err(AppError::UnknownCmd(cmd)) => {
-                    let _ = writeln!(
-                        stderr,
+                    return Err(format!(
                         "Tuntematon komento ”{cmd}”. Apua saa valitsimella ”--ohje”."
-                    );
-                    return Err(AppError::Silent);
+                    )
+                    .into());
                 }
                 err => return err,
             }
@@ -94,11 +93,10 @@ pub async fn command_stage(mut modes: Modes, config: Config) -> ResultApp<()> {
                     match commands(&mut modes, &mut ta, &mut editable, cmd, args).await {
                         Ok(_) => (),
                         Err(AppError::UnknownCmd(cmd)) => {
-                            let _ = writeln!(
-                                stderr,
+                            return Err(format!(
                                 "Tuntematon komento ”{cmd}”. Apua saa valitsimella ”--ohje”."
-                            );
-                            return Err(AppError::Silent);
+                            )
+                            .into());
                         }
                         err => return err,
                     }

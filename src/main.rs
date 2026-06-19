@@ -75,7 +75,6 @@ async fn main() -> ExitCode {
         Err(err) => {
             match err {
                 AppError::Io(e) if matches!(e.kind(), io::ErrorKind::BrokenPipe) => (),
-                AppError::Silent => (),
                 other => {
                     let _ = writeln!(stderr, "{other}");
                 }
