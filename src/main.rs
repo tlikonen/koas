@@ -74,7 +74,7 @@ async fn main() -> ExitCode {
         Ok(_) => ExitCode::SUCCESS,
         Err(err) => {
             match err {
-                AppError::Io(e) if matches!(e.kind(), io::ErrorKind::BrokenPipe) => (),
+                Error::Io(e) if matches!(e.kind(), io::ErrorKind::BrokenPipe) => (),
                 other => {
                     let _ = writeln!(stderr, "{other}");
                 }
@@ -84,7 +84,7 @@ async fn main() -> ExitCode {
     }
 }
 
-async fn config_stage(args: Args) -> ResultApp<()> {
+async fn config_stage(args: Args) -> Result<()> {
     let config_file = Config::file()?;
     let mut output: Output = Default::default();
 

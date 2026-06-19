@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-pub async fn stats(modes: &Modes, db: &mut DBase, editable: &mut Editable) -> ResultApp<()> {
+pub async fn stats(modes: &Modes, db: &mut DBase, editable: &mut Editable) -> Result<()> {
     editable.clear();
 
     Stats::query(db).await?.print(modes.output())?;
@@ -12,7 +12,7 @@ pub async fn students(
     db: &mut DBase,
     editable: &mut Editable,
     args: &str,
-) -> ResultApp<()> {
+) -> Result<()> {
     editable.clear();
 
     let mut fields = tools::split_sep(args);
@@ -40,7 +40,7 @@ pub async fn groups(
     db: &mut DBase,
     editable: &mut Editable,
     args: &str,
-) -> ResultApp<()> {
+) -> Result<()> {
     editable.clear();
 
     let mut fields = tools::split_sep(args);
@@ -64,7 +64,7 @@ pub async fn assignments(
     db: &mut DBase,
     editable: &mut Editable,
     args: &str,
-) -> ResultApp<()> {
+) -> Result<()> {
     editable.clear();
 
     let group = {
@@ -92,7 +92,7 @@ pub async fn grades_for_assignments(
     db: &mut DBase,
     editable: &mut Editable,
     args: &str,
-) -> ResultApp<()> {
+) -> Result<()> {
     editable.clear();
 
     let mut fields = tools::split_sep(args);
@@ -123,7 +123,7 @@ pub async fn grades_for_students(
     db: &mut DBase,
     editable: &mut Editable,
     args: &str,
-) -> ResultApp<()> {
+) -> Result<()> {
     editable.clear();
 
     let mut fields = tools::split_sep(args);
@@ -155,7 +155,7 @@ pub async fn grades_for_group(
     db: &mut DBase,
     editable: &mut Editable,
     args: &str,
-) -> ResultApp<()> {
+) -> Result<()> {
     editable.clear();
 
     let group = {
@@ -171,7 +171,7 @@ pub async fn grades_for_group(
     Ok(())
 }
 
-pub async fn edit(db: &mut DBase, editable: &mut Editable, args: &str) -> ResultApp<()> {
+pub async fn edit(db: &mut DBase, editable: &mut Editable, args: &str) -> Result<()> {
     if editable.is_none() {
         return Err("Edellinen komento ei sisällä muokattavia tietueita.".into());
     }
@@ -213,7 +213,7 @@ pub async fn edit(db: &mut DBase, editable: &mut Editable, args: &str) -> Result
     Ok(())
 }
 
-pub async fn edit_series(db: &mut DBase, editable: &mut Editable, args: &str) -> ResultApp<()> {
+pub async fn edit_series(db: &mut DBase, editable: &mut Editable, args: &str) -> Result<()> {
     if editable.is_none() {
         return Err("Edellinen komento ei sisällä muokattavia tietueita.".into());
     }
@@ -340,7 +340,7 @@ pub async fn edit_series(db: &mut DBase, editable: &mut Editable, args: &str) ->
 }
 
 impl Edit for EditItems<'_, Student> {
-    async fn edit(&self, db: &mut DBase) -> ResultApp<()> {
+    async fn edit(&self, db: &mut DBase) -> Result<()> {
         let lastname = self.field(0); // sukunimi
         let firstname = self.field(1); // etunimi
         let groups = self.field(2); // ryhmät
@@ -445,7 +445,7 @@ impl Edit for EditItems<'_, Student> {
 }
 
 impl Edit for EditItems<'_, Group> {
-    async fn edit(&self, db: &mut DBase) -> ResultApp<()> {
+    async fn edit(&self, db: &mut DBase) -> Result<()> {
         let name = self.field(0); // ryhmä
         let desc = self.field(1); // lisätiedot
 
@@ -479,7 +479,7 @@ impl Edit for EditItems<'_, Group> {
 }
 
 impl Edit for EditItems<'_, Assignment> {
-    async fn edit(&self, db: &mut DBase) -> ResultApp<()> {
+    async fn edit(&self, db: &mut DBase) -> Result<()> {
         let name = self.field(0); // suoritus
         let short = self.field(1); // lyhenne
         let weight = self.field(2); // painokerroin
@@ -540,7 +540,7 @@ impl Edit for EditItems<'_, Assignment> {
 }
 
 impl Edit for EditItems<'_, Grade> {
-    async fn edit(&self, db: &mut DBase) -> ResultApp<()> {
+    async fn edit(&self, db: &mut DBase) -> Result<()> {
         let grade = self.field(0); // arvosana
         let desc = self.field(1); // lisätiedot
 
@@ -567,11 +567,7 @@ impl Edit for EditItems<'_, Grade> {
     }
 }
 
-pub async fn convert_to_grade(
-    db: &mut DBase,
-    editable: &mut Editable,
-    args: &str,
-) -> ResultApp<()> {
+pub async fn convert_to_grade(db: &mut DBase, editable: &mut Editable, args: &str) -> Result<()> {
     if editable.is_none() {
         return Err("Edellinen komento ei sisällä muokattavia tietueita.".into());
     }
@@ -613,11 +609,7 @@ pub async fn convert_to_grade(
     Ok(())
 }
 
-pub async fn convert_to_decimal(
-    db: &mut DBase,
-    editable: &mut Editable,
-    args: &str,
-) -> ResultApp<()> {
+pub async fn convert_to_decimal(db: &mut DBase, editable: &mut Editable, args: &str) -> Result<()> {
     if editable.is_none() {
         return Err("Edellinen komento ei sisällä muokattavia tietueita.".into());
     }
@@ -659,7 +651,7 @@ pub async fn convert_to_decimal(
     Ok(())
 }
 
-pub async fn insert_student(db: &mut DBase, editable: &mut Editable, args: &str) -> ResultApp<()> {
+pub async fn insert_student(db: &mut DBase, editable: &mut Editable, args: &str) -> Result<()> {
     editable.clear();
 
     let mut fields = tools::split_sep(args);
@@ -700,11 +692,7 @@ pub async fn insert_student(db: &mut DBase, editable: &mut Editable, args: &str)
     Ok(())
 }
 
-pub async fn insert_assignment(
-    db: &mut DBase,
-    editable: &mut Editable,
-    args: &str,
-) -> ResultApp<()> {
+pub async fn insert_assignment(db: &mut DBase, editable: &mut Editable, args: &str) -> Result<()> {
     editable.clear();
 
     let mut fields = tools::split_sep(args);
@@ -765,7 +753,7 @@ pub async fn insert_assignment(
     Ok(())
 }
 
-pub async fn delete(db: &mut DBase, editable: &mut Editable, args: &str) -> ResultApp<()> {
+pub async fn delete(db: &mut DBase, editable: &mut Editable, args: &str) -> Result<()> {
     if editable.is_none() {
         return Err("Edellinen komento ei sisällä poistettavia tietueita.".into());
     }
@@ -807,7 +795,7 @@ pub async fn delete(db: &mut DBase, editable: &mut Editable, args: &str) -> Resu
 }
 
 impl Delete for DeleteItems<'_, Student> {
-    async fn delete(&self, db: &mut DBase) -> ResultApp<()> {
+    async fn delete(&self, db: &mut DBase) -> Result<()> {
         for student in self.iter() {
             let count = student.count_grades(db).await?;
             if count > 0 {
@@ -828,7 +816,7 @@ impl Delete for DeleteItems<'_, Student> {
 }
 
 impl Delete for DeleteItems<'_, Assignment> {
-    async fn delete(&self, db: &mut DBase) -> ResultApp<()> {
+    async fn delete(&self, db: &mut DBase) -> Result<()> {
         let mut rid_list = Vec::with_capacity(1);
         for assignment in self.iter() {
             let count = assignment.count_grades(db).await?;
@@ -859,7 +847,7 @@ impl Delete for DeleteItems<'_, Assignment> {
 }
 
 impl Delete for DeleteItems<'_, Grade> {
-    async fn delete(&self, db: &mut DBase) -> ResultApp<()> {
+    async fn delete(&self, db: &mut DBase) -> Result<()> {
         for grade in self.iter() {
             grade.delete(db).await?;
         }
@@ -873,7 +861,7 @@ pub async fn student_ranking(
     editable: &mut Editable,
     mut args: &str,
     all: bool,
-) -> ResultApp<()> {
+) -> Result<()> {
     editable.clear();
     if args.is_empty() {
         args = "@";
@@ -908,7 +896,7 @@ pub async fn grade_distribution(
     editable: &mut Editable,
     mut args: &str,
     all: bool,
-) -> ResultApp<()> {
+) -> Result<()> {
     editable.clear();
     if args.is_empty() {
         args = "@";
@@ -937,7 +925,7 @@ pub async fn grade_distribution(
     Ok(())
 }
 
-pub fn table_format(modes: &mut Modes, args: &str) -> ResultApp<()> {
+pub fn table_format(modes: &mut Modes, args: &str) -> Result<()> {
     let (first, _) = tools::split_first(args);
     if first.is_empty() {
         return Err("Anna argumentiksi taulukkotyyli. Apua saa ?:llä.".into());
@@ -948,7 +936,7 @@ pub fn table_format(modes: &mut Modes, args: &str) -> ResultApp<()> {
     Ok(())
 }
 
-pub fn help(topic: &str) -> ResultApp<()> {
+pub fn help(topic: &str) -> Result<()> {
     static HO: &str = include_str!("../help/command-ho.txt");
     static HR: &str = include_str!("../help/command-hr.txt");
     static HS: &str = include_str!("../help/command-hs.txt");

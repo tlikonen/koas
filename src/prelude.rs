@@ -3,10 +3,10 @@ pub(crate) use {
         config::Config,
         modes::{Modes, Output},
         objects::{
-            AppError, Assignment, Assignments, CopyToEditable, Delete, DeleteItems, Edit,
-            EditItems, Editable, EditableItem, EditableValue, Field, ForDelete, ForEdit, FullQuery,
+            Assignment, Assignments, CopyToEditable, Delete, DeleteItems, Edit, EditItems,
+            Editable, EditableItem, EditableValue, Error, Field, ForDelete, ForEdit, FullQuery,
             Grade, GradeDistribution, GradesForAssignment, GradesForAssignments, GradesForGroup,
-            GradesForStudent, GradesForStudents, Group, Groups, HasData, ResultApp, SimpleGrade,
+            GradesForStudent, GradesForStudents, Group, Groups, HasData, Result, SimpleGrade,
             SimpleStudent, Stats, Student, StudentRanking, Students,
         },
         print::{PrintTable, PrintTableList, PrintTableNum},

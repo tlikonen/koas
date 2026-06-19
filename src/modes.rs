@@ -22,7 +22,7 @@ pub enum Output {
 }
 
 impl Output {
-    pub fn select(value: &str) -> ResultApp<Self> {
+    pub fn select(value: &str) -> Result<Self> {
         let out = match value.to_lowercase().as_str() {
             "unicode" | "u" => Output::Unicode,
             "unicode-avoin" | "ua" => Output::UnicodeOpen,
@@ -32,7 +32,7 @@ impl Output {
             "tab" | "t" => Output::Tab,
             "csv" | "c" => Output::Csv,
             "latex" | "l" => Output::Latex,
-            _ => return Err(AppError::unknown_tbl(value)),
+            _ => return Err(Error::unknown_tbl(value)),
         };
         Ok(out)
     }

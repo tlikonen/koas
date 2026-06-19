@@ -13,7 +13,7 @@ pub use crate::{
     commands::help,
     config::Config,
     modes::{Mode, Modes, Output},
-    objects::{AppError, ResultApp},
+    objects::{Error, Result},
     tools::umask,
 };
 
@@ -22,7 +22,7 @@ pub static PROGRAM_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub static PROGRAM_AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
 pub static PROGRAM_LICENSE: &str = env!("CARGO_PKG_LICENSE");
 
-pub async fn command_stage(mut modes: Modes, config: Config) -> ResultApp<()> {
+pub async fn command_stage(mut modes: Modes, config: Config) -> Result<()> {
     let mut db = database::connect(&config, &modes).await?;
     let mut editable: Editable = Default::default();
     let mut stdout = io::stdout();
@@ -56,10 +56,10 @@ pub async fn command_stage(mut modes: Modes, config: Config) -> ResultApp<()> {
 
                 match commands(&mut modes, &mut db, &mut editable, cmd, args).await {
                     Ok(_) => (),
-                    Err(AppError::UnknownCmd(cmd)) => {
+                    Err(Error::UnknownCmd(cmd)) => {
                         let _ = writeln!(stderr, "Tuntematon komento ”{cmd}”. Apua saa ?:llä.");
                     }
-                    Err(AppError::UnknownTbl(tbl)) => {
+                    Err(Error::UnknownTbl(tbl)) => {
                         let _ =
                             writeln!(stderr, "Tuntematon taulukkotyyppi ”{tbl}”. Apua saa ?:llä.");
                     }
@@ -74,7 +74,7 @@ pub async fn command_stage(mut modes: Modes, config: Config) -> ResultApp<()> {
             let (cmd, args) = tools::split_first(line);
             match commands(&mut modes, &mut db, &mut editable, cmd, args).await {
                 Ok(_) => (),
-                Err(AppError::UnknownCmd(cmd)) => {
+                Err(Error::UnknownCmd(cmd)) => {
                     return Err(format!(
                         "Tuntematon komento ”{cmd}”. Apua saa valitsimella ”--ohje”."
                     )
@@ -92,7 +92,7 @@ pub async fn command_stage(mut modes: Modes, config: Config) -> ResultApp<()> {
                     let (cmd, args) = tools::split_first(&line);
                     match commands(&mut modes, &mut ta, &mut editable, cmd, args).await {
                         Ok(_) => (),
-                        Err(AppError::UnknownCmd(cmd)) => {
+                        Err(Error::UnknownCmd(cmd)) => {
                             return Err(format!(
                                 "Tuntematon komento ”{cmd}”. Apua saa valitsimella ”--ohje”."
                             )
@@ -114,7 +114,7 @@ async fn commands(
     editable: &mut Editable,
     cmd: &str,
     args: &str,
-) -> ResultApp<()> {
+) -> Result<()> {
     match (cmd, modes.mode()) {
         ("ho", _) => commands::students(modes, db, editable, args).await?,
         ("hr", _) => commands::groups(modes, db, editable, args).await?,
@@ -145,7 +145,7 @@ async fn commands(
             commands::help(args)?;
         }
 
-        (c, _) => return Err(AppError::unknown_cmd(c)),
+        (c, _) => return Err(Error::unknown_cmd(c)),
     }
     Ok(())
 }
