@@ -59,6 +59,10 @@ pub async fn command_stage(mut modes: Modes, config: Config) -> ResultApp<()> {
                     Err(AppError::UnknownCmd(cmd)) => {
                         let _ = writeln!(stderr, "Tuntematon komento ”{cmd}”. Apua saa ?:llä.");
                     }
+                    Err(AppError::UnknownTbl(tbl)) => {
+                        let _ =
+                            writeln!(stderr, "Tuntematon taulukkotyyppi ”{tbl}”. Apua saa ?:llä.");
+                    }
                     Err(e) => {
                         let _ = writeln!(stderr, "{e}");
                     }

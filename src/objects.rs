@@ -10,12 +10,17 @@ pub enum AppError {
     Io(io::Error),
     Db(sqlx::Error),
     UnknownCmd(String),
+    UnknownTbl(String),
     Silent,
 }
 
 impl AppError {
-    pub fn unknown_cmd(err: impl Into<String>) -> Self {
-        Self::UnknownCmd(err.into())
+    pub fn unknown_cmd(err: impl ToString) -> Self {
+        Self::UnknownCmd(err.to_string())
+    }
+
+    pub fn unknown_tbl(err: impl ToString) -> Self {
+        Self::UnknownTbl(err.to_string())
     }
 }
 
@@ -25,7 +30,8 @@ impl fmt::Display for AppError {
             Self::Generic(v) => write!(f, "{v}"),
             Self::Io(v) => write!(f, "Tiedonsiirtovirhe: {v}"),
             Self::Db(v) => write!(f, "Tietokantavirhe: {v}"),
-            Self::UnknownCmd(v) => write!(f, "Tuntematon komento ”{v}”"),
+            Self::UnknownCmd(v) => write!(f, "Tuntematon komento ”{v}”."),
+            Self::UnknownTbl(v) => write!(f, "Tuntematon taulukkotyyppi ”{v}”."),
             _ => write!(f, ""),
         }
     }

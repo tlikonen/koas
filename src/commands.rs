@@ -943,8 +943,7 @@ pub fn table_format(modes: &mut Modes, args: &str) -> ResultApp<()> {
         return Err("Anna argumentiksi taulukkotyyli. Apua saa ?:llä.".into());
     }
 
-    let new = Output::select(first)
-        .map_err(|e| format!("Tuntematon taulukkotyyli ”{e}”. Apua saa ?:llä."))?;
+    let new = Output::select(first)?;
     modes.set_output(new);
     Ok(())
 }

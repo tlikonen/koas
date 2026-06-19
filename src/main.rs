@@ -112,7 +112,7 @@ async fn config_stage(args: Args) -> ResultApp<()> {
 
     if let Some(value) = args.options_value_last("taulukot") {
         output = Output::select(value)
-            .map_err(|e| format!("Sopimaton arvo valitsimelle: ”--taulukot={e}”."))?;
+            .map_err(|e| format!("Sopimaton arvo valitsimelle --taulukot: {e}"))?;
     }
 
     // Choose the mode for command stage: stdin, single or interactive.
