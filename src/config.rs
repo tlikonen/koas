@@ -22,7 +22,7 @@ impl Config {
         Ok(path)
     }
 
-    pub fn read(path: &Path) -> Result<Config, String> {
+    pub fn read(path: &Path) -> ResultApp<Config> {
         let contents = fs::read_to_string(path).map_err(|e| {
             format!(
                 "Asetustiedoston ”{}” lukeminen epäonnistui: {}",
@@ -119,7 +119,8 @@ impl Config {
             return Err(format!(
                 "Asetustiedostosta ”{}” puuttuu tärkeitä asetuksia. Tarkista ohjeet.",
                 path.display(),
-            ));
+            )
+            .into());
         }
 
         if !config.tables.is_empty() && Output::select(&config.tables).is_err() {

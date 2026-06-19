@@ -58,7 +58,7 @@ impl Editable {
 }
 
 impl Stats {
-    pub async fn query(db: &mut DBase) -> Result<Self, sqlx::Error> {
+    pub async fn query(db: &mut DBase) -> ResultApp<Self> {
         let row = sqlx::query(
             "SELECT \
              (SELECT count(*) FROM oppilaat) oppilaat, \

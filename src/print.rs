@@ -3,7 +3,7 @@ use crate::prelude::*;
 const GROUPS_WIDTH: usize = 42;
 
 pub trait PrintTable {
-    fn print(&self, out: &Output) -> Result<(), io::Error> {
+    fn print(&self, out: &Output) -> ResultApp<()> {
         self.table().print(out)
     }
 
@@ -11,7 +11,7 @@ pub trait PrintTable {
 }
 
 pub trait PrintTableNum: PrintTable {
-    fn print_num(&self, out: &Output) -> Result<(), io::Error> {
+    fn print_num(&self, out: &Output) -> ResultApp<()> {
         self.table().numbering().print(out)
     }
 }
@@ -23,7 +23,7 @@ impl PrintTableNum for GradesForAssignment {}
 impl PrintTableNum for GradesForStudent {}
 
 pub trait PrintTableList {
-    fn print(&self, out: &Output) -> Result<(), io::Error> {
+    fn print(&self, out: &Output) -> ResultApp<()> {
         for t in self.list() {
             t.print(out)?;
         }
@@ -82,7 +82,7 @@ impl Table {
         self
     }
 
-    fn print(&self, output: &Output) -> Result<(), io::Error> {
+    fn print(&self, output: &Output) -> ResultApp<()> {
         if self.is_empty() {
             return Ok(());
         }
@@ -396,7 +396,7 @@ impl PrintTableList for GradesForStudents {
 }
 
 impl PrintTable for GradesForGroup {
-    fn print(&self, out: &Output) -> Result<(), io::Error> {
+    fn print(&self, out: &Output) -> ResultApp<()> {
         self.table().print(out)?;
         writeln!(io::stdout())?;
 
@@ -702,7 +702,7 @@ static TBL_ORGMODE: [&str; 15] = [
     "| ", " | ", " |", // vert: left mid right
 ];
 
-fn print_table(tbl: &Table, tbl_chars: [&str; 15]) -> Result<(), io::Error> {
+fn print_table(tbl: &Table, tbl_chars: [&str; 15]) -> ResultApp<()> {
     let top_left = tbl_chars[0];
     let top_line = tbl_chars[1];
     let top_mid = tbl_chars[2];
@@ -832,7 +832,7 @@ fn print_table(tbl: &Table, tbl_chars: [&str; 15]) -> Result<(), io::Error> {
     Ok(())
 }
 
-fn print_table_tab(tbl: &Table) -> Result<(), io::Error> {
+fn print_table_tab(tbl: &Table) -> ResultApp<()> {
     let mut stdout = io::stdout();
 
     for row in tbl.rows() {
@@ -863,7 +863,7 @@ fn print_table_tab(tbl: &Table) -> Result<(), io::Error> {
     Ok(())
 }
 
-fn print_table_csv(tbl: &Table) -> Result<(), io::Error> {
+fn print_table_csv(tbl: &Table) -> ResultApp<()> {
     let mut stdout = io::stdout();
 
     for row in tbl.rows() {
@@ -905,7 +905,7 @@ fn print_table_csv(tbl: &Table) -> Result<(), io::Error> {
     Ok(())
 }
 
-fn print_table_latex(tbl: &Table) -> Result<(), io::Error> {
+fn print_table_latex(tbl: &Table) -> ResultApp<()> {
     let mut stdout = io::stdout();
 
     for row in tbl.rows() {
