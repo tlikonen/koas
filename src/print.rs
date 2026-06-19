@@ -724,15 +724,14 @@ fn print_table(tbl: &Table, tbl_chars: [&str; 15]) -> Result<()> {
 
     let mut stdout = io::stdout();
 
-    let series = |c, n| {
-        for _ in 0..n {
-            let _ = write!(io::stdout(), "{c}");
-        }
-    };
+    fn series(c: &str, n: usize) -> Result<()> {
+        write!(io::stdout(), "{}", c.repeat(n))?;
+        Ok(())
+    }
 
-    let empty_cell = |w| {
-        series(" ", w);
-    };
+    fn empty_cell(w: usize) -> Result<()> {
+        series(" ", w)
+    }
 
     let widths = tbl.widths();
     for row in tbl.rows() {
@@ -743,7 +742,7 @@ fn print_table(tbl: &Table, tbl_chars: [&str; 15]) -> Result<()> {
             Row::Toprule => {
                 write!(stdout, "{top_left}")?;
                 for i in 0..widths.len() {
-                    series(top_line, widths[i]);
+                    series(top_line, widths[i])?;
                     if widths.get(i + 1).is_some() {
                         write!(stdout, "{top_mid}")?;
                     } else {
@@ -755,7 +754,7 @@ fn print_table(tbl: &Table, tbl_chars: [&str; 15]) -> Result<()> {
             Row::Midrule => {
                 write!(stdout, "{mid_left}")?;
                 for i in 0..widths.len() {
-                    series(mid_line, widths[i]);
+                    series(mid_line, widths[i])?;
                     if widths.get(i + 1).is_some() {
                         write!(stdout, "{mid_mid}")?;
                     } else {
@@ -767,7 +766,7 @@ fn print_table(tbl: &Table, tbl_chars: [&str; 15]) -> Result<()> {
             Row::Bottomrule => {
                 write!(stdout, "{bottom_left}")?;
                 for i in 0..widths.len() {
-                    series(bottom_line, widths[i]);
+                    series(bottom_line, widths[i])?;
                     if widths.get(i + 1).is_some() {
                         write!(stdout, "{bottom_mid}")?;
                     } else {
@@ -785,7 +784,7 @@ fn print_table(tbl: &Table, tbl_chars: [&str; 15]) -> Result<()> {
                         let width = widths[col];
                         match multi {
                             0 => match cell {
-                                Cell::Empty => empty_cell(width),
+                                Cell::Empty => empty_cell(width)?,
                                 Cell::Left(s) => {
                                     write!(stdout, "{s:<width$}")?;
                                 }
@@ -796,7 +795,7 @@ fn print_table(tbl: &Table, tbl_chars: [&str; 15]) -> Result<()> {
                                     if let Some(s) = v.get(multi) {
                                         write!(stdout, "{s:<width$}")?;
                                     } else {
-                                        empty_cell(width);
+                                        empty_cell(width)?;
                                     }
                                     if v.len() > multi_max {
                                         multi_max = v.len();
@@ -808,10 +807,10 @@ fn print_table(tbl: &Table, tbl_chars: [&str; 15]) -> Result<()> {
                                     if let Some(s) = v.get(multi) {
                                         write!(stdout, "{s:<width$}")?;
                                     } else {
-                                        empty_cell(width);
+                                        empty_cell(width)?;
                                     }
                                 }
-                                _ => empty_cell(width),
+                                _ => empty_cell(width)?,
                             },
                         }
                         if widths.get(col + 1).is_some() {
