@@ -9,6 +9,22 @@ use {
 
 #[tokio::main]
 async fn main() -> ExitCode {
+    match cli().await {
+        Ok(_) => ExitCode::SUCCESS,
+
+        Err(Error::Io {
+            kind: io::ErrorKind::BrokenPipe,
+            ..
+        }) => ExitCode::FAILURE,
+
+        Err(other) => {
+            let _ = writeln!(io::stderr(), "{other}");
+            ExitCode::FAILURE
+        }
+    }
+}
+
+async fn cli() -> Result<()> {
     let args = OptSpecs::new()
         .option("taulukot", "taulukot", OptValue::RequiredNonEmpty)
         .option("ohje", "ohje", OptValue::OptionalNonEmpty)
@@ -22,42 +38,35 @@ async fn main() -> ExitCode {
     let mut error = false;
 
     for u in args.unknown_options() {
-        let _ = writeln!(stderr, "Tuntematon valitsin ”{u}”.");
+        writeln!(stderr, "Tuntematon valitsin ”{u}”.")?;
         error = true;
     }
 
     for o in args.required_value_missing() {
-        let _ = writeln!(stderr, "Valitsimelle ”{}” täytyy antaa arvo.", o.id);
+        writeln!(stderr, "Valitsimelle ”{}” täytyy antaa arvo.", o.id)?;
         error = true;
     }
 
     if error {
-        let _ = writeln!(stderr, "Valitsin ”-h” tulostaa apua.");
-        return ExitCode::FAILURE;
+        return Err("Valitsin ”-h” tulostaa apua.".into());
     }
 
     if args.option_exists("help") {
-        let _ = writeln!(
+        writeln!(
             stdout,
             include_str!("../help/usage.txt"),
             ohjelma = koas::PROGRAM_NAME,
-        );
-        return ExitCode::SUCCESS;
+        )?;
+        return Ok(());
     }
 
     if args.option_exists("ohje") {
         let topic = args.options_value_last("ohje").map_or("", |v| v);
-        match koas::help(topic) {
-            Ok(_) => return ExitCode::SUCCESS,
-            Err(e) => {
-                let _ = writeln!(stderr, "{e}");
-                return ExitCode::FAILURE;
-            }
-        }
+        return koas::help(topic);
     }
 
     if args.option_exists("version") {
-        let _ = writeln!(
+        writeln!(
             stdout,
             "{name} v{version}\n\
              Tekijä:   {author}\n\
@@ -66,23 +75,11 @@ async fn main() -> ExitCode {
             version = koas::PROGRAM_VERSION,
             author = koas::PROGRAM_AUTHORS,
             license = koas::PROGRAM_LICENSE
-        );
-        return ExitCode::SUCCESS;
+        )?;
+        return Ok(());
     }
 
-    match config_stage(args).await {
-        Ok(_) => ExitCode::SUCCESS,
-
-        Err(Error::Io {
-            kind: io::ErrorKind::BrokenPipe,
-            ..
-        }) => ExitCode::FAILURE,
-
-        Err(other) => {
-            let _ = writeln!(stderr, "{other}");
-            ExitCode::FAILURE
-        }
-    }
+    config_stage(args).await
 }
 
 async fn config_stage(args: Args) -> Result<()> {
