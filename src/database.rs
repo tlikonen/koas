@@ -207,10 +207,10 @@ impl Students {
              AND ryhma LIKE $3 ESCAPE '\\' AND olt LIKE $4 ESCAPE '\\'
              ORDER BY sukunimi, etunimi, oid",
         )
-        .bind(like_esc_wild(lastname))
-        .bind(like_esc_wild(firstname))
-        .bind(like_esc_wild(group))
-        .bind(like_esc_wild(desc))
+        .bind(like_esc_wild_around(lastname))
+        .bind(like_esc_wild_around(firstname))
+        .bind(like_esc_wild_around(group))
+        .bind(like_esc_wild_around(desc))
         .fetch(db);
 
         let mut list = Vec::with_capacity(25);
@@ -298,8 +298,8 @@ impl Groups {
              WHERE nimi LIKE $1 ESCAPE '\\' AND lisatiedot LIKE $2 ESCAPE '\\' \
              ORDER BY nimi, lisatiedot, rid",
         )
-        .bind(like_esc_wild(group))
-        .bind(like_esc_wild(desc))
+        .bind(like_esc_wild_around(group))
+        .bind(like_esc_wild_around(desc))
         .fetch(db);
 
         let mut list = Vec::with_capacity(10);
@@ -629,9 +629,9 @@ impl GradesForAssignments {
              AND lyhenne LIKE $3 ESCAPE '\\' AND oid IS NOT NULL \
              ORDER BY ryhma, rid, sija, sid, sukunimi, etunimi, oid",
         )
-        .bind(like_esc_wild(group))
-        .bind(like_esc_wild(assign))
-        .bind(like_esc_wild(assign_short))
+        .bind(like_esc_wild_around(group))
+        .bind(like_esc_wild_around(assign))
+        .bind(like_esc_wild_around(assign_short))
         .fetch(db);
 
         let mut row = match rows.try_next().await? {
@@ -717,10 +717,10 @@ impl GradesForStudents {
              AND sid IS NOT NULL \
              ORDER BY sukunimi, etunimi, oid, ryhma, rid, sija, sid",
         )
-        .bind(like_esc_wild(lastname))
-        .bind(like_esc_wild(firstname))
-        .bind(like_esc_wild(group))
-        .bind(like_esc_wild(student_desc))
+        .bind(like_esc_wild_around(lastname))
+        .bind(like_esc_wild_around(firstname))
+        .bind(like_esc_wild_around(group))
+        .bind(like_esc_wild_around(student_desc))
         .fetch(db);
 
         let mut row = match rows.try_next().await? {
@@ -896,12 +896,12 @@ impl StudentRanking {
              AND ryhma LIKE $3 ESCAPE '\\' AND olt LIKE $4 ESCAPE '\\' \
              AND suoritus LIKE $5 ESCAPE '\\' AND lyhenne LIKE $6 ESCAPE '\\'",
         )
-        .bind(like_esc_wild(args.lastname))
-        .bind(like_esc_wild(args.firstname))
-        .bind(like_esc_wild(args.group))
-        .bind(like_esc_wild(args.description))
-        .bind(like_esc_wild(args.assignment))
-        .bind(like_esc_wild(args.assignment_short))
+        .bind(like_esc_wild_around(args.lastname))
+        .bind(like_esc_wild_around(args.firstname))
+        .bind(like_esc_wild_around(args.group))
+        .bind(like_esc_wild_around(args.description))
+        .bind(like_esc_wild_around(args.assignment))
+        .bind(like_esc_wild_around(args.assignment_short))
         .fetch(db);
 
         while let Some(row) = rows.try_next().await? {
@@ -960,12 +960,12 @@ impl<'a> GradeDistribution<'a> {
              AND ryhma LIKE $3 ESCAPE '\\' AND olt LIKE $4 ESCAPE '\\' \
              AND suoritus LIKE $5 ESCAPE '\\' AND lyhenne LIKE $6 ESCAPE '\\'",
         )
-        .bind(like_esc_wild(args.lastname))
-        .bind(like_esc_wild(args.firstname))
-        .bind(like_esc_wild(args.group))
-        .bind(like_esc_wild(args.description))
-        .bind(like_esc_wild(args.assignment))
-        .bind(like_esc_wild(args.assignment_short))
+        .bind(like_esc_wild_around(args.lastname))
+        .bind(like_esc_wild_around(args.firstname))
+        .bind(like_esc_wild_around(args.group))
+        .bind(like_esc_wild_around(args.description))
+        .bind(like_esc_wild_around(args.assignment))
+        .bind(like_esc_wild_around(args.assignment_short))
         .fetch(db);
 
         while let Some(row) = rows.try_next().await? {
@@ -988,7 +988,7 @@ impl HasData for GradeDistribution<'_> {
     }
 }
 
-fn like_esc_wild(string: &str) -> String {
+fn like_esc_wild_around(string: &str) -> String {
     let mut new = String::with_capacity(string.len() + 3);
     new.push('%');
 
@@ -1012,12 +1012,11 @@ mod tests {
     use super::*;
 
     #[test]
-    fn like_esc_wild_fn() {
-        assert_eq!("%abcd%", like_esc_wild("abcd"));
-        assert_eq!("%a\\%b\\_cd%", like_esc_wild("a%b_cd"));
-        assert_eq!("%ab\\\\cd%", like_esc_wild("ab\\cd"));
-        assert_eq!("%abcd%", like_esc_wild("abcd"));
-        assert_eq!("%\\_\\%\\\\%", like_esc_wild("_%\\"));
-        assert_eq!("%ab%cd%", like_esc_wild("ab*cd"));
+    fn like_esc_wild_around_fn() {
+        assert_eq!("%abcd%", like_esc_wild_around("abcd"));
+        assert_eq!("%a\\%b\\_cd%", like_esc_wild_around("a%b_cd"));
+        assert_eq!("%ab\\\\cd%", like_esc_wild_around("ab\\cd"));
+        assert_eq!("%\\_\\%\\\\%", like_esc_wild_around("_%\\"));
+        assert_eq!("%ab%cd%", like_esc_wild_around("ab*cd"));
     }
 }
