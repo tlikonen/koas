@@ -1,10 +1,16 @@
 use crate::prelude::*;
+use std::io::BufWriter;
+
+type OutBuf = BufWriter<io::Stdout>;
 
 const GROUPS_WIDTH: usize = 42;
 
 pub trait PrintTable {
     fn print(&self, out: &Output) -> Result<()> {
-        self.table().print(out)
+        let mut stream = BufWriter::new(io::stdout());
+        self.table().print(out, &mut stream)?;
+        stream.flush()?;
+        Ok(())
     }
 
     fn table(&self) -> Table;
@@ -12,7 +18,10 @@ pub trait PrintTable {
 
 pub trait PrintTableNum: PrintTable {
     fn print_num(&self, out: &Output) -> Result<()> {
-        self.table().numbering().print(out)
+        let mut stream = BufWriter::new(io::stdout());
+        self.table().numbering().print(out, &mut stream)?;
+        stream.flush()?;
+        Ok(())
     }
 }
 
@@ -23,14 +32,7 @@ impl PrintTableNum for GradesForAssignment {}
 impl PrintTableNum for GradesForStudent {}
 
 pub trait PrintTableList {
-    fn print(&self, out: &Output) -> Result<()> {
-        for t in self.list() {
-            t.print(out)?;
-        }
-        Ok(())
-    }
-
-    fn list(&self) -> impl Iterator<Item = &impl PrintTable>;
+    fn print(&self, out: &Output) -> Result<()>;
 }
 
 pub struct Table(Vec<Row>);
@@ -82,19 +84,19 @@ impl Table {
         self
     }
 
-    fn print(&self, output: &Output) -> Result<()> {
+    fn print(&self, output: &Output, stream: &mut OutBuf) -> Result<()> {
         if self.is_empty() {
             return Ok(());
         }
         match output {
-            Output::Unicode => print_table(self, TBL_UNICODE),
-            Output::UnicodeOpen => print_table(self, TBL_UNICODE_OPEN),
-            Output::Ascii => print_table(self, TBL_ASCII),
-            Output::AsciiOpen => print_table(self, TBL_ASCII_OPEN),
-            Output::Orgmode => print_table(self, TBL_ORGMODE),
-            Output::Tab => print_table_tab(self),
-            Output::Csv => print_table_csv(self),
-            Output::Latex => print_table_latex(self),
+            Output::Unicode => print_table(self, stream, TBL_UNICODE),
+            Output::UnicodeOpen => print_table(self, stream, TBL_UNICODE_OPEN),
+            Output::Ascii => print_table(self, stream, TBL_ASCII),
+            Output::AsciiOpen => print_table(self, stream, TBL_ASCII_OPEN),
+            Output::Orgmode => print_table(self, stream, TBL_ORGMODE),
+            Output::Tab => print_table_tab(self, stream),
+            Output::Csv => print_table_csv(self, stream),
+            Output::Latex => print_table_latex(self, stream),
         }
     }
 }
@@ -261,8 +263,13 @@ impl PrintTable for AssignmentsForGroup {
 }
 
 impl PrintTableList for AssignmentsForGroups {
-    fn list(&self) -> impl Iterator<Item = &impl PrintTable> {
-        self.list.iter()
+    fn print(&self, out: &Output) -> Result<()> {
+        let mut stream = BufWriter::new(io::stdout());
+        for t in &self.list {
+            t.table().print(out, &mut stream)?;
+        }
+        stream.flush()?;
+        Ok(())
     }
 }
 
@@ -322,8 +329,13 @@ impl PrintTable for GradesForAssignment {
 }
 
 impl PrintTableList for GradesForAssignments {
-    fn list(&self) -> impl Iterator<Item = &impl PrintTable> {
-        self.list.iter()
+    fn print(&self, out: &Output) -> Result<()> {
+        let mut stream = BufWriter::new(io::stdout());
+        for t in &self.list {
+            t.table().print(out, &mut stream)?;
+        }
+        stream.flush()?;
+        Ok(())
     }
 }
 
@@ -396,42 +408,17 @@ impl PrintTable for GradesForStudent {
 }
 
 impl PrintTableList for GradesForStudents {
-    fn list(&self) -> impl Iterator<Item = &impl PrintTable> {
-        self.list.iter()
+    fn print(&self, out: &Output) -> Result<()> {
+        let mut stream = BufWriter::new(io::stdout());
+        for t in &self.list {
+            t.table().print(out, &mut stream)?;
+        }
+        stream.flush()?;
+        Ok(())
     }
 }
 
 impl PrintTable for GradesForGroup {
-    fn print(&self, out: &Output) -> Result<()> {
-        self.table().print(out)?;
-        writeln!(io::stdout())?;
-
-        // Table of assignments
-        let mut rows = vec![
-            Row::Toprule,
-            Row::Head(vec![
-                Cell::Left("Lyh".to_string()),
-                Cell::Left("Suoritus".to_string()),
-            ]),
-            Row::Midrule,
-        ];
-
-        for assign in &self.assignments {
-            rows.push(Row::Data(vec![
-                Cell::Left(assign.assignment_short.clone()),
-                Cell::Left(assign.assignment.clone()),
-            ]));
-        }
-
-        rows.push(Row::Data(vec![
-            Cell::Left("ka".to_string()),
-            Cell::Left("Keskiarvo".to_string()),
-        ]));
-
-        rows.push(Row::Bottomrule);
-        Table(rows).print(out)
-    }
-
     fn table(&self) -> Table {
         let mut rows = vec![Row::Title(self.group.clone()), Row::Toprule];
 
@@ -527,8 +514,41 @@ impl PrintTable for GradesForGroup {
 }
 
 impl PrintTableList for GradesForGroups {
-    fn list(&self) -> impl Iterator<Item = &impl PrintTable> {
-        self.list.iter()
+    fn print(&self, out: &Output) -> Result<()> {
+        let mut stream = BufWriter::new(io::stdout());
+
+        for tbl in &self.list {
+            tbl.table().print(out, &mut stream)?;
+            writeln!(stream)?;
+
+            // Table of assignments
+            let mut rows = vec![
+                Row::Toprule,
+                Row::Head(vec![
+                    Cell::Left("Lyh".to_string()),
+                    Cell::Left("Suoritus".to_string()),
+                ]),
+                Row::Midrule,
+            ];
+
+            for assign in &tbl.assignments {
+                rows.push(Row::Data(vec![
+                    Cell::Left(assign.assignment_short.clone()),
+                    Cell::Left(assign.assignment.clone()),
+                ]));
+            }
+
+            rows.push(Row::Data(vec![
+                Cell::Left("ka".to_string()),
+                Cell::Left("Keskiarvo".to_string()),
+            ]));
+
+            rows.push(Row::Bottomrule);
+            Table(rows).print(out, &mut stream)?;
+        }
+
+        stream.flush()?;
+        Ok(())
     }
 }
 
@@ -714,7 +734,7 @@ static TBL_ORGMODE: [&str; 15] = [
     "| ", " | ", " |", // vert: left mid right
 ];
 
-fn print_table(tbl: &Table, tbl_chars: [&str; 15]) -> Result<()> {
+fn print_table(tbl: &Table, stream: &mut OutBuf, tbl_chars: [&str; 15]) -> Result<()> {
     let top_left = tbl_chars[0];
     let top_line = tbl_chars[1];
     let top_mid = tbl_chars[2];
@@ -734,78 +754,76 @@ fn print_table(tbl: &Table, tbl_chars: [&str; 15]) -> Result<()> {
     let vert_mid = tbl_chars[13];
     let vert_right = tbl_chars[14];
 
-    let mut stdout = io::stdout();
-
-    let series = |stream: &mut io::Stdout, ch: &str, n: usize| -> Result<()> {
+    let series = |stream: &mut OutBuf, ch: &str, n: usize| -> Result<()> {
         write!(stream, "{}", ch.repeat(n))?;
         Ok(())
     };
 
-    let empty_cell = |stream: &mut io::Stdout, w: usize| -> Result<()> { series(stream, " ", w) };
+    let empty_cell = |stream: &mut OutBuf, w: usize| -> Result<()> { series(stream, " ", w) };
 
     let widths = tbl.widths();
     for row in tbl.rows() {
         match row {
             Row::Title(s) => {
-                writeln!(stdout, "\n{s}\n")?;
+                writeln!(stream, "\n{s}\n")?;
             }
             Row::Toprule => {
-                write!(stdout, "{top_left}")?;
+                write!(stream, "{top_left}")?;
                 for i in 0..widths.len() {
-                    series(&mut stdout, top_line, widths[i])?;
+                    series(stream, top_line, widths[i])?;
                     if widths.get(i + 1).is_some() {
-                        write!(stdout, "{top_mid}")?;
+                        write!(stream, "{top_mid}")?;
                     } else {
-                        write!(stdout, "{top_right}")?;
+                        write!(stream, "{top_right}")?;
                     }
                 }
-                writeln!(stdout)?;
+                writeln!(stream)?;
             }
             Row::Midrule => {
-                write!(stdout, "{mid_left}")?;
+                write!(stream, "{mid_left}")?;
                 for i in 0..widths.len() {
-                    series(&mut stdout, mid_line, widths[i])?;
+                    series(stream, mid_line, widths[i])?;
                     if widths.get(i + 1).is_some() {
-                        write!(stdout, "{mid_mid}")?;
+                        write!(stream, "{mid_mid}")?;
                     } else {
-                        write!(stdout, "{mid_right}")?;
+                        write!(stream, "{mid_right}")?;
                     }
                 }
-                writeln!(stdout)?;
+                writeln!(stream)?;
             }
             Row::Bottomrule => {
-                write!(stdout, "{bottom_left}")?;
+                write!(stream, "{bottom_left}")?;
                 for i in 0..widths.len() {
-                    series(&mut stdout, bottom_line, widths[i])?;
+                    series(stream, bottom_line, widths[i])?;
                     if widths.get(i + 1).is_some() {
-                        write!(stdout, "{bottom_mid}")?;
+                        write!(stream, "{bottom_mid}")?;
                     } else {
-                        write!(stdout, "{bottom_right}")?;
+                        write!(stream, "{bottom_right}")?;
                     }
                 }
-                writeln!(stdout)?;
+                writeln!(stream)?;
             }
             Row::Data(v) | Row::Head(v) | Row::Foot(v) => {
                 let mut multi_max = 0;
                 let mut multi = 0;
                 loop {
-                    write!(stdout, "{vert_left}")?;
+                    write!(stream, "{vert_left}")?;
                     for (col, cell) in v.iter().enumerate() {
                         let width = widths[col];
                         match multi {
                             0 => match cell {
-                                Cell::Empty => empty_cell(&mut stdout, width)?,
+                                Cell::Empty => empty_cell(stream, width)?,
                                 Cell::Left(s) => {
-                                    write!(stdout, "{s:<width$}")?;
+                                    write!(stream, "{s:<width$}")?;
                                 }
                                 Cell::Right(s) => {
-                                    write!(stdout, "{s:>width$}")?;
+                                    write!(stream, "{s:>width$}")?;
                                 }
                                 Cell::Multi(v) => {
                                     if let Some(s) = v.get(multi) {
-                                        write!(stdout, "{s:<width$}")?;
+                                        write!(stream, "{s:<width$}")?;
                                     } else {
-                                        empty_cell(&mut stdout, width)?;
+                                        empty_cell(stream, width)?;
                                     }
                                     if v.len() > multi_max {
                                         multi_max = v.len();
@@ -815,21 +833,21 @@ fn print_table(tbl: &Table, tbl_chars: [&str; 15]) -> Result<()> {
                             _ => match cell {
                                 Cell::Multi(v) => {
                                     if let Some(s) = v.get(multi) {
-                                        write!(stdout, "{s:<width$}")?;
+                                        write!(stream, "{s:<width$}")?;
                                     } else {
-                                        empty_cell(&mut stdout, width)?;
+                                        empty_cell(stream, width)?;
                                     }
                                 }
-                                _ => empty_cell(&mut stdout, width)?,
+                                _ => empty_cell(stream, width)?,
                             },
                         }
                         if widths.get(col + 1).is_some() {
-                            write!(stdout, "{vert_mid}")?;
+                            write!(stream, "{vert_mid}")?;
                         } else {
-                            write!(stdout, "{vert_right}")?;
+                            write!(stream, "{vert_right}")?;
                         }
                     }
-                    writeln!(stdout)?;
+                    writeln!(stream)?;
                     multi += 1;
                     if multi >= multi_max {
                         break;
@@ -841,30 +859,28 @@ fn print_table(tbl: &Table, tbl_chars: [&str; 15]) -> Result<()> {
     Ok(())
 }
 
-fn print_table_tab(tbl: &Table) -> Result<()> {
-    let mut stdout = io::stdout();
-
+fn print_table_tab(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
     for row in tbl.rows() {
         match row {
             Row::Title(s) => {
-                writeln!(stdout, "\n{s}\n")?;
+                writeln!(stream, "\n{s}\n")?;
             }
             Row::Head(v) | Row::Data(v) | Row::Foot(v) => {
                 for (col, cell) in v.iter().enumerate() {
                     if col > 0 {
-                        write!(stdout, "\t")?;
+                        write!(stream, "\t")?;
                     }
                     match cell {
                         Cell::Left(s) | Cell::Right(s) => {
-                            write!(stdout, "{s}")?;
+                            write!(stream, "{s}")?;
                         }
                         Cell::Multi(v) => {
-                            write!(stdout, "{}", v.join(" "))?;
+                            write!(stream, "{}", v.join(" "))?;
                         }
                         _ => (),
                     }
                 }
-                writeln!(stdout)?;
+                writeln!(stream)?;
             }
             _ => (),
         }
@@ -872,41 +888,39 @@ fn print_table_tab(tbl: &Table) -> Result<()> {
     Ok(())
 }
 
-fn print_table_csv(tbl: &Table) -> Result<()> {
-    let mut stdout = io::stdout();
-
+fn print_table_csv(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
     for row in tbl.rows() {
         match row {
             Row::Title(s) => {
-                writeln!(stdout, "\n{s}\n")?;
+                writeln!(stream, "\n{s}\n")?;
             }
             Row::Head(v) | Row::Data(v) | Row::Foot(v) => {
                 for (col, cell) in v.iter().enumerate() {
                     if col > 0 {
-                        write!(stdout, ",")?;
+                        write!(stream, ",")?;
                     }
                     match cell {
                         Cell::Left(s) | Cell::Right(s) => {
                             if s.chars().all(|c| c.is_ascii_digit()) {
-                                write!(stdout, "{s}")?;
+                                write!(stream, "{s}")?;
                             } else {
-                                write!(stdout, "{s:?}")?;
+                                write!(stream, "{s:?}")?;
                             }
                         }
 
                         Cell::Multi(v) => {
                             let s = v.join(" ");
                             if s.chars().all(|c| c.is_ascii_digit()) {
-                                write!(stdout, "{s}")?;
+                                write!(stream, "{s}")?;
                             } else {
-                                write!(stdout, "{s:?}")?;
+                                write!(stream, "{s:?}")?;
                             }
                         }
 
                         _ => (),
                     }
                 }
-                writeln!(stdout)?;
+                writeln!(stream)?;
             }
             _ => (),
         }
@@ -914,30 +928,28 @@ fn print_table_csv(tbl: &Table) -> Result<()> {
     Ok(())
 }
 
-fn print_table_latex(tbl: &Table) -> Result<()> {
-    let mut stdout = io::stdout();
-
+fn print_table_latex(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
     for row in tbl.rows() {
         match row {
             Row::Title(s) => {
-                writeln!(stdout, "\n{s}\n")?;
+                writeln!(stream, "\n{s}\n")?;
             }
             Row::Head(v) | Row::Data(v) | Row::Foot(v) => {
-                write!(stdout, "\\rivi")?;
+                write!(stream, "\\rivi")?;
                 for cell in v {
                     match cell {
                         Cell::Empty => {
-                            write!(stdout, "{{}}")?;
+                            write!(stream, "{{}}")?;
                         }
                         Cell::Left(s) | Cell::Right(s) => {
-                            write!(stdout, "{{{s}}}")?;
+                            write!(stream, "{{{s}}}")?;
                         }
                         Cell::Multi(v) => {
-                            write!(stdout, "{{{}}}", v.join(" "))?;
+                            write!(stream, "{{{}}}", v.join(" "))?;
                         }
                     }
                 }
-                writeln!(stdout)?;
+                writeln!(stream)?;
             }
             _ => (),
         }
