@@ -18,7 +18,7 @@ pub trait PrintTableNum: PrintTable {
 
 impl PrintTableNum for Students {}
 impl PrintTableNum for Groups {}
-impl PrintTableNum for Assignments {}
+impl PrintTableNum for AssignmentsForGroup {}
 impl PrintTableNum for GradesForAssignment {}
 impl PrintTableNum for GradesForStudent {}
 
@@ -231,7 +231,7 @@ impl PrintTable for Groups {
     }
 }
 
-impl PrintTable for Assignments {
+impl PrintTable for AssignmentsForGroup {
     fn table(&self) -> Table {
         let mut rows = vec![
             Row::Title(self.group.clone()),
@@ -257,6 +257,12 @@ impl PrintTable for Assignments {
 
         rows.push(Row::Bottomrule);
         Table(rows)
+    }
+}
+
+impl PrintTableList for AssignmentsForGroups {
+    fn list(&self) -> impl Iterator<Item = &impl PrintTable> {
+        self.list.iter()
     }
 }
 

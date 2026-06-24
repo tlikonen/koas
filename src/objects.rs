@@ -100,9 +100,14 @@ pub struct Assignment {
     pub weight: Option<i32>,
 }
 
-pub struct Assignments {
+pub struct AssignmentsForGroup {
     pub group: String,
     pub list: Vec<Assignment>,
+}
+
+#[derive(Default)]
+pub struct AssignmentsForGroups {
+    pub list: Vec<AssignmentsForGroup>,
 }
 
 #[derive(Clone)]

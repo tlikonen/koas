@@ -458,34 +458,6 @@ impl Assignment {
             .await?;
         Ok(())
     }
-}
-
-impl Assignments {
-    pub async fn query(db: &mut DBase, group: &str) -> Result<Self> {
-        let mut rows = sqlx::query(
-            "SELECT rid, sid, suoritus, lyhenne, painokerroin FROM view_suoritukset \
-             WHERE ryhma = $1 ORDER BY sija, sid",
-        )
-        .bind(group)
-        .fetch(db);
-
-        let mut list = Vec::with_capacity(10);
-
-        while let Some(row) = rows.try_next().await? {
-            list.push(Assignment {
-                rid: row.try_get("rid")?,
-                sid: row.try_get("sid")?,
-                assignment: row.try_get("suoritus")?,
-                assignment_short: row.try_get("lyhenne")?,
-                weight: row.try_get("painokerroin")?,
-            });
-        }
-
-        Ok(Self {
-            group: group.to_string(),
-            list,
-        })
-    }
 
     pub async fn reposition(db: &mut DBase, rid: i32) -> Result<()> {
         let mut sid_list = Vec::with_capacity(10);
@@ -516,13 +488,69 @@ impl Assignments {
     }
 }
 
-impl HasData for Assignments {
+impl AssignmentsForGroups {
+    pub async fn query(db: &mut DBase, group: &str) -> Result<Self> {
+        let mut rows = sqlx::query(
+            "SELECT rid, ryhma, sid, suoritus, lyhenne, painokerroin FROM view_suoritukset \
+             WHERE ryhma LIKE $1 ESCAPE '\\' ORDER BY ryhma, rid, sija, sid",
+        )
+        .bind(like_esc_wild(group))
+        .fetch(db);
+
+        let mut row = match rows.try_next().await? {
+            Some(r) => r,
+            None => return Ok(Default::default()),
+        };
+
+        let mut list: Vec<AssignmentsForGroup> = Vec::with_capacity(10);
+        let mut assignments: Vec<Assignment> = Vec::with_capacity(15);
+
+        loop {
+            let rid: i32 = row.try_get("rid")?;
+
+            assignments.push(Assignment {
+                rid,
+                sid: row.try_get("sid")?,
+                assignment: row.try_get("suoritus")?,
+                assignment_short: row.try_get("lyhenne")?,
+                weight: row.try_get("painokerroin")?,
+            });
+
+            row = match rows.try_next().await? {
+                Some(next_row) => {
+                    let next_rid: i32 = next_row.try_get("rid")?;
+                    if next_rid != rid {
+                        let l = assignments.len();
+                        list.push(AssignmentsForGroup {
+                            group: row.try_get("ryhma")?,
+                            list: assignments,
+                        });
+                        assignments = Vec::with_capacity(l);
+                    }
+                    next_row
+                }
+
+                None => {
+                    list.push(AssignmentsForGroup {
+                        group: row.try_get("ryhma")?,
+                        list: assignments,
+                    });
+                    break;
+                }
+            };
+        }
+
+        Ok(Self { list })
+    }
+}
+
+impl HasData for AssignmentsForGroups {
     fn empty_data(&self) -> bool {
         self.list.is_empty()
     }
 }
 
-impl CopyToEditable for Assignments {
+impl CopyToEditable for AssignmentsForGroup {
     fn copy_to(&self, ed: &mut Editable) {
         ed.set(EditableItem::Assignments(EditableValue::from(
             self.list.clone(),

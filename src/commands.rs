@@ -75,15 +75,19 @@ pub async fn assignments(
         g
     };
 
-    let query = Assignments::query(db, group).await?.has_data()?;
+    let query = AssignmentsForGroups::query(db, group).await?.has_data()?;
 
-    if modes.is_interactive() {
-        query.copy_to(editable);
-        query.print_num(modes.output())?;
-        editable.print_fields(&["Suoritus", "Lyhenne(Lyh)", "Painokerroin(K)", "Järjestys"])?;
-    } else {
-        query.print(modes.output())?;
+    match query.list.len() {
+        0 => panic!(),
+        1 if modes.is_interactive() => {
+            let tbl = &query.list[0];
+            tbl.copy_to(editable);
+            tbl.print_num(modes.output())?;
+            editable.print_fields(&["Suoritus", "Lyhenne(Lyh)", "Painokerroin(K)", "Järjestys"])?;
+        }
+        _ => query.print(modes.output())?,
     }
+
     Ok(())
 }
 
@@ -841,7 +845,7 @@ impl Delete for DeleteItems<'_, Assignment> {
         Groups::delete_empty(db).await?;
 
         for rid in rid_list {
-            Assignments::reposition(db, rid).await?;
+            Assignment::reposition(db, rid).await?;
         }
 
         Ok(())
