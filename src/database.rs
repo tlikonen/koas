@@ -1007,6 +1007,23 @@ fn like_esc_wild_around(string: &str) -> String {
     new
 }
 
+fn like_esc_wild(string: &str) -> String {
+    let mut new = String::with_capacity(string.len() + 3);
+
+    for c in string.chars() {
+        match c {
+            '%' | '_' | '\\' => {
+                new.push('\\');
+                new.push(c);
+            }
+            '*' => new.push('%'),
+            _ => new.push(c),
+        }
+    }
+
+    new
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1018,5 +1035,15 @@ mod tests {
         assert_eq!("%ab\\\\cd%", like_esc_wild_around("ab\\cd"));
         assert_eq!("%\\_\\%\\\\%", like_esc_wild_around("_%\\"));
         assert_eq!("%ab%cd%", like_esc_wild_around("ab*cd"));
+    }
+
+    #[test]
+    fn like_esc_wild_fn() {
+        assert_eq!("abcd", like_esc_wild("abcd"));
+        assert_eq!("a\\%b\\_cd", like_esc_wild("a%b_cd"));
+        assert_eq!("ab\\\\cd", like_esc_wild("ab\\cd"));
+        assert_eq!("\\_\\%\\\\", like_esc_wild("_%\\"));
+        assert_eq!("ab%cd", like_esc_wild("ab*cd"));
+        assert_eq!("%ab%cd%", like_esc_wild("*ab*cd*"));
     }
 }
