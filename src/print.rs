@@ -3,11 +3,15 @@ use std::io::BufWriter;
 
 type OutBuf = BufWriter<io::Stdout>;
 
+fn output_buffer() -> OutBuf {
+    BufWriter::new(io::stdout())
+}
+
 const GROUPS_WIDTH: usize = 42;
 
 pub trait PrintQuery {
     fn print(&self, out: &Output) -> Result<()> {
-        let mut stream = BufWriter::new(io::stdout());
+        let mut stream = output_buffer();
         self.table().print_tbl(out, &mut stream)?;
         stream.flush()?;
         Ok(())
@@ -18,7 +22,7 @@ pub trait PrintQuery {
 
 pub trait PrintQueryNum: PrintQuery {
     fn print_num(&self, out: &Output) -> Result<()> {
-        let mut stream = BufWriter::new(io::stdout());
+        let mut stream = output_buffer();
         self.table().numbering().print_tbl(out, &mut stream)?;
         stream.flush()?;
         Ok(())
@@ -264,7 +268,7 @@ impl PrintQuery for AssignmentsForGroup {
 
 impl PrintQueryList for AssignmentsForGroups {
     fn print(&self, out: &Output) -> Result<()> {
-        let mut stream = BufWriter::new(io::stdout());
+        let mut stream = output_buffer();
         for t in &self.list {
             t.table().print_tbl(out, &mut stream)?;
         }
@@ -330,7 +334,7 @@ impl PrintQuery for GradesForAssignment {
 
 impl PrintQueryList for GradesForAssignments {
     fn print(&self, out: &Output) -> Result<()> {
-        let mut stream = BufWriter::new(io::stdout());
+        let mut stream = output_buffer();
         for t in &self.list {
             t.table().print_tbl(out, &mut stream)?;
         }
@@ -409,7 +413,7 @@ impl PrintQuery for GradesForStudent {
 
 impl PrintQueryList for GradesForStudents {
     fn print(&self, out: &Output) -> Result<()> {
-        let mut stream = BufWriter::new(io::stdout());
+        let mut stream = output_buffer();
         for t in &self.list {
             t.table().print_tbl(out, &mut stream)?;
         }
@@ -515,7 +519,7 @@ impl PrintQuery for GradesForGroup {
 
 impl PrintQueryList for GradesForGroups {
     fn print(&self, out: &Output) -> Result<()> {
-        let mut stream = BufWriter::new(io::stdout());
+        let mut stream = output_buffer();
 
         for tbl in &self.list {
             tbl.table().print_tbl(out, &mut stream)?;
