@@ -523,7 +523,7 @@ impl AssignmentsForGroups {
                         let l = assignments.len();
                         list.push(AssignmentsForGroup {
                             group: row.try_get("ryhma")?,
-                            list: assignments,
+                            assignments,
                         });
                         assignments = Vec::with_capacity(l);
                     }
@@ -533,7 +533,7 @@ impl AssignmentsForGroups {
                 None => {
                     list.push(AssignmentsForGroup {
                         group: row.try_get("ryhma")?,
-                        list: assignments,
+                        assignments,
                     });
                     break;
                 }
@@ -553,7 +553,7 @@ impl HasData for AssignmentsForGroups {
 impl CopyToEditable for AssignmentsForGroup {
     fn copy_to(&self, ed: &mut Editable) {
         ed.set(EditableItem::Assignments(EditableValue::from(
-            self.list.clone(),
+            self.assignments.clone(),
         )));
     }
 }

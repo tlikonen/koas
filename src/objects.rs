@@ -102,7 +102,7 @@ pub struct Assignment {
 
 pub struct AssignmentsForGroup {
     pub group: String,
-    pub list: Vec<Assignment>,
+    pub assignments: Vec<Assignment>,
 }
 
 #[derive(Default)]

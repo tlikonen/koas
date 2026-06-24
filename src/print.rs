@@ -244,7 +244,7 @@ impl PrintTable for AssignmentsForGroup {
             Row::Midrule,
         ];
 
-        for assign in &self.list {
+        for assign in &self.assignments {
             rows.push(Row::Data(vec![
                 Cell::Left(assign.assignment.clone()),
                 Cell::Left(assign.assignment_short.clone()),
