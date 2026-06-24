@@ -1,8 +1,9 @@
 ho /sukunimi/etunimi/ryhmät/lisätiedot
 
     Hakee oppilaita sukunimen, etunimen, ryhmän tai oppilaan lisätietojen
-    perusteella. Kentissä voi käyttää jokerimerkkiä ”*”. Jos hakukentät jättää
-    tyhjäksi tai argumentin pois kokonaan, tulostetaan kaikki oppilaat.
+    perusteella. Kentissä voi käyttää jokerimerkkiä ”*”, joka tosin sisältyy
+    kentän alkuun ja loppuun itsestään. Jos hakukentät jättää tyhjäksi tai
+    argumentin pois kokonaan, tulostetaan kaikki oppilaat.
 
     Komennon argumentissa kenttien erotinmerkkinä on yllä vinoviiva ”/”, mutta
     se voi olla mikä tahansa muukin. Argumentin alussa oleva merkki määrittää,

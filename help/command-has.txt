@@ -3,8 +3,9 @@ has /ryhmä/suoritus/lyhenne
     Hakee arvosanat suorituksiin, jotka täsmäävät hakukenttiin ryhmä, suoritus
     tai sen lyhenne. Komento tulostaa kaikki hakuehtoihin täsmäävät
     suoritukset ja niiden oppilaskohtaiset arvosanat. Kentissä voi käyttää
-    jokerimerkkiä ”*”. Jos hakukentät jättää tyhjäksi tai argumentin pois
-    kokonaan, tulostetaan kaikkien suoritusten oppilaskohtaiset arvosanat.
+    jokerimerkkiä ”*”, joka tosin sisältyy kentän alkuun ja loppuun itsestään.
+    Jos hakukentät jättää tyhjäksi tai argumentin pois kokonaan, tulostetaan
+    kaikkien suoritusten oppilaskohtaiset arvosanat.
 
     Komennon argumentissa kenttien erotinmerkkinä on yllä vinoviiva ”/”, mutta
     se voi olla mikä tahansa muukin. Argumentin alussa oleva merkki määrittää,

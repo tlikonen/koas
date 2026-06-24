@@ -16,4 +16,5 @@ tpk @/ryhmä/suoritus/lyhenne/sukunimi/etunimi/lisätiedot@/...
     merkki erottaa haut toisistaan. Sen jälkeen kukin haku jakautuu
     hakukenttiin. Tässäkin ensimmäinen merkki (yllä ”/”) voi olla mikä
     tahansa, ja se määrittää, mikä merkki erottaa eri kentät toisistaan.
-    Kenttiä voi jättää tyhjäksi, ja niissä voi käyttää jokerimerkkiä ”*”.
+    Kenttiä voi jättää tyhjäksi, ja niissä voi käyttää jokerimerkkiä ”*”, joka
+    tosin sisältyy kentän alkuun ja loppuun itsestään.

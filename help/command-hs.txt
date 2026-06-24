@@ -1,10 +1,7 @@
 hs ryhmä
 
     Hakee suoritukset ryhmältä tai ryhmiltä. Argumentissa ”ryhmä” voi käyttää
-    jokerimerkkiä ”*”, joka ei automaattisesti sisälly sen alkuun eikä
-    loppuun.
-
-    Jos haku täsmää vain yhteen ryhmään, on komennon suorittamisen jälkeen
-    mahdollista muokata ryhmän suorituksia, suorituksen lyhenteitä,
-    painokertoimia ja järjestystä. Katso muokkauskomennot erillisistä
-    ohjeista.
+    jokerimerkkiä ”*”. Jos haku täsmää vain yhteen ryhmään, on komennon
+    suorittamisen jälkeen mahdollista muokata ryhmän suorituksia, suorituksen
+    lyhenteitä, painokertoimia ja järjestystä. Katso muokkauskomennot
+    erillisistä ohjeista.

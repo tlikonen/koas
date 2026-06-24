@@ -1,8 +1,9 @@
 hr /ryhmä/lisätiedot
 
     Hakee ryhmiä ryhmätunnuksen tai ryhmän lisätiedon eli kuvauksen
-    perusteella. Kentissä voi käyttää jokerimerkkiä ”*”. Jos kentät jättää
-    tyhjäksi tai argumentin pois kokonaan, tulostetaan kaikki ryhmät.
+    perusteella. Kentissä voi käyttää jokerimerkkiä ”*”, joka tosin sisältyy
+    kentän alkuun ja loppuun itsestään. Jos kentät jättää tyhjäksi tai
+    argumentin pois kokonaan, tulostetaan kaikki ryhmät.
 
     Komennon argumentissa kenttien erotinmerkkinä on yllä vinoviiva ”/”, mutta
     se voi olla mikä tahansa muukin. Argumentin alussa oleva merkki määrittää,
