@@ -793,8 +793,44 @@ impl CopyToEditable for GradesForStudent {
     }
 }
 
-impl GradesForGroup {
+impl GradesForGroups {
     pub async fn query(db: &mut DBase, group: &str) -> Result<Self> {
+        let mut groups: Vec<String> = Vec::with_capacity(10);
+
+        {
+            let mut rows = sqlx::query(
+                "SELECT nimi, rid FROM ryhmat \
+                 WHERE nimi LIKE $1 ESCAPE '\\' ORDER BY nimi, rid",
+            )
+            .bind(like_esc_wild(group))
+            .fetch(&mut *db);
+
+            while let Some(row) = rows.try_next().await? {
+                let group: String = row.try_get("nimi")?;
+                groups.push(group);
+            }
+        }
+
+        let mut list: Vec<GradesForGroup> = Vec::with_capacity(10);
+
+        for group in groups {
+            if let Ok(q) = GradesForGroup::query(&mut *db, &group).await?.has_data() {
+                list.push(q);
+            }
+        }
+
+        Ok(Self { list })
+    }
+}
+
+impl HasData for GradesForGroups {
+    fn empty_data(&self) -> bool {
+        self.list.is_empty()
+    }
+}
+
+impl GradesForGroup {
+    async fn query(db: &mut DBase, group: &str) -> Result<Self> {
         let mut assignments = Vec::with_capacity(10);
 
         {

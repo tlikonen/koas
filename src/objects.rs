@@ -147,6 +147,11 @@ pub struct GradesForGroup {
     pub assignments: Vec<Assignment>,
 }
 
+#[derive(Default)]
+pub struct GradesForGroups {
+    pub list: Vec<GradesForGroup>,
+}
+
 pub struct SimpleStudent {
     pub name: String,
     pub grades: Vec<SimpleGrade>,

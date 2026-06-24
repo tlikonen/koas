@@ -15,5 +15,5 @@ tyhjäksi tai kokonaan pois.
 
 Hakukomentojen kentissä voi yleensä käyttää jokerimerkkiä ”*”, joka täsmää
 mihin tahansa merkkeihin, joita on nolla tai enemmän siinä kohdassa.
-Jokerimerkin hyväksyvien kenttien alussa ja lopussa on automaattisesti
-jokerimerkki.
+Jokerimerkin hyväksyvien kenttien alussa ja lopussa on yleensä automaattisesti
+jokerimerkki, eli merkkiä tarvitaan vain hakulauseen keskellä.

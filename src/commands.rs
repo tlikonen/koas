@@ -166,7 +166,7 @@ pub async fn grades_for_group(
         g
     };
 
-    let query = GradesForGroup::query(db, group).await?.has_data()?;
+    let query = GradesForGroups::query(db, group).await?.has_data()?;
     query.print(modes.output())?;
     Ok(())
 }

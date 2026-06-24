@@ -520,6 +520,12 @@ impl PrintTable for GradesForGroup {
     }
 }
 
+impl PrintTableList for GradesForGroups {
+    fn list(&self) -> impl Iterator<Item = &impl PrintTable> {
+        self.list.iter()
+    }
+}
+
 impl PrintTable for StudentRanking {
     fn table(&self) -> Table {
         let mut rows = vec![
