@@ -5,10 +5,10 @@ type OutBuf = BufWriter<io::Stdout>;
 
 const GROUPS_WIDTH: usize = 42;
 
-pub trait PrintTable {
+pub trait PrintQuery {
     fn print(&self, out: &Output) -> Result<()> {
         let mut stream = BufWriter::new(io::stdout());
-        self.table().print(out, &mut stream)?;
+        self.table().print_tbl(out, &mut stream)?;
         stream.flush()?;
         Ok(())
     }
@@ -16,22 +16,22 @@ pub trait PrintTable {
     fn table(&self) -> Table;
 }
 
-pub trait PrintTableNum: PrintTable {
+pub trait PrintQueryNum: PrintQuery {
     fn print_num(&self, out: &Output) -> Result<()> {
         let mut stream = BufWriter::new(io::stdout());
-        self.table().numbering().print(out, &mut stream)?;
+        self.table().numbering().print_tbl(out, &mut stream)?;
         stream.flush()?;
         Ok(())
     }
 }
 
-impl PrintTableNum for Students {}
-impl PrintTableNum for Groups {}
-impl PrintTableNum for AssignmentsForGroup {}
-impl PrintTableNum for GradesForAssignment {}
-impl PrintTableNum for GradesForStudent {}
+impl PrintQueryNum for Students {}
+impl PrintQueryNum for Groups {}
+impl PrintQueryNum for AssignmentsForGroup {}
+impl PrintQueryNum for GradesForAssignment {}
+impl PrintQueryNum for GradesForStudent {}
 
-pub trait PrintTableList {
+pub trait PrintQueryList {
     fn print(&self, out: &Output) -> Result<()>;
 }
 
@@ -84,7 +84,7 @@ impl Table {
         self
     }
 
-    fn print(&self, output: &Output, stream: &mut OutBuf) -> Result<()> {
+    fn print_tbl(&self, output: &Output, stream: &mut OutBuf) -> Result<()> {
         if self.is_empty() {
             return Ok(());
         }
@@ -152,7 +152,7 @@ impl Cell {
     }
 }
 
-impl PrintTable for Stats {
+impl PrintQuery for Stats {
     fn table(&self) -> Table {
         let rows = vec![
             Row::Toprule,
@@ -179,7 +179,7 @@ impl PrintTable for Stats {
     }
 }
 
-impl PrintTable for Students {
+impl PrintQuery for Students {
     fn table(&self) -> Table {
         const DESC_WIDTH: usize = 36;
 
@@ -208,7 +208,7 @@ impl PrintTable for Students {
     }
 }
 
-impl PrintTable for Groups {
+impl PrintQuery for Groups {
     fn table(&self) -> Table {
         const DESCRIPTION_WIDTH: usize = 70;
 
@@ -233,7 +233,7 @@ impl PrintTable for Groups {
     }
 }
 
-impl PrintTable for AssignmentsForGroup {
+impl PrintQuery for AssignmentsForGroup {
     fn table(&self) -> Table {
         let mut rows = vec![
             Row::Title(self.group.clone()),
@@ -262,18 +262,18 @@ impl PrintTable for AssignmentsForGroup {
     }
 }
 
-impl PrintTableList for AssignmentsForGroups {
+impl PrintQueryList for AssignmentsForGroups {
     fn print(&self, out: &Output) -> Result<()> {
         let mut stream = BufWriter::new(io::stdout());
         for t in &self.list {
-            t.table().print(out, &mut stream)?;
+            t.table().print_tbl(out, &mut stream)?;
         }
         stream.flush()?;
         Ok(())
     }
 }
 
-impl PrintTable for GradesForAssignment {
+impl PrintQuery for GradesForAssignment {
     fn table(&self) -> Table {
         const DESC_WIDTH: usize = 50;
 
@@ -328,18 +328,18 @@ impl PrintTable for GradesForAssignment {
     }
 }
 
-impl PrintTableList for GradesForAssignments {
+impl PrintQueryList for GradesForAssignments {
     fn print(&self, out: &Output) -> Result<()> {
         let mut stream = BufWriter::new(io::stdout());
         for t in &self.list {
-            t.table().print(out, &mut stream)?;
+            t.table().print_tbl(out, &mut stream)?;
         }
         stream.flush()?;
         Ok(())
     }
 }
 
-impl PrintTable for GradesForStudent {
+impl PrintQuery for GradesForStudent {
     fn table(&self) -> Table {
         const DESC_WIDTH: usize = 50;
 
@@ -407,18 +407,18 @@ impl PrintTable for GradesForStudent {
     }
 }
 
-impl PrintTableList for GradesForStudents {
+impl PrintQueryList for GradesForStudents {
     fn print(&self, out: &Output) -> Result<()> {
         let mut stream = BufWriter::new(io::stdout());
         for t in &self.list {
-            t.table().print(out, &mut stream)?;
+            t.table().print_tbl(out, &mut stream)?;
         }
         stream.flush()?;
         Ok(())
     }
 }
 
-impl PrintTable for GradesForGroup {
+impl PrintQuery for GradesForGroup {
     fn table(&self) -> Table {
         let mut rows = vec![Row::Title(self.group.clone()), Row::Toprule];
 
@@ -513,12 +513,12 @@ impl PrintTable for GradesForGroup {
     }
 }
 
-impl PrintTableList for GradesForGroups {
+impl PrintQueryList for GradesForGroups {
     fn print(&self, out: &Output) -> Result<()> {
         let mut stream = BufWriter::new(io::stdout());
 
         for tbl in &self.list {
-            tbl.table().print(out, &mut stream)?;
+            tbl.table().print_tbl(out, &mut stream)?;
             writeln!(stream)?;
 
             // Table of assignments
@@ -544,7 +544,7 @@ impl PrintTableList for GradesForGroups {
             ]));
 
             rows.push(Row::Bottomrule);
-            Table(rows).print(out, &mut stream)?;
+            Table(rows).print_tbl(out, &mut stream)?;
         }
 
         stream.flush()?;
@@ -552,7 +552,7 @@ impl PrintTableList for GradesForGroups {
     }
 }
 
-impl PrintTable for StudentRanking {
+impl PrintQuery for StudentRanking {
     fn table(&self) -> Table {
         let mut rows = vec![
             Row::Toprule,
@@ -623,7 +623,7 @@ impl PrintTable for StudentRanking {
     }
 }
 
-impl PrintTable for GradeDistribution<'_> {
+impl PrintQuery for GradeDistribution<'_> {
     fn table(&self) -> Table {
         const BAR_WIDTH: i32 = 40;
 
