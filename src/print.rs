@@ -758,8 +758,10 @@ fn print_table(tbl: &Table, stream: &mut OutBuf, tbl_chars: [&str; 15]) -> Resul
     let vert_mid = tbl_chars[13];
     let vert_right = tbl_chars[14];
 
-    let series = |stream: &mut OutBuf, ch: &str, n: usize| -> Result<()> {
-        write!(stream, "{}", ch.repeat(n))?;
+    let series = |stream: &mut OutBuf, s: &str, n: usize| -> Result<()> {
+        for _ in 0..n {
+            write!(stream, "{s}")?;
+        }
         Ok(())
     };
 
