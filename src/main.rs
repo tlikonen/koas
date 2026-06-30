@@ -133,7 +133,7 @@ async fn command_stage(mut modes: Modes, config: Config) -> Result<()> {
     let mut stdout = io::stdout();
     let mut stderr = io::stderr();
 
-    match modes.clone().mode() {
+    match modes.mode().clone() {
         Mode::Interactive => {
             writeln!(
                 stdout,
@@ -175,7 +175,7 @@ async fn command_stage(mut modes: Modes, config: Config) -> Result<()> {
         }
 
         Mode::Single(line) => {
-            let (cmd, args) = tools::split_first(line);
+            let (cmd, args) = tools::split_first(&line);
             match commands(&mut modes, &mut db, &mut editable, cmd, args).await {
                 Ok(_) => (),
                 Err(Error::UnknownCmd(cmd)) => {
