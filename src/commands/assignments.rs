@@ -1,0 +1,186 @@
+use crate::prelude::*;
+
+pub async fn assignments(
+    modes: &Modes,
+    db: &mut DBase,
+    editable: &mut Editable,
+    args: &str,
+) -> Result<()> {
+    editable.clear();
+
+    let group = {
+        let (g, _) = tools::split_first(args);
+        if g.is_empty() {
+            return Err("Argumentiksi pitää antaa ryhmän nimi.".into());
+        }
+        g
+    };
+
+    let query = AssignmentsForGroups::query(db, group).await?.has_data()?;
+
+    match query.list.len() {
+        0 => panic!(),
+        1 if modes.is_interactive() => {
+            let tbl = &query.list[0];
+            tbl.copy_to(editable);
+            tbl.print_num(modes.output())?;
+            editable.print_fields(&["Suoritus", "Lyhenne(Lyh)", "Painokerroin(K)", "Järjestys"])?;
+        }
+        _ => query.print(modes.output())?,
+    }
+
+    Ok(())
+}
+
+pub async fn insert_assignment(db: &mut DBase, editable: &mut Editable, args: &str) -> Result<()> {
+    editable.clear();
+
+    let mut fields = tools::split_sep(args);
+    let groups = fields.next().filter(|x| tools::has_content(x)); // ryhmät
+
+    let assignment = fields
+        .next()
+        .filter(|x| tools::has_content(x))
+        .map(tools::normalize_str); // suoritus
+
+    let assignment_short = fields
+        .next()
+        .filter(|x| tools::has_content(x))
+        .map(tools::normalize_str); // lyhenne
+
+    let weight = fields.next().filter(|x| tools::has_content(x)); // painokerroin
+    let position = fields.next().filter(|x| tools::has_content(x)); // sija
+
+    if groups.is_none() || assignment.is_none() || assignment_short.is_none() {
+        return Err("Pitää antaa vähintään ryhmä, suorituksen nimi ja lyhenne.".into());
+    }
+
+    let weight = match weight {
+        Some(s) => match s.trim().parse::<i32>() {
+            Ok(n) if n >= 1 => Some(n),
+            _ => {
+                return Err(
+                    "Painokertoimen täytyy olla positiivinen kokonaisluku (tai tyhjä).".into(),
+                );
+            }
+        },
+        None => None,
+    };
+
+    let position = match position {
+        Some(s) => match s.trim().parse::<i32>() {
+            Ok(n) => n,
+            _ => return Err("Järjestysnumeron täytyy olla kokonaisluku.".into()),
+        },
+        None => i32::MAX,
+    };
+
+    let mut ta = db.begin().await?;
+
+    for g in groups.unwrap().split_whitespace() {
+        let mut group_assignment = Assignment {
+            rid: Group::get_or_insert(&mut ta, g).await?,
+            assignment: assignment.clone().unwrap(),
+            assignment_short: assignment_short.clone().unwrap(),
+            weight,
+            ..Default::default()
+        };
+
+        group_assignment.insert(&mut ta, position).await?;
+    }
+
+    ta.commit().await?;
+    Ok(())
+}
+
+impl Edit for EditItems<'_, Assignment> {
+    async fn edit(&self, db: &mut DBase) -> Result<()> {
+        let name = self.field(0); // suoritus
+        let short = self.field(1); // lyhenne
+        let weight = self.field(2); // painokerroin
+        let position = self.field(3); // sija
+
+        if !name.has_value() && !short.has_value() && weight.is_none() && !position.has_value() {
+            return Err("Anna muokattavia kenttiä.".into());
+        }
+
+        if position.has_value() && self.count() > 1 {
+            return Err("Usealle suoritukselle ei voi asettaa samaa järjestysnumeroa.".into());
+        }
+
+        // Convert from &Field<String> to Field<i32>.
+        let weight = match weight {
+            Field::Value(s) => match s.trim().parse::<i32>() {
+                Ok(n) if n >= 1 => Field::Value(n),
+                _ => {
+                    return Err(
+                        "Painokertoimen täytyy olla positiivinen kokonaisluku (tai tyhjä).".into(),
+                    );
+                }
+            },
+            Field::ValueEmpty => Field::ValueEmpty,
+            Field::None => Field::None,
+        };
+
+        // Convert from &Field<String> to Field<i32>.
+        let position = match position {
+            Field::Value(s) => match s.trim().parse::<i32>() {
+                Ok(n) => Field::Value(n),
+                _ => return Err("Järjestysnumeron täytyy olla kokonaisluku.".into()),
+            },
+            Field::ValueEmpty | Field::None => Field::None,
+        };
+
+        for group_assignment in self.iter() {
+            if let Field::Value(n) = name {
+                group_assignment.update_name(db, n).await?;
+            }
+
+            if let Field::Value(s) = short {
+                group_assignment.update_short(db, s).await?;
+            }
+
+            match weight {
+                Field::Value(w) => group_assignment.update_weight(db, Some(w)).await?,
+                Field::ValueEmpty => group_assignment.update_weight(db, None).await?,
+                Field::None => (),
+            }
+
+            if let Field::Value(p) = position {
+                group_assignment.update_position(db, p).await?;
+            }
+        }
+        Ok(())
+    }
+}
+
+impl Delete for DeleteItems<'_, Assignment> {
+    async fn delete(&self, db: &mut DBase) -> Result<()> {
+        let mut rid_list = Vec::with_capacity(1);
+        for assignment in self.iter() {
+            let count = assignment.count_grades(db).await?;
+            if count > 0 {
+                return Err(format!(
+                    "Suoritukselle ”{a}” on kirjattu {c} arvosana(a). Poista ne ensin.",
+                    a = assignment.assignment,
+                    c = count,
+                )
+                .into());
+            }
+
+            assignment.delete(db).await?;
+
+            if !rid_list.contains(&assignment.rid) {
+                rid_list.push(assignment.rid);
+            }
+        }
+
+        Groups::delete_empty(db).await?;
+
+        for rid in rid_list {
+            Assignment::reposition(db, rid).await?;
+        }
+
+        Ok(())
+    }
+}
