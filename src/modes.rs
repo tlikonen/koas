@@ -7,37 +7,6 @@ pub enum Mode {
     Stdin,
 }
 
-#[non_exhaustive]
-#[derive(Default, Clone)]
-pub enum Output {
-    #[default]
-    Unicode,
-    UnicodeOpen,
-    Ascii,
-    AsciiOpen,
-    Orgmode,
-    Tab,
-    Csv,
-    Latex,
-}
-
-impl Output {
-    pub fn select(value: &str) -> Result<Self> {
-        let out = match value.to_lowercase().as_str() {
-            "unicode" | "u" => Output::Unicode,
-            "unicode-avoin" | "ua" => Output::UnicodeOpen,
-            "ascii" | "a" => Output::Ascii,
-            "ascii-avoin" | "aa" => Output::AsciiOpen,
-            "emacs" | "e" => Output::Orgmode,
-            "tab" | "t" => Output::Tab,
-            "csv" | "c" => Output::Csv,
-            "latex" | "l" => Output::Latex,
-            _ => return Err(Error::unknown_tbl(value)),
-        };
-        Ok(out)
-    }
-}
-
 #[derive(Default, Clone)]
 pub struct Modes {
     mode: Option<Mode>,

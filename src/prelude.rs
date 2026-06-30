@@ -2,7 +2,7 @@ pub(crate) use {
     crate::{
         config::Config,
         error::{Error, Result},
-        modes::{Modes, Output},
+        modes::Modes,
         objects::{
             Assignment, AssignmentsForGroup, AssignmentsForGroups, CopyToEditable, Delete,
             DeleteItems, Edit, EditItems, Editable, EditableItem, EditableValue, Field, ForDelete,
@@ -11,7 +11,7 @@ pub(crate) use {
             GradesForStudents, Group, Groups, HasData, SimpleGrade, SimpleStudent, Stats, Student,
             StudentRanking, Students,
         },
-        print::{PrintQuery, PrintQueryList, PrintQueryNum},
+        print::{Output, PrintQuery, PrintQueryList, PrintQueryNum},
         tools,
     },
     sqlx::{Connection as _, PgConnection as DBase, Row as _},

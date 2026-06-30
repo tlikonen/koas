@@ -12,8 +12,9 @@ pub use {
     crate::{
         config::Config,
         error::{Error, Result},
-        modes::{Mode, Modes, Output},
+        modes::{Mode, Modes},
         objects::Editable,
+        print::Output,
     },
     sqlx::{Connection as _, PgConnection as DBase},
 };
