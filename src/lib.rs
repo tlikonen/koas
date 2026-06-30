@@ -18,7 +18,7 @@ pub use {
     sqlx::{Connection as _, PgConnection as DBase},
 };
 
-pub static PROGRAM_NAME: &str = env!("CARGO_PKG_NAME");
-pub static PROGRAM_VERSION: &str = env!("CARGO_PKG_VERSION");
-pub static PROGRAM_AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
-pub static PROGRAM_LICENSE: &str = env!("CARGO_PKG_LICENSE");
+pub const PROGRAM_NAME: &str = env!("CARGO_PKG_NAME");
+pub const PROGRAM_VERSION: &str = env!("CARGO_PKG_VERSION");
+pub const PROGRAM_AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
+pub const PROGRAM_LICENSE: &str = env!("CARGO_PKG_LICENSE");
