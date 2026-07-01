@@ -1009,11 +1009,10 @@ impl HasData for StudentRanking {
     }
 }
 
-impl<'a> GradeDistribution<'a> {
-    pub fn new(out: &'a Output) -> Self {
+impl GradeDistribution {
+    pub fn new() -> Self {
         Self {
             data: HashMap::with_capacity(28),
-            output: out,
         }
     }
 
@@ -1046,7 +1045,7 @@ impl<'a> GradeDistribution<'a> {
     }
 }
 
-impl HasData for GradeDistribution<'_> {
+impl HasData for GradeDistribution {
     fn empty_data(&self) -> bool {
         self.data.is_empty()
     }

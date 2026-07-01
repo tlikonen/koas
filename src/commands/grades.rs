@@ -215,7 +215,7 @@ pub async fn grade_distribution(
         args = "@";
     }
 
-    let mut dist = GradeDistribution::new(modes.output());
+    let mut dist = GradeDistribution::new();
 
     let field_groups = tools::split_sep(args);
     for field_string in field_groups {

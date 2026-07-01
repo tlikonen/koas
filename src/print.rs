@@ -170,6 +170,7 @@ enum Cell {
     Left(String),
     Right(String),
     Multi(Vec<String>),
+    RepeatBox(usize),
 }
 
 impl Cell {
@@ -187,6 +188,7 @@ impl Cell {
                 }
                 width
             }
+            Cell::RepeatBox(n) => *n,
         }
     }
 }
@@ -662,7 +664,7 @@ impl MakeTable for StudentRanking {
     }
 }
 
-impl MakeTable for GradeDistribution<'_> {
+impl MakeTable for GradeDistribution {
     fn table(&self) -> Table {
         const BAR_WIDTH: i32 = 40;
 
@@ -671,11 +673,6 @@ impl MakeTable for GradeDistribution<'_> {
             "4", "4+", "4½", "5-", "5", "5+", "5½", "6-", "6", "6+", "6½", "7-", "7", "7+", "7½",
             "8-", "8", "8+", "8½", "9-", "9", "9+", "9½", "10-", "10",
         ];
-
-        let box_char = match &self.output {
-            Output::Ascii | Output::AsciiOpen => "#",
-            _ => "◼",
-        };
 
         let mut rows = vec![
             Row::Toprule,
@@ -717,7 +714,7 @@ impl MakeTable for GradeDistribution<'_> {
                 rows.push(Row::Data(vec![
                     Cell::Left(grade.to_string()),
                     Cell::Right(count.to_string()),
-                    Cell::Left(box_char.repeat(char_count)),
+                    Cell::RepeatBox(char_count),
                 ]));
             } else {
                 rows.push(Row::Data(vec![
@@ -733,47 +730,58 @@ impl MakeTable for GradeDistribution<'_> {
     }
 }
 
+const TBL_ARRAY_LENGTH: usize = 16;
+
 #[rustfmt::skip]
-static TBL_UNICODE: [&str; 15] = [
+static TBL_UNICODE: [&str; TBL_ARRAY_LENGTH] = [
     "╒═", "═", "═╤═", "═╕", // top
     "├─", "─", "─┼─", "─┤", // mid
     "╘═", "═", "═╧═", "═╛", // bottom
     "│ ", " │ ", " │", // vert: left mid right
+    "◼", // box
 ];
 
 #[rustfmt::skip]
-static TBL_UNICODE_OPEN: [&str; 15] = [
+static TBL_UNICODE_OPEN: [&str; TBL_ARRAY_LENGTH] = [
     "═", "═", "══", "═", // top
     "─", "─", "──", "─", // mid
     "═", "═", "══", "═", // bottom
     " ", "  ", " ", // vert: left mid right
+    "◼", // box
 ];
 
 #[rustfmt::skip]
-static TBL_ASCII: [&str; 15] = [
+static TBL_ASCII: [&str; TBL_ARRAY_LENGTH] = [
     "+-", "-", "-+-", "-+", // top
     "+-", "-", "-+-", "-+", // mid
     "+-", "-", "-+-", "-+", // bottom
     "| ", " | ", " |", // vert: left mid right
+    "#", // box
 ];
 
 #[rustfmt::skip]
-static TBL_ASCII_OPEN: [&str; 15] = [
+static TBL_ASCII_OPEN: [&str; TBL_ARRAY_LENGTH] = [
     "=", "=", "==", "=", // top
     "-", "-", "--", "-", // mid
     "=", "=", "==", "=", // bottom
     " ", "  ", " ", // vert: left mid right
+    "#", // box
 ];
 
 #[rustfmt::skip]
-static TBL_ORGMODE: [&str; 15] = [
+static TBL_ORGMODE: [&str; TBL_ARRAY_LENGTH] = [
     "|-", "-", "-+-", "-|", // top
     "|-", "-", "-+-", "-|", // mid
     "|-", "-", "-+-", "-|", // bottom
     "| ", " | ", " |", // vert: left mid right
+    "#", // box
 ];
 
-fn print_table(tbl: &Table, stream: &mut OutBuf, tbl_chars: [&str; 15]) -> Result<()> {
+fn print_table(
+    tbl: &Table,
+    stream: &mut OutBuf,
+    tbl_chars: [&str; TBL_ARRAY_LENGTH],
+) -> Result<()> {
     let top_left = tbl_chars[0];
     let top_line = tbl_chars[1];
     let top_mid = tbl_chars[2];
@@ -793,6 +801,8 @@ fn print_table(tbl: &Table, stream: &mut OutBuf, tbl_chars: [&str; 15]) -> Resul
     let vert_mid = tbl_chars[13];
     let vert_right = tbl_chars[14];
 
+    let box_char = tbl_chars[15];
+
     let series = |stream: &mut OutBuf, s: &str, n: usize| -> Result<()> {
         for _ in 0..n {
             write!(stream, "{s}")?;
@@ -808,6 +818,7 @@ fn print_table(tbl: &Table, stream: &mut OutBuf, tbl_chars: [&str; 15]) -> Resul
             Row::Title(s) => {
                 writeln!(stream, "\n{s}\n")?;
             }
+
             Row::Toprule => {
                 write!(stream, "{top_left}")?;
                 for i in 0..widths.len() {
@@ -820,6 +831,7 @@ fn print_table(tbl: &Table, stream: &mut OutBuf, tbl_chars: [&str; 15]) -> Resul
                 }
                 writeln!(stream)?;
             }
+
             Row::Midrule => {
                 write!(stream, "{mid_left}")?;
                 for i in 0..widths.len() {
@@ -832,6 +844,7 @@ fn print_table(tbl: &Table, stream: &mut OutBuf, tbl_chars: [&str; 15]) -> Resul
                 }
                 writeln!(stream)?;
             }
+
             Row::Bottomrule => {
                 write!(stream, "{bottom_left}")?;
                 for i in 0..widths.len() {
@@ -844,6 +857,7 @@ fn print_table(tbl: &Table, stream: &mut OutBuf, tbl_chars: [&str; 15]) -> Resul
                 }
                 writeln!(stream)?;
             }
+
             Row::Data(v) | Row::Head(v) | Row::Foot(v) => {
                 let mut multi_max = 0;
                 let mut multi = 0;
@@ -854,12 +868,15 @@ fn print_table(tbl: &Table, stream: &mut OutBuf, tbl_chars: [&str; 15]) -> Resul
                         match multi {
                             0 => match cell {
                                 Cell::Empty => empty_cell(stream, width)?,
+
                                 Cell::Left(s) => {
                                     write!(stream, "{s:<width$}")?;
                                 }
+
                                 Cell::Right(s) => {
                                     write!(stream, "{s:>width$}")?;
                                 }
+
                                 Cell::Multi(v) => {
                                     if let Some(s) = v.get(multi) {
                                         write!(stream, "{s:<width$}")?;
@@ -870,7 +887,13 @@ fn print_table(tbl: &Table, stream: &mut OutBuf, tbl_chars: [&str; 15]) -> Resul
                                         multi_max = v.len();
                                     }
                                 }
+
+                                Cell::RepeatBox(n) => {
+                                    series(stream, box_char, *n)?;
+                                    empty_cell(stream, width - n)?;
+                                }
                             },
+
                             _ => match cell {
                                 Cell::Multi(v) => {
                                     if let Some(s) = v.get(multi) {
@@ -912,13 +935,14 @@ fn print_table_tab(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
                         write!(stream, "\t")?;
                     }
                     match cell {
+                        Cell::Empty => (),
                         Cell::Left(s) | Cell::Right(s) => {
                             write!(stream, "{s}")?;
                         }
                         Cell::Multi(v) => {
                             write!(stream, "{}", v.join(" "))?;
                         }
-                        _ => (),
+                        Cell::RepeatBox(n) => write!(stream, "{}", "#".repeat(*n))?,
                     }
                 }
                 writeln!(stream)?;
@@ -941,6 +965,8 @@ fn print_table_csv(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
                         write!(stream, ",")?;
                     }
                     match cell {
+                        Cell::Empty => (),
+
                         Cell::Left(s) | Cell::Right(s) => {
                             if s.chars().all(|c| c.is_ascii_digit()) {
                                 write!(stream, "{s}")?;
@@ -958,7 +984,7 @@ fn print_table_csv(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
                             }
                         }
 
-                        _ => (),
+                        Cell::RepeatBox(n) => write!(stream, "{:?}", "#".repeat(*n))?,
                     }
                 }
                 writeln!(stream)?;
@@ -979,15 +1005,10 @@ fn print_table_latex(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
                 write!(stream, "\\rivi")?;
                 for cell in v {
                     match cell {
-                        Cell::Empty => {
-                            write!(stream, "{{}}")?;
-                        }
-                        Cell::Left(s) | Cell::Right(s) => {
-                            write!(stream, "{{{s}}}")?;
-                        }
-                        Cell::Multi(v) => {
-                            write!(stream, "{{{}}}", v.join(" "))?;
-                        }
+                        Cell::Empty => write!(stream, "{{}}")?,
+                        Cell::Left(s) | Cell::Right(s) => write!(stream, "{{{s}}}")?,
+                        Cell::Multi(v) => write!(stream, "{{{}}}", v.join(" "))?,
+                        Cell::RepeatBox(n) => write!(stream, "{{\\rule{{{n}ex}}{{1ex}}}}")?,
                     }
                 }
                 writeln!(stream)?;

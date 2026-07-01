@@ -180,9 +180,8 @@ pub struct StudentRanking {
     pub data: HashMap<i32, StudentRank>,
 }
 
-pub struct GradeDistribution<'a> {
+pub struct GradeDistribution {
     pub data: HashMap<String, i32>,
-    pub output: &'a Output,
 }
 
 pub struct FullQuery<'a> {
