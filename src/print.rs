@@ -53,6 +53,8 @@ pub trait PrintQuery: MakeTable {
     }
 }
 
+impl<T: MakeTable> PrintQuery for T {}
+
 pub trait PrintQueryNum: MakeTable {
     fn print_num(&self, out: &Output) -> Result<()> {
         let mut stream = output_buffer();
@@ -62,13 +64,7 @@ pub trait PrintQueryNum: MakeTable {
     }
 }
 
-impl<T: MakeTable> PrintQuery for T {}
-
-impl PrintQueryNum for Students {}
-impl PrintQueryNum for Groups {}
-impl PrintQueryNum for AssignmentsForGroup {}
-impl PrintQueryNum for GradesForAssignment {}
-impl PrintQueryNum for GradesForStudent {}
+impl<T: MakeTable + CopyToEditable> PrintQueryNum for T {}
 
 pub trait PrintQueryList {
     fn print(&self, out: &Output) -> Result<()>;
