@@ -40,18 +40,20 @@ impl Output {
     }
 }
 
-pub trait PrintQuery {
+pub trait MakeTable {
+    fn table(&self) -> Table;
+}
+
+pub trait PrintQuery: MakeTable {
     fn print(&self, out: &Output) -> Result<()> {
         let mut stream = output_buffer();
         self.table().print_tbl(out, &mut stream)?;
         stream.flush()?;
         Ok(())
     }
-
-    fn table(&self) -> Table;
 }
 
-pub trait PrintQueryNum: PrintQuery {
+pub trait PrintQueryNum: MakeTable {
     fn print_num(&self, out: &Output) -> Result<()> {
         let mut stream = output_buffer();
         self.table().numbering().print_tbl(out, &mut stream)?;
@@ -59,6 +61,8 @@ pub trait PrintQueryNum: PrintQuery {
         Ok(())
     }
 }
+
+impl<T: MakeTable> PrintQuery for T {}
 
 impl PrintQueryNum for Students {}
 impl PrintQueryNum for Groups {}
@@ -187,7 +191,7 @@ impl Cell {
     }
 }
 
-impl PrintQuery for Stats {
+impl MakeTable for Stats {
     fn table(&self) -> Table {
         let rows = vec![
             Row::Toprule,
@@ -214,7 +218,7 @@ impl PrintQuery for Stats {
     }
 }
 
-impl PrintQuery for Students {
+impl MakeTable for Students {
     fn table(&self) -> Table {
         const DESC_WIDTH: usize = 36;
 
@@ -243,7 +247,7 @@ impl PrintQuery for Students {
     }
 }
 
-impl PrintQuery for Groups {
+impl MakeTable for Groups {
     fn table(&self) -> Table {
         const DESCRIPTION_WIDTH: usize = 70;
 
@@ -268,7 +272,7 @@ impl PrintQuery for Groups {
     }
 }
 
-impl PrintQuery for AssignmentsForGroup {
+impl MakeTable for AssignmentsForGroup {
     fn table(&self) -> Table {
         let mut rows = vec![
             Row::Title(self.group.clone()),
@@ -308,7 +312,7 @@ impl PrintQueryList for AssignmentsForGroups {
     }
 }
 
-impl PrintQuery for GradesForAssignment {
+impl MakeTable for GradesForAssignment {
     fn table(&self) -> Table {
         const DESC_WIDTH: usize = 50;
 
@@ -374,7 +378,7 @@ impl PrintQueryList for GradesForAssignments {
     }
 }
 
-impl PrintQuery for GradesForStudent {
+impl MakeTable for GradesForStudent {
     fn table(&self) -> Table {
         const DESC_WIDTH: usize = 50;
 
@@ -453,7 +457,7 @@ impl PrintQueryList for GradesForStudents {
     }
 }
 
-impl PrintQuery for GradesForGroup {
+impl MakeTable for GradesForGroup {
     fn table(&self) -> Table {
         let mut rows = vec![Row::Title(self.group.clone()), Row::Toprule];
 
@@ -587,7 +591,7 @@ impl PrintQueryList for GradesForGroups {
     }
 }
 
-impl PrintQuery for StudentRanking {
+impl MakeTable for StudentRanking {
     fn table(&self) -> Table {
         let mut rows = vec![
             Row::Toprule,
@@ -658,7 +662,7 @@ impl PrintQuery for StudentRanking {
     }
 }
 
-impl PrintQuery for GradeDistribution<'_> {
+impl MakeTable for GradeDistribution<'_> {
     fn table(&self) -> Table {
         const BAR_WIDTH: i32 = 40;
 
