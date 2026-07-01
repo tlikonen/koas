@@ -26,14 +26,14 @@ pub enum Output {
 impl Output {
     pub fn select(value: &str) -> Result<Self> {
         let out = match value.to_lowercase().as_str() {
-            "unicode" | "u" => Output::Unicode,
-            "unicode-avoin" | "ua" => Output::UnicodeOpen,
-            "ascii" | "a" => Output::Ascii,
-            "ascii-avoin" | "aa" => Output::AsciiOpen,
-            "emacs" | "e" => Output::Orgmode,
-            "tab" | "t" => Output::Tab,
-            "csv" | "c" => Output::Csv,
-            "latex" | "l" => Output::Latex,
+            "unicode" | "u" => Self::Unicode,
+            "unicode-avoin" | "ua" => Self::UnicodeOpen,
+            "ascii" | "a" => Self::Ascii,
+            "ascii-avoin" | "aa" => Self::AsciiOpen,
+            "emacs" | "e" => Self::Orgmode,
+            "tab" | "t" => Self::Tab,
+            "csv" | "c" => Self::Csv,
+            "latex" | "l" => Self::Latex,
             _ => return Err(Error::unknown_tbl(value)),
         };
         Ok(out)
