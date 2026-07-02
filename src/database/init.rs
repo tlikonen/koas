@@ -3,7 +3,7 @@ use crate::prelude::*;
 pub const PROGRAM_DB_VERSION: i32 = 10;
 const UPGRADE_COMMAND: &str = "päivitä";
 
-pub async fn initialize(db: &mut DBase, modes: &Modes) -> Result<()> {
+pub async fn initialize(db: &mut DBase, _modes: &Modes) -> Result<()> {
     let mut stderr = io::stderr();
 
     let db_exists = sqlx::query("SELECT 1 FROM pg_tables WHERE tablename = 'hallinto'")
@@ -21,34 +21,19 @@ pub async fn initialize(db: &mut DBase, modes: &Modes) -> Result<()> {
             Ordering::Equal => (),
 
             Ordering::Greater => {
-                let err_msg = || {
-                    String::from(
-                        "Arvosanatietokannan versio on uudempi kuin tämä ohjelma tukee.\n\
-                         Päivitä ohjelma, koska se ei välttämättä toimi oikein.",
-                    )
-                };
-
-                if modes.is_interactive() {
-                    let _ = writeln!(stderr, "{}", err_msg());
-                } else {
-                    return Err(err_msg().into());
-                }
+                return Err(
+                    "Arvosanatietokannan versio on uudempi kuin tämä ohjelma tukee.\n\
+                     Päivitä ohjelma, koska se ei välttämättä toimi oikein."
+                        .into(),
+                );
             }
 
             Ordering::Less => {
-                let err_msg = || {
-                    format!(
+                // modes.set_upgrade();
+                return Err(format!(
                         "Arvosanatietokannan versio on vanhentunut, eikä se ehkä toimi oikein.\n\
                          Päivitä tietokanta vuorovaikutteisessa tilassa komennolla ”{UPGRADE_COMMAND}”."
-                    )
-                };
-
-                if modes.is_interactive() {
-                    let _ = writeln!(stderr, "{}", err_msg());
-                    // modes.set_upgrade();
-                } else {
-                    return Err(err_msg().into());
-                }
+                    ).into());
             }
         }
     } else {
