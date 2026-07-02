@@ -80,13 +80,13 @@ async fn cli() -> Result<()> {
         return Ok(());
     }
 
-    config_stage(args).await
+    let (config, modes) = config(args)?;
+    command_stage(config, modes).await
 }
 
-async fn config_stage(args: Args) -> Result<()> {
+fn config(args: Args) -> Result<(Config, Modes)> {
     let config_file = Config::file()?;
     let mut output: Output = Default::default();
-
     tools::umask();
 
     let config: Config = if config_file.exists() {
@@ -124,10 +124,10 @@ async fn config_stage(args: Args) -> Result<()> {
         modes.set_mode(Mode::Interactive);
     }
 
-    command_stage(modes, config).await
+    Ok((config, modes))
 }
 
-async fn command_stage(mut modes: Modes, config: Config) -> Result<()> {
+async fn command_stage(config: Config, mut modes: Modes) -> Result<()> {
     let mut db = database::connect(&config, &modes).await?;
     let mut editable: Editable = Default::default();
     let mut stdout = io::stdout();
