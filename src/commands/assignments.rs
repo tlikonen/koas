@@ -12,9 +12,7 @@ pub async fn assignments(db: &mut DBase, args: &str) -> Result<AssignmentsForGro
     AssignmentsForGroups::query(db, group).await
 }
 
-pub async fn insert_assignment(db: &mut DBase, editable: &mut Editable, args: &str) -> Result<()> {
-    editable.clear();
-
+pub async fn insert_assignment(db: &mut DBase, args: &str) -> Result<()> {
     let mut fields = tools::split_sep(args);
     let groups = fields.next().filter(|x| tools::has_content(x)); // ryhmät
 

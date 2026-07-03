@@ -342,8 +342,15 @@ async fn commands(
                 .print(out)?;
         }
 
-        ("lo", _) => commands::insert_student(db, editable, args).await?,
-        ("ls", _) => commands::insert_assignment(db, editable, args).await?,
+        ("lo", _) => {
+            editable.clear();
+            commands::insert_student(db, args).await?;
+        }
+
+        ("ls", _) => {
+            editable.clear();
+            commands::insert_assignment(db, args).await?;
+        }
 
         ("m", Mode::Interactive) => commands::edit(db, editable, args).await?,
         ("ms", Mode::Interactive) => commands::edit_series(db, editable, args).await?,

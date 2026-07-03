@@ -10,9 +10,7 @@ pub async fn students(db: &mut DBase, args: &str) -> Result<Students> {
     Students::query(db, lastname, firstname, group, desc).await
 }
 
-pub async fn insert_student(db: &mut DBase, editable: &mut Editable, args: &str) -> Result<()> {
-    editable.clear();
-
+pub async fn insert_student(db: &mut DBase, args: &str) -> Result<()> {
     let mut fields = tools::split_sep(args);
 
     let lastname = fields
