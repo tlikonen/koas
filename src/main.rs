@@ -219,6 +219,7 @@ async fn commands(
     cmd: &str,
     args: &str,
 ) -> Result<()> {
+    let out = modes.output();
     match (cmd, modes.mode()) {
         ("ho", _) => commands::students(modes, db, editable, args).await?,
         ("hr", _) => commands::groups(modes, db, editable, args).await?,
@@ -242,7 +243,11 @@ async fn commands(
         ("poista", Mode::Interactive) => commands::delete(db, editable, args).await?,
 
         ("tlk", _) => table_format(modes, args)?,
-        ("tk", _) => commands::stats(modes, db, editable).await?,
+
+        ("tk", _) => {
+            editable.clear();
+            commands::stats(db).await?.print(out)?;
+        }
 
         ("?", _) => {
             editable.clear();

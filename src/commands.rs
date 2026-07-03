@@ -12,9 +12,6 @@ pub use students::*;
 
 use crate::prelude::*;
 
-pub async fn stats(modes: &Modes, db: &mut DBase, editable: &mut Editable) -> Result<()> {
-    editable.clear();
-
-    Stats::query(db).await?.print(modes.output())?;
-    Ok(())
+pub async fn stats(db: &mut DBase) -> Result<Stats> {
+    Stats::query(db).await
 }

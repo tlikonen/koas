@@ -14,7 +14,7 @@ pub use {
         error::{Error, Result},
         modes::{Mode, Modes},
         objects::Editable,
-        print::Output,
+        print::{Output, PrintQuery},
     },
     sqlx::{Connection as _, PgConnection as DBase},
 };
