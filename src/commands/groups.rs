@@ -1,27 +1,11 @@
 use crate::prelude::*;
 
-pub async fn groups(
-    modes: &Modes,
-    db: &mut DBase,
-    editable: &mut Editable,
-    args: &str,
-) -> Result<()> {
-    editable.clear();
-
+pub async fn groups(db: &mut DBase, args: &str) -> Result<Groups> {
     let mut fields = tools::split_sep(args);
     let name = fields.next().unwrap_or(""); // ryhmä
     let desc = fields.next().unwrap_or(""); // lisätiedot
 
-    let query = Groups::query(db, name, desc).await?.has_data()?;
-
-    if modes.is_interactive() {
-        query.copy_to(editable);
-        query.print_num(modes.output())?;
-        editable.print_fields(&["Ryhmä", "Lisätiedot"])?;
-    } else {
-        query.print(modes.output())?;
-    }
-    Ok(())
+    Groups::query(db, name, desc).await
 }
 
 impl Edit for EditItems<'_, Group> {

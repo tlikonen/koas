@@ -234,7 +234,19 @@ async fn commands(
             }
         }
 
-        ("hr", _) => commands::groups(modes, db, editable, args).await?,
+        ("hr", _) => {
+            editable.clear();
+            let query = commands::groups(db, args).await?.has_data()?;
+
+            if modes.is_interactive() {
+                query.copy_to(editable);
+                query.print_num(out)?;
+                editable.print_fields(&["Ryhmä", "Lisätiedot"])?;
+            } else {
+                query.print(out)?;
+            }
+        }
+
         ("hs", _) => commands::assignments(modes, db, editable, args).await?,
         ("has", _) => commands::grades_for_assignments(modes, db, editable, args).await?,
         ("hao", _) => commands::grades_for_students(modes, db, editable, args).await?,
