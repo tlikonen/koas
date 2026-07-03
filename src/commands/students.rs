@@ -1,31 +1,13 @@
 use crate::prelude::*;
 
-pub async fn students(
-    modes: &Modes,
-    db: &mut DBase,
-    editable: &mut Editable,
-    args: &str,
-) -> Result<()> {
-    editable.clear();
-
+pub async fn students(db: &mut DBase, args: &str) -> Result<Students> {
     let mut fields = tools::split_sep(args);
     let lastname = fields.next().unwrap_or(""); // sukunimi
     let firstname = fields.next().unwrap_or(""); // etunimi
     let group = fields.next().unwrap_or(""); // ryhma
     let desc = fields.next().unwrap_or(""); // lisätiedot
 
-    let query = Students::query(db, lastname, firstname, group, desc)
-        .await?
-        .has_data()?;
-
-    if modes.is_interactive() {
-        query.copy_to(editable);
-        query.print_num(modes.output())?;
-        editable.print_fields(&["Sukunimi", "Etunimi", "Ryhmät", "Lisätiedot"])?;
-    } else {
-        query.print(modes.output())?;
-    }
-    Ok(())
+    Students::query(db, lastname, firstname, group, desc).await
 }
 
 pub async fn insert_student(db: &mut DBase, editable: &mut Editable, args: &str) -> Result<()> {

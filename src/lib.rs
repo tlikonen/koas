@@ -13,8 +13,8 @@ pub use {
         config::Config,
         error::{Error, Result},
         modes::{Mode, Modes},
-        objects::Editable,
-        print::{Output, PrintQuery},
+        objects::{CopyToEditable, Editable, HasData},
+        print::{Output, PrintQuery, PrintQueryList, PrintQueryNum},
     },
     sqlx::{Connection as _, PgConnection as DBase},
 };

@@ -221,7 +221,19 @@ async fn commands(
 ) -> Result<()> {
     let out = modes.output();
     match (cmd, modes.mode()) {
-        ("ho", _) => commands::students(modes, db, editable, args).await?,
+        ("ho", _) => {
+            editable.clear();
+            let query = commands::students(db, args).await?.has_data()?;
+
+            if modes.is_interactive() {
+                query.copy_to(editable);
+                query.print_num(out)?;
+                editable.print_fields(&["Sukunimi", "Etunimi", "Ryhmät", "Lisätiedot"])?;
+            } else {
+                query.print(out)?;
+            }
+        }
+
         ("hr", _) => commands::groups(modes, db, editable, args).await?,
         ("hs", _) => commands::assignments(modes, db, editable, args).await?,
         ("has", _) => commands::grades_for_assignments(modes, db, editable, args).await?,
