@@ -6,6 +6,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Debug)]
 pub enum Error {
+    Exit,
     Generic(String),
     Io {
         kind: io::ErrorKind,
@@ -36,6 +37,7 @@ impl fmt::Display for Error {
             Self::Db(v) => write!(f, "Tietokantavirhe: {v}"),
             Self::UnknownCmd(v) => write!(f, "Tuntematon komento ”{v}”."),
             Self::UnknownTbl(v) => write!(f, "Tuntematon taulukkotyyppi ”{v}”."),
+            _ => Ok(()),
         }
     }
 }

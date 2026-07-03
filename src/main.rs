@@ -9,8 +9,8 @@ use {
 
 #[tokio::main]
 async fn main() -> ExitCode {
-    match cli().await {
-        Ok(_) => ExitCode::SUCCESS,
+    match program().await {
+        Ok(_) | Err(Error::Exit) => ExitCode::SUCCESS,
 
         Err(Error::Io {
             kind: io::ErrorKind::BrokenPipe,
@@ -24,7 +24,14 @@ async fn main() -> ExitCode {
     }
 }
 
-async fn cli() -> Result<()> {
+async fn program() -> Result<()> {
+    tools::umask();
+    let args = cli()?;
+    let (config, modes) = config(args)?;
+    command_stage(config, modes).await
+}
+
+fn cli() -> Result<Args> {
     let args = OptSpecs::new()
         .option("taulukot", "taulukot", OptValue::RequiredNonEmpty)
         .option("ohje", "ohje", OptValue::OptionalNonEmpty)
@@ -57,13 +64,13 @@ async fn cli() -> Result<()> {
             include_str!("../help/usage.txt"),
             ohjelma = PROGRAM_NAME,
         )?;
-        return Ok(());
+        return Err(Error::Exit);
     }
 
     if args.option_exists("ohje") {
         let topic = args.options_value_last("ohje").map_or("", |v| v);
         help(topic)?;
-        return Ok(());
+        return Err(Error::Exit);
     }
 
     if args.option_exists("version") {
@@ -77,17 +84,15 @@ async fn cli() -> Result<()> {
             author = PROGRAM_AUTHORS,
             license = PROGRAM_LICENSE
         )?;
-        return Ok(());
+        return Err(Error::Exit);
     }
 
-    let (config, modes) = config(args)?;
-    command_stage(config, modes).await
+    Ok(args)
 }
 
 fn config(args: Args) -> Result<(Config, Modes)> {
     let config_file = Config::file()?;
     let mut output: Output = Default::default();
-    tools::umask();
 
     let config: Config = if config_file.exists() {
         Config::read(&config_file)?
