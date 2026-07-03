@@ -268,7 +268,24 @@ async fn commands(
             }
         }
 
-        ("has", _) => commands::grades_for_assignments(modes, db, editable, args).await?,
+        ("has", _) => {
+            editable.clear();
+            let query = commands::grades_for_assignments(db, args)
+                .await?
+                .has_data()?;
+
+            if modes.is_interactive()
+                && query.count() == 1
+                && let Some(gfa) = query.get(0)
+            {
+                gfa.copy_to(editable);
+                gfa.print_num(out)?;
+                editable.print_fields(&["Arvosana(As)", "Lisätiedot"])?;
+            } else {
+                query.print(out)?;
+            }
+        }
+
         ("hao", _) => commands::grades_for_students(modes, db, editable, args).await?,
         ("hak", _) => commands::grades_for_group(modes, db, editable, args).await?,
 

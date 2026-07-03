@@ -720,6 +720,14 @@ impl GradesForAssignments {
 
         Ok(Self { list })
     }
+
+    pub fn count(&self) -> usize {
+        self.list.len()
+    }
+
+    pub fn get(&self, n: usize) -> Option<&GradesForAssignment> {
+        self.list.get(n)
+    }
 }
 
 impl HasData for GradesForAssignments {
