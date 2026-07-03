@@ -19,14 +19,7 @@ pub async fn grades_for_students(db: &mut DBase, args: &str) -> Result<GradesFor
     GradesForStudents::query(db, lastname, firstname, group, desc).await
 }
 
-pub async fn grades_for_group(
-    modes: &Modes,
-    db: &mut DBase,
-    editable: &mut Editable,
-    args: &str,
-) -> Result<()> {
-    editable.clear();
-
+pub async fn grades_for_group(db: &mut DBase, args: &str) -> Result<GradesForGroups> {
     let group = {
         let (g, _) = tools::split_first(args);
         if g.is_empty() {
@@ -35,9 +28,7 @@ pub async fn grades_for_group(
         g
     };
 
-    let query = GradesForGroups::query(db, group).await?.has_data()?;
-    query.print(modes.output())?;
-    Ok(())
+    GradesForGroups::query(db, group).await
 }
 
 pub async fn convert_to_grade(db: &mut DBase, editable: &mut Editable, args: &str) -> Result<()> {

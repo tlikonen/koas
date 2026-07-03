@@ -302,7 +302,13 @@ async fn commands(
             }
         }
 
-        ("hak", _) => commands::grades_for_group(modes, db, editable, args).await?,
+        ("hak", _) => {
+            editable.clear();
+            commands::grades_for_group(db, args)
+                .await?
+                .has_data()?
+                .print(out)?;
+        }
 
         ("tp", _) => commands::student_ranking(modes, db, editable, args, false).await?,
         ("tpk", _) => commands::student_ranking(modes, db, editable, args, true).await?,
