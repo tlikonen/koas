@@ -247,7 +247,27 @@ async fn commands(
             }
         }
 
-        ("hs", _) => commands::assignments(modes, db, editable, args).await?,
+        ("hs", _) => {
+            editable.clear();
+            let query = commands::assignments(db, args).await?.has_data()?;
+
+            if modes.is_interactive()
+                && query.count() == 1
+                && let Some(afg) = query.get(0)
+            {
+                afg.copy_to(editable);
+                afg.print_num(out)?;
+                editable.print_fields(&[
+                    "Suoritus",
+                    "Lyhenne(Lyh)",
+                    "Painokerroin(K)",
+                    "Järjestys",
+                ])?;
+            } else {
+                query.print(out)?;
+            }
+        }
+
         ("has", _) => commands::grades_for_assignments(modes, db, editable, args).await?,
         ("hao", _) => commands::grades_for_students(modes, db, editable, args).await?,
         ("hak", _) => commands::grades_for_group(modes, db, editable, args).await?,

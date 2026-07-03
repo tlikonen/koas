@@ -1,13 +1,6 @@
 use crate::prelude::*;
 
-pub async fn assignments(
-    modes: &Modes,
-    db: &mut DBase,
-    editable: &mut Editable,
-    args: &str,
-) -> Result<()> {
-    editable.clear();
-
+pub async fn assignments(db: &mut DBase, args: &str) -> Result<AssignmentsForGroups> {
     let group = {
         let (g, _) = tools::split_first(args);
         if g.is_empty() {
@@ -16,20 +9,7 @@ pub async fn assignments(
         g
     };
 
-    let query = AssignmentsForGroups::query(db, group).await?.has_data()?;
-
-    match query.list.len() {
-        0 => panic!(),
-        1 if modes.is_interactive() => {
-            let tbl = &query.list[0];
-            tbl.copy_to(editable);
-            tbl.print_num(modes.output())?;
-            editable.print_fields(&["Suoritus", "Lyhenne(Lyh)", "Painokerroin(K)", "Järjestys"])?;
-        }
-        _ => query.print(modes.output())?,
-    }
-
-    Ok(())
+    AssignmentsForGroups::query(db, group).await
 }
 
 pub async fn insert_assignment(db: &mut DBase, editable: &mut Editable, args: &str) -> Result<()> {

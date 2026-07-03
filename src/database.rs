@@ -542,6 +542,14 @@ impl AssignmentsForGroups {
 
         Ok(Self { list })
     }
+
+    pub fn count(&self) -> usize {
+        self.list.len()
+    }
+
+    pub fn get(&self, n: usize) -> Option<&AssignmentsForGroup> {
+        self.list.get(n)
+    }
 }
 
 impl HasData for AssignmentsForGroups {
