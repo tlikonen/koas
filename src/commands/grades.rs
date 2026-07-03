@@ -115,14 +115,7 @@ pub async fn convert_to_decimal(db: &mut DBase, editable: &mut Editable, args: &
     Ok(())
 }
 
-pub async fn student_ranking(
-    modes: &Modes,
-    db: &mut DBase,
-    editable: &mut Editable,
-    mut args: &str,
-    all: bool,
-) -> Result<()> {
-    editable.clear();
+pub async fn student_ranking(db: &mut DBase, mut args: &str, all: bool) -> Result<StudentRanking> {
     if args.is_empty() {
         args = "@";
     }
@@ -146,8 +139,7 @@ pub async fn student_ranking(
         ranks.query(db, query_terms).await?;
     }
 
-    ranks.has_data()?.print(modes.output())?;
-    Ok(())
+    Ok(ranks)
 }
 
 pub async fn grade_distribution(

@@ -310,8 +310,22 @@ async fn commands(
                 .print(out)?;
         }
 
-        ("tp", _) => commands::student_ranking(modes, db, editable, args, false).await?,
-        ("tpk", _) => commands::student_ranking(modes, db, editable, args, true).await?,
+        ("tp", _) => {
+            editable.clear();
+            commands::student_ranking(db, args, false)
+                .await?
+                .has_data()?
+                .print(out)?;
+        }
+
+        ("tpk", _) => {
+            editable.clear();
+            commands::student_ranking(db, args, true)
+                .await?
+                .has_data()?
+                .print(out)?;
+        }
+
         ("tj", _) => commands::grade_distribution(modes, db, editable, args, false).await?,
         ("tjk", _) => commands::grade_distribution(modes, db, editable, args, true).await?,
 
