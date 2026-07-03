@@ -9,36 +9,14 @@ pub async fn grades_for_assignments(db: &mut DBase, args: &str) -> Result<Grades
     GradesForAssignments::query(db, group, assign, assign_short).await
 }
 
-pub async fn grades_for_students(
-    modes: &Modes,
-    db: &mut DBase,
-    editable: &mut Editable,
-    args: &str,
-) -> Result<()> {
-    editable.clear();
-
+pub async fn grades_for_students(db: &mut DBase, args: &str) -> Result<GradesForStudents> {
     let mut fields = tools::split_sep(args);
     let lastname = fields.next().unwrap_or(""); // sukunimi
     let firstname = fields.next().unwrap_or(""); // etunimi
     let group = fields.next().unwrap_or(""); // ryhmä
     let desc = fields.next().unwrap_or(""); // lisätiedot
 
-    let query = GradesForStudents::query(db, lastname, firstname, group, desc)
-        .await?
-        .has_data()?;
-
-    match query.list.len() {
-        0 => panic!(),
-        1 if modes.is_interactive() => {
-            let tbl = &query.list[0];
-            tbl.copy_to(editable);
-            tbl.print_num(modes.output())?;
-            editable.print_fields(&["Arvosana(As)", "Lisätiedot"])?;
-        }
-        _ => query.print(modes.output())?,
-    }
-
-    Ok(())
+    GradesForStudents::query(db, lastname, firstname, group, desc).await
 }
 
 pub async fn grades_for_group(

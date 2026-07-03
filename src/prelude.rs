@@ -11,7 +11,7 @@ pub(crate) use {
             GradesForStudents, Group, Groups, HasData, SimpleGrade, SimpleStudent, Stats, Student,
             StudentRanking, Students,
         },
-        print::{Output, PrintQuery, PrintQueryList, PrintQueryNum},
+        print::{Output, PrintQuery, PrintQueryList},
         tools,
     },
     sqlx::{Connection as _, PgConnection as DBase, Row as _},
