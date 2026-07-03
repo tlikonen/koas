@@ -143,13 +143,10 @@ pub async fn student_ranking(db: &mut DBase, mut args: &str, all: bool) -> Resul
 }
 
 pub async fn grade_distribution(
-    modes: &Modes,
     db: &mut DBase,
-    editable: &mut Editable,
     mut args: &str,
     all: bool,
-) -> Result<()> {
-    editable.clear();
+) -> Result<GradeDistribution> {
     if args.is_empty() {
         args = "@";
     }
@@ -173,8 +170,7 @@ pub async fn grade_distribution(
         dist.query(db, query_terms).await?;
     }
 
-    dist.has_data()?.print(modes.output())?;
-    Ok(())
+    Ok(dist)
 }
 
 impl Edit for EditItems<'_, Grade> {

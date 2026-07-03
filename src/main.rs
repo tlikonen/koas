@@ -326,8 +326,21 @@ async fn commands(
                 .print(out)?;
         }
 
-        ("tj", _) => commands::grade_distribution(modes, db, editable, args, false).await?,
-        ("tjk", _) => commands::grade_distribution(modes, db, editable, args, true).await?,
+        ("tj", _) => {
+            editable.clear();
+            commands::grade_distribution(db, args, false)
+                .await?
+                .has_data()?
+                .print(out)?;
+        }
+
+        ("tjk", _) => {
+            editable.clear();
+            commands::grade_distribution(db, args, true)
+                .await?
+                .has_data()?
+                .print(out)?;
+        }
 
         ("lo", _) => commands::insert_student(db, editable, args).await?,
         ("ls", _) => commands::insert_assignment(db, editable, args).await?,
