@@ -253,10 +253,10 @@ async fn commands(
 
             if modes.is_interactive()
                 && query.count() == 1
-                && let Some(afg) = query.get(0)
+                && let Some(assign) = query.get(0)
             {
-                afg.copy_to(editable);
-                afg.print_num(out)?;
+                assign.copy_to(editable);
+                assign.print_num(out)?;
                 editable.print_fields(&[
                     "Suoritus",
                     "Lyhenne(Lyh)",
@@ -276,10 +276,10 @@ async fn commands(
 
             if modes.is_interactive()
                 && query.count() == 1
-                && let Some(gfa) = query.get(0)
+                && let Some(grades) = query.get(0)
             {
-                gfa.copy_to(editable);
-                gfa.print_num(out)?;
+                grades.copy_to(editable);
+                grades.print_num(out)?;
                 editable.print_fields(&["Arvosana(As)", "Lisätiedot"])?;
             } else {
                 query.print(out)?;
@@ -292,10 +292,10 @@ async fn commands(
 
             if modes.is_interactive()
                 && query.count() == 1
-                && let Some(gfs) = query.get(0)
+                && let Some(grades) = query.get(0)
             {
-                gfs.copy_to(editable);
-                gfs.print_num(out)?;
+                grades.copy_to(editable);
+                grades.print_num(out)?;
                 editable.print_fields(&["Arvosana(As)", "Lisätiedot"])?;
             } else {
                 query.print(out)?;
