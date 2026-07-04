@@ -61,19 +61,19 @@ impl Default for Editable {
 }
 
 pub struct Stats {
-    pub(crate) students: i64,
-    pub(crate) groups: i64,
-    pub(crate) assignments: i64,
-    pub(crate) grades: i64,
+    pub students: i64,
+    pub groups: i64,
+    pub assignments: i64,
+    pub grades: i64,
 }
 
 #[derive(Default, Clone)]
-pub(crate) struct Student {
+pub struct Student {
     pub(crate) oid: i32,
-    pub(crate) lastname: String,
-    pub(crate) firstname: String,
-    pub(crate) groups: String,
-    pub(crate) description: String,
+    pub lastname: String,
+    pub firstname: String,
+    pub groups: String,
+    pub description: String,
 }
 
 pub struct Students {
@@ -81,10 +81,10 @@ pub struct Students {
 }
 
 #[derive(Clone)]
-pub(crate) struct Group {
+pub struct Group {
     pub(crate) rid: i32,
-    pub(crate) name: String,
-    pub(crate) description: String,
+    pub name: String,
+    pub description: String,
 }
 
 pub struct Groups {
@@ -92,17 +92,17 @@ pub struct Groups {
 }
 
 #[derive(Clone, Default)]
-pub(crate) struct Assignment {
+pub struct Assignment {
     pub(crate) rid: i32,
     pub(crate) sid: i32,
-    pub(crate) assignment: String,
-    pub(crate) assignment_short: String,
-    pub(crate) weight: Option<i32>,
+    pub assignment: String,
+    pub assignment_short: String,
+    pub weight: Option<i32>,
 }
 
 pub struct AssignmentsForGroup {
-    pub(crate) group: String,
-    pub(crate) assignments: Vec<Assignment>,
+    pub group: String,
+    pub assignments: Vec<Assignment>,
 }
 
 #[derive(Default)]
@@ -111,21 +111,21 @@ pub struct AssignmentsForGroups {
 }
 
 #[derive(Clone)]
-pub(crate) struct Grade {
+pub struct Grade {
     pub(crate) oid: i32,
-    pub(crate) lastname: String,
-    pub(crate) firstname: String,
+    pub lastname: String,
+    pub firstname: String,
     pub(crate) sid: i32,
-    pub(crate) assignment: String,
-    pub(crate) weight: Option<i32>,
-    pub(crate) grade: Option<String>,
-    pub(crate) grade_description: Option<String>,
+    pub assignment: String,
+    pub weight: Option<i32>,
+    pub grade: Option<String>,
+    pub grade_description: Option<String>,
 }
 
 pub struct GradesForAssignment {
-    pub(crate) assignment: String,
-    pub(crate) group: String,
-    pub(crate) grades: Vec<Grade>,
+    pub assignment: String,
+    pub group: String,
+    pub grades: Vec<Grade>,
 }
 
 #[derive(Default)]
@@ -134,10 +134,10 @@ pub struct GradesForAssignments {
 }
 
 pub struct GradesForStudent {
-    pub(crate) lastname: String,
-    pub(crate) firstname: String,
-    pub(crate) group: String,
-    pub(crate) grades: Vec<Grade>,
+    pub lastname: String,
+    pub firstname: String,
+    pub group: String,
+    pub grades: Vec<Grade>,
 }
 
 #[derive(Default)]
@@ -146,10 +146,10 @@ pub struct GradesForStudents {
 }
 
 #[derive(Default)]
-pub(crate) struct GradesForGroup {
-    pub(crate) group: String,
-    pub(crate) students: Vec<SimpleStudent>,
-    pub(crate) assignments: Vec<Assignment>,
+pub struct GradesForGroup {
+    pub group: String,
+    pub students: Vec<SimpleStudent>,
+    pub assignments: Vec<Assignment>,
 }
 
 #[derive(Default)]
@@ -157,14 +157,14 @@ pub struct GradesForGroups {
     pub(crate) list: Vec<GradesForGroup>,
 }
 
-pub(crate) struct SimpleStudent {
-    pub(crate) name: String,
-    pub(crate) grades: Vec<SimpleGrade>,
+pub struct SimpleStudent {
+    pub name: String,
+    pub grades: Vec<SimpleGrade>,
 }
 
-pub(crate) struct SimpleGrade {
-    pub(crate) weight: Option<i32>,
-    pub(crate) grade: Option<String>,
+pub struct SimpleGrade {
+    pub weight: Option<i32>,
+    pub grade: Option<String>,
 }
 
 #[derive(Default)]

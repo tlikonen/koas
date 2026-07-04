@@ -12,7 +12,12 @@ pub use {
         config::Config,
         database::connect,
         error::{Error, Result},
-        objects::{CopyToEditable, Editable, HasData},
+        objects::{
+            Assignment, AssignmentsForGroup, AssignmentsForGroups, CopyToEditable, Editable, Grade,
+            GradesForAssignment, GradesForAssignments, GradesForGroup, GradesForGroups,
+            GradesForStudent, GradesForStudents, Group, Groups, HasData, SimpleGrade,
+            SimpleStudent, Student, Students,
+        },
         print::{Output, PrintQuery, PrintQueryList, PrintQueryNum},
     },
     sqlx::{Connection, PgConnection as DBase},

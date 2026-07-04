@@ -226,6 +226,10 @@ impl Students {
 
         Ok(Self { list })
     }
+
+    pub fn list(&self) -> &Vec<Student> {
+        &self.list
+    }
 }
 
 impl HasData for Students {
@@ -312,6 +316,10 @@ impl Groups {
         }
 
         Ok(Self { list })
+    }
+
+    pub fn list(&self) -> &Vec<Group> {
+        &self.list
     }
 
     pub(crate) async fn delete_empty(db: &mut DBase) -> Result<()> {
@@ -551,6 +559,10 @@ impl AssignmentsForGroups {
         self.list.len()
     }
 
+    pub fn list(&self) -> &Vec<AssignmentsForGroup> {
+        &self.list
+    }
+
     pub fn get(&self, n: usize) -> Option<&AssignmentsForGroup> {
         self.list.get(n)
     }
@@ -733,6 +745,10 @@ impl GradesForAssignments {
         self.list.len()
     }
 
+    pub fn list(&self) -> &Vec<GradesForAssignment> {
+        &self.list
+    }
+
     pub fn get(&self, n: usize) -> Option<&GradesForAssignment> {
         self.list.get(n)
     }
@@ -834,6 +850,10 @@ impl GradesForStudents {
         self.list.len()
     }
 
+    pub fn list(&self) -> &Vec<GradesForStudent> {
+        &self.list
+    }
+
     pub fn get(&self, n: usize) -> Option<&GradesForStudent> {
         self.list.get(n)
     }
@@ -880,6 +900,10 @@ impl GradesForGroups {
         }
 
         Ok(Self { list })
+    }
+
+    pub fn list(&self) -> &Vec<GradesForGroup> {
+        &self.list
     }
 }
 
