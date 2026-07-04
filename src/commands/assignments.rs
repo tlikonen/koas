@@ -1,14 +1,12 @@
 use crate::prelude::*;
 
-pub async fn assignments(db: &mut DBase, args: &str) -> Result<AssignmentsForGroups> {
-    let group = {
-        let (g, _) = tools::split_first(args);
-        if g.is_empty() {
-            return Err("Argumentiksi pitää antaa ryhmän nimi.".into());
-        }
-        g
-    };
-
+/// Query for assignments.
+///
+/// Wildcard character "*" is allowed in the `group` argument.
+pub async fn assignments(db: &mut DBase, group: &str) -> Result<AssignmentsForGroups> {
+    if group.is_empty() {
+        return Err("Argumentiksi pitää antaa ryhmän nimi.".into());
+    }
     AssignmentsForGroups::query(db, group).await
 }
 

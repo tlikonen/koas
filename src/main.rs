@@ -268,7 +268,9 @@ async fn commands(
 
         ("hs", _) => {
             editable.clear();
-            let query = commands::assignments(db, args).await?.has_data()?;
+
+            let (group, _) = tools::split_first(args);
+            let query = commands::assignments(db, group).await?.has_data()?;
 
             if modes.is_interactive()
                 && query.count() == 1
