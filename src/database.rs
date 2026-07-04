@@ -224,24 +224,20 @@ impl Students {
             });
         }
 
-        Ok(Self { list })
-    }
-
-    pub fn list(&self) -> &Vec<Student> {
-        &self.list
+        Ok(Self(list))
     }
 }
 
 impl HasData for Students {
     fn empty_data(&self) -> bool {
-        self.list.is_empty()
+        self.list().is_empty()
     }
 }
 
 impl CopyToEditable for Students {
     fn copy_to(&self, ed: &mut Editable) {
         ed.set(EditableItem::Students(EditableValue::from(
-            self.list.clone(),
+            self.list().clone(),
         )));
     }
 }
@@ -315,11 +311,7 @@ impl Groups {
             });
         }
 
-        Ok(Self { list })
-    }
-
-    pub fn list(&self) -> &Vec<Group> {
-        &self.list
+        Ok(Self(list))
     }
 
     pub(crate) async fn delete_empty(db: &mut DBase) -> Result<()> {
@@ -338,13 +330,15 @@ impl Groups {
 
 impl HasData for Groups {
     fn empty_data(&self) -> bool {
-        self.list.is_empty()
+        self.list().is_empty()
     }
 }
 
 impl CopyToEditable for Groups {
     fn copy_to(&self, ed: &mut Editable) {
-        ed.set(EditableItem::Groups(EditableValue::from(self.list.clone())));
+        ed.set(EditableItem::Groups(EditableValue::from(
+            self.list().clone(),
+        )));
     }
 }
 
@@ -552,25 +546,13 @@ impl AssignmentsForGroups {
             };
         }
 
-        Ok(Self { list })
-    }
-
-    pub fn count(&self) -> usize {
-        self.list.len()
-    }
-
-    pub fn list(&self) -> &Vec<AssignmentsForGroup> {
-        &self.list
-    }
-
-    pub fn get(&self, n: usize) -> Option<&AssignmentsForGroup> {
-        self.list.get(n)
+        Ok(Self(list))
     }
 }
 
 impl HasData for AssignmentsForGroups {
     fn empty_data(&self) -> bool {
-        self.list.is_empty()
+        self.list().is_empty()
     }
 }
 
@@ -738,25 +720,13 @@ impl GradesForAssignments {
             };
         }
 
-        Ok(Self { list })
-    }
-
-    pub fn count(&self) -> usize {
-        self.list.len()
-    }
-
-    pub fn list(&self) -> &Vec<GradesForAssignment> {
-        &self.list
-    }
-
-    pub fn get(&self, n: usize) -> Option<&GradesForAssignment> {
-        self.list.get(n)
+        Ok(Self(list))
     }
 }
 
 impl HasData for GradesForAssignments {
     fn empty_data(&self) -> bool {
-        self.list.is_empty()
+        self.list().is_empty()
     }
 }
 
@@ -843,25 +813,13 @@ impl GradesForStudents {
             };
         }
 
-        Ok(Self { list })
-    }
-
-    pub fn count(&self) -> usize {
-        self.list.len()
-    }
-
-    pub fn list(&self) -> &Vec<GradesForStudent> {
-        &self.list
-    }
-
-    pub fn get(&self, n: usize) -> Option<&GradesForStudent> {
-        self.list.get(n)
+        Ok(Self(list))
     }
 }
 
 impl HasData for GradesForStudents {
     fn empty_data(&self) -> bool {
-        self.list.is_empty()
+        self.list().is_empty()
     }
 }
 
@@ -899,17 +857,13 @@ impl GradesForGroups {
             }
         }
 
-        Ok(Self { list })
-    }
-
-    pub fn list(&self) -> &Vec<GradesForGroup> {
-        &self.list
+        Ok(Self(list))
     }
 }
 
 impl HasData for GradesForGroups {
     fn empty_data(&self) -> bool {
-        self.list.is_empty()
+        self.list().is_empty()
     }
 }
 

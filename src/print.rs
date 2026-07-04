@@ -235,7 +235,7 @@ impl MakeTable for Students {
             Row::Midrule,
         ];
 
-        for student in &self.list {
+        for student in self.list() {
             rows.push(Row::Data(vec![
                 Cell::Left(student.lastname.clone()),
                 Cell::Left(student.firstname.clone()),
@@ -262,7 +262,7 @@ impl MakeTable for Groups {
             Row::Midrule,
         ];
 
-        for group in &self.list {
+        for group in self.list() {
             rows.push(Row::Data(vec![
                 Cell::Left(group.name.clone()),
                 Cell::Multi(line_split(&group.description, DESCRIPTION_WIDTH)),
@@ -306,7 +306,7 @@ impl MakeTable for AssignmentsForGroup {
 impl PrintQueryList for AssignmentsForGroups {
     fn print(&self, out: &Output) -> Result<()> {
         let mut stream = output_buffer();
-        for t in &self.list {
+        for t in self.list() {
             t.table().print_tbl(out, &mut stream)?;
         }
         stream.flush()?;
@@ -372,7 +372,7 @@ impl MakeTable for GradesForAssignment {
 impl PrintQueryList for GradesForAssignments {
     fn print(&self, out: &Output) -> Result<()> {
         let mut stream = output_buffer();
-        for t in &self.list {
+        for t in self.list() {
             t.table().print_tbl(out, &mut stream)?;
         }
         stream.flush()?;
@@ -451,7 +451,7 @@ impl MakeTable for GradesForStudent {
 impl PrintQueryList for GradesForStudents {
     fn print(&self, out: &Output) -> Result<()> {
         let mut stream = output_buffer();
-        for t in &self.list {
+        for t in self.list() {
             t.table().print_tbl(out, &mut stream)?;
         }
         stream.flush()?;
@@ -558,7 +558,7 @@ impl PrintQueryList for GradesForGroups {
     fn print(&self, out: &Output) -> Result<()> {
         let mut stream = output_buffer();
 
-        for tbl in &self.list {
+        for tbl in self.list() {
             tbl.table().print_tbl(out, &mut stream)?;
             writeln!(stream)?;
 

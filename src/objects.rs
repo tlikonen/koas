@@ -76,8 +76,12 @@ pub struct Student {
     pub description: String,
 }
 
-pub struct Students {
-    pub(crate) list: Vec<Student>,
+pub struct Students(pub(crate) Vec<Student>);
+
+impl Students {
+    pub fn list(&self) -> &Vec<Student> {
+        &self.0
+    }
 }
 
 #[derive(Clone)]
@@ -87,8 +91,12 @@ pub struct Group {
     pub description: String,
 }
 
-pub struct Groups {
-    pub(crate) list: Vec<Group>,
+pub struct Groups(pub(crate) Vec<Group>);
+
+impl Groups {
+    pub fn list(&self) -> &Vec<Group> {
+        &self.0
+    }
 }
 
 #[derive(Clone, Default)]
@@ -106,8 +114,20 @@ pub struct AssignmentsForGroup {
 }
 
 #[derive(Default)]
-pub struct AssignmentsForGroups {
-    pub(crate) list: Vec<AssignmentsForGroup>,
+pub struct AssignmentsForGroups(pub(crate) Vec<AssignmentsForGroup>);
+
+impl AssignmentsForGroups {
+    pub fn count(&self) -> usize {
+        self.0.len()
+    }
+
+    pub fn list(&self) -> &Vec<AssignmentsForGroup> {
+        &self.0
+    }
+
+    pub fn get(&self, n: usize) -> Option<&AssignmentsForGroup> {
+        self.0.get(n)
+    }
 }
 
 #[derive(Clone)]
@@ -129,8 +149,20 @@ pub struct GradesForAssignment {
 }
 
 #[derive(Default)]
-pub struct GradesForAssignments {
-    pub(crate) list: Vec<GradesForAssignment>,
+pub struct GradesForAssignments(pub(crate) Vec<GradesForAssignment>);
+
+impl GradesForAssignments {
+    pub fn count(&self) -> usize {
+        self.0.len()
+    }
+
+    pub fn list(&self) -> &Vec<GradesForAssignment> {
+        &self.0
+    }
+
+    pub fn get(&self, n: usize) -> Option<&GradesForAssignment> {
+        self.0.get(n)
+    }
 }
 
 pub struct GradesForStudent {
@@ -141,8 +173,20 @@ pub struct GradesForStudent {
 }
 
 #[derive(Default)]
-pub struct GradesForStudents {
-    pub(crate) list: Vec<GradesForStudent>,
+pub struct GradesForStudents(pub(crate) Vec<GradesForStudent>);
+
+impl GradesForStudents {
+    pub fn count(&self) -> usize {
+        self.0.len()
+    }
+
+    pub fn list(&self) -> &Vec<GradesForStudent> {
+        &self.0
+    }
+
+    pub fn get(&self, n: usize) -> Option<&GradesForStudent> {
+        self.0.get(n)
+    }
 }
 
 #[derive(Default)]
@@ -153,8 +197,12 @@ pub struct GradesForGroup {
 }
 
 #[derive(Default)]
-pub struct GradesForGroups {
-    pub(crate) list: Vec<GradesForGroup>,
+pub struct GradesForGroups(pub(crate) Vec<GradesForGroup>);
+
+impl GradesForGroups {
+    pub fn list(&self) -> &Vec<GradesForGroup> {
+        &self.0
+    }
 }
 
 pub struct SimpleStudent {
