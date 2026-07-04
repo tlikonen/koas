@@ -5,13 +5,13 @@ pub trait HasData {
     where
         Self: Sized,
     {
-        match self.empty_data() {
+        match self.is_empty() {
             false => Ok(self),
             true => Err("Ei löytynyt.".into()),
         }
     }
 
-    fn empty_data(&self) -> bool;
+    fn is_empty(&self) -> bool;
 }
 
 pub trait CopyToEditable {

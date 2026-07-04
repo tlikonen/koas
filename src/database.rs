@@ -229,7 +229,7 @@ impl Students {
 }
 
 impl HasData for Students {
-    fn empty_data(&self) -> bool {
+    fn is_empty(&self) -> bool {
         self.list().is_empty()
     }
 }
@@ -329,7 +329,7 @@ impl Groups {
 }
 
 impl HasData for Groups {
-    fn empty_data(&self) -> bool {
+    fn is_empty(&self) -> bool {
         self.list().is_empty()
     }
 }
@@ -551,7 +551,7 @@ impl AssignmentsForGroups {
 }
 
 impl HasData for AssignmentsForGroups {
-    fn empty_data(&self) -> bool {
+    fn is_empty(&self) -> bool {
         self.list().is_empty()
     }
 }
@@ -725,7 +725,7 @@ impl GradesForAssignments {
 }
 
 impl HasData for GradesForAssignments {
-    fn empty_data(&self) -> bool {
+    fn is_empty(&self) -> bool {
         self.list().is_empty()
     }
 }
@@ -818,7 +818,7 @@ impl GradesForStudents {
 }
 
 impl HasData for GradesForStudents {
-    fn empty_data(&self) -> bool {
+    fn is_empty(&self) -> bool {
         self.list().is_empty()
     }
 }
@@ -862,7 +862,7 @@ impl GradesForGroups {
 }
 
 impl HasData for GradesForGroups {
-    fn empty_data(&self) -> bool {
+    fn is_empty(&self) -> bool {
         self.list().is_empty()
     }
 }
@@ -951,7 +951,7 @@ impl GradesForGroup {
 }
 
 impl HasData for GradesForGroup {
-    fn empty_data(&self) -> bool {
+    fn is_empty(&self) -> bool {
         self.assignments.is_empty()
     }
 }
@@ -1014,7 +1014,7 @@ impl StudentRanking {
 }
 
 impl HasData for StudentRanking {
-    fn empty_data(&self) -> bool {
+    fn is_empty(&self) -> bool {
         self.data.is_empty()
     }
 }
@@ -1056,7 +1056,7 @@ impl GradeDistribution {
 }
 
 impl HasData for GradeDistribution {
-    fn empty_data(&self) -> bool {
+    fn is_empty(&self) -> bool {
         self.data.is_empty()
     }
 }
