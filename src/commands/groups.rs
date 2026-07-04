@@ -1,9 +1,13 @@
 use crate::prelude::*;
 
-pub async fn groups(db: &mut DBase, args: &str) -> Result<Groups> {
-    let mut fields = tools::split_sep(args);
-    let name = fields.next().unwrap_or(""); // ryhmä
-    let desc = fields.next().unwrap_or(""); // lisätiedot
+/// Query for groups.
+///
+/// The `fields` tuple is: 0) group name, 1) description. Wildcard
+/// character "*" is allowed and is implicit in the start and end the
+/// strings.
+pub async fn groups(db: &mut DBase, fields: (&str, &str)) -> Result<Groups> {
+    let name = fields.0;
+    let desc = fields.1;
 
     Groups::query(db, name, desc).await
 }

@@ -250,7 +250,12 @@ async fn commands(
 
         ("hr", _) => {
             editable.clear();
-            let query = commands::groups(db, args).await?.has_data()?;
+
+            let mut fields = tools::split_sep(args);
+            let name = fields.next().unwrap_or(""); // ryhmä
+            let desc = fields.next().unwrap_or(""); // lisätiedot
+
+            let query = commands::groups(db, (name, desc)).await?.has_data()?;
 
             if modes.is_interactive() {
                 query.copy_to(editable);
