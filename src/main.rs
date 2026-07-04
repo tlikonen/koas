@@ -315,7 +315,16 @@ async fn commands(
 
         ("hao", _) => {
             editable.clear();
-            let query = commands::grades_for_students(db, args).await?.has_data()?;
+
+            let mut fields = tools::split_sep(args);
+            let lastname = fields.next().unwrap_or(""); // sukunimi
+            let firstname = fields.next().unwrap_or(""); // etunimi
+            let group = fields.next().unwrap_or(""); // ryhmä
+            let desc = fields.next().unwrap_or(""); // lisätiedot
+
+            let query = commands::grades_for_students(db, (lastname, firstname, group, desc))
+                .await?
+                .has_data()?;
 
             if modes.is_interactive()
                 && query.count() == 1

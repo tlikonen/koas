@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-/// Query for grades associated for assignments.
+/// Query for grades associated to assignments.
 ///
 /// The `fields` tuple: 0) group, 1) assignment name, 2) short name for
 /// assignment. Wildcard character "*" is allowed and is implicit in the
@@ -16,12 +16,19 @@ pub async fn grades_for_assignments(
     GradesForAssignments::query(db, group, assign, assign_short).await
 }
 
-pub async fn grades_for_students(db: &mut DBase, args: &str) -> Result<GradesForStudents> {
-    let mut fields = tools::split_sep(args);
-    let lastname = fields.next().unwrap_or(""); // sukunimi
-    let firstname = fields.next().unwrap_or(""); // etunimi
-    let group = fields.next().unwrap_or(""); // ryhmä
-    let desc = fields.next().unwrap_or(""); // lisätiedot
+/// Query for grades associated to students.
+///
+/// The `fields` tuple: 0) lastname, 1) firstname, 2) group, 3) student
+/// description. Wildcard character "*" is allowed and is implicit in
+/// the start and end the strings.
+pub async fn grades_for_students(
+    db: &mut DBase,
+    fields: (&str, &str, &str, &str),
+) -> Result<GradesForStudents> {
+    let lastname = fields.0;
+    let firstname = fields.1;
+    let group = fields.2;
+    let desc = fields.3;
 
     GradesForStudents::query(db, lastname, firstname, group, desc).await
 }
