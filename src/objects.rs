@@ -212,24 +212,24 @@ impl<'a, T> EditItems<'a, T> {
     pub fn field(&self, n: usize) -> &Field<String> {
         match self.fields.get(n) {
             Some(f) => f,
-            None => &Field::None,
+            None => &Field::Ignore,
         }
     }
 }
 
 pub enum Field<T> {
-    None,
-    ValueEmpty,
-    Value(T),
+    Ignore,
+    Clear,
+    Set(T),
 }
 
 impl<T> Field<T> {
     pub fn is_none(&self) -> bool {
-        matches!(self, Field::None)
+        matches!(self, Field::Ignore)
     }
 
     pub fn has_value(&self) -> bool {
-        matches!(self, Field::Value(_))
+        matches!(self, Field::Set(_))
     }
 }
 
@@ -242,11 +242,11 @@ pub trait ForEdit<T> {
         let mut normalized = Vec::with_capacity(4);
         for field in fields.into_iter().map(|x| x.to_string()) {
             normalized.push(if field.is_empty() {
-                Field::None
+                Field::Ignore
             } else if !tools::has_content(&field) {
-                Field::ValueEmpty
+                Field::Clear
             } else {
-                Field::Value(tools::normalize_str(&field))
+                Field::Set(tools::normalize_str(&field))
             });
         }
 

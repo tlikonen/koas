@@ -88,43 +88,43 @@ impl Edit for EditItems<'_, Assignment> {
 
         // Convert from &Field<String> to Field<i32>.
         let weight = match weight {
-            Field::Value(s) => match s.trim().parse::<i32>() {
-                Ok(n) if n >= 1 => Field::Value(n),
+            Field::Set(s) => match s.trim().parse::<i32>() {
+                Ok(n) if n >= 1 => Field::Set(n),
                 _ => {
                     return Err(
                         "Painokertoimen täytyy olla positiivinen kokonaisluku (tai tyhjä).".into(),
                     );
                 }
             },
-            Field::ValueEmpty => Field::ValueEmpty,
-            Field::None => Field::None,
+            Field::Clear => Field::Clear,
+            Field::Ignore => Field::Ignore,
         };
 
         // Convert from &Field<String> to Field<i32>.
         let position = match position {
-            Field::Value(s) => match s.trim().parse::<i32>() {
-                Ok(n) => Field::Value(n),
+            Field::Set(s) => match s.trim().parse::<i32>() {
+                Ok(n) => Field::Set(n),
                 _ => return Err("Järjestysnumeron täytyy olla kokonaisluku.".into()),
             },
-            Field::ValueEmpty | Field::None => Field::None,
+            Field::Clear | Field::Ignore => Field::Ignore,
         };
 
         for group_assignment in self.iter() {
-            if let Field::Value(n) = name {
+            if let Field::Set(n) = name {
                 group_assignment.update_name(db, n).await?;
             }
 
-            if let Field::Value(s) = short {
+            if let Field::Set(s) = short {
                 group_assignment.update_short(db, s).await?;
             }
 
             match weight {
-                Field::Value(w) => group_assignment.update_weight(db, Some(w)).await?,
-                Field::ValueEmpty => group_assignment.update_weight(db, None).await?,
-                Field::None => (),
+                Field::Set(w) => group_assignment.update_weight(db, Some(w)).await?,
+                Field::Clear => group_assignment.update_weight(db, None).await?,
+                Field::Ignore => (),
             }
 
-            if let Field::Value(p) = position {
+            if let Field::Set(p) = position {
                 group_assignment.update_position(db, p).await?;
             }
         }

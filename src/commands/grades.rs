@@ -184,15 +184,15 @@ impl Edit for EditItems<'_, Grade> {
 
         for student_grade in self.iter() {
             match grade {
-                Field::Value(s) => student_grade.update_grade(db, Some(s)).await?,
-                Field::ValueEmpty => student_grade.update_grade(db, None).await?,
-                Field::None => (),
+                Field::Set(s) => student_grade.update_grade(db, Some(s)).await?,
+                Field::Clear => student_grade.update_grade(db, None).await?,
+                Field::Ignore => (),
             }
 
             match desc {
-                Field::Value(d) => student_grade.update_description(db, Some(d)).await?,
-                Field::ValueEmpty => student_grade.update_description(db, None).await?,
-                Field::None => (),
+                Field::Set(d) => student_grade.update_description(db, Some(d)).await?,
+                Field::Clear => student_grade.update_description(db, None).await?,
+                Field::Ignore => (),
             }
 
             student_grade.delete_if_empty(db).await?;

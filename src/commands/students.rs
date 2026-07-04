@@ -70,7 +70,7 @@ impl Edit for EditItems<'_, Student> {
         let mut groups_add: Vec<String> = Vec::with_capacity(3);
         let mut groups_remove: Vec<String> = Vec::with_capacity(1);
 
-        if let Field::Value(groups) = groups {
+        if let Field::Set(groups) = groups {
             for g in groups.split_whitespace() {
                 let mut chars = g.chars();
                 match chars.next() {
@@ -95,11 +95,11 @@ impl Edit for EditItems<'_, Student> {
         }
 
         for student in self.iter() {
-            if let Field::Value(last) = lastname {
+            if let Field::Set(last) = lastname {
                 student.update_lastname(db, last).await?;
             }
 
-            if let Field::Value(first) = firstname {
+            if let Field::Set(first) = firstname {
                 student.update_firstname(db, first).await?;
             }
 
@@ -143,9 +143,9 @@ impl Edit for EditItems<'_, Student> {
             }
 
             match desc {
-                Field::Value(d) => student.update_description(db, d).await?,
-                Field::ValueEmpty => student.update_description(db, "").await?,
-                Field::None => (),
+                Field::Set(d) => student.update_description(db, d).await?,
+                Field::Clear => student.update_description(db, "").await?,
+                Field::Ignore => (),
             }
         }
 

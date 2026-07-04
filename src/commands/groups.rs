@@ -21,21 +21,21 @@ impl Edit for EditItems<'_, Group> {
             return Err("Usealle ryhmälle ei voi antaa samaa nimeä.".into());
         }
 
-        if let Field::Value(s) = &name
+        if let Field::Set(s) = &name
             && s.split_whitespace().nth(1).is_some()
         {
             return Err("Ryhmätunnuksen pitää olla yksi sana.".into());
         }
 
         for group in self.iter() {
-            if let Field::Value(n) = name {
+            if let Field::Set(n) = name {
                 group.update_name(db, n).await?;
             }
 
             match desc {
-                Field::Value(d) => group.update_description(db, d).await?,
-                Field::ValueEmpty => group.update_description(db, "").await?,
-                Field::None => (),
+                Field::Set(d) => group.update_description(db, d).await?,
+                Field::Clear => group.update_description(db, "").await?,
+                Field::Ignore => (),
             }
         }
         Ok(())
