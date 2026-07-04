@@ -1,11 +1,15 @@
 use crate::prelude::*;
 
-pub async fn students(db: &mut DBase, args: &str) -> Result<Students> {
-    let mut fields = tools::split_sep(args);
-    let lastname = fields.next().unwrap_or(""); // sukunimi
-    let firstname = fields.next().unwrap_or(""); // etunimi
-    let group = fields.next().unwrap_or(""); // ryhma
-    let desc = fields.next().unwrap_or(""); // lisätiedot
+/// Query for students.
+///
+/// The `fields` tuple is: 0) lastname, 1) firstname, 2) groups, 3)
+/// description. Wildcard character "*" is allowed and is implicit in
+/// the start and end the strings.
+pub async fn students(db: &mut DBase, fields: (&str, &str, &str, &str)) -> Result<Students> {
+    let lastname = fields.0;
+    let firstname = fields.1;
+    let group = fields.2;
+    let desc = fields.3;
 
     Students::query(db, lastname, firstname, group, desc).await
 }

@@ -228,7 +228,16 @@ async fn commands(
     match (cmd, modes.mode()) {
         ("ho", _) => {
             editable.clear();
-            let query = commands::students(db, args).await?.has_data()?;
+
+            let mut fields = tools::split_sep(args);
+            let lastname = fields.next().unwrap_or(""); // sukunimi
+            let firstname = fields.next().unwrap_or(""); // etunimi
+            let group = fields.next().unwrap_or(""); // ryhma
+            let desc = fields.next().unwrap_or(""); // lisätiedot
+
+            let query = commands::students(db, (lastname, firstname, group, desc))
+                .await?
+                .has_data()?;
 
             if modes.is_interactive() {
                 query.copy_to(editable);
