@@ -1,10 +1,17 @@
 use crate::prelude::*;
 
-pub async fn grades_for_assignments(db: &mut DBase, args: &str) -> Result<GradesForAssignments> {
-    let mut fields = tools::split_sep(args);
-    let group = fields.next().unwrap_or(""); // ryhmä
-    let assign = fields.next().unwrap_or(""); // suoritus
-    let assign_short = fields.next().unwrap_or(""); // lyhenne
+/// Query for grades associated for assignments.
+///
+/// The `fields` tuple: 0) group, 1) assignment name, 2) short name for
+/// assignment. Wildcard character "*" is allowed and is implicit in the
+/// start and end the strings.
+pub async fn grades_for_assignments(
+    db: &mut DBase,
+    fields: (&str, &str, &str),
+) -> Result<GradesForAssignments> {
+    let group = fields.0;
+    let assign = fields.1;
+    let assign_short = fields.2;
 
     GradesForAssignments::query(db, group, assign, assign_short).await
 }

@@ -291,7 +291,13 @@ async fn commands(
 
         ("has", _) => {
             editable.clear();
-            let query = commands::grades_for_assignments(db, args)
+
+            let mut fields = tools::split_sep(args);
+            let group = fields.next().unwrap_or(""); // ryhmä
+            let assign = fields.next().unwrap_or(""); // suoritus
+            let assign_short = fields.next().unwrap_or(""); // lyhenne
+
+            let query = commands::grades_for_assignments(db, (group, assign, assign_short))
                 .await?
                 .has_data()?;
 
