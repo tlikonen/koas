@@ -33,15 +33,13 @@ pub async fn grades_for_students(
     GradesForStudents::query(db, lastname, firstname, group, desc).await
 }
 
-pub async fn grades_for_group(db: &mut DBase, args: &str) -> Result<GradesForGroups> {
-    let group = {
-        let (g, _) = tools::split_first(args);
-        if g.is_empty() {
-            return Err("Argumentiksi pitää antaa ryhmän nimi.".into());
-        }
-        g
-    };
-
+/// Query for grades associated to groups.
+///
+/// The wildcard character "*" is allowed in the `group` argument.
+pub async fn grades_for_group(db: &mut DBase, group: &str) -> Result<GradesForGroups> {
+    if group.is_empty() {
+        return Err("Argumentiksi pitää antaa ryhmän nimi.".into());
+    }
     GradesForGroups::query(db, group).await
 }
 

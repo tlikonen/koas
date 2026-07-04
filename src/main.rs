@@ -340,7 +340,8 @@ async fn commands(
 
         ("hak", _) => {
             editable.clear();
-            commands::grades_for_group(db, args)
+            let (group, _) = tools::split_first(args);
+            commands::grades_for_group(db, group)
                 .await?
                 .has_data()?
                 .print(out)?;
