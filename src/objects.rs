@@ -18,7 +18,7 @@ pub trait CopyToEditable {
     fn copy_to(&self, ed: &mut Editable);
 }
 
-pub enum EditableItem {
+pub(crate) enum EditableItem {
     None,
     Students(EditableValue<Student>),
     Groups(EditableValue<Group>),
@@ -26,10 +26,10 @@ pub enum EditableItem {
     Grades(EditableValue<Grade>),
 }
 
-pub struct EditableValue<T>(Vec<T>);
+pub(crate) struct EditableValue<T>(Vec<T>);
 
 impl<T> EditableValue<T> {
-    pub fn from(value: Vec<T>) -> Self {
+    pub(crate) fn from(value: Vec<T>) -> Self {
         Self(value)
     }
 
@@ -37,7 +37,7 @@ impl<T> EditableValue<T> {
         &self.0
     }
 
-    pub fn count(&self) -> usize {
+    pub(crate) fn count(&self) -> usize {
         self.0.len()
     }
 }
@@ -45,11 +45,11 @@ impl<T> EditableValue<T> {
 pub struct Editable(EditableItem);
 
 impl Editable {
-    pub fn set(&mut self, value: EditableItem) {
+    pub(crate) fn set(&mut self, value: EditableItem) {
         self.0 = value;
     }
 
-    pub fn item(&self) -> &EditableItem {
+    pub(crate) fn item(&self) -> &EditableItem {
         &self.0
     }
 }
@@ -61,155 +61,155 @@ impl Default for Editable {
 }
 
 pub struct Stats {
-    pub students: i64,
-    pub groups: i64,
-    pub assignments: i64,
-    pub grades: i64,
+    pub(crate) students: i64,
+    pub(crate) groups: i64,
+    pub(crate) assignments: i64,
+    pub(crate) grades: i64,
 }
 
 #[derive(Default, Clone)]
-pub struct Student {
-    pub oid: i32,
-    pub lastname: String,
-    pub firstname: String,
-    pub groups: String,
-    pub description: String,
+pub(crate) struct Student {
+    pub(crate) oid: i32,
+    pub(crate) lastname: String,
+    pub(crate) firstname: String,
+    pub(crate) groups: String,
+    pub(crate) description: String,
 }
 
 pub struct Students {
-    pub list: Vec<Student>,
+    pub(crate) list: Vec<Student>,
 }
 
 #[derive(Clone)]
-pub struct Group {
-    pub rid: i32,
-    pub name: String,
-    pub description: String,
+pub(crate) struct Group {
+    pub(crate) rid: i32,
+    pub(crate) name: String,
+    pub(crate) description: String,
 }
 
 pub struct Groups {
-    pub list: Vec<Group>,
+    pub(crate) list: Vec<Group>,
 }
 
 #[derive(Clone, Default)]
-pub struct Assignment {
-    pub rid: i32,
-    pub sid: i32,
-    pub assignment: String,
-    pub assignment_short: String,
-    pub weight: Option<i32>,
+pub(crate) struct Assignment {
+    pub(crate) rid: i32,
+    pub(crate) sid: i32,
+    pub(crate) assignment: String,
+    pub(crate) assignment_short: String,
+    pub(crate) weight: Option<i32>,
 }
 
 pub struct AssignmentsForGroup {
-    pub group: String,
-    pub assignments: Vec<Assignment>,
+    pub(crate) group: String,
+    pub(crate) assignments: Vec<Assignment>,
 }
 
 #[derive(Default)]
 pub struct AssignmentsForGroups {
-    pub list: Vec<AssignmentsForGroup>,
+    pub(crate) list: Vec<AssignmentsForGroup>,
 }
 
 #[derive(Clone)]
-pub struct Grade {
-    pub oid: i32,
-    pub lastname: String,
-    pub firstname: String,
-    pub sid: i32,
-    pub assignment: String,
-    pub weight: Option<i32>,
-    pub grade: Option<String>,
-    pub grade_description: Option<String>,
+pub(crate) struct Grade {
+    pub(crate) oid: i32,
+    pub(crate) lastname: String,
+    pub(crate) firstname: String,
+    pub(crate) sid: i32,
+    pub(crate) assignment: String,
+    pub(crate) weight: Option<i32>,
+    pub(crate) grade: Option<String>,
+    pub(crate) grade_description: Option<String>,
 }
 
 pub struct GradesForAssignment {
-    pub assignment: String,
-    pub group: String,
-    pub grades: Vec<Grade>,
+    pub(crate) assignment: String,
+    pub(crate) group: String,
+    pub(crate) grades: Vec<Grade>,
 }
 
 #[derive(Default)]
 pub struct GradesForAssignments {
-    pub list: Vec<GradesForAssignment>,
+    pub(crate) list: Vec<GradesForAssignment>,
 }
 
 pub struct GradesForStudent {
-    pub lastname: String,
-    pub firstname: String,
-    pub group: String,
-    pub grades: Vec<Grade>,
+    pub(crate) lastname: String,
+    pub(crate) firstname: String,
+    pub(crate) group: String,
+    pub(crate) grades: Vec<Grade>,
 }
 
 #[derive(Default)]
 pub struct GradesForStudents {
-    pub list: Vec<GradesForStudent>,
+    pub(crate) list: Vec<GradesForStudent>,
 }
 
 #[derive(Default)]
-pub struct GradesForGroup {
-    pub group: String,
-    pub students: Vec<SimpleStudent>,
-    pub assignments: Vec<Assignment>,
+pub(crate) struct GradesForGroup {
+    pub(crate) group: String,
+    pub(crate) students: Vec<SimpleStudent>,
+    pub(crate) assignments: Vec<Assignment>,
 }
 
 #[derive(Default)]
 pub struct GradesForGroups {
-    pub list: Vec<GradesForGroup>,
+    pub(crate) list: Vec<GradesForGroup>,
 }
 
-pub struct SimpleStudent {
-    pub name: String,
-    pub grades: Vec<SimpleGrade>,
+pub(crate) struct SimpleStudent {
+    pub(crate) name: String,
+    pub(crate) grades: Vec<SimpleGrade>,
 }
 
-pub struct SimpleGrade {
-    pub weight: Option<i32>,
-    pub grade: Option<String>,
+pub(crate) struct SimpleGrade {
+    pub(crate) weight: Option<i32>,
+    pub(crate) grade: Option<String>,
 }
 
 #[derive(Default)]
-pub struct StudentRank {
-    pub name: String,
-    pub groups: Vec<String>,
-    pub sum: f64,
-    pub count: i32,
-    pub grade_count: usize,
+pub(crate) struct StudentRank {
+    pub(crate) name: String,
+    pub(crate) groups: Vec<String>,
+    pub(crate) sum: f64,
+    pub(crate) count: i32,
+    pub(crate) grade_count: usize,
 }
 
 pub struct StudentRanking {
-    pub data: HashMap<i32, StudentRank>,
+    pub(crate) data: HashMap<i32, StudentRank>,
 }
 
 pub struct GradeDistribution {
-    pub data: HashMap<String, i32>,
+    pub(crate) data: HashMap<String, i32>,
 }
 
-pub struct FullQuery<'a> {
-    pub group: &'a str,
-    pub assignment: &'a str,
-    pub assignment_short: &'a str,
-    pub lastname: &'a str,
-    pub firstname: &'a str,
-    pub description: &'a str,
-    pub all: bool,
+pub(crate) struct FullQuery<'a> {
+    pub(crate) group: &'a str,
+    pub(crate) assignment: &'a str,
+    pub(crate) assignment_short: &'a str,
+    pub(crate) lastname: &'a str,
+    pub(crate) firstname: &'a str,
+    pub(crate) description: &'a str,
+    pub(crate) all: bool,
 }
 
-pub struct EditItems<'a, T> {
+pub(crate) struct EditItems<'a, T> {
     items: &'a Vec<T>,
     indexes: Vec<usize>,
     fields: Vec<Field<String>>,
 }
 
 impl<'a, T> EditItems<'a, T> {
-    pub fn count(&self) -> usize {
+    pub(crate) fn count(&self) -> usize {
         self.indexes.len()
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = &T> {
+    pub(crate) fn iter(&self) -> impl Iterator<Item = &T> {
         self.indexes.iter().filter_map(|i| self.items.get(i - 1))
     }
 
-    pub fn field(&self, n: usize) -> &Field<String> {
+    pub(crate) fn field(&self, n: usize) -> &Field<String> {
         match self.fields.get(n) {
             Some(f) => f,
             None => &Field::Ignore,
@@ -217,23 +217,23 @@ impl<'a, T> EditItems<'a, T> {
     }
 }
 
-pub enum Field<T> {
+pub(crate) enum Field<T> {
     Ignore,
     Clear,
     Set(T),
 }
 
 impl<T> Field<T> {
-    pub fn is_none(&self) -> bool {
+    pub(crate) fn is_none(&self) -> bool {
         matches!(self, Field::Ignore)
     }
 
-    pub fn has_value(&self) -> bool {
+    pub(crate) fn has_value(&self) -> bool {
         matches!(self, Field::Set(_))
     }
 }
 
-pub trait ForEdit<T> {
+pub(crate) trait ForEdit<T> {
     fn for_edit<'a, I, S>(&'a self, indexes: Vec<usize>, fields: I) -> EditItems<'a, T>
     where
         I: IntoIterator<Item = S>,
@@ -266,22 +266,22 @@ impl<T> ForEdit<T> for EditableValue<T> {
     }
 }
 
-pub trait Edit {
+pub(crate) trait Edit {
     async fn edit(&self, db: &mut DBase) -> Result<()>;
 }
 
-pub struct DeleteItems<'a, T> {
+pub(crate) struct DeleteItems<'a, T> {
     items: &'a Vec<T>,
     indexes: Vec<usize>,
 }
 
 impl<'a, T> DeleteItems<'a, T> {
-    pub fn iter(&self) -> impl Iterator<Item = &T> {
+    pub(crate) fn iter(&self) -> impl Iterator<Item = &T> {
         self.indexes.iter().filter_map(|i| self.items.get(i - 1))
     }
 }
 
-pub trait ForDelete<T> {
+pub(crate) trait ForDelete<T> {
     fn for_delete<'a>(&'a self, indexes: Vec<usize>) -> DeleteItems<'a, T> {
         DeleteItems {
             items: self.items(),
@@ -298,6 +298,6 @@ impl<T> ForDelete<T> for EditableValue<T> {
     }
 }
 
-pub trait Delete {
+pub(crate) trait Delete {
     async fn delete(&self, db: &mut DBase) -> Result<()>;
 }

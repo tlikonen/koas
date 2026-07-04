@@ -2,7 +2,6 @@ pub(crate) use {
     crate::{
         config::Config,
         error::{Error, Result},
-        modes::Modes,
         objects::{
             Assignment, AssignmentsForGroup, AssignmentsForGroups, CopyToEditable, Delete,
             DeleteItems, Edit, EditItems, Editable, EditableItem, EditableValue, Field, ForDelete,

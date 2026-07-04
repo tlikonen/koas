@@ -24,6 +24,50 @@ async fn main() -> ExitCode {
     }
 }
 
+#[derive(Clone)]
+enum Mode {
+    Interactive,
+    Single(String),
+    Stdin,
+}
+
+#[derive(Default, Clone)]
+struct Modes {
+    mode: Option<Mode>,
+    output: Option<Output>,
+    // upgrade: bool,
+}
+
+impl Modes {
+    fn output(&self) -> &Output {
+        self.output.as_ref().expect("Uninitialized Modes::output.")
+    }
+
+    fn set_output(&mut self, v: Output) {
+        self.output = Some(v);
+    }
+
+    fn mode(&self) -> &Mode {
+        self.mode.as_ref().expect("Uninitialized Modes::mode.")
+    }
+
+    fn set_mode(&mut self, v: Mode) {
+        self.mode = Some(v);
+    }
+
+    fn is_interactive(&self) -> bool {
+        matches!(self.mode(), Mode::Interactive)
+    }
+
+    // pub fn upgrade(&self) -> bool {
+    //     self.upgrade
+    // }
+
+    // pub fn set_upgrade(&mut self) {
+    //     self.upgrade = true;
+    // }
+}
+
 async fn program() -> Result<()> {
     tools::umask();
     let args = cli()?;
@@ -133,7 +177,7 @@ fn config(args: Args) -> Result<(Config, Modes)> {
 }
 
 async fn command_stage(config: Config, mut modes: Modes) -> Result<()> {
-    let mut db = database::connect(&config, &modes).await?;
+    let mut db = connect(&config).await?;
     let mut editable: Editable = Default::default();
     let mut stdout = io::stdout();
     let mut stderr = io::stderr();

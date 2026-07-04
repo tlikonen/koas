@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-pub fn parse_number_list(s: &str) -> Result<Vec<usize>> {
+pub(crate) fn parse_number_list(s: &str) -> Result<Vec<usize>> {
     let mut vec: Vec<usize> = Vec::with_capacity(25);
     let errmsg = |v| format!("Sopimaton tietueen numero: ”{v}”.");
 
@@ -54,11 +54,11 @@ fn is_all_digits(s: &str) -> bool {
     !s.is_empty() && s.chars().all(|c| c.is_ascii_digit())
 }
 
-pub fn is_within_limits(limit: usize, list: &[usize]) -> bool {
+pub(crate) fn is_within_limits(limit: usize, list: &[usize]) -> bool {
     list.iter().all(|n| *n <= limit)
 }
 
-pub fn parse_number(s: &str) -> Option<f64> {
+pub(crate) fn parse_number(s: &str) -> Option<f64> {
     use std::cmp::max;
     const MINUS_CHARS: &str = "-–−";
 
@@ -127,7 +127,7 @@ pub fn parse_number(s: &str) -> Option<f64> {
     }
 }
 
-pub fn float_to_grade(float: f64) -> Option<String> {
+pub(crate) fn float_to_grade(float: f64) -> Option<String> {
     if float < 0.0 {
         return None;
     }
@@ -163,11 +163,11 @@ pub fn split_first(s: &str) -> (&str, &str) {
     }
 }
 
-pub fn has_content(s: &str) -> bool {
+pub(crate) fn has_content(s: &str) -> bool {
     s.chars().any(|c| !c.is_whitespace())
 }
 
-pub fn normalize_str(s: &str) -> String {
+pub(crate) fn normalize_str(s: &str) -> String {
     let mut new = String::with_capacity(s.len());
     for (n, word) in s.split_whitespace().enumerate() {
         if n > 0 {
@@ -178,7 +178,7 @@ pub fn normalize_str(s: &str) -> String {
     new
 }
 
-pub fn format_decimal(num: f64) -> String {
+pub(crate) fn format_decimal(num: f64) -> String {
     const PRECISION: f64 = 100.0;
     format!("{:.2}", (num * PRECISION).round() / PRECISION).replace(".", ",")
 }

@@ -1,8 +1,7 @@
 pub mod commands;
 mod config;
-pub mod database;
+mod database;
 mod error;
-mod modes;
 mod objects;
 mod prelude;
 mod print;
@@ -11,12 +10,12 @@ pub mod tools;
 pub use {
     crate::{
         config::Config,
+        database::connect,
         error::{Error, Result},
-        modes::{Mode, Modes},
         objects::{CopyToEditable, Editable, HasData},
         print::{Output, PrintQuery, PrintQueryList, PrintQueryNum},
     },
-    sqlx::{Connection as _, PgConnection as DBase},
+    sqlx::{Connection, PgConnection as DBase},
 };
 
 pub const PROGRAM_NAME: &str = env!("CARGO_PKG_NAME");

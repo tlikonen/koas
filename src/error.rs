@@ -22,7 +22,7 @@ impl Error {
         Self::UnknownCmd(cmd.to_string())
     }
 
-    pub fn unknown_tbl(tbl: impl ToString) -> Self {
+    pub(crate) fn unknown_tbl(tbl: impl ToString) -> Self {
         Self::UnknownTbl(tbl.to_string())
     }
 }

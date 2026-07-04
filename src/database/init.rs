@@ -1,9 +1,9 @@
 use crate::prelude::*;
 
-pub const PROGRAM_DB_VERSION: i32 = 10;
+pub(super) const PROGRAM_DB_VERSION: i32 = 10;
 const UPGRADE_COMMAND: &str = "päivitä";
 
-pub async fn initialize(db: &mut DBase, _modes: &Modes) -> Result<()> {
+pub(super) async fn initialize(db: &mut DBase) -> Result<()> {
     let mut stderr = io::stderr();
 
     let db_exists = sqlx::query("SELECT 1 FROM pg_tables WHERE tablename = 'hallinto'")

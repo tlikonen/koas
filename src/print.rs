@@ -40,7 +40,7 @@ impl Output {
     }
 }
 
-pub trait MakeTable {
+pub(crate) trait MakeTable {
     fn table(&self) -> Table;
 }
 
@@ -74,7 +74,7 @@ pub trait PrintQueryList {
     fn print(&self, out: &Output) -> Result<()>;
 }
 
-pub struct Table(Vec<Row>);
+pub(crate) struct Table(Vec<Row>);
 
 impl Table {
     fn rows(&self) -> &Vec<Row> {
