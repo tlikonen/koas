@@ -31,7 +31,7 @@ enum Mode {
     Stdin,
 }
 
-#[derive(Default, Clone)]
+#[derive(Default)]
 struct Modes {
     mode: Option<Mode>,
     output: Option<Output>,
