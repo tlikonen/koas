@@ -157,7 +157,7 @@ impl Row {
     pub fn widths(&self) -> Option<Vec<usize>> {
         let mut vec = Vec::with_capacity(10);
         match self {
-            Row::Head(v) | Row::Data(v) | Row::Foot(v) => {
+            Self::Head(v) | Self::Data(v) | Self::Foot(v) => {
                 for cell in v {
                     vec.push(cell.width());
                 }
@@ -179,9 +179,9 @@ pub enum Cell {
 impl Cell {
     pub fn width(&self) -> usize {
         match self {
-            Cell::Empty => 0,
-            Cell::Left(s) | Cell::Right(s) => s.chars().count(),
-            Cell::Multi(v) => {
+            Self::Empty => 0,
+            Self::Left(s) | Self::Right(s) => s.chars().count(),
+            Self::Multi(v) => {
                 let mut width = 0;
                 for s in v {
                     let count = s.chars().count();
@@ -191,7 +191,7 @@ impl Cell {
                 }
                 width
             }
-            Cell::RepeatBox(n) => *n,
+            Self::RepeatBox(n) => *n,
         }
     }
 }

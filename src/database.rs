@@ -109,7 +109,7 @@ impl Student {
 
         let mut list = Vec::with_capacity(25);
         while let Some(row) = rows.try_next().await? {
-            list.push(Student {
+            list.push(Self {
                 oid: row.try_get("oid")?,
                 lastname: row.try_get("sukunimi")?,
                 firstname: row.try_get("etunimi")?,
@@ -257,7 +257,7 @@ impl Group {
 
         let mut list = Vec::with_capacity(10);
         while let Some(row) = rows.try_next().await? {
-            list.push(Group {
+            list.push(Self {
                 rid: row.try_get("rid")?,
                 name: row.try_get("nimi")?,
                 description: row.try_get("lisatiedot")?,
@@ -506,7 +506,7 @@ impl AssignmentsForGroup {
             None => return Ok(Default::default()),
         };
 
-        let mut list: Vec<AssignmentsForGroup> = Vec::with_capacity(10);
+        let mut list: Vec<Self> = Vec::with_capacity(10);
         let mut assignments: Vec<Assignment> = Vec::with_capacity(15);
 
         loop {
@@ -525,7 +525,7 @@ impl AssignmentsForGroup {
                     let next_rid: i32 = next_row.try_get("rid")?;
                     if next_rid != rid {
                         let l = assignments.len();
-                        list.push(AssignmentsForGroup {
+                        list.push(Self {
                             group: row.try_get("ryhma")?,
                             assignments,
                         });
@@ -535,7 +535,7 @@ impl AssignmentsForGroup {
                 }
 
                 None => {
-                    list.push(AssignmentsForGroup {
+                    list.push(Self {
                         group: row.try_get("ryhma")?,
                         assignments,
                     });
@@ -697,7 +697,7 @@ impl GradesForAssignment {
                     let next_sid: i32 = next_row.try_get("sid")?;
                     if next_sid != sid {
                         let l = grades.len();
-                        list.push(GradesForAssignment {
+                        list.push(Self {
                             assignment: row.try_get("suoritus")?,
                             group: row.try_get("ryhma")?,
                             grades,
@@ -708,7 +708,7 @@ impl GradesForAssignment {
                 }
 
                 None => {
-                    list.push(GradesForAssignment {
+                    list.push(Self {
                         assignment: row.try_get("suoritus")?,
                         group: row.try_get("ryhma")?,
                         grades,
@@ -786,7 +786,7 @@ impl GradesForStudent {
                     let next_rid: i32 = next_row.try_get("rid")?;
                     if next_oid != oid || next_rid != rid {
                         let l = grades.len();
-                        list.push(GradesForStudent {
+                        list.push(Self {
                             lastname: row.try_get("sukunimi")?,
                             firstname: row.try_get("etunimi")?,
                             group: row.try_get("ryhma")?,
@@ -798,7 +798,7 @@ impl GradesForStudent {
                 }
 
                 None => {
-                    list.push(GradesForStudent {
+                    list.push(Self {
                         lastname: row.try_get("sukunimi")?,
                         firstname: row.try_get("etunimi")?,
                         group: row.try_get("ryhma")?,
@@ -843,7 +843,7 @@ impl GradesForGroup {
             }
         }
 
-        let mut list: Vec<GradesForGroup> = Vec::with_capacity(10);
+        let mut list: Vec<Self> = Vec::with_capacity(10);
 
         for group in groups {
             if let Ok(q) = Self::query_single(&mut *db, &group).await?.has_data() {
