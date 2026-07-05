@@ -205,11 +205,11 @@ pub(crate) enum Field<T> {
 
 impl<T> Field<T> {
     pub(crate) fn is_none(&self) -> bool {
-        matches!(self, Field::Ignore)
+        matches!(self, Self::Ignore)
     }
 
     pub(crate) fn has_value(&self) -> bool {
-        matches!(self, Field::Set(_))
+        matches!(self, Self::Set(_))
     }
 }
 
