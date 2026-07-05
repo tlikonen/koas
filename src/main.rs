@@ -1,6 +1,6 @@
 use {
     just_getopt::{Args, OptFlags, OptSpecs, OptValue},
-    koas::*,
+    koas::{database::*, print::*, *},
     std::{
         io::{self, Write as _},
         process::ExitCode,
@@ -177,7 +177,7 @@ fn config(args: Args) -> Result<(Config, Modes)> {
 }
 
 async fn command_stage(config: Config, mut modes: Modes) -> Result<()> {
-    let mut db = connect(&config).await?;
+    let mut db = database::connect(&config).await?;
     let mut editable: Editable = Default::default();
     let mut stdout = io::stdout();
     let mut stderr = io::stderr();
