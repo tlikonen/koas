@@ -451,7 +451,7 @@ impl MakeTable for GradesForStudent {
     }
 }
 
-impl PrintQuery for GradesForStudents {
+impl PrintQuery for QueryList<GradesForStudent> {
     fn print(&self, out: &Output) -> Result<()> {
         let mut stream = output_buffer();
         for t in self.list() {
@@ -557,7 +557,7 @@ impl MakeTable for GradesForGroup {
     }
 }
 
-impl PrintQuery for GradesForGroups {
+impl PrintQuery for QueryList<GradesForGroup> {
     fn print(&self, out: &Output) -> Result<()> {
         let mut stream = output_buffer();
 

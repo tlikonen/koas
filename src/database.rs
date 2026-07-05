@@ -4,8 +4,8 @@ use {crate::prelude::*, futures::TryStreamExt};
 
 pub use crate::objects::{
     Assignment, AssignmentsForGroup, CopyToEditable, Editable, Grade, GradesForAssignment,
-    GradesForGroup, GradesForGroups, GradesForStudent, GradesForStudents, Group, HasData,
-    QueryList, SimpleGrade, SimpleStudent, Stats, Student,
+    GradesForGroup, GradesForStudent, Group, HasData, QueryList, SimpleGrade, SimpleStudent, Stats,
+    Student,
 };
 
 pub async fn connect(config: &Config) -> Result<DBase> {
@@ -740,14 +740,14 @@ impl CopyToEditable for GradesForAssignment {
     }
 }
 
-impl GradesForStudents {
+impl GradesForStudent {
     pub(crate) async fn query(
         db: &mut DBase,
         lastname: &str,
         firstname: &str,
         group: &str,
         student_desc: &str,
-    ) -> Result<Self> {
+    ) -> Result<QueryList<Self>> {
         let mut rows = sqlx::query(
             "SELECT oid, sukunimi, etunimi, rid, ryhma, \
              sid, suoritus, painokerroin, arvosana, alt \
@@ -815,11 +815,11 @@ impl GradesForStudents {
             };
         }
 
-        Ok(Self(list))
+        Ok(QueryList::from(list))
     }
 }
 
-impl HasData for GradesForStudents {
+impl HasData for QueryList<GradesForStudent> {
     fn is_empty(&self) -> bool {
         self.list().is_empty()
     }
@@ -833,8 +833,8 @@ impl CopyToEditable for GradesForStudent {
     }
 }
 
-impl GradesForGroups {
-    pub(crate) async fn query(db: &mut DBase, group: &str) -> Result<Self> {
+impl GradesForGroup {
+    pub(crate) async fn query(db: &mut DBase, group: &str) -> Result<QueryList<Self>> {
         let mut groups: Vec<String> = Vec::with_capacity(10);
 
         {
@@ -854,23 +854,15 @@ impl GradesForGroups {
         let mut list: Vec<GradesForGroup> = Vec::with_capacity(10);
 
         for group in groups {
-            if let Ok(q) = GradesForGroup::query(&mut *db, &group).await?.has_data() {
+            if let Ok(q) = Self::query_single(&mut *db, &group).await?.has_data() {
                 list.push(q);
             }
         }
 
-        Ok(Self(list))
+        Ok(QueryList::from(list))
     }
-}
 
-impl HasData for GradesForGroups {
-    fn is_empty(&self) -> bool {
-        self.list().is_empty()
-    }
-}
-
-impl GradesForGroup {
-    async fn query(db: &mut DBase, group: &str) -> Result<Self> {
+    async fn query_single(db: &mut DBase, group: &str) -> Result<Self> {
         let mut assignments = Vec::with_capacity(10);
 
         {
@@ -949,6 +941,12 @@ impl GradesForGroup {
             students,
             assignments,
         })
+    }
+}
+
+impl HasData for QueryList<GradesForGroup> {
+    fn is_empty(&self) -> bool {
+        self.list().is_empty()
     }
 }
 

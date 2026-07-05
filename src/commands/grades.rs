@@ -24,23 +24,23 @@ pub async fn grades_for_assignments(
 pub async fn grades_for_students(
     db: &mut DBase,
     fields: (&str, &str, &str, &str),
-) -> Result<GradesForStudents> {
+) -> Result<QueryList<GradesForStudent>> {
     let lastname = fields.0;
     let firstname = fields.1;
     let group = fields.2;
     let desc = fields.3;
 
-    GradesForStudents::query(db, lastname, firstname, group, desc).await
+    GradesForStudent::query(db, lastname, firstname, group, desc).await
 }
 
 /// Query for grades associated to groups.
 ///
 /// The wildcard character "*" is allowed in the `group` argument.
-pub async fn grades_for_group(db: &mut DBase, group: &str) -> Result<GradesForGroups> {
+pub async fn grades_for_group(db: &mut DBase, group: &str) -> Result<QueryList<GradesForGroup>> {
     if group.is_empty() {
         return Err("Argumentiksi pitää antaa ryhmän nimi.".into());
     }
-    GradesForGroups::query(db, group).await
+    GradesForGroup::query(db, group).await
 }
 
 pub async fn convert_to_grade(db: &mut DBase, editable: &mut Editable, args: &str) -> Result<()> {

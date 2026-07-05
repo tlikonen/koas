@@ -5,8 +5,8 @@ pub(crate) use {
         objects::{
             Assignment, AssignmentsForGroup, CopyToEditable, Delete, DeleteItems, Edit, EditItems,
             Editable, EditableItem, EditableValue, Field, ForDelete, ForEdit, FullQuery, Grade,
-            GradeDistribution, GradesForAssignment, GradesForGroup, GradesForGroups,
-            GradesForStudent, GradesForStudents, Group, QueryList, Stats, Student, StudentRanking,
+            GradeDistribution, GradesForAssignment, GradesForGroup, GradesForStudent, Group,
+            QueryList, Stats, Student, StudentRanking,
         },
         output::Output,
         tools,

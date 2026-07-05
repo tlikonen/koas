@@ -147,36 +147,10 @@ pub struct GradesForStudent {
 }
 
 #[derive(Default)]
-pub struct GradesForStudents(pub(crate) Vec<GradesForStudent>);
-
-impl GradesForStudents {
-    pub fn count(&self) -> usize {
-        self.0.len()
-    }
-
-    pub fn list(&self) -> &Vec<GradesForStudent> {
-        &self.0
-    }
-
-    pub fn get(&self, n: usize) -> Option<&GradesForStudent> {
-        self.0.get(n)
-    }
-}
-
-#[derive(Default)]
 pub struct GradesForGroup {
     pub group: String,
     pub students: Vec<SimpleStudent>,
     pub assignments: Vec<Assignment>,
-}
-
-#[derive(Default)]
-pub struct GradesForGroups(pub(crate) Vec<GradesForGroup>);
-
-impl GradesForGroups {
-    pub fn list(&self) -> &Vec<GradesForGroup> {
-        &self.0
-    }
 }
 
 pub struct SimpleStudent {
