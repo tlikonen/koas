@@ -5,7 +5,8 @@ use {crate::prelude::*, futures::TryStreamExt};
 pub use crate::objects::{
     Assignment, AssignmentsForGroup, AssignmentsForGroups, CopyToEditable, Editable, Grade,
     GradesForAssignment, GradesForAssignments, GradesForGroup, GradesForGroups, GradesForStudent,
-    GradesForStudents, Group, Groups, HasData, SimpleGrade, SimpleStudent, Student, Students,
+    GradesForStudents, Group, Groups, HasData, SimpleGrade, SimpleStudent, Stats, Student,
+    Students,
 };
 
 pub async fn connect(config: &Config) -> Result<DBase> {
