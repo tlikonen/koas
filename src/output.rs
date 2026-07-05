@@ -372,7 +372,7 @@ impl MakeTable for GradesForAssignment {
     }
 }
 
-impl PrintQuery for GradesForAssignments {
+impl PrintQuery for QueryList<GradesForAssignment> {
     fn print(&self, out: &Output) -> Result<()> {
         let mut stream = output_buffer();
         for t in self.list() {

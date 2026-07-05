@@ -4,8 +4,8 @@ use {crate::prelude::*, futures::TryStreamExt};
 
 pub use crate::objects::{
     Assignment, AssignmentsForGroup, CopyToEditable, Editable, Grade, GradesForAssignment,
-    GradesForAssignments, GradesForGroup, GradesForGroups, GradesForStudent, GradesForStudents,
-    Group, HasData, QueryList, SimpleGrade, SimpleStudent, Stats, Student,
+    GradesForGroup, GradesForGroups, GradesForStudent, GradesForStudents, Group, HasData,
+    QueryList, SimpleGrade, SimpleStudent, Stats, Student,
 };
 
 pub async fn connect(config: &Config) -> Result<DBase> {
@@ -654,13 +654,13 @@ impl Grade {
     }
 }
 
-impl GradesForAssignments {
+impl GradesForAssignment {
     pub(crate) async fn query(
         db: &mut DBase,
         group: &str,
         assign: &str,
         assign_short: &str,
-    ) -> Result<Self> {
+    ) -> Result<QueryList<Self>> {
         let mut rows = sqlx::query(
             "SELECT ryhma, rid, sija, sid, suoritus, painokerroin, \
              oid, sukunimi, etunimi, arvosana, alt \
@@ -722,11 +722,11 @@ impl GradesForAssignments {
             };
         }
 
-        Ok(Self(list))
+        Ok(QueryList::from(list))
     }
 }
 
-impl HasData for GradesForAssignments {
+impl HasData for QueryList<GradesForAssignment> {
     fn is_empty(&self) -> bool {
         self.list().is_empty()
     }

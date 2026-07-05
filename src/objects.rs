@@ -131,6 +131,7 @@ pub struct Grade {
     pub grade_description: Option<String>,
 }
 
+#[derive(Default)]
 pub struct GradesForAssignment {
     pub assignment: String,
     pub group: String,
@@ -138,22 +139,6 @@ pub struct GradesForAssignment {
 }
 
 #[derive(Default)]
-pub struct GradesForAssignments(pub(crate) Vec<GradesForAssignment>);
-
-impl GradesForAssignments {
-    pub fn count(&self) -> usize {
-        self.0.len()
-    }
-
-    pub fn list(&self) -> &Vec<GradesForAssignment> {
-        &self.0
-    }
-
-    pub fn get(&self, n: usize) -> Option<&GradesForAssignment> {
-        self.0.get(n)
-    }
-}
-
 pub struct GradesForStudent {
     pub lastname: String,
     pub firstname: String,

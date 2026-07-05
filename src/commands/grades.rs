@@ -8,12 +8,12 @@ use crate::prelude::*;
 pub async fn grades_for_assignments(
     db: &mut DBase,
     fields: (&str, &str, &str),
-) -> Result<GradesForAssignments> {
+) -> Result<QueryList<GradesForAssignment>> {
     let group = fields.0;
     let assign = fields.1;
     let assign_short = fields.2;
 
-    GradesForAssignments::query(db, group, assign, assign_short).await
+    GradesForAssignment::query(db, group, assign, assign_short).await
 }
 
 /// Query for grades associated to students.
