@@ -123,6 +123,13 @@ impl Table {
         self
     }
 
+    pub fn print(&self, output: &Output) -> Result<()> {
+        let mut stream = output_buffer();
+        self.print_tbl(output, &mut stream)?;
+        stream.flush()?;
+        Ok(())
+    }
+
     fn print_tbl(&self, output: &Output, stream: &mut OutBuf) -> Result<()> {
         if self.is_empty() {
             return Ok(());
