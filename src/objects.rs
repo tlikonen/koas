@@ -18,31 +18,15 @@ pub trait CopyToEditable {
     fn copy_to(&self, ed: &mut Editable);
 }
 
+pub struct Editable(EditableItem);
+
 pub(crate) enum EditableItem {
     None,
-    Students(EditableValue<Student>),
-    Groups(EditableValue<Group>),
-    Assignments(EditableValue<Assignment>),
-    Grades(EditableValue<Grade>),
+    Students(QueryList<Student>),
+    Groups(QueryList<Group>),
+    Assignments(QueryList<Assignment>),
+    Grades(QueryList<Grade>),
 }
-
-pub(crate) struct EditableValue<T>(Vec<T>);
-
-impl<T> EditableValue<T> {
-    pub(crate) fn from(value: Vec<T>) -> Self {
-        Self(value)
-    }
-
-    fn value(&self) -> &Vec<T> {
-        &self.0
-    }
-
-    pub(crate) fn count(&self) -> usize {
-        self.0.len()
-    }
-}
-
-pub struct Editable(EditableItem);
 
 impl Editable {
     pub(crate) fn set(&mut self, value: EditableItem) {
@@ -60,7 +44,7 @@ impl Default for Editable {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct QueryList<T>(Vec<T>);
 
 impl<T> QueryList<T> {
@@ -256,9 +240,9 @@ pub(crate) trait ForEdit<T> {
     fn items(&self) -> &Vec<T>;
 }
 
-impl<T> ForEdit<T> for EditableValue<T> {
+impl<T> ForEdit<T> for QueryList<T> {
     fn items(&self) -> &Vec<T> {
-        self.value()
+        self.list()
     }
 }
 
@@ -288,9 +272,9 @@ pub(crate) trait ForDelete<T> {
     fn items(&self) -> &Vec<T>;
 }
 
-impl<T> ForDelete<T> for EditableValue<T> {
+impl<T> ForDelete<T> for QueryList<T> {
     fn items(&self) -> &Vec<T> {
-        self.value()
+        self.list()
     }
 }
 

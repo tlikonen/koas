@@ -240,9 +240,7 @@ impl HasData for QueryList<Student> {
 
 impl CopyToEditable for QueryList<Student> {
     fn copy_to(&self, ed: &mut Editable) {
-        ed.set(EditableItem::Students(EditableValue::from(
-            self.list().clone(),
-        )));
+        ed.set(EditableItem::Students(QueryList::from(self.list().clone())));
     }
 }
 
@@ -338,9 +336,7 @@ impl HasData for QueryList<Group> {
 
 impl CopyToEditable for QueryList<Group> {
     fn copy_to(&self, ed: &mut Editable) {
-        ed.set(EditableItem::Groups(EditableValue::from(
-            self.list().clone(),
-        )));
+        ed.set(EditableItem::Groups(self.clone()));
     }
 }
 
@@ -560,7 +556,7 @@ impl HasData for QueryList<AssignmentsForGroup> {
 
 impl CopyToEditable for AssignmentsForGroup {
     fn copy_to(&self, ed: &mut Editable) {
-        ed.set(EditableItem::Assignments(EditableValue::from(
+        ed.set(EditableItem::Assignments(QueryList::from(
             self.assignments.clone(),
         )));
     }
@@ -734,9 +730,7 @@ impl HasData for QueryList<GradesForAssignment> {
 
 impl CopyToEditable for GradesForAssignment {
     fn copy_to(&self, ed: &mut Editable) {
-        ed.set(EditableItem::Grades(EditableValue::from(
-            self.grades.clone(),
-        )));
+        ed.set(EditableItem::Grades(QueryList::from(self.grades.clone())));
     }
 }
 
@@ -827,9 +821,7 @@ impl HasData for QueryList<GradesForStudent> {
 
 impl CopyToEditable for GradesForStudent {
     fn copy_to(&self, ed: &mut Editable) {
-        ed.set(EditableItem::Grades(EditableValue::from(
-            self.grades.clone(),
-        )));
+        ed.set(EditableItem::Grades(QueryList::from(self.grades.clone())));
     }
 }
 
