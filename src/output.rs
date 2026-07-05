@@ -223,7 +223,7 @@ impl MakeTable for Stats {
     }
 }
 
-impl MakeTable for Students {
+impl MakeTable for QueryList<Student> {
     fn table(&self) -> Table {
         const DESC_WIDTH: usize = 36;
 

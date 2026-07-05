@@ -7,7 +7,7 @@ pub(crate) use {
             DeleteItems, Edit, EditItems, Editable, EditableItem, EditableValue, Field, ForDelete,
             ForEdit, FullQuery, Grade, GradeDistribution, GradesForAssignment,
             GradesForAssignments, GradesForGroup, GradesForGroups, GradesForStudent,
-            GradesForStudents, Group, Groups, Stats, Student, StudentRanking, Students,
+            GradesForStudents, Group, Groups, QueryList, Stats, Student, StudentRanking,
         },
         output::Output,
         tools,

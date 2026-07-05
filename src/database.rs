@@ -5,8 +5,8 @@ use {crate::prelude::*, futures::TryStreamExt};
 pub use crate::objects::{
     Assignment, AssignmentsForGroup, AssignmentsForGroups, CopyToEditable, Editable, Grade,
     GradesForAssignment, GradesForAssignments, GradesForGroup, GradesForGroups, GradesForStudent,
-    GradesForStudents, Group, Groups, HasData, SimpleGrade, SimpleStudent, Stats, Student,
-    Students,
+    GradesForStudents, Group, Groups, HasData, QueryList, SimpleGrade, SimpleStudent, Stats,
+    Student,
 };
 
 pub async fn connect(config: &Config) -> Result<DBase> {
@@ -195,16 +195,14 @@ impl Student {
             .await?;
         Ok(())
     }
-}
 
-impl Students {
     pub(crate) async fn query(
         db: &mut DBase,
         lastname: &str,
         firstname: &str,
         group: &str,
         desc: &str,
-    ) -> Result<Self> {
+    ) -> Result<QueryList<Self>> {
         let mut rows = sqlx::query(
             "SELECT DISTINCT view_oppilaat.oid, sukunimi, etunimi, ryhmat, olt FROM view_oppilaat \
              JOIN (SELECT oid, string_agg(ryhma, ' ' ORDER BY ryhma) ryhmat \
@@ -231,17 +229,17 @@ impl Students {
             });
         }
 
-        Ok(Self(list))
+        Ok(QueryList::from(list))
     }
 }
 
-impl HasData for Students {
+impl HasData for QueryList<Student> {
     fn is_empty(&self) -> bool {
         self.list().is_empty()
     }
 }
 
-impl CopyToEditable for Students {
+impl CopyToEditable for QueryList<Student> {
     fn copy_to(&self, ed: &mut Editable) {
         ed.set(EditableItem::Students(EditableValue::from(
             self.list().clone(),

@@ -60,6 +60,26 @@ impl Default for Editable {
     }
 }
 
+pub struct QueryList<T>(Vec<T>);
+
+impl<T> QueryList<T> {
+    pub fn from(v: Vec<T>) -> Self {
+        Self(v)
+    }
+
+    pub fn list(&self) -> &Vec<T> {
+        &self.0
+    }
+
+    pub fn count(&self) -> usize {
+        self.0.len()
+    }
+
+    pub fn get(&self, n: usize) -> Option<&T> {
+        self.0.get(n)
+    }
+}
+
 pub struct Stats {
     pub students: i64,
     pub groups: i64,
@@ -74,14 +94,6 @@ pub struct Student {
     pub firstname: String,
     pub groups: String,
     pub description: String,
-}
-
-pub struct Students(pub(crate) Vec<Student>);
-
-impl Students {
-    pub fn list(&self) -> &Vec<Student> {
-        &self.0
-    }
 }
 
 #[derive(Clone)]

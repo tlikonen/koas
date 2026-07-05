@@ -5,13 +5,16 @@ use crate::prelude::*;
 /// The `fields` tuple is: 0) lastname, 1) firstname, 2) groups, 3)
 /// description. Wildcard character "*" is allowed and is implicit in
 /// the start and end the strings.
-pub async fn students(db: &mut DBase, fields: (&str, &str, &str, &str)) -> Result<Students> {
+pub async fn students(
+    db: &mut DBase,
+    fields: (&str, &str, &str, &str),
+) -> Result<QueryList<Student>> {
     let lastname = fields.0;
     let firstname = fields.1;
     let group = fields.2;
     let desc = fields.3;
 
-    Students::query(db, lastname, firstname, group, desc).await
+    Student::query(db, lastname, firstname, group, desc).await
 }
 
 pub async fn insert_student(db: &mut DBase, args: &str) -> Result<()> {
