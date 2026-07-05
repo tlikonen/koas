@@ -118,7 +118,7 @@ impl Student {
             });
         }
 
-        Ok(QueryList::from(list))
+        Ok(QueryList::new(list))
     }
 
     pub(crate) async fn in_group(&self, db: &mut DBase, rid: i32) -> Result<bool> {
@@ -240,7 +240,7 @@ impl HasData for QueryList<Student> {
 
 impl CopyToEditable for QueryList<Student> {
     fn copy_to(&self, ed: &mut Editable) {
-        ed.set(EditableItem::Students(QueryList::from(self.list().clone())));
+        ed.set(EditableItem::Students(QueryList::new(self.list().clone())));
     }
 }
 
@@ -264,7 +264,7 @@ impl Group {
             });
         }
 
-        Ok(QueryList::from(list))
+        Ok(QueryList::new(list))
     }
 
     pub(crate) async fn get_or_insert(db: &mut DBase, name: &str) -> Result<i32> {
@@ -544,7 +544,7 @@ impl AssignmentsForGroup {
             };
         }
 
-        Ok(QueryList::from(list))
+        Ok(QueryList::new(list))
     }
 }
 
@@ -556,7 +556,7 @@ impl HasData for QueryList<AssignmentsForGroup> {
 
 impl CopyToEditable for AssignmentsForGroup {
     fn copy_to(&self, ed: &mut Editable) {
-        ed.set(EditableItem::Assignments(QueryList::from(
+        ed.set(EditableItem::Assignments(QueryList::new(
             self.assignments.clone(),
         )));
     }
@@ -718,7 +718,7 @@ impl GradesForAssignment {
             };
         }
 
-        Ok(QueryList::from(list))
+        Ok(QueryList::new(list))
     }
 }
 
@@ -730,7 +730,7 @@ impl HasData for QueryList<GradesForAssignment> {
 
 impl CopyToEditable for GradesForAssignment {
     fn copy_to(&self, ed: &mut Editable) {
-        ed.set(EditableItem::Grades(QueryList::from(self.grades.clone())));
+        ed.set(EditableItem::Grades(QueryList::new(self.grades.clone())));
     }
 }
 
@@ -809,7 +809,7 @@ impl GradesForStudent {
             };
         }
 
-        Ok(QueryList::from(list))
+        Ok(QueryList::new(list))
     }
 }
 
@@ -821,7 +821,7 @@ impl HasData for QueryList<GradesForStudent> {
 
 impl CopyToEditable for GradesForStudent {
     fn copy_to(&self, ed: &mut Editable) {
-        ed.set(EditableItem::Grades(QueryList::from(self.grades.clone())));
+        ed.set(EditableItem::Grades(QueryList::new(self.grades.clone())));
     }
 }
 
@@ -851,7 +851,7 @@ impl GradesForGroup {
             }
         }
 
-        Ok(QueryList::from(list))
+        Ok(QueryList::new(list))
     }
 
     async fn query_single(db: &mut DBase, group: &str) -> Result<Self> {

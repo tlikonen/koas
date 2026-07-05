@@ -48,7 +48,7 @@ impl Default for Editable {
 pub struct QueryList<T>(Vec<T>);
 
 impl<T> QueryList<T> {
-    pub(crate) fn from(v: Vec<T>) -> Self {
+    pub(crate) fn new(v: Vec<T>) -> Self {
         Self(v)
     }
 
