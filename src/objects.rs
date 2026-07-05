@@ -174,6 +174,38 @@ pub(crate) struct FullQuery<'a> {
     pub(crate) all: bool,
 }
 
+impl<T> QueryList<T> {
+    pub(crate) fn for_edit<'a, I, S>(&'a self, indexes: Vec<usize>, fields: I) -> EditItems<'a, T>
+    where
+        I: IntoIterator<Item = S>,
+        S: ToString,
+    {
+        let mut normalized = Vec::with_capacity(4);
+        for field in fields.into_iter().map(|x| x.to_string()) {
+            normalized.push(if field.is_empty() {
+                Field::Ignore
+            } else if !tools::has_content(&field) {
+                Field::Clear
+            } else {
+                Field::Set(tools::normalize_str(&field))
+            });
+        }
+
+        EditItems {
+            items: self.list(),
+            indexes,
+            fields: normalized,
+        }
+    }
+
+    pub(crate) fn for_delete<'a>(&'a self, indexes: Vec<usize>) -> DeleteItems<'a, T> {
+        DeleteItems {
+            items: self.list(),
+            indexes,
+        }
+    }
+}
+
 pub(crate) struct EditItems<'a, T> {
     items: &'a Vec<T>,
     indexes: Vec<usize>,
@@ -213,39 +245,6 @@ impl<T> Field<T> {
     }
 }
 
-pub(crate) trait ForEdit<T> {
-    fn for_edit<'a, I, S>(&'a self, indexes: Vec<usize>, fields: I) -> EditItems<'a, T>
-    where
-        I: IntoIterator<Item = S>,
-        S: ToString,
-    {
-        let mut normalized = Vec::with_capacity(4);
-        for field in fields.into_iter().map(|x| x.to_string()) {
-            normalized.push(if field.is_empty() {
-                Field::Ignore
-            } else if !tools::has_content(&field) {
-                Field::Clear
-            } else {
-                Field::Set(tools::normalize_str(&field))
-            });
-        }
-
-        EditItems {
-            items: self.items(),
-            indexes,
-            fields: normalized,
-        }
-    }
-
-    fn items(&self) -> &Vec<T>;
-}
-
-impl<T> ForEdit<T> for QueryList<T> {
-    fn items(&self) -> &Vec<T> {
-        self.list()
-    }
-}
-
 pub(crate) trait Edit {
     async fn edit(&self, db: &mut DBase) -> Result<()>;
 }
@@ -258,23 +257,6 @@ pub(crate) struct DeleteItems<'a, T> {
 impl<'a, T> DeleteItems<'a, T> {
     pub(crate) fn iter(&self) -> impl Iterator<Item = &T> {
         self.indexes.iter().filter_map(|i| self.items.get(i - 1))
-    }
-}
-
-pub(crate) trait ForDelete<T> {
-    fn for_delete<'a>(&'a self, indexes: Vec<usize>) -> DeleteItems<'a, T> {
-        DeleteItems {
-            items: self.items(),
-            indexes,
-        }
-    }
-
-    fn items(&self) -> &Vec<T>;
-}
-
-impl<T> ForDelete<T> for QueryList<T> {
-    fn items(&self) -> &Vec<T> {
-        self.list()
     }
 }
 
