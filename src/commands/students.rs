@@ -156,7 +156,7 @@ impl Edit for EditItems<'_, Student> {
             }
         }
 
-        Groups::delete_empty(db).await?;
+        Group::delete_empty(db).await?;
         Ok(())
     }
 }
@@ -177,7 +177,7 @@ impl Delete for DeleteItems<'_, Student> {
 
             student.delete(db).await?;
         }
-        Groups::delete_empty(db).await?;
+        Group::delete_empty(db).await?;
         Ok(())
     }
 }

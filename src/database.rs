@@ -5,8 +5,7 @@ use {crate::prelude::*, futures::TryStreamExt};
 pub use crate::objects::{
     Assignment, AssignmentsForGroup, AssignmentsForGroups, CopyToEditable, Editable, Grade,
     GradesForAssignment, GradesForAssignments, GradesForGroup, GradesForGroups, GradesForStudent,
-    GradesForStudents, Group, Groups, HasData, QueryList, SimpleGrade, SimpleStudent, Stats,
-    Student,
+    GradesForStudents, Group, HasData, QueryList, SimpleGrade, SimpleStudent, Stats, Student,
 };
 
 pub async fn connect(config: &Config) -> Result<DBase> {
@@ -294,10 +293,8 @@ impl Group {
             .await?;
         Ok(())
     }
-}
 
-impl Groups {
-    pub(crate) async fn query(db: &mut DBase, group: &str, desc: &str) -> Result<Self> {
+    pub(crate) async fn query(db: &mut DBase, group: &str, desc: &str) -> Result<QueryList<Self>> {
         let mut rows = sqlx::query(
             "SELECT rid, nimi, lisatiedot FROM ryhmat \
              WHERE nimi LIKE $1 ESCAPE '\\' AND lisatiedot LIKE $2 ESCAPE '\\' \
@@ -316,7 +313,7 @@ impl Groups {
             });
         }
 
-        Ok(Self(list))
+        Ok(QueryList::from(list))
     }
 
     pub(crate) async fn delete_empty(db: &mut DBase) -> Result<()> {
@@ -333,13 +330,13 @@ impl Groups {
     }
 }
 
-impl HasData for Groups {
+impl HasData for QueryList<Group> {
     fn is_empty(&self) -> bool {
         self.list().is_empty()
     }
 }
 
-impl CopyToEditable for Groups {
+impl CopyToEditable for QueryList<Group> {
     fn copy_to(&self, ed: &mut Editable) {
         ed.set(EditableItem::Groups(EditableValue::from(
             self.list().clone(),

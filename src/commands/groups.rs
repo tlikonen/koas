@@ -5,11 +5,11 @@ use crate::prelude::*;
 /// The `fields` tuple is: 0) group name, 1) description. Wildcard
 /// character "*" is allowed and is implicit in the start and end the
 /// strings.
-pub async fn groups(db: &mut DBase, fields: (&str, &str)) -> Result<Groups> {
+pub async fn groups(db: &mut DBase, fields: (&str, &str)) -> Result<QueryList<Group>> {
     let name = fields.0;
     let desc = fields.1;
 
-    Groups::query(db, name, desc).await
+    Group::query(db, name, desc).await
 }
 
 impl Edit for EditItems<'_, Group> {

@@ -252,7 +252,7 @@ impl MakeTable for QueryList<Student> {
     }
 }
 
-impl MakeTable for Groups {
+impl MakeTable for QueryList<Group> {
     fn table(&self) -> Table {
         const DESCRIPTION_WIDTH: usize = 70;
 

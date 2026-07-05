@@ -151,7 +151,7 @@ impl Delete for DeleteItems<'_, Assignment> {
             }
         }
 
-        Groups::delete_empty(db).await?;
+        Group::delete_empty(db).await?;
 
         for rid in rid_list {
             Assignment::reposition(db, rid).await?;

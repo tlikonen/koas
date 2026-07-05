@@ -63,7 +63,7 @@ impl Default for Editable {
 pub struct QueryList<T>(Vec<T>);
 
 impl<T> QueryList<T> {
-    pub fn from(v: Vec<T>) -> Self {
+    pub(crate) fn from(v: Vec<T>) -> Self {
         Self(v)
     }
 
@@ -101,14 +101,6 @@ pub struct Group {
     pub(crate) rid: i32,
     pub name: String,
     pub description: String,
-}
-
-pub struct Groups(pub(crate) Vec<Group>);
-
-impl Groups {
-    pub fn list(&self) -> &Vec<Group> {
-        &self.0
-    }
 }
 
 #[derive(Clone, Default)]
