@@ -40,7 +40,7 @@ impl Output {
     }
 }
 
-pub(crate) trait MakeTable {
+pub trait MakeTable {
     fn table(&self) -> Table;
 }
 
@@ -74,22 +74,22 @@ pub trait PrintQueryList {
     fn print(&self, out: &Output) -> Result<()>;
 }
 
-pub(crate) struct Table(Vec<Row>);
+pub struct Table(Vec<Row>);
 
 impl Table {
-    fn rows(&self) -> &Vec<Row> {
+    pub fn rows(&self) -> &Vec<Row> {
         &self.0
     }
 
-    fn rows_mut(&mut self) -> &mut Vec<Row> {
+    pub fn rows_mut(&mut self) -> &mut Vec<Row> {
         &mut self.0
     }
 
-    fn is_empty(&self) -> bool {
+    pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
-    fn widths(&self) -> Vec<usize> {
+    pub fn widths(&self) -> Vec<usize> {
         let mut vec = Vec::with_capacity(10);
         for row in self.rows() {
             match row.widths() {
@@ -140,7 +140,7 @@ impl Table {
     }
 }
 
-enum Row {
+pub enum Row {
     Title(String),
     Toprule,
     Midrule,
@@ -151,7 +151,7 @@ enum Row {
 }
 
 impl Row {
-    fn widths(&self) -> Option<Vec<usize>> {
+    pub fn widths(&self) -> Option<Vec<usize>> {
         let mut vec = Vec::with_capacity(10);
         match self {
             Row::Head(v) | Row::Data(v) | Row::Foot(v) => {
@@ -165,7 +165,7 @@ impl Row {
     }
 }
 
-enum Cell {
+pub enum Cell {
     Empty,
     Left(String),
     Right(String),
@@ -174,7 +174,7 @@ enum Cell {
 }
 
 impl Cell {
-    fn width(&self) -> usize {
+    pub fn width(&self) -> usize {
         match self {
             Cell::Empty => 0,
             Cell::Left(s) | Cell::Right(s) => s.chars().count(),

@@ -18,7 +18,7 @@ pub use {
             GradesForStudent, GradesForStudents, Group, Groups, HasData, SimpleGrade,
             SimpleStudent, Student, Students,
         },
-        print::{Output, PrintQuery, PrintQueryList, PrintQueryNum},
+        print::{Cell, MakeTable, Output, PrintQuery, PrintQueryList, PrintQueryNum, Row, Table},
     },
     sqlx::{Connection, PgConnection as DBase},
 };
