@@ -1,6 +1,6 @@
 use {
     just_getopt::{Args, OptFlags, OptSpecs, OptValue},
-    koas::{database::*, print::*, *},
+    koas::{database::*, output::*, *},
     std::{
         io::{self, Write as _},
         process::ExitCode,

@@ -9,7 +9,7 @@ pub(crate) use {
             GradesForAssignments, GradesForGroup, GradesForGroups, GradesForStudent,
             GradesForStudents, Group, Groups, Stats, Student, StudentRanking, Students,
         },
-        print::Output,
+        output::Output,
         tools,
     },
     sqlx::{Connection as _, PgConnection as DBase, Row as _},
