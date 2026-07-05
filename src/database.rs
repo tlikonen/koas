@@ -85,6 +85,42 @@ impl Stats {
 }
 
 impl Student {
+    pub(crate) async fn query(
+        db: &mut DBase,
+        lastname: &str,
+        firstname: &str,
+        group: &str,
+        desc: &str,
+    ) -> Result<QueryList<Self>> {
+        let mut rows = sqlx::query(
+            "SELECT DISTINCT view_oppilaat.oid, sukunimi, etunimi, ryhmat, olt FROM view_oppilaat \
+             JOIN (SELECT oid, string_agg(ryhma, ' ' ORDER BY ryhma) ryhmat \
+             FROM view_oppilaat GROUP BY oid) ryhmat \
+             ON view_oppilaat.oid = ryhmat.oid \
+             WHERE sukunimi LIKE $1 ESCAPE '\\' AND etunimi LIKE $2 ESCAPE '\\' \
+             AND ryhma LIKE $3 ESCAPE '\\' AND olt LIKE $4 ESCAPE '\\'
+             ORDER BY sukunimi, etunimi, oid",
+        )
+        .bind(like_esc_wild_around(lastname))
+        .bind(like_esc_wild_around(firstname))
+        .bind(like_esc_wild_around(group))
+        .bind(like_esc_wild_around(desc))
+        .fetch(db);
+
+        let mut list = Vec::with_capacity(25);
+        while let Some(row) = rows.try_next().await? {
+            list.push(Student {
+                oid: row.try_get("oid")?,
+                lastname: row.try_get("sukunimi")?,
+                firstname: row.try_get("etunimi")?,
+                groups: row.try_get("ryhmat")?,
+                description: row.try_get("olt")?,
+            });
+        }
+
+        Ok(QueryList::from(list))
+    }
+
     pub(crate) async fn in_group(&self, db: &mut DBase, rid: i32) -> Result<bool> {
         let result = sqlx::query("SELECT 1 FROM oppilaat_ryhmat WHERE oid = $1 AND rid = $2")
             .bind(self.oid)
@@ -194,42 +230,6 @@ impl Student {
             .await?;
         Ok(())
     }
-
-    pub(crate) async fn query(
-        db: &mut DBase,
-        lastname: &str,
-        firstname: &str,
-        group: &str,
-        desc: &str,
-    ) -> Result<QueryList<Self>> {
-        let mut rows = sqlx::query(
-            "SELECT DISTINCT view_oppilaat.oid, sukunimi, etunimi, ryhmat, olt FROM view_oppilaat \
-             JOIN (SELECT oid, string_agg(ryhma, ' ' ORDER BY ryhma) ryhmat \
-             FROM view_oppilaat GROUP BY oid) ryhmat \
-             ON view_oppilaat.oid = ryhmat.oid \
-             WHERE sukunimi LIKE $1 ESCAPE '\\' AND etunimi LIKE $2 ESCAPE '\\' \
-             AND ryhma LIKE $3 ESCAPE '\\' AND olt LIKE $4 ESCAPE '\\'
-             ORDER BY sukunimi, etunimi, oid",
-        )
-        .bind(like_esc_wild_around(lastname))
-        .bind(like_esc_wild_around(firstname))
-        .bind(like_esc_wild_around(group))
-        .bind(like_esc_wild_around(desc))
-        .fetch(db);
-
-        let mut list = Vec::with_capacity(25);
-        while let Some(row) = rows.try_next().await? {
-            list.push(Student {
-                oid: row.try_get("oid")?,
-                lastname: row.try_get("sukunimi")?,
-                firstname: row.try_get("etunimi")?,
-                groups: row.try_get("ryhmat")?,
-                description: row.try_get("olt")?,
-            });
-        }
-
-        Ok(QueryList::from(list))
-    }
 }
 
 impl HasData for QueryList<Student> {
@@ -247,6 +247,28 @@ impl CopyToEditable for QueryList<Student> {
 }
 
 impl Group {
+    pub(crate) async fn query(db: &mut DBase, group: &str, desc: &str) -> Result<QueryList<Self>> {
+        let mut rows = sqlx::query(
+            "SELECT rid, nimi, lisatiedot FROM ryhmat \
+             WHERE nimi LIKE $1 ESCAPE '\\' AND lisatiedot LIKE $2 ESCAPE '\\' \
+             ORDER BY nimi, lisatiedot, rid",
+        )
+        .bind(like_esc_wild_around(group))
+        .bind(like_esc_wild_around(desc))
+        .fetch(db);
+
+        let mut list = Vec::with_capacity(10);
+        while let Some(row) = rows.try_next().await? {
+            list.push(Group {
+                rid: row.try_get("rid")?,
+                name: row.try_get("nimi")?,
+                description: row.try_get("lisatiedot")?,
+            });
+        }
+
+        Ok(QueryList::from(list))
+    }
+
     pub(crate) async fn get_or_insert(db: &mut DBase, name: &str) -> Result<i32> {
         let rid = match Self::get_id(db, name).await? {
             Some(id) => id,
@@ -292,28 +314,6 @@ impl Group {
             .execute(db)
             .await?;
         Ok(())
-    }
-
-    pub(crate) async fn query(db: &mut DBase, group: &str, desc: &str) -> Result<QueryList<Self>> {
-        let mut rows = sqlx::query(
-            "SELECT rid, nimi, lisatiedot FROM ryhmat \
-             WHERE nimi LIKE $1 ESCAPE '\\' AND lisatiedot LIKE $2 ESCAPE '\\' \
-             ORDER BY nimi, lisatiedot, rid",
-        )
-        .bind(like_esc_wild_around(group))
-        .bind(like_esc_wild_around(desc))
-        .fetch(db);
-
-        let mut list = Vec::with_capacity(10);
-        while let Some(row) = rows.try_next().await? {
-            list.push(Group {
-                rid: row.try_get("rid")?,
-                name: row.try_get("nimi")?,
-                description: row.try_get("lisatiedot")?,
-            });
-        }
-
-        Ok(QueryList::from(list))
     }
 
     pub(crate) async fn delete_empty(db: &mut DBase) -> Result<()> {
