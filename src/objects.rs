@@ -60,6 +60,7 @@ impl Default for Editable {
     }
 }
 
+#[derive(Default)]
 pub struct QueryList<T>(Vec<T>);
 
 impl<T> QueryList<T> {
@@ -112,26 +113,10 @@ pub struct Assignment {
     pub weight: Option<i32>,
 }
 
+#[derive(Default)]
 pub struct AssignmentsForGroup {
     pub group: String,
     pub assignments: Vec<Assignment>,
-}
-
-#[derive(Default)]
-pub struct AssignmentsForGroups(pub(crate) Vec<AssignmentsForGroup>);
-
-impl AssignmentsForGroups {
-    pub fn count(&self) -> usize {
-        self.0.len()
-    }
-
-    pub fn list(&self) -> &Vec<AssignmentsForGroup> {
-        &self.0
-    }
-
-    pub fn get(&self, n: usize) -> Option<&AssignmentsForGroup> {
-        self.0.get(n)
-    }
 }
 
 #[derive(Clone)]

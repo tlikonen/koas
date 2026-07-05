@@ -3,11 +3,11 @@ use crate::prelude::*;
 /// Query for assignments.
 ///
 /// Wildcard character "*" is allowed in the `group` argument.
-pub async fn assignments(db: &mut DBase, group: &str) -> Result<AssignmentsForGroups> {
+pub async fn assignments(db: &mut DBase, group: &str) -> Result<QueryList<AssignmentsForGroup>> {
     if group.is_empty() {
         return Err("Argumentiksi pitää antaa ryhmän nimi.".into());
     }
-    AssignmentsForGroups::query(db, group).await
+    AssignmentsForGroup::query(db, group).await
 }
 
 pub async fn insert_assignment(db: &mut DBase, args: &str) -> Result<()> {

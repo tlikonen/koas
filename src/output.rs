@@ -306,7 +306,7 @@ impl MakeTable for AssignmentsForGroup {
     }
 }
 
-impl PrintQuery for AssignmentsForGroups {
+impl PrintQuery for QueryList<AssignmentsForGroup> {
     fn print(&self, out: &Output) -> Result<()> {
         let mut stream = output_buffer();
         for t in self.list() {
