@@ -70,10 +70,6 @@ impl<T: MakeTable + CopyToEditable> PrintQueryNum for T {
     }
 }
 
-pub trait PrintQueryList {
-    fn print(&self, out: &Output) -> Result<()>;
-}
-
 pub struct Table(Vec<Row>);
 
 impl Table {
@@ -310,7 +306,7 @@ impl MakeTable for AssignmentsForGroup {
     }
 }
 
-impl PrintQueryList for AssignmentsForGroups {
+impl PrintQuery for AssignmentsForGroups {
     fn print(&self, out: &Output) -> Result<()> {
         let mut stream = output_buffer();
         for t in self.list() {
@@ -376,7 +372,7 @@ impl MakeTable for GradesForAssignment {
     }
 }
 
-impl PrintQueryList for GradesForAssignments {
+impl PrintQuery for GradesForAssignments {
     fn print(&self, out: &Output) -> Result<()> {
         let mut stream = output_buffer();
         for t in self.list() {
@@ -455,7 +451,7 @@ impl MakeTable for GradesForStudent {
     }
 }
 
-impl PrintQueryList for GradesForStudents {
+impl PrintQuery for GradesForStudents {
     fn print(&self, out: &Output) -> Result<()> {
         let mut stream = output_buffer();
         for t in self.list() {
@@ -561,7 +557,7 @@ impl MakeTable for GradesForGroup {
     }
 }
 
-impl PrintQueryList for GradesForGroups {
+impl PrintQuery for GradesForGroups {
     fn print(&self, out: &Output) -> Result<()> {
         let mut stream = output_buffer();
 
