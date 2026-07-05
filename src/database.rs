@@ -3,9 +3,9 @@ mod init;
 use {crate::prelude::*, futures::TryStreamExt};
 
 pub use crate::objects::{
-    Assignment, AssignmentsForGroup, CopyToEditable, Editable, Grade, GradesForAssignment,
-    GradesForGroup, GradesForStudent, Group, HasData, QueryList, SimpleGrade, SimpleStudent, Stats,
-    Student,
+    Assignment, AssignmentsForGroup, CopyToEditable, Editable, Grade, GradeDistribution,
+    GradesForAssignment, GradesForGroup, GradesForStudent, Group, HasData, QueryList, SimpleGrade,
+    SimpleStudent, Stats, Student, StudentRanking,
 };
 
 pub async fn connect(config: &Config) -> Result<DBase> {
