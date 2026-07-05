@@ -12,7 +12,7 @@ pub use {
         config::Config,
         error::{Error, Result},
     },
-    sqlx::{Connection, PgConnection as DBase},
+    sqlx::{Connection, PgConnection},
 };
 
 pub const PROGRAM_NAME: &str = env!("CARGO_PKG_NAME");

@@ -263,7 +263,7 @@ async fn command_stage(config: Config, mut modes: Modes) -> Result<()> {
 
 async fn commands(
     modes: &mut Modes,
-    db: &mut DBase,
+    db: &mut PgConnection,
     editable: &mut Editable,
     cmd: &str,
     args: &str,
