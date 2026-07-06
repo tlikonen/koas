@@ -121,59 +121,27 @@ pub async fn convert_to_decimal(db: &mut DBase, editable: &mut Editable, args: &
     Ok(())
 }
 
-pub async fn student_ranking(db: &mut DBase, mut args: &str, all: bool) -> Result<StudentRanking> {
-    if args.is_empty() {
-        args = "@";
-    }
-
+pub async fn student_ranking(
+    db: &mut DBase,
+    queries: Vec<FullQuery<'_>>,
+    include_weightless: bool,
+) -> Result<StudentRanking> {
     let mut ranks = StudentRanking::new();
-
-    let field_groups = tools::split_sep(args);
-    for field_string in field_groups {
-        let mut fields = tools::split_sep(field_string);
-        let query_terms = FullQuery {
-            // Keep the order because of the next() method.
-            group: fields.next().unwrap_or(""),
-            assignment: fields.next().unwrap_or(""),
-            assignment_short: fields.next().unwrap_or(""),
-            lastname: fields.next().unwrap_or(""),
-            firstname: fields.next().unwrap_or(""),
-            description: fields.next().unwrap_or(""),
-        };
-
-        ranks.query(db, query_terms, all).await?;
+    for query in queries {
+        ranks.query(db, query, include_weightless).await?;
     }
-
     Ok(ranks)
 }
 
 pub async fn grade_distribution(
     db: &mut DBase,
-    mut args: &str,
-    all: bool,
+    queries: Vec<FullQuery<'_>>,
+    include_weightless: bool,
 ) -> Result<GradeDistribution> {
-    if args.is_empty() {
-        args = "@";
-    }
-
     let mut dist = GradeDistribution::new();
-
-    let field_groups = tools::split_sep(args);
-    for field_string in field_groups {
-        let mut fields = tools::split_sep(field_string);
-        let query_terms = FullQuery {
-            // Keep the order because of the next() method.
-            group: fields.next().unwrap_or(""),
-            assignment: fields.next().unwrap_or(""),
-            assignment_short: fields.next().unwrap_or(""),
-            lastname: fields.next().unwrap_or(""),
-            firstname: fields.next().unwrap_or(""),
-            description: fields.next().unwrap_or(""),
-        };
-
-        dist.query(db, query_terms, all).await?;
+    for query in queries {
+        dist.query(db, query, include_weightless).await?;
     }
-
     Ok(dist)
 }
 

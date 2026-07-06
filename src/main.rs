@@ -1,6 +1,6 @@
 use {
     just_getopt::{Args, OptFlags, OptSpecs, OptValue},
-    koas::{database::*, output::*, *},
+    koas::{commands::FullQuery, database::*, output::*, *},
     std::{
         io::{self, Write as _},
         process::ExitCode,
@@ -266,7 +266,7 @@ async fn commands(
     db: &mut PgConnection,
     editable: &mut Editable,
     cmd: &str,
-    args: &str,
+    mut args: &str,
 ) -> Result<()> {
     let out = modes.output();
     match (cmd, modes.mode()) {
@@ -391,36 +391,47 @@ async fn commands(
                 .print(out)?;
         }
 
-        ("tp", _) => {
+        (c, _) if ["tp", "tpk", "tj", "tjk"].contains(&c) => {
             editable.clear();
-            commands::student_ranking(db, args, false)
-                .await?
-                .has_data()?
-                .print(out)?;
-        }
 
-        ("tpk", _) => {
-            editable.clear();
-            commands::student_ranking(db, args, true)
-                .await?
-                .has_data()?
-                .print(out)?;
-        }
+            if args.is_empty() {
+                args = "@";
+            }
 
-        ("tj", _) => {
-            editable.clear();
-            commands::grade_distribution(db, args, false)
-                .await?
-                .has_data()?
-                .print(out)?;
-        }
+            let mut queries = Vec::with_capacity(3);
+            let field_groups = tools::split_sep(args);
+            for field_string in field_groups {
+                let mut fields = tools::split_sep(field_string);
+                queries.push(FullQuery {
+                    // Keep the order because of the next() method.
+                    group: fields.next().unwrap_or(""),
+                    assignment: fields.next().unwrap_or(""),
+                    assignment_short: fields.next().unwrap_or(""),
+                    lastname: fields.next().unwrap_or(""),
+                    firstname: fields.next().unwrap_or(""),
+                    description: fields.next().unwrap_or(""),
+                });
+            }
 
-        ("tjk", _) => {
-            editable.clear();
-            commands::grade_distribution(db, args, true)
-                .await?
-                .has_data()?
-                .print(out)?;
+            let include_weightless = matches!(c, "tpk" | "tjk");
+
+            match c {
+                "tp" | "tpk" => {
+                    commands::student_ranking(db, queries, include_weightless)
+                        .await?
+                        .has_data()?
+                        .print(out)?;
+                }
+
+                "tj" | "tjk" => {
+                    commands::grade_distribution(db, queries, include_weightless)
+                        .await?
+                        .has_data()?
+                        .print(out)?;
+                }
+
+                _ => panic!(),
+            }
         }
 
         ("lo", _) => {

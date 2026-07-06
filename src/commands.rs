@@ -4,6 +4,7 @@ mod grades;
 mod groups;
 mod students;
 
+pub use crate::objects::FullQuery;
 pub use assignments::*;
 pub use edit::*;
 pub use grades::*;

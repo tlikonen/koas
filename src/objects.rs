@@ -164,13 +164,13 @@ pub struct GradeDistribution {
     pub(crate) data: HashMap<String, i32>,
 }
 
-pub(crate) struct FullQuery<'a> {
-    pub(crate) group: &'a str,
-    pub(crate) assignment: &'a str,
-    pub(crate) assignment_short: &'a str,
-    pub(crate) lastname: &'a str,
-    pub(crate) firstname: &'a str,
-    pub(crate) description: &'a str,
+pub struct FullQuery<'a> {
+    pub group: &'a str,
+    pub assignment: &'a str,
+    pub assignment_short: &'a str,
+    pub lastname: &'a str,
+    pub firstname: &'a str,
+    pub description: &'a str,
 }
 
 impl<T> QueryList<T> {
