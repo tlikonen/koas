@@ -89,7 +89,7 @@ pub async fn edit_series(db: &mut DBase, editable: &mut Editable, args: &str) ->
     };
 
     let mut values: Vec<String> = Vec::with_capacity(4);
-    if tools::has_content(rest) {
+    if rest.has_content() {
         for s in tools::split_sep(rest).map(|s| s.to_string()) {
             values.push(s);
         }

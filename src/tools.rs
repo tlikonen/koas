@@ -5,7 +5,7 @@ pub(crate) fn parse_number_list(s: &str) -> Result<Vec<usize>> {
     let errmsg = |v| format!("Sopimaton tietueen numero: ”{v}”.");
 
     for part in s.split(',').filter(|e| !e.is_empty()) {
-        if is_all_digits(part) {
+        if part.is_all_digits() {
             let num = part.parse::<usize>()?;
             if num == 0 {
                 return Err(errmsg(part).into());
@@ -17,7 +17,7 @@ pub(crate) fn parse_number_list(s: &str) -> Result<Vec<usize>> {
         let (start, end) = match part.split_once('-') {
             None => return Err(errmsg(part).into()),
             Some((s, e)) => {
-                if !is_all_digits(s) || !is_all_digits(e) {
+                if !s.is_all_digits() || !e.is_all_digits() {
                     return Err(format!("Sopimaton tietueiden sarja: ”{s}-{e}”.").into());
                 }
                 (s.parse::<usize>()?, e.parse::<usize>()?)
@@ -48,10 +48,6 @@ pub(crate) fn parse_number_list(s: &str) -> Result<Vec<usize>> {
         }
     }
     Ok(vec)
-}
-
-fn is_all_digits(s: &str) -> bool {
-    !s.is_empty() && s.chars().all(|c| c.is_ascii_digit())
 }
 
 pub(crate) fn is_within_limits(limit: usize, list: &[usize]) -> bool {
@@ -163,12 +159,24 @@ pub fn split_first(s: &str) -> (&str, &str) {
     }
 }
 
-pub(crate) fn has_content(s: &str) -> bool {
-    s.chars().any(|c| !c.is_whitespace())
+pub(crate) trait StrExt {
+    fn has_content(&self) -> bool;
+    fn has_whitespace(&self) -> bool;
+    fn is_all_digits(&self) -> bool;
 }
 
-pub(crate) fn has_whitespace(s: &str) -> bool {
-    s.chars().any(|c| c.is_whitespace())
+impl StrExt for str {
+    fn has_content(&self) -> bool {
+        self.chars().any(|c| !c.is_whitespace())
+    }
+
+    fn has_whitespace(&self) -> bool {
+        self.chars().any(|c| c.is_whitespace())
+    }
+
+    fn is_all_digits(&self) -> bool {
+        !self.is_empty() && self.chars().all(|c| c.is_ascii_digit())
+    }
 }
 
 pub(crate) fn normalize_str(s: &str) -> String {
@@ -318,18 +326,18 @@ mod tests {
     }
 
     #[test]
-    fn is_all_digits_fn() {
-        assert!(is_all_digits("3"));
-        assert!(is_all_digits("364"));
-        assert!(is_all_digits("01234567890"));
+    fn is_all_digits() {
+        assert!("3".is_all_digits());
+        assert!("364".is_all_digits());
+        assert!("01234567890".is_all_digits());
 
-        assert!(!is_all_digits(""));
-        assert!(!is_all_digits(" "));
-        assert!(!is_all_digits("x"));
-        assert!(!is_all_digits("+6"));
-        assert!(!is_all_digits("-6"));
-        assert!(!is_all_digits(".6"));
-        assert!(!is_all_digits("6.0"));
+        assert!(!"".is_all_digits());
+        assert!(!" ".is_all_digits());
+        assert!(!"x".is_all_digits());
+        assert!(!"+6".is_all_digits());
+        assert!(!"-6".is_all_digits());
+        assert!(!".6".is_all_digits());
+        assert!(!"6.0".is_all_digits());
     }
 
     #[test]
@@ -348,25 +356,26 @@ mod tests {
     }
 
     #[test]
-    fn has_content_fn() {
-        assert!(has_content("  abc   123  "));
-        assert!(has_content("abc"));
-        assert!(has_content(" abc "));
-        assert!(!has_content(" "));
-        assert!(!has_content("  \t  "));
-        assert!(!has_content(""));
+    fn has_content() {
+        assert!("  abc   123  ".has_content());
+        assert!("abc".has_content());
+        assert!(" abc ".has_content());
+        assert!(!" ".has_content());
+        assert!(!"  \t  ".has_content());
+        assert!(!"".has_content());
     }
 
     #[test]
-    fn has_whitespace_fn() {
-        assert!(has_whitespace("abc "));
-        assert!(has_whitespace(" abc"));
-        assert!(has_whitespace("ab c"));
-        assert!(has_whitespace(" a b c "));
-        assert!(has_whitespace("\tabc"));
-        assert!(has_whitespace("abc\t"));
-        assert!(has_whitespace("a\tbc"));
-        assert!(!has_whitespace("€aböc"));
+    fn has_whitespace() {
+        assert!("abc ".has_whitespace());
+        assert!(" abc".has_whitespace());
+        assert!("ab c".has_whitespace());
+        assert!(" a b c ".has_whitespace());
+        assert!("\tabc".has_whitespace());
+        assert!("abc\t".has_whitespace());
+        assert!("a\tbc".has_whitespace());
+        assert!(!"€aböc".has_whitespace());
+        assert!(!"".has_whitespace());
     }
 
     #[test]

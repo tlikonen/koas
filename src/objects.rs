@@ -183,7 +183,7 @@ impl<T> QueryList<T> {
         for field in fields.into_iter().map(|x| x.to_string()) {
             normalized.push(if field.is_empty() {
                 Field::Ignore
-            } else if !tools::has_content(&field) {
+            } else if !field.has_content() {
                 Field::Clear
             } else {
                 Field::Set(tools::normalize_str(&field))

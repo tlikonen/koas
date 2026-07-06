@@ -9,7 +9,7 @@ pub(crate) use {
             Student, StudentRanking,
         },
         output::Output,
-        tools,
+        tools::{self, StrExt},
     },
     sqlx::{Connection as _, PgConnection as DBase, Row as _},
     std::{

@@ -23,18 +23,14 @@ pub async fn insert_student(
     description: &str,
 ) -> Result<()> {
     let lastname = Some(lastname)
-        .filter(|x| tools::has_content(x))
+        .filter(|x| x.has_content())
         .map(tools::normalize_str); // sukunimi
 
     let firstname = Some(firstname)
-        .filter(|x| tools::has_content(x))
+        .filter(|x| x.has_content())
         .map(tools::normalize_str); // etunimi
 
-    let groups: Vec<&str> = groups
-        .into_iter()
-        .filter(|x| tools::has_content(x))
-        .collect(); // ryhmät
-
+    let groups: Vec<&str> = groups.into_iter().filter(|x| x.has_content()).collect(); // ryhmät
     let description = tools::normalize_str(description); // lisätiedot
 
     if lastname.is_none() || firstname.is_none() || groups.is_empty() {
@@ -42,7 +38,7 @@ pub async fn insert_student(
     }
 
     for group in &groups {
-        if tools::has_whitespace(group) {
+        if group.has_whitespace() {
             return Err("Ryhmätunnuksissa ei voi olla välilyöntejä.".into());
         }
     }

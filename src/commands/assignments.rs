@@ -12,20 +12,20 @@ pub async fn assignments(db: &mut DBase, group: &str) -> Result<QueryList<Assign
 
 pub async fn insert_assignment(db: &mut DBase, args: &str) -> Result<()> {
     let mut fields = tools::split_sep(args);
-    let groups = fields.next().filter(|x| tools::has_content(x)); // ryhmät
+    let groups = fields.next().filter(|x| x.has_content()); // ryhmät
 
     let assignment = fields
         .next()
-        .filter(|x| tools::has_content(x))
+        .filter(|x| x.has_content())
         .map(tools::normalize_str); // suoritus
 
     let assignment_short = fields
         .next()
-        .filter(|x| tools::has_content(x))
+        .filter(|x| x.has_content())
         .map(tools::normalize_str); // lyhenne
 
-    let weight = fields.next().filter(|x| tools::has_content(x)); // painokerroin
-    let position = fields.next().filter(|x| tools::has_content(x)); // sija
+    let weight = fields.next().filter(|x| x.has_content()); // painokerroin
+    let position = fields.next().filter(|x| x.has_content()); // sija
 
     if groups.is_none() || assignment.is_none() || assignment_short.is_none() {
         return Err("Pitää antaa vähintään ryhmä, suorituksen nimi ja lyhenne.".into());
