@@ -269,8 +269,10 @@ async fn commands(
     mut args: &str,
 ) -> Result<()> {
     let out = modes.output();
-    match (cmd, modes.mode()) {
-        ("ho", _) => {
+    let mode = modes.mode();
+
+    match cmd {
+        "ho" => {
             editable.clear();
 
             let mut fields = tools::split_sep(args);
@@ -292,7 +294,7 @@ async fn commands(
             }
         }
 
-        ("hr", _) => {
+        "hr" => {
             editable.clear();
 
             let mut fields = tools::split_sep(args);
@@ -310,7 +312,7 @@ async fn commands(
             }
         }
 
-        ("hs", _) => {
+        "hs" => {
             editable.clear();
 
             let (group, _) = tools::split_first(args);
@@ -333,7 +335,7 @@ async fn commands(
             }
         }
 
-        ("has", _) => {
+        "has" => {
             editable.clear();
 
             let mut fields = tools::split_sep(args);
@@ -357,7 +359,7 @@ async fn commands(
             }
         }
 
-        ("hao", _) => {
+        "hao" => {
             editable.clear();
 
             let mut fields = tools::split_sep(args);
@@ -382,7 +384,7 @@ async fn commands(
             }
         }
 
-        ("hak", _) => {
+        "hak" => {
             editable.clear();
             let (group, _) = tools::split_first(args);
             commands::grades_for_group(db, group)
@@ -391,7 +393,7 @@ async fn commands(
                 .print(out)?;
         }
 
-        (c, _) if ["tp", "tpk", "tj", "tjk"].contains(&c) => {
+        c if ["tp", "tpk", "tj", "tjk"].contains(&c) => {
             editable.clear();
 
             if args.is_empty() {
@@ -434,35 +436,47 @@ async fn commands(
             }
         }
 
-        ("lo", _) => {
+        "lo" => {
             editable.clear();
             commands::insert_student(db, args).await?;
         }
 
-        ("ls", _) => {
+        "ls" => {
             editable.clear();
             commands::insert_assignment(db, args).await?;
         }
 
-        ("m", Mode::Interactive) => commands::edit(db, editable, args).await?,
-        ("ms", Mode::Interactive) => commands::edit_series(db, editable, args).await?,
-        ("ma", Mode::Interactive) => commands::convert_to_grade(db, editable, args).await?,
-        ("md", Mode::Interactive) => commands::convert_to_decimal(db, editable, args).await?,
-        ("poista", Mode::Interactive) => commands::delete(db, editable, args).await?,
+        "m" if matches!(mode, Mode::Interactive) => commands::edit(db, editable, args).await?,
 
-        ("tlk", _) => table_format(modes, args)?,
+        "ms" if matches!(mode, Mode::Interactive) => {
+            commands::edit_series(db, editable, args).await?
+        }
 
-        ("tk", _) => {
+        "ma" if matches!(mode, Mode::Interactive) => {
+            commands::convert_to_grade(db, editable, args).await?
+        }
+
+        "md" if matches!(mode, Mode::Interactive) => {
+            commands::convert_to_decimal(db, editable, args).await?
+        }
+
+        "poista" if matches!(mode, Mode::Interactive) => {
+            commands::delete(db, editable, args).await?
+        }
+
+        "tlk" => table_format(modes, args)?,
+
+        "tk" => {
             editable.clear();
             commands::stats(db).await?.print(out)?;
         }
 
-        ("?", _) => {
+        "?" => {
             editable.clear();
             help(args)?;
         }
 
-        (c, _) => return Err(Error::unknown_cmd(c)),
+        c => return Err(Error::unknown_cmd(c)),
     }
     Ok(())
 }
