@@ -266,7 +266,7 @@ async fn commands(
     db: &mut PgConnection,
     editable: &mut Editable,
     cmd: &str,
-    mut args: &str,
+    args: &str,
 ) -> Result<()> {
     let out = modes.output();
     let mode = modes.mode();
@@ -396,12 +396,8 @@ async fn commands(
         c if ["tp", "tpk", "tj", "tjk"].contains(&c) => {
             editable.clear();
 
-            if args.is_empty() {
-                args = "@";
-            }
-
             let mut queries = Vec::with_capacity(3);
-            let field_groups = tools::split_sep(args);
+            let field_groups = tools::split_sep(if args.is_empty() { "@" } else { args });
             for field_string in field_groups {
                 let mut fields = tools::split_sep(field_string);
                 queries.push(FullQuery {
