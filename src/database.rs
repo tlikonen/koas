@@ -955,7 +955,12 @@ impl StudentRanking {
         }
     }
 
-    pub(crate) async fn query(&mut self, db: &mut DBase, args: FullQuery<'_>) -> Result<()> {
+    pub(crate) async fn query(
+        &mut self,
+        db: &mut DBase,
+        args: FullQuery<'_>,
+        all: bool,
+    ) -> Result<()> {
         let mut rows = sqlx::query(
             "SELECT oid, sukunimi, etunimi, ryhma, arvosana, painokerroin FROM view_arvosanat \
              WHERE sukunimi LIKE $1 ESCAPE '\\' AND etunimi LIKE $2 ESCAPE '\\' \
@@ -976,7 +981,7 @@ impl StudentRanking {
             {
                 let weight: i32 = match row.try_get("painokerroin")? {
                     Some(w) => w,
-                    None if args.all => 1,
+                    None if all => 1,
                     None => continue,
                 };
 
@@ -1018,7 +1023,12 @@ impl GradeDistribution {
         }
     }
 
-    pub(crate) async fn query(&mut self, db: &mut DBase, args: FullQuery<'_>) -> Result<()> {
+    pub(crate) async fn query(
+        &mut self,
+        db: &mut DBase,
+        args: FullQuery<'_>,
+        all: bool,
+    ) -> Result<()> {
         let mut rows = sqlx::query(
             "SELECT arvosana, painokerroin FROM view_arvosanat \
              WHERE sukunimi LIKE $1 ESCAPE '\\' AND etunimi LIKE $2 ESCAPE '\\' \
@@ -1035,7 +1045,7 @@ impl GradeDistribution {
 
         while let Some(row) = rows.try_next().await? {
             let weight: Option<i32> = row.try_get("painokerroin")?;
-            if (args.all || weight.is_some())
+            if (all || weight.is_some())
                 && let Some(grade) = row.try_get("arvosana")?
             {
                 let count = self.data.entry(grade).or_default();

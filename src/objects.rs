@@ -171,7 +171,6 @@ pub(crate) struct FullQuery<'a> {
     pub(crate) lastname: &'a str,
     pub(crate) firstname: &'a str,
     pub(crate) description: &'a str,
-    pub(crate) all: bool,
 }
 
 impl<T> QueryList<T> {
