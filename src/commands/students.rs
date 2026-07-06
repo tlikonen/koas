@@ -35,16 +35,16 @@ pub async fn insert_student(
         .filter(|x| tools::has_content(x))
         .collect(); // ryhmät
 
-    for group in &groups {
-        if group.chars().any(|c| c.is_whitespace()) {
-            return Err("Ryhmätunnuksissa ei voi olla välilyöntejä.".into());
-        }
-    }
-
     let description = tools::normalize_str(description); // lisätiedot
 
     if lastname.is_none() || firstname.is_none() || groups.is_empty() {
         return Err("Pitää antaa vähintään sukunimi, etunimi ja ryhmä.".into());
+    }
+
+    for group in &groups {
+        if group.chars().any(|c| c.is_whitespace()) {
+            return Err("Ryhmätunnuksissa ei voi olla välilyöntejä.".into());
+        }
     }
 
     let mut student = Student {
@@ -57,8 +57,8 @@ pub async fn insert_student(
     let mut ta = db.begin().await?;
     student.insert(&mut ta).await?;
 
-    for g in groups {
-        let rid = Group::get_or_insert(&mut ta, g).await?;
+    for group in groups {
+        let rid = Group::get_or_insert(&mut ta, group).await?;
         student.add_to_group(&mut ta, rid).await?;
     }
 
