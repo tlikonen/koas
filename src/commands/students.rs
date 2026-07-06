@@ -14,21 +14,27 @@ pub async fn students(
     Student::query(db, lastname, firstname, group, description).await
 }
 
-pub async fn insert_student(db: &mut DBase, args: &str) -> Result<()> {
-    let mut fields = tools::split_sep(args);
-
-    let lastname = fields
-        .next()
+/// Insert new student.
+///
+/// The `groups` argument is one ore more whitespace-separated group
+/// names.
+pub async fn insert_student(
+    db: &mut DBase,
+    lastname: &str,
+    firstname: &str,
+    groups: &str,
+    description: &str,
+) -> Result<()> {
+    let lastname = Some(lastname)
         .filter(|x| tools::has_content(x))
         .map(tools::normalize_str); // sukunimi
 
-    let firstname = fields
-        .next()
+    let firstname = Some(firstname)
         .filter(|x| tools::has_content(x))
         .map(tools::normalize_str); // etunimi
 
-    let groups = fields.next().filter(|x| tools::has_content(x)); // ryhmät
-    let desc = fields.next().or(Some("")).map(tools::normalize_str); // lisätiedot
+    let groups = Some(groups).filter(|x| tools::has_content(x)); // ryhmät
+    let description = tools::normalize_str(description); // lisätiedot
 
     if lastname.is_none() || firstname.is_none() || groups.is_none() {
         return Err("Pitää antaa vähintään sukunimi, etunimi ja ryhmä.".into());
@@ -37,7 +43,7 @@ pub async fn insert_student(db: &mut DBase, args: &str) -> Result<()> {
     let mut student = Student {
         lastname: lastname.unwrap(),
         firstname: firstname.unwrap(),
-        description: desc.unwrap(),
+        description,
         ..Default::default()
     };
 

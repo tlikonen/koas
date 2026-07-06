@@ -434,7 +434,14 @@ async fn commands(
 
         "lo" => {
             editable.clear();
-            commands::insert_student(db, args).await?;
+
+            let mut fields = tools::split_sep(args);
+            let lastname = fields.next().unwrap_or(""); // sukunimi
+            let firstname = fields.next().unwrap_or(""); // etunimi
+            let groups = fields.next().unwrap_or(""); // ryhmä
+            let desc = fields.next().unwrap_or(""); // lisätiedot
+
+            commands::insert_student(db, lastname, firstname, groups, desc).await?;
         }
 
         "ls" => {
