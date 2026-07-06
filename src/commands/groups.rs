@@ -2,14 +2,10 @@ use crate::prelude::*;
 
 /// Query for groups.
 ///
-/// The `fields` tuple is: 0) group name, 1) description. Wildcard
-/// character "*" is allowed and is implicit in the start and end the
-/// strings.
-pub async fn groups(db: &mut DBase, fields: (&str, &str)) -> Result<QueryList<Group>> {
-    let name = fields.0;
-    let desc = fields.1;
-
-    Group::query(db, name, desc).await
+/// Wildcard character "*" is allowed in the query strings and is
+/// implicit in the start and end the strings.
+pub async fn groups(db: &mut DBase, name: &str, description: &str) -> Result<QueryList<Group>> {
+    Group::query(db, name, description).await
 }
 
 impl Edit for EditItems<'_, Group> {

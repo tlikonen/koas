@@ -279,7 +279,7 @@ async fn commands(
             let group = fields.next().unwrap_or(""); // ryhma
             let desc = fields.next().unwrap_or(""); // lisätiedot
 
-            let query = commands::students(db, (lastname, firstname, group, desc))
+            let query = commands::students(db, lastname, firstname, group, desc)
                 .await?
                 .has_data()?;
 
@@ -299,7 +299,7 @@ async fn commands(
             let name = fields.next().unwrap_or(""); // ryhmä
             let desc = fields.next().unwrap_or(""); // lisätiedot
 
-            let query = commands::groups(db, (name, desc)).await?.has_data()?;
+            let query = commands::groups(db, name, desc).await?.has_data()?;
 
             if modes.is_interactive() {
                 query.copy_to(editable);
@@ -341,7 +341,7 @@ async fn commands(
             let assign = fields.next().unwrap_or(""); // suoritus
             let assign_short = fields.next().unwrap_or(""); // lyhenne
 
-            let query = commands::grades_for_assignments(db, (group, assign, assign_short))
+            let query = commands::grades_for_assignments(db, group, assign, assign_short)
                 .await?
                 .has_data()?;
 
@@ -366,7 +366,7 @@ async fn commands(
             let group = fields.next().unwrap_or(""); // ryhmä
             let desc = fields.next().unwrap_or(""); // lisätiedot
 
-            let query = commands::grades_for_students(db, (lastname, firstname, group, desc))
+            let query = commands::grades_for_students(db, lastname, firstname, group, desc)
                 .await?
                 .has_data()?;
 

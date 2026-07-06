@@ -2,19 +2,16 @@ use crate::prelude::*;
 
 /// Query for students.
 ///
-/// The `fields` tuple is: 0) lastname, 1) firstname, 2) groups, 3)
-/// description. Wildcard character "*" is allowed and is implicit in
-/// the start and end the strings.
+/// Wildcard character "*" is allowed in the query arguments and is
+/// implicit in the start and end the strings.
 pub async fn students(
     db: &mut DBase,
-    fields: (&str, &str, &str, &str),
+    lastname: &str,
+    firstname: &str,
+    group: &str,
+    description: &str,
 ) -> Result<QueryList<Student>> {
-    let lastname = fields.0;
-    let firstname = fields.1;
-    let group = fields.2;
-    let desc = fields.3;
-
-    Student::query(db, lastname, firstname, group, desc).await
+    Student::query(db, lastname, firstname, group, description).await
 }
 
 pub async fn insert_student(db: &mut DBase, args: &str) -> Result<()> {

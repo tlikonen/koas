@@ -2,35 +2,29 @@ use crate::prelude::*;
 
 /// Query for grades associated to assignments.
 ///
-/// The `fields` tuple: 0) group, 1) assignment name, 2) short name for
-/// assignment. Wildcard character "*" is allowed and is implicit in the
-/// start and end the strings.
+/// Wildcard character "*" is allowed in the query strings and is
+/// implicit in the start and end the strings.
 pub async fn grades_for_assignments(
     db: &mut DBase,
-    fields: (&str, &str, &str),
+    group: &str,
+    assignment: &str,
+    assignment_short: &str,
 ) -> Result<QueryList<GradesForAssignment>> {
-    let group = fields.0;
-    let assign = fields.1;
-    let assign_short = fields.2;
-
-    GradesForAssignment::query(db, group, assign, assign_short).await
+    GradesForAssignment::query(db, group, assignment, assignment_short).await
 }
 
 /// Query for grades associated to students.
 ///
-/// The `fields` tuple: 0) lastname, 1) firstname, 2) group, 3) student
-/// description. Wildcard character "*" is allowed and is implicit in
-/// the start and end the strings.
+/// Wildcard character "*" is allowed in the query strings and is
+/// implicit in the start and end the strings.
 pub async fn grades_for_students(
     db: &mut DBase,
-    fields: (&str, &str, &str, &str),
+    lastname: &str,
+    firstname: &str,
+    group: &str,
+    description: &str,
 ) -> Result<QueryList<GradesForStudent>> {
-    let lastname = fields.0;
-    let firstname = fields.1;
-    let group = fields.2;
-    let desc = fields.3;
-
-    GradesForStudent::query(db, lastname, firstname, group, desc).await
+    GradesForStudent::query(db, lastname, firstname, group, description).await
 }
 
 /// Query for grades associated to groups.
