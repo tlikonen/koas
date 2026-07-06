@@ -438,7 +438,7 @@ async fn commands(
             let mut fields = tools::split_sep(args);
             let lastname = fields.next().unwrap_or(""); // sukunimi
             let firstname = fields.next().unwrap_or(""); // etunimi
-            let groups = fields.next().unwrap_or(""); // ryhmä
+            let groups = fields.next().unwrap_or("").split_whitespace(); // ryhmät
             let desc = fields.next().unwrap_or(""); // lisätiedot
 
             commands::insert_student(db, lastname, firstname, groups, desc).await?;

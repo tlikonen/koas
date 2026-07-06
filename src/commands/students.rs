@@ -15,14 +15,11 @@ pub async fn students(
 }
 
 /// Insert new student.
-///
-/// The `groups` argument is one ore more whitespace-separated group
-/// names.
 pub async fn insert_student(
     db: &mut DBase,
     lastname: &str,
     firstname: &str,
-    groups: &str,
+    groups: impl IntoIterator<Item = &str>,
     description: &str,
 ) -> Result<()> {
     let lastname = Some(lastname)
@@ -33,10 +30,20 @@ pub async fn insert_student(
         .filter(|x| tools::has_content(x))
         .map(tools::normalize_str); // etunimi
 
-    let groups = Some(groups).filter(|x| tools::has_content(x)); // ryhmät
+    let groups: Vec<&str> = groups
+        .into_iter()
+        .filter(|x| tools::has_content(x))
+        .collect(); // ryhmät
+
+    for group in &groups {
+        if group.chars().any(|c| c.is_whitespace()) {
+            return Err("Ryhmätunnuksissa ei voi olla välilyöntejä.".into());
+        }
+    }
+
     let description = tools::normalize_str(description); // lisätiedot
 
-    if lastname.is_none() || firstname.is_none() || groups.is_none() {
+    if lastname.is_none() || firstname.is_none() || groups.is_empty() {
         return Err("Pitää antaa vähintään sukunimi, etunimi ja ryhmä.".into());
     }
 
@@ -50,7 +57,7 @@ pub async fn insert_student(
     let mut ta = db.begin().await?;
     student.insert(&mut ta).await?;
 
-    for g in groups.unwrap().split_whitespace() {
+    for g in groups {
         let rid = Group::get_or_insert(&mut ta, g).await?;
         student.add_to_group(&mut ta, rid).await?;
     }
