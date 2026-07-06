@@ -167,6 +167,10 @@ pub(crate) fn has_content(s: &str) -> bool {
     s.chars().any(|c| !c.is_whitespace())
 }
 
+pub(crate) fn has_whitespace(s: &str) -> bool {
+    s.chars().any(|c| c.is_whitespace())
+}
+
 pub(crate) fn normalize_str(s: &str) -> String {
     let mut new = String::with_capacity(s.len());
     for (n, word) in s.split_whitespace().enumerate() {
@@ -351,6 +355,18 @@ mod tests {
         assert!(!has_content(" "));
         assert!(!has_content("  \t  "));
         assert!(!has_content(""));
+    }
+
+    #[test]
+    fn has_whitespace_fn() {
+        assert!(has_whitespace("abc "));
+        assert!(has_whitespace(" abc"));
+        assert!(has_whitespace("ab c"));
+        assert!(has_whitespace(" a b c "));
+        assert!(has_whitespace("\tabc"));
+        assert!(has_whitespace("abc\t"));
+        assert!(has_whitespace("a\tbc"));
+        assert!(!has_whitespace("€aböc"));
     }
 
     #[test]

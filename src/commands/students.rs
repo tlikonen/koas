@@ -42,7 +42,7 @@ pub async fn insert_student(
     }
 
     for group in &groups {
-        if group.chars().any(|c| c.is_whitespace()) {
+        if tools::has_whitespace(group) {
             return Err("Ryhmätunnuksissa ei voi olla välilyöntejä.".into());
         }
     }
