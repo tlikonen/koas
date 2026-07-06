@@ -17,12 +17,12 @@ pub async fn insert_assignment(db: &mut DBase, args: &str) -> Result<()> {
     let assignment = fields
         .next()
         .filter(|x| x.has_content())
-        .map(tools::normalize_str); // suoritus
+        .map(|x| x.normalize()); // suoritus
 
     let assignment_short = fields
         .next()
         .filter(|x| x.has_content())
-        .map(tools::normalize_str); // lyhenne
+        .map(|x| x.normalize()); // lyhenne
 
     let weight = fields.next().filter(|x| x.has_content()); // painokerroin
     let position = fields.next().filter(|x| x.has_content()); // sija

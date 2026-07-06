@@ -24,14 +24,14 @@ pub async fn insert_student(
 ) -> Result<()> {
     let lastname = Some(lastname)
         .filter(|x| x.has_content())
-        .map(tools::normalize_str); // sukunimi
+        .map(|x| x.normalize()); // sukunimi
 
     let firstname = Some(firstname)
         .filter(|x| x.has_content())
-        .map(tools::normalize_str); // etunimi
+        .map(|x| x.normalize()); // etunimi
 
     let groups: Vec<&str> = groups.into_iter().filter(|x| x.has_content()).collect(); // ryhmät
-    let description = tools::normalize_str(description); // lisätiedot
+    let description = description.normalize(); // lisätiedot
 
     if lastname.is_none() || firstname.is_none() || groups.is_empty() {
         return Err("Pitää antaa vähintään sukunimi, etunimi ja ryhmä.".into());

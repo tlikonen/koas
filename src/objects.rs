@@ -186,7 +186,7 @@ impl<T> QueryList<T> {
             } else if !field.has_content() {
                 Field::Clear
             } else {
-                Field::Set(tools::normalize_str(&field))
+                Field::Set(field.normalize())
             });
         }
 

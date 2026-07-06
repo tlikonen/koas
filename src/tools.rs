@@ -179,15 +179,25 @@ impl StrExt for str {
     }
 }
 
-pub(crate) fn normalize_str(s: &str) -> String {
-    let mut new = String::with_capacity(s.len());
-    for (n, word) in s.split_whitespace().enumerate() {
-        if n > 0 {
-            new.push(' ');
+pub(crate) trait Normalize {
+    type Target;
+    fn normalize(&self) -> Self::Target;
+}
+
+impl Normalize for str {
+    // TODO:
+    // type Target = Option<String>;
+    type Target = String;
+    fn normalize(&self) -> Self::Target {
+        let mut new = String::with_capacity(self.len());
+        for word in self.split_whitespace() {
+            if !new.is_empty() {
+                new.push(' ');
+            }
+            new.push_str(word);
         }
-        new.push_str(word);
+        new
     }
-    new
 }
 
 pub(crate) fn format_decimal(num: f64) -> String {
@@ -348,11 +358,12 @@ mod tests {
     }
 
     #[test]
-    fn normalize_str_fn() {
-        assert_eq!("abc 123", normalize_str("  abc   123  "));
-        assert_eq!("abc", normalize_str("abc"));
-        assert_eq!("abc", normalize_str(" abc "));
-        assert_eq!("€– –€ö", normalize_str(" €–   –€ö   "));
+    fn normalize() {
+        assert_eq!("abc 123", "  abc   123  ".normalize());
+        assert_eq!("abc", "abc".normalize());
+        assert_eq!("abc", " abc ".normalize());
+        assert_eq!("€– –€ö", " €–   –€ö   ".normalize());
+        assert_eq!("", " \t  \t  ".normalize());
     }
 
     #[test]
