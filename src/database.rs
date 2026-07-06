@@ -1,11 +1,15 @@
 mod init;
 
-use {crate::prelude::*, futures::TryStreamExt};
+use crate::prelude::*;
+use futures::TryStreamExt;
 
-pub use crate::objects::{
-    Assignment, AssignmentsForGroup, CopyToEditable, Editable, Grade, GradeDistribution,
-    GradesForAssignment, GradesForGroup, GradesForStudent, Group, HasData, QueryList, SimpleGrade,
-    SimpleStudent, Stats, Student, StudentRanking,
+pub use {
+    crate::objects::{
+        Assignment, AssignmentsForGroup, CopyToEditable, Editable, Grade, GradeDistribution,
+        GradesForAssignment, GradesForGroup, GradesForStudent, Group, HasData, QueryList,
+        SimpleGrade, SimpleStudent, Stats, Student, StudentRanking,
+    },
+    sqlx::{Connection, PgConnection},
 };
 
 pub async fn connect(config: &Config) -> Result<DBase> {
