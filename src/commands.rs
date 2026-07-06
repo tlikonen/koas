@@ -13,6 +13,7 @@ pub use students::*;
 
 use crate::prelude::*;
 
+/// Print statistics about the database.
 pub async fn stats(db: &mut DBase) -> Result<Stats> {
     Stats::query(db).await
 }
