@@ -185,8 +185,10 @@ impl<T> QueryList<T> {
                 Field::Ignore
             } else if !field.has_content() {
                 Field::Clear
+            } else if let Some(f) = field.normalize() {
+                Field::Set(f)
             } else {
-                Field::Set(field.normalize())
+                Field::Ignore
             });
         }
 

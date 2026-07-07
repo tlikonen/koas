@@ -19,15 +19,8 @@ pub async fn insert_assignment(
     position: Option<&str>,
 ) -> Result<()> {
     let groups: Vec<&str> = groups.into_iter().filter(|x| x.has_content()).collect(); // ryhmät
-
-    let assignment = Some(assignment)
-        .filter(|x| x.has_content())
-        .map(|x| x.normalize()); // suoritus
-
-    let assignment_short = Some(assignment_short)
-        .filter(|x| x.has_content())
-        .map(|x| x.normalize()); // lyhenne
-
+    let assignment = assignment.normalize(); // suoritus
+    let assignment_short = assignment_short.normalize(); // lyhenne
     let weight = weight.filter(|x| x.has_content()); // painokerroin
     let position = position.filter(|x| x.has_content()); // sija
 
@@ -63,16 +56,26 @@ pub async fn insert_assignment(
 
     let mut ta = db.begin().await?;
 
-    for group in groups {
-        let mut group_assignment = Assignment {
-            rid: Group::get_or_insert(&mut ta, group).await?,
-            assignment: assignment.clone().unwrap(),
-            assignment_short: assignment_short.clone().unwrap(),
-            weight,
-            ..Default::default()
-        };
+    if let Some(long) = assignment
+        && let Some(short) = assignment_short
+    {
+        for group in groups {
+            if let Some(gr) = group.normalize() {
+                let mut group_assignment = Assignment {
+                    rid: Group::get_or_insert(&mut ta, &gr).await?,
+                    assignment: long.clone(),
+                    assignment_short: short.clone(),
+                    weight,
+                    ..Default::default()
+                };
 
-        group_assignment.insert(&mut ta, position).await?;
+                group_assignment.insert(&mut ta, position).await?;
+            } else {
+                return Err(Error::GroupName(group.to_string()));
+            }
+        }
+    } else {
+        return Err("Suorituksen lisääminen epäonnistui.".into());
     }
 
     ta.commit().await?;

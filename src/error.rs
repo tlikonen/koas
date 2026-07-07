@@ -15,6 +15,7 @@ pub enum Error {
     Db(sqlx::Error),
     UnknownCmd(String),
     UnknownTbl(String),
+    GroupName(String),
 }
 
 impl Error {
@@ -37,6 +38,7 @@ impl fmt::Display for Error {
             Self::Db(v) => write!(f, "Tietokantavirhe: {v}"),
             Self::UnknownCmd(v) => write!(f, "Tuntematon komento ”{v}”."),
             Self::UnknownTbl(v) => write!(f, "Tuntematon taulukkotyyppi ”{v}”."),
+            Self::GroupName(v) => write!(f, "Sopimaton ryhmän nimi ”{v}”."),
             _ => Ok(()),
         }
     }

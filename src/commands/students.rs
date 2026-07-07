@@ -22,14 +22,8 @@ pub async fn insert_student(
     groups: impl IntoIterator<Item = &str>,
     description: &str,
 ) -> Result<()> {
-    let lastname = Some(lastname)
-        .filter(|x| x.has_content())
-        .map(|x| x.normalize()); // sukunimi
-
-    let firstname = Some(firstname)
-        .filter(|x| x.has_content())
-        .map(|x| x.normalize()); // etunimi
-
+    let lastname = lastname.normalize(); // sukunimi
+    let firstname = firstname.normalize(); // etunimi
     let groups: Vec<&str> = groups.into_iter().filter(|x| x.has_content()).collect(); // ryhmät
     let description = description.normalize(); // lisätiedot
 
@@ -43,19 +37,30 @@ pub async fn insert_student(
         }
     }
 
-    let mut student = Student {
-        lastname: lastname.unwrap(),
-        firstname: firstname.unwrap(),
-        description,
-        ..Default::default()
-    };
-
     let mut ta = db.begin().await?;
-    student.insert(&mut ta).await?;
 
-    for group in groups {
-        let rid = Group::get_or_insert(&mut ta, group).await?;
-        student.add_to_group(&mut ta, rid).await?;
+    if let Some(last) = lastname
+        && let Some(first) = firstname
+    {
+        let mut student = Student {
+            lastname: last,
+            firstname: first,
+            description: description.unwrap_or_default(),
+            ..Default::default()
+        };
+
+        student.insert(&mut ta).await?;
+
+        for group in groups {
+            if let Some(gr) = group.normalize() {
+                let rid = Group::get_or_insert(&mut ta, &gr).await?;
+                student.add_to_group(&mut ta, rid).await?;
+            } else {
+                return Err(Error::GroupName(group.to_string()));
+            }
+        }
+    } else {
+        return Err("Oppilaan lisääminen epäonnistui.".into());
     }
 
     ta.commit().await?;

@@ -185,9 +185,7 @@ pub(crate) trait Normalize {
 }
 
 impl Normalize for str {
-    // TODO:
-    // type Target = Option<String>;
-    type Target = String;
+    type Target = Option<String>;
     fn normalize(&self) -> Self::Target {
         let mut new = String::with_capacity(self.len());
         for word in self.split_whitespace() {
@@ -196,7 +194,8 @@ impl Normalize for str {
             }
             new.push_str(word);
         }
-        new
+
+        if new.is_empty() { None } else { Some(new) }
     }
 }
 
@@ -359,11 +358,14 @@ mod tests {
 
     #[test]
     fn normalize() {
-        assert_eq!("abc 123", "  abc   123  ".normalize());
-        assert_eq!("abc", "abc".normalize());
-        assert_eq!("abc", " abc ".normalize());
-        assert_eq!("€– –€ö", " €–   –€ö   ".normalize());
-        assert_eq!("", " \t  \t  ".normalize());
+        assert_eq!("abc 123", "  abc   123  ".normalize().unwrap());
+        assert_eq!(Some("abc 123".to_string()), "  abc   123  ".normalize());
+        assert_eq!("abc", "abc".normalize().unwrap());
+        assert_eq!("abc", " abc ".normalize().unwrap());
+        assert_eq!("€– –€ö", " €–   –€ö   ".normalize().unwrap());
+        assert_eq!(None, "".normalize());
+        assert_eq!(None, " \t  \t  ".normalize());
+        assert_eq!("", "".normalize().unwrap_or_default());
     }
 
     #[test]
