@@ -446,7 +446,16 @@ async fn commands(
 
         "ls" => {
             editable.clear();
-            commands::insert_assignment(db, args).await?;
+
+            let mut fields = tools::split_sep(args);
+            let groups = fields.next().unwrap_or("").split_whitespace(); // ryhmät
+            let assignment = fields.next().unwrap_or(""); // suoritus
+            let assignment_short = fields.next().unwrap_or(""); // lyhenne
+            let weight = fields.next(); // painokerroin
+            let position = fields.next(); // sija
+
+            commands::insert_assignment(db, groups, assignment, assignment_short, weight, position)
+                .await?;
         }
 
         "m" if matches!(mode, Mode::Interactive) => commands::edit(db, editable, args).await?,

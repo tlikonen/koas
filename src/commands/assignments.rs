@@ -10,25 +10,35 @@ pub async fn assignments(db: &mut DBase, group: &str) -> Result<QueryList<Assign
     AssignmentsForGroup::query(db, group).await
 }
 
-pub async fn insert_assignment(db: &mut DBase, args: &str) -> Result<()> {
-    let mut fields = tools::split_sep(args);
-    let groups = fields.next().filter(|x| x.has_content()); // ryhmät
+pub async fn insert_assignment(
+    db: &mut DBase,
+    groups: impl IntoIterator<Item = &str>,
+    assignment: &str,
+    assignment_short: &str,
+    weight: Option<&str>,
+    position: Option<&str>,
+) -> Result<()> {
+    let groups: Vec<&str> = groups.into_iter().filter(|x| x.has_content()).collect(); // ryhmät
 
-    let assignment = fields
-        .next()
+    let assignment = Some(assignment)
         .filter(|x| x.has_content())
         .map(|x| x.normalize()); // suoritus
 
-    let assignment_short = fields
-        .next()
+    let assignment_short = Some(assignment_short)
         .filter(|x| x.has_content())
         .map(|x| x.normalize()); // lyhenne
 
-    let weight = fields.next().filter(|x| x.has_content()); // painokerroin
-    let position = fields.next().filter(|x| x.has_content()); // sija
+    let weight = weight.filter(|x| x.has_content()); // painokerroin
+    let position = position.filter(|x| x.has_content()); // sija
 
-    if groups.is_none() || assignment.is_none() || assignment_short.is_none() {
+    if groups.is_empty() || assignment.is_none() || assignment_short.is_none() {
         return Err("Pitää antaa vähintään ryhmä, suorituksen nimi ja lyhenne.".into());
+    }
+
+    for group in &groups {
+        if group.has_whitespace() {
+            return Err("Ryhmätunnuksissa ei voi olla välilyöntejä.".into());
+        }
     }
 
     let weight = match weight {
@@ -53,9 +63,9 @@ pub async fn insert_assignment(db: &mut DBase, args: &str) -> Result<()> {
 
     let mut ta = db.begin().await?;
 
-    for g in groups.unwrap().split_whitespace() {
+    for group in groups {
         let mut group_assignment = Assignment {
-            rid: Group::get_or_insert(&mut ta, g).await?,
+            rid: Group::get_or_insert(&mut ta, group).await?,
             assignment: assignment.clone().unwrap(),
             assignment_short: assignment_short.clone().unwrap(),
             weight,
