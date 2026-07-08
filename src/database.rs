@@ -232,18 +232,17 @@ impl Group {
     }
 
     pub(crate) async fn get_or_insert(db: &mut DBase, name: &str) -> Result<i32> {
-        let rid = match Self::get_id(db, name).await? {
-            Some(id) => id,
+        match Self::get_id(db, name).await? {
+            Some(rid) => Ok(rid),
             None => {
                 let row = sqlx::query("INSERT INTO ryhmat (nimi) VALUES ($1) RETURNING rid")
                     .bind(name)
                     .fetch_one(db)
                     .await?;
-                let id: i32 = row.try_get("rid")?;
-                id
+                let rid: i32 = row.try_get("rid")?;
+                Ok(rid)
             }
-        };
-        Ok(rid)
+        }
     }
 
     pub(crate) async fn get_id(db: &mut DBase, name: &str) -> Result<Option<i32>> {
@@ -253,9 +252,9 @@ impl Group {
             .await?
         {
             None => Ok(None),
-            Some(r) => {
-                let id: i32 = r.try_get("rid")?;
-                Ok(Some(id))
+            Some(row) => {
+                let rid: i32 = row.try_get("rid")?;
+                Ok(Some(rid))
             }
         }
     }
