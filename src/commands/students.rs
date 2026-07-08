@@ -266,29 +266,34 @@ impl Student {
 
 impl Update for UpdateStudent<'_> {
     async fn update(self, db: &mut DBase) -> Result<()> {
+        let mut ta = db.begin().await?;
+
         match self.field {
-            UpdateStudentField::Lastname(last) => self.student.update_lastname(db, &last).await?,
+            UpdateStudentField::Lastname(last) => {
+                self.student.update_lastname(&mut ta, &last).await?
+            }
+
             UpdateStudentField::Firstname(first) => {
-                self.student.update_firstname(db, &first).await?
+                self.student.update_firstname(&mut ta, &first).await?
             }
 
             UpdateStudentField::GroupAdd(name) => {
-                let rid = Group::get_or_insert(db, &name).await?;
-                if !self.student.in_group(db, rid).await? {
-                    self.student.add_to_group(db, rid).await?;
+                let rid = Group::get_or_insert(&mut ta, &name).await?;
+                if !self.student.in_group(&mut ta, rid).await? {
+                    self.student.add_to_group(&mut ta, rid).await?;
                 }
             }
 
             UpdateStudentField::GroupRemove(name) => {
-                let Some(rid) = Group::get_id(db, &name).await? else {
+                let Some(rid) = Group::get_id(&mut ta, &name).await? else {
                     return Ok(()); // No such group.
                 };
 
-                if !self.student.in_group(db, rid).await? {
+                if !self.student.in_group(&mut ta, rid).await? {
                     return Ok(());
                 }
 
-                let count = self.student.count_grades_group(db, rid).await?;
+                let count = self.student.count_grades_group(&mut ta, rid).await?;
                 if count > 0 {
                     return Err(format!(
                         "Oppilaalle ”{l}, {f}” on ryhmässä ”{g}” kirjattu {c} arvosana(a).\n\
@@ -301,20 +306,25 @@ impl Update for UpdateStudent<'_> {
                     .into());
                 }
 
-                if self.student.only_one_group(db).await? {
+                if self.student.only_one_group(&mut ta).await? {
                     return Err("Oppilaan pitää kuulua vähintään yhteen ryhmään.".into());
                 } else {
-                    self.student.remove_from_group(db, rid).await?;
+                    self.student.remove_from_group(&mut ta, rid).await?;
                 }
 
-                Group::delete_empty(db).await?;
+                Group::delete_empty(&mut ta).await?;
             }
 
             UpdateStudentField::Description(desc) => {
-                self.student.update_description(db, &desc).await?
+                self.student.update_description(&mut ta, &desc).await?
             }
-            UpdateStudentField::DescriptionClear => self.student.update_description(db, "").await?,
+
+            UpdateStudentField::DescriptionClear => {
+                self.student.update_description(&mut ta, "").await?
+            }
         }
+
+        ta.commit().await?;
         Ok(())
     }
 }
