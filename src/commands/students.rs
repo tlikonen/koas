@@ -190,6 +190,10 @@ pub(crate) struct UpdateStudent<'a> {
     field: UpdateStudentField,
 }
 
+pub(crate) struct DeleteStudent<'a> {
+    student: &'a Student,
+}
+
 enum UpdateStudentField {
     Lastname(String),
     Firstname(String),
@@ -262,6 +266,10 @@ impl Student {
             field: UpdateStudentField::DescriptionClear,
         }
     }
+
+    pub(crate) fn mark_deleted<'a>(&'a self) -> DeleteStudent<'a> {
+        DeleteStudent { student: self }
+    }
 }
 
 impl Update for UpdateStudent<'_> {
@@ -324,6 +332,28 @@ impl Update for UpdateStudent<'_> {
             }
         }
 
+        ta.commit().await?;
+        Ok(())
+    }
+}
+
+impl Update for DeleteStudent<'_> {
+    async fn update(self, db: &mut DBase) -> Result<()> {
+        let mut ta = db.begin().await?;
+
+        let count = self.student.count_grades(&mut ta).await?;
+        if count > 0 {
+            return Err(format!(
+                "Oppilaalle ”{l}, {f}” on kirjattu {c} arvosana(a). Poista ne ensin.",
+                l = self.student.lastname,
+                f = self.student.firstname,
+                c = count
+            )
+            .into());
+        }
+
+        self.student.delete(&mut ta).await?;
+        Group::delete_empty(&mut ta).await?;
         ta.commit().await?;
         Ok(())
     }
