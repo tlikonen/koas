@@ -192,3 +192,111 @@ impl Delete for DeleteItems<'_, Student> {
         Ok(())
     }
 }
+
+pub(crate) struct UpdateStudent<'a> {
+    student: &'a Student,
+    field: UpdateStudentField,
+}
+
+enum UpdateStudentField {
+    Lastname(String),
+    Firstname(String),
+    GroupAdd(String),
+    GroupRemove(String),
+    Description(String),
+    DescriptionClear,
+}
+
+impl Student {
+    pub(crate) fn set_lastname<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
+        match name.normalize() {
+            None => Err("Sopimaton sukunimi.".into()),
+            Some(n) => Ok(UpdateStudent {
+                student: self,
+                field: UpdateStudentField::Lastname(n),
+            }),
+        }
+    }
+
+    pub(crate) fn set_firstname<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
+        match name.normalize() {
+            None => Err("Sopimaton etunimi.".into()),
+            Some(n) => Ok(UpdateStudent {
+                student: self,
+                field: UpdateStudentField::Firstname(n),
+            }),
+        }
+    }
+
+    pub(crate) fn set_description<'a>(&'a self, desc: &str) -> Result<UpdateStudent<'a>> {
+        match desc.normalize() {
+            None => Err("Sopimaton oppilaan kuvaus.".into()),
+            Some(d) => Ok(UpdateStudent {
+                student: self,
+                field: UpdateStudentField::Description(d),
+            }),
+        }
+    }
+
+    pub(crate) fn clear_description<'a>(&'a self) -> UpdateStudent<'a> {
+        UpdateStudent {
+            student: self,
+            field: UpdateStudentField::DescriptionClear,
+        }
+    }
+}
+
+impl Update for UpdateStudent<'_> {
+    async fn update(self, db: &mut DBase) -> Result<()> {
+        match self.field {
+            UpdateStudentField::Lastname(last) => self.student.update_lastname(db, &last).await?,
+            UpdateStudentField::Firstname(first) => {
+                self.student.update_firstname(db, &first).await?
+            }
+
+            UpdateStudentField::GroupAdd(name) => {
+                let rid = Group::get_or_insert(db, &name).await?;
+                if !self.student.in_group(db, rid).await? {
+                    self.student.add_to_group(db, rid).await?;
+                }
+            }
+
+            UpdateStudentField::GroupRemove(name) => {
+                let Some(rid) = Group::get_id(db, &name).await? else {
+                    return Ok(()); // No such group.
+                };
+
+                if !self.student.in_group(db, rid).await? {
+                    return Ok(());
+                }
+
+                let count = self.student.count_grades_group(db, rid).await?;
+                if count > 0 {
+                    return Err(format!(
+                        "Oppilaalle ”{l}, {f}” on ryhmässä ”{g}” kirjattu {c} arvosana(a).\n\
+                         Säilytetään ryhmät ja perutaan toiminto.",
+                        l = self.student.lastname,
+                        f = self.student.firstname,
+                        c = count,
+                        g = name,
+                    )
+                    .into());
+                }
+
+                if self.student.only_one_group(db).await? {
+                    return Err("Oppilaan pitää kuulua vähintään yhteen ryhmään.".into());
+                } else {
+                    self.student.remove_from_group(db, rid).await?;
+                }
+
+                Group::delete_empty(db).await?;
+            }
+
+            UpdateStudentField::Description(desc) => {
+                self.student.update_description(db, &desc).await?
+            }
+            UpdateStudentField::DescriptionClear => self.student.update_description(db, "").await?,
+        }
+        Ok(())
+    }
+}

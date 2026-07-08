@@ -210,3 +210,7 @@ pub async fn delete(db: &mut DBase, editable: &mut Editable, args: &str) -> Resu
     ta.commit().await?;
     Ok(())
 }
+
+pub(crate) trait Update {
+    async fn update(self, db: &mut DBase) -> Result<()>;
+}
