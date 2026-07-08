@@ -1,3 +1,4 @@
+use super::Commit;
 use crate::prelude::*;
 
 /// Query for students.
@@ -272,8 +273,8 @@ impl Student {
     }
 }
 
-impl Update for UpdateStudent<'_> {
-    async fn update(self, db: &mut DBase) -> Result<()> {
+impl Commit for UpdateStudent<'_> {
+    async fn commit(self, db: &mut DBase) -> Result<()> {
         let mut ta = db.begin().await?;
 
         match self.field {
@@ -337,8 +338,8 @@ impl Update for UpdateStudent<'_> {
     }
 }
 
-impl Update for DeleteStudent<'_> {
-    async fn update(self, db: &mut DBase) -> Result<()> {
+impl Commit for DeleteStudent<'_> {
+    async fn commit(self, db: &mut DBase) -> Result<()> {
         let mut ta = db.begin().await?;
 
         let count = self.student.count_grades(&mut ta).await?;

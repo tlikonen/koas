@@ -1,6 +1,5 @@
 pub(crate) use {
     crate::{
-        commands::Update,
         config::Config,
         error::{Error, Result},
         objects::{
