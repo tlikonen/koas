@@ -24,18 +24,14 @@ pub async fn insert_student(
 ) -> Result<()> {
     let lastname = lastname.normalize(); // sukunimi
     let firstname = firstname.normalize(); // etunimi
-    let groups: Vec<&str> = groups.into_iter().filter(|x| x.has_content()).collect(); // ryhmät
+    let groups: Vec<String> = groups.into_iter().filter_map(|x| x.normalize()).collect(); // ryhmät
     let description = description.normalize(); // lisätiedot
 
     if lastname.is_none() || firstname.is_none() || groups.is_empty() {
         return Err("Pitää antaa vähintään sukunimi, etunimi ja ryhmä.".into());
     }
 
-    for group in &groups {
-        if group.has_whitespace() {
-            return Err("Ryhmätunnuksissa ei voi olla välilyöntejä.".into());
-        }
-    }
+    tools::assert_group_names(&groups)?;
 
     let mut ta = db.begin().await?;
 
@@ -52,12 +48,8 @@ pub async fn insert_student(
         student.insert(&mut ta).await?;
 
         for group in groups {
-            if let Some(gr) = group.normalize() {
-                let rid = Group::get_or_insert(&mut ta, &gr).await?;
-                student.add_to_group(&mut ta, rid).await?;
-            } else {
-                return Err(Error::GroupName(group.to_string()));
-            }
+            let rid = Group::get_or_insert(&mut ta, &group).await?;
+            student.add_to_group(&mut ta, rid).await?;
         }
     } else {
         return Err("Oppilaan lisääminen epäonnistui.".into());

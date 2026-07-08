@@ -18,7 +18,7 @@ pub async fn insert_assignment(
     weight: Option<&str>,
     position: Option<&str>,
 ) -> Result<()> {
-    let groups: Vec<&str> = groups.into_iter().filter(|x| x.has_content()).collect(); // ryhmät
+    let groups: Vec<String> = groups.into_iter().filter_map(|x| x.normalize()).collect(); // ryhmät
     let assignment = assignment.normalize(); // suoritus
     let assignment_short = assignment_short.normalize(); // lyhenne
     let weight = weight.filter(|x| x.has_content()); // painokerroin
@@ -28,11 +28,7 @@ pub async fn insert_assignment(
         return Err("Pitää antaa vähintään ryhmä, suorituksen nimi ja lyhenne.".into());
     }
 
-    for group in &groups {
-        if group.has_whitespace() {
-            return Err("Ryhmätunnuksissa ei voi olla välilyöntejä.".into());
-        }
-    }
+    tools::assert_group_names(&groups)?;
 
     let weight = match weight {
         Some(s) => match s.trim().parse::<i32>() {
@@ -60,19 +56,15 @@ pub async fn insert_assignment(
         && let Some(short) = assignment_short
     {
         for group in groups {
-            if let Some(gr) = group.normalize() {
-                let mut group_assignment = Assignment {
-                    rid: Group::get_or_insert(&mut ta, &gr).await?,
-                    assignment: long.clone(),
-                    assignment_short: short.clone(),
-                    weight,
-                    ..Default::default()
-                };
+            let mut group_assignment = Assignment {
+                rid: Group::get_or_insert(&mut ta, &group).await?,
+                assignment: long.clone(),
+                assignment_short: short.clone(),
+                weight,
+                ..Default::default()
+            };
 
-                group_assignment.insert(&mut ta, position).await?;
-            } else {
-                return Err(Error::GroupName(group.to_string()));
-            }
+            group_assignment.insert(&mut ta, position).await?;
         }
     } else {
         return Err("Suorituksen lisääminen epäonnistui.".into());
