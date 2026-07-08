@@ -212,5 +212,5 @@ pub async fn delete(db: &mut DBase, editable: &mut Editable, args: &str) -> Resu
 }
 
 pub(crate) trait Commit {
-    async fn commit(self, db: &mut DBase) -> Result<()>;
+    async fn commit(&self, db: &mut DBase) -> Result<()>;
 }

@@ -274,27 +274,27 @@ impl Student {
 }
 
 impl Commit for UpdateStudent<'_> {
-    async fn commit(self, db: &mut DBase) -> Result<()> {
+    async fn commit(&self, db: &mut DBase) -> Result<()> {
         let mut ta = db.begin().await?;
 
-        match self.field {
+        match &self.field {
             UpdateStudentField::Lastname(last) => {
-                self.student.update_lastname(&mut ta, &last).await?
+                self.student.update_lastname(&mut ta, last).await?
             }
 
             UpdateStudentField::Firstname(first) => {
-                self.student.update_firstname(&mut ta, &first).await?
+                self.student.update_firstname(&mut ta, first).await?
             }
 
             UpdateStudentField::GroupAdd(name) => {
-                let rid = Group::get_or_insert(&mut ta, &name).await?;
+                let rid = Group::get_or_insert(&mut ta, name).await?;
                 if !self.student.in_group(&mut ta, rid).await? {
                     self.student.add_to_group(&mut ta, rid).await?;
                 }
             }
 
             UpdateStudentField::GroupRemove(name) => {
-                let Some(rid) = Group::get_id(&mut ta, &name).await? else {
+                let Some(rid) = Group::get_id(&mut ta, name).await? else {
                     return Ok(()); // No such group.
                 };
 
@@ -325,7 +325,7 @@ impl Commit for UpdateStudent<'_> {
             }
 
             UpdateStudentField::Description(desc) => {
-                self.student.update_description(&mut ta, &desc).await?
+                self.student.update_description(&mut ta, desc).await?
             }
 
             UpdateStudentField::DescriptionClear => {
@@ -339,7 +339,7 @@ impl Commit for UpdateStudent<'_> {
 }
 
 impl Commit for DeleteStudent<'_> {
-    async fn commit(self, db: &mut DBase) -> Result<()> {
+    async fn commit(&self, db: &mut DBase) -> Result<()> {
         let mut ta = db.begin().await?;
 
         let count = self.student.count_grades(&mut ta).await?;
