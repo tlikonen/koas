@@ -220,6 +220,32 @@ impl Student {
         }
     }
 
+    pub(crate) fn add_group<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
+        match name.normalize() {
+            None => Err("Sopimaton ryhmätunnus.".into()),
+            Some(n) => {
+                n.is_valid_group_name()?;
+                Ok(UpdateStudent {
+                    student: self,
+                    field: UpdateStudentField::GroupAdd(n),
+                })
+            }
+        }
+    }
+
+    pub(crate) fn remove_group<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
+        match name.normalize() {
+            None => Err("Sopimaton ryhmätunnus.".into()),
+            Some(n) => {
+                n.is_valid_group_name()?;
+                Ok(UpdateStudent {
+                    student: self,
+                    field: UpdateStudentField::GroupRemove(n),
+                })
+            }
+        }
+    }
+
     pub(crate) fn set_description<'a>(&'a self, desc: &str) -> Result<UpdateStudent<'a>> {
         match desc.normalize() {
             None => Err("Sopimaton oppilaan kuvaus.".into()),
