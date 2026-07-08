@@ -23,20 +23,20 @@ pub async fn edit(db: &mut DBase, editable: &mut Editable, args: &str) -> Result
     };
 
     let mut ta = db.begin().await?;
-    match editable.item() {
-        EditableItem::Students(students) => {
+    match editable {
+        Editable::Students(students) => {
             students.for_edit(indexes, fields).edit(&mut ta).await?;
         }
-        EditableItem::Groups(groups) => {
+        Editable::Groups(groups) => {
             groups.for_edit(indexes, fields).edit(&mut ta).await?;
         }
-        EditableItem::Assignments(assignments) => {
+        Editable::Assignments(assignments) => {
             assignments.for_edit(indexes, fields).edit(&mut ta).await?;
         }
-        EditableItem::Grades(grades) => {
+        Editable::Grades(grades) => {
             grades.for_edit(indexes, fields).edit(&mut ta).await?;
         }
-        EditableItem::None => panic!(),
+        Editable::None => panic!(),
     }
     ta.commit().await?;
     Ok(())
@@ -69,12 +69,12 @@ pub async fn edit_series(db: &mut DBase, editable: &mut Editable, args: &str) ->
     };
 
     let (field_num, rest) = {
-        let field_num_max = match editable.item() {
-            EditableItem::Students(_) => 4, // sukunimi, etunimi, ryhmät, lisätiedot
-            EditableItem::Groups(_) => 2,   // ryhmä, lisätiedot
-            EditableItem::Assignments(_) => 4, // suoritus, lyhenne, painokerroin, järjestys
-            EditableItem::Grades(_) => 2,   // arvosana, lisätiedot
-            EditableItem::None => panic!(),
+        let field_num_max = match editable {
+            Editable::Students(_) => 4,    // sukunimi, etunimi, ryhmät, lisätiedot
+            Editable::Groups(_) => 2,      // ryhmä, lisätiedot
+            Editable::Assignments(_) => 4, // suoritus, lyhenne, painokerroin, järjestys
+            Editable::Grades(_) => 2,      // arvosana, lisätiedot
+            Editable::None => panic!(),
         };
 
         let field_num_err =
@@ -149,20 +149,20 @@ pub async fn edit_series(db: &mut DBase, editable: &mut Editable, args: &str) ->
             v.into_iter()
         };
 
-        match editable.item() {
-            EditableItem::Students(students) => {
+        match editable {
+            Editable::Students(students) => {
                 students.for_edit(index, fields).edit(&mut ta).await?;
             }
-            EditableItem::Groups(groups) => {
+            Editable::Groups(groups) => {
                 groups.for_edit(index, fields).edit(&mut ta).await?;
             }
-            EditableItem::Assignments(assignments) => {
+            Editable::Assignments(assignments) => {
                 assignments.for_edit(index, fields).edit(&mut ta).await?;
             }
-            EditableItem::Grades(grades) => {
+            Editable::Grades(grades) => {
                 grades.for_edit(index, fields).edit(&mut ta).await?;
             }
-            EditableItem::None => panic!(),
+            Editable::None => panic!(),
         }
     }
 
@@ -190,22 +190,22 @@ pub async fn delete(db: &mut DBase, editable: &mut Editable, args: &str) -> Resu
     };
 
     let mut ta = db.begin().await?;
-    match editable.item() {
-        EditableItem::Students(students) => {
+    match editable {
+        Editable::Students(students) => {
             students.for_delete(indexes).delete(&mut ta).await?;
         }
-        EditableItem::Groups(_) => {
+        Editable::Groups(_) => {
             return Err("Ryhmiä ei voi poistaa näin. Ryhmä poistuu itsestään,\n\
                         kun siltä poistaa kaikki oppilaat ja suoritukset."
                 .into());
         }
-        EditableItem::Assignments(assignments) => {
+        Editable::Assignments(assignments) => {
             assignments.for_delete(indexes).delete(&mut ta).await?;
         }
-        EditableItem::Grades(grades) => {
+        Editable::Grades(grades) => {
             grades.for_delete(indexes).delete(&mut ta).await?;
         }
-        EditableItem::None => panic!(),
+        Editable::None => panic!(),
     }
     ta.commit().await?;
     Ok(())

@@ -27,46 +27,6 @@ pub async fn connect(config: &Config) -> Result<DBase> {
     Ok(db)
 }
 
-impl Editable {
-    pub fn clear(&mut self) {
-        self.set(EditableItem::None);
-    }
-
-    pub(crate) fn is_none(&self) -> bool {
-        matches!(self.item(), EditableItem::None)
-    }
-
-    pub(crate) fn is_grade(&self) -> bool {
-        matches!(self.item(), EditableItem::Grades(_))
-    }
-
-    pub(crate) fn count(&self) -> usize {
-        match &self.item() {
-            EditableItem::None => 0,
-            EditableItem::Students(v) => v.count(),
-            EditableItem::Groups(v) => v.count(),
-            EditableItem::Assignments(v) => v.count(),
-            EditableItem::Grades(v) => v.count(),
-        }
-    }
-
-    pub fn print_fields(&self, fields: &[&str]) -> Result<()> {
-        let mut s = String::with_capacity(50);
-        let mut stdout = io::stdout();
-
-        for (n, f) in (1..).zip(fields) {
-            s.push_str(&format!(" / {}:{}", n, f));
-        }
-
-        match self.count() {
-            0 => (),
-            1 => writeln!(stdout, "Tietue: 1. Kentät:{s}")?,
-            n => writeln!(stdout, "Tietueet: 1–{n}. Kentät:{s}")?,
-        }
-        Ok(())
-    }
-}
-
 impl Stats {
     pub(crate) async fn query(db: &mut DBase) -> Result<Self> {
         let row = sqlx::query(
@@ -244,7 +204,7 @@ impl HasData for QueryList<Student> {
 
 impl CopyToEditable for QueryList<Student> {
     fn copy_to(&self, ed: &mut Editable) {
-        ed.set(EditableItem::Students(QueryList::new(self.list().clone())));
+        ed.set(Editable::Students(self.clone()));
     }
 }
 
@@ -340,7 +300,7 @@ impl HasData for QueryList<Group> {
 
 impl CopyToEditable for QueryList<Group> {
     fn copy_to(&self, ed: &mut Editable) {
-        ed.set(EditableItem::Groups(self.clone()));
+        ed.set(Editable::Groups(self.clone()));
     }
 }
 
@@ -560,7 +520,7 @@ impl HasData for QueryList<AssignmentsForGroup> {
 
 impl CopyToEditable for AssignmentsForGroup {
     fn copy_to(&self, ed: &mut Editable) {
-        ed.set(EditableItem::Assignments(QueryList::new(
+        ed.set(Editable::Assignments(QueryList::new(
             self.assignments.clone(),
         )));
     }
@@ -734,7 +694,7 @@ impl HasData for QueryList<GradesForAssignment> {
 
 impl CopyToEditable for GradesForAssignment {
     fn copy_to(&self, ed: &mut Editable) {
-        ed.set(EditableItem::Grades(QueryList::new(self.grades.clone())));
+        ed.set(Editable::Grades(QueryList::new(self.grades.clone())));
     }
 }
 
@@ -825,7 +785,7 @@ impl HasData for QueryList<GradesForStudent> {
 
 impl CopyToEditable for GradesForStudent {
     fn copy_to(&self, ed: &mut Editable) {
-        ed.set(EditableItem::Grades(QueryList::new(self.grades.clone())));
+        ed.set(Editable::Grades(QueryList::new(self.grades.clone())));
     }
 }
 

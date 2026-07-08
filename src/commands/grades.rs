@@ -61,8 +61,8 @@ pub async fn convert_to_grade(db: &mut DBase, editable: &mut Editable, args: &st
     };
 
     let mut ta = db.begin().await?;
-    match editable.item() {
-        EditableItem::Grades(student_grades) => {
+    match editable {
+        Editable::Grades(student_grades) => {
             let edits = student_grades.for_edit(indexes, [""; 0]); // empty fields
             for student_grade in edits.iter() {
                 if let Some(ss) = &student_grade.grade
@@ -103,8 +103,8 @@ pub async fn convert_to_decimal(db: &mut DBase, editable: &mut Editable, args: &
     };
 
     let mut ta = db.begin().await?;
-    match editable.item() {
-        EditableItem::Grades(student_grades) => {
+    match editable {
+        Editable::Grades(student_grades) => {
             let edits = student_grades.for_edit(indexes, [""; 0]); // empty fields
             for student_grade in edits.iter() {
                 if let Some(ss) = &student_grade.grade

@@ -18,9 +18,9 @@ pub trait CopyToEditable {
     fn copy_to(&self, ed: &mut Editable);
 }
 
-pub struct Editable(EditableItem);
-
-pub(crate) enum EditableItem {
+#[derive(Default)]
+pub enum Editable {
+    #[default]
     None,
     Students(QueryList<Student>),
     Groups(QueryList<Group>),
@@ -29,18 +29,46 @@ pub(crate) enum EditableItem {
 }
 
 impl Editable {
-    pub(crate) fn set(&mut self, value: EditableItem) {
-        self.0 = value;
+    pub(crate) fn set(&mut self, value: Self) {
+        *self = value;
     }
 
-    pub(crate) fn item(&self) -> &EditableItem {
-        &self.0
+    pub fn clear(&mut self) {
+        self.set(Self::None);
     }
-}
 
-impl Default for Editable {
-    fn default() -> Self {
-        Self(EditableItem::None)
+    pub(crate) fn is_none(&self) -> bool {
+        matches!(self, Self::None)
+    }
+
+    pub(crate) fn is_grade(&self) -> bool {
+        matches!(self, Self::Grades(_))
+    }
+
+    pub(crate) fn count(&self) -> usize {
+        match self {
+            Self::None => 0,
+            Self::Students(v) => v.count(),
+            Self::Groups(v) => v.count(),
+            Self::Assignments(v) => v.count(),
+            Self::Grades(v) => v.count(),
+        }
+    }
+
+    pub fn print_fields(&self, fields: &[&str]) -> Result<()> {
+        let mut s = String::with_capacity(50);
+        let mut stdout = io::stdout();
+
+        for (n, f) in (1..).zip(fields) {
+            s.push_str(&format!(" / {}:{}", n, f));
+        }
+
+        match self.count() {
+            0 => (),
+            1 => writeln!(stdout, "Tietue: 1. Kentät:{s}")?,
+            n => writeln!(stdout, "Tietueet: 1–{n}. Kentät:{s}")?,
+        }
+        Ok(())
     }
 }
 

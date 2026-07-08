@@ -5,9 +5,8 @@ pub(crate) use {
         error::{Error, Result},
         objects::{
             Assignment, AssignmentsForGroup, CopyToEditable, Delete, DeleteItems, Edit, EditItems,
-            Editable, EditableItem, Field, FullQuery, Grade, GradeDistribution,
-            GradesForAssignment, GradesForGroup, GradesForStudent, Group, QueryList, Stats,
-            Student, StudentRanking,
+            Editable, Field, FullQuery, Grade, GradeDistribution, GradesForAssignment,
+            GradesForGroup, GradesForStudent, Group, QueryList, Stats, Student, StudentRanking,
         },
         output::Output,
         tools::{self, Normalize, StrExt},
