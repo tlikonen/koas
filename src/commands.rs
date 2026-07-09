@@ -18,6 +18,7 @@ pub async fn stats(db: &mut DBase) -> Result<Stats> {
     Stats::query(db).await
 }
 
-pub(crate) trait Commit {
+#[allow(async_fn_in_trait)]
+pub trait Commit {
     async fn commit(&self, db: &mut DBase) -> Result<()>;
 }

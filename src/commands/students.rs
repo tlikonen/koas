@@ -185,13 +185,13 @@ impl Delete for DeleteItems<'_, Student> {
     }
 }
 
-pub(crate) struct UpdateStudent<'a> {
-    student: &'a Student,
+pub struct UpdateStudent<'a> {
+    pub student: &'a Student,
     field: UpdateStudentField,
 }
 
-pub(crate) struct DeleteStudent<'a> {
-    student: &'a Student,
+pub struct DeleteStudent<'a> {
+    pub student: &'a Student,
 }
 
 enum UpdateStudentField {
@@ -204,7 +204,7 @@ enum UpdateStudentField {
 }
 
 impl Student {
-    pub(crate) fn set_lastname<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
+    pub fn set_lastname<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
         match name.normalize() {
             None => Err("Sopimaton sukunimi.".into()),
             Some(n) => Ok(UpdateStudent {
@@ -214,7 +214,7 @@ impl Student {
         }
     }
 
-    pub(crate) fn set_firstname<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
+    pub fn set_firstname<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
         match name.normalize() {
             None => Err("Sopimaton etunimi.".into()),
             Some(n) => Ok(UpdateStudent {
@@ -224,7 +224,7 @@ impl Student {
         }
     }
 
-    pub(crate) fn add_group<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
+    pub fn add_group<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
         match name.normalize() {
             None => Err("Sopimaton ryhmätunnus.".into()),
             Some(n) => {
@@ -237,7 +237,7 @@ impl Student {
         }
     }
 
-    pub(crate) fn remove_group<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
+    pub fn remove_group<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
         match name.normalize() {
             None => Err("Sopimaton ryhmätunnus.".into()),
             Some(n) => {
@@ -250,7 +250,7 @@ impl Student {
         }
     }
 
-    pub(crate) fn set_description<'a>(&'a self, desc: &str) -> Result<UpdateStudent<'a>> {
+    pub fn set_description<'a>(&'a self, desc: &str) -> Result<UpdateStudent<'a>> {
         match desc.normalize() {
             None => Err("Sopimaton oppilaan kuvaus.".into()),
             Some(d) => Ok(UpdateStudent {
@@ -260,14 +260,14 @@ impl Student {
         }
     }
 
-    pub(crate) fn clear_description<'a>(&'a self) -> UpdateStudent<'a> {
+    pub fn clear_description<'a>(&'a self) -> UpdateStudent<'a> {
         UpdateStudent {
             student: self,
             field: UpdateStudentField::DescriptionClear,
         }
     }
 
-    pub(crate) fn mark_deleted<'a>(&'a self) -> DeleteStudent<'a> {
+    pub fn mark_deleted<'a>(&'a self) -> DeleteStudent<'a> {
         DeleteStudent { student: self }
     }
 }
