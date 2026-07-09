@@ -17,3 +17,7 @@ use crate::prelude::*;
 pub async fn stats(db: &mut DBase) -> Result<Stats> {
     Stats::query(db).await
 }
+
+pub(crate) trait Commit {
+    async fn commit(&self, db: &mut DBase) -> Result<()>;
+}

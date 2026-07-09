@@ -1,5 +1,6 @@
 pub(crate) use {
     crate::{
+        commands::Commit,
         config::Config,
         error::{Error, Result},
         objects::{

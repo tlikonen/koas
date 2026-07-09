@@ -1,4 +1,3 @@
-use super::Commit;
 use crate::prelude::*;
 
 /// Query for students.
