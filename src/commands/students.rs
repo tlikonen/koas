@@ -204,6 +204,9 @@ enum UpdateStudentField {
 }
 
 impl Student {
+    /// Prepare update to student's lastname.
+    ///
+    /// See [`Commit`] trait for more information.
     pub fn set_lastname<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
         match name.normalize() {
             None => Err(format!("Sopimaton sukunimi: ”{name}”.").into()),
@@ -214,6 +217,9 @@ impl Student {
         }
     }
 
+    /// Prepare update to student's firstname.
+    ///
+    /// See [`Commit`] trait for more information.
     pub fn set_firstname<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
         match name.normalize() {
             None => Err(format!("Sopimaton etunimi: ”{name}”.").into()),
@@ -224,6 +230,9 @@ impl Student {
         }
     }
 
+    /// Prepare addition to student's groups.
+    ///
+    /// See [`Commit`] trait for more information.
     pub fn add_group<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
         match name.normalize() {
             None => Err(format!("Sopimaton ryhmätunnus: ”{name}”.").into()),
@@ -237,6 +246,9 @@ impl Student {
         }
     }
 
+    /// Prepare removal to student's groups.
+    ///
+    /// See [`Commit`] trait for more information.
     pub fn remove_group<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
         match name.normalize() {
             None => Err(format!("Sopimaton ryhmätunnus: ”{name}”.").into()),
@@ -250,6 +262,9 @@ impl Student {
         }
     }
 
+    /// Prepare update to student's description.
+    ///
+    /// See [`Commit`] trait for more information.
     pub fn set_description<'a>(&'a self, desc: &str) -> Result<UpdateStudent<'a>> {
         match desc.normalize() {
             None => Err(format!("Sopimaton oppilaan kuvaus: ”{desc}”.").into()),
@@ -260,6 +275,9 @@ impl Student {
         }
     }
 
+    /// Prepare to clear student's description.
+    ///
+    /// See [`Commit`] trait for more information.
     pub fn clear_description<'a>(&'a self) -> UpdateStudent<'a> {
         UpdateStudent {
             student: self,
@@ -267,6 +285,9 @@ impl Student {
         }
     }
 
+    /// Prepare deletion of student.
+    ///
+    /// See [`Commit`] trait for more information.
     pub fn mark_deleted<'a>(&'a self) -> DeleteStudent<'a> {
         DeleteStudent { student: self }
     }
