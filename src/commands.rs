@@ -18,6 +18,12 @@ pub async fn stats(db: &mut DBase) -> Result<Stats> {
     Stats::query(db).await
 }
 
+/// Commit prepared changes to the database.
+///
+/// The [`Commit::commit`] method commits prepared updates to the
+/// database. Updates can be prepared with methods of [`Student`],
+/// [`Group`], [`Assignment`] and [`Grade`], as well as methods of
+/// [`Updates`] which represents a queue of updates.
 #[allow(async_fn_in_trait)]
 pub trait Commit {
     /// Commit the database update.
@@ -55,7 +61,8 @@ impl<T: Commit> Commit for Updates<T> {
     ///
     /// The whole queue is committed as a single database transaction.
     /// It is faster than several separate commits. If anything fails in
-    /// the transaction then all changes are rolled back (canceled).
+    /// the transaction then the whole queue of changes is rolled back
+    /// (canceled).
     async fn commit(&self, db: &mut DBase) -> Result<()> {
         let mut ta = db.begin().await?;
         for item in self.iter() {
