@@ -22,3 +22,36 @@ pub async fn stats(db: &mut DBase) -> Result<Stats> {
 pub trait Commit {
     async fn commit(&self, db: &mut DBase) -> Result<()>;
 }
+
+pub struct Updates<T>(Vec<T>);
+
+impl<T> Updates<T> {
+    pub fn new() -> Self {
+        Self(Vec::new())
+    }
+
+    pub fn push(&mut self, item: T) {
+        self.0.push(item);
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = &T> {
+        self.0.iter()
+    }
+}
+
+impl<T> Default for Updates<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<T: Commit> Commit for Updates<T> {
+    async fn commit(&self, db: &mut DBase) -> Result<()> {
+        let mut ta = db.begin().await?;
+        for item in self.iter() {
+            item.commit(&mut ta).await?;
+        }
+        ta.commit().await?;
+        Ok(())
+    }
+}
