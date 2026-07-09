@@ -20,20 +20,24 @@ pub async fn stats(db: &mut DBase) -> Result<Stats> {
 
 #[allow(async_fn_in_trait)]
 pub trait Commit {
+    /// Commit the database update.
     async fn commit(&self, db: &mut DBase) -> Result<()>;
 }
 
 pub struct Updates<T>(Vec<T>);
 
 impl<T> Updates<T> {
+    /// Create new queue for updates.
     pub fn new() -> Self {
         Self(Vec::new())
     }
 
+    /// Push new item to a queue of updates.
     pub fn push(&mut self, item: T) {
         self.0.push(item);
     }
 
+    /// Iterate over a queue.
     pub fn iter(&self) -> impl Iterator<Item = &T> {
         self.0.iter()
     }
@@ -46,6 +50,11 @@ impl<T> Default for Updates<T> {
 }
 
 impl<T: Commit> Commit for Updates<T> {
+    /// Commit a queue of updates.
+    ///
+    /// The whole queue is committed as a single database transaction.
+    /// It is faster than several separate commits. If anything fails in
+    /// the transaction then all changes are rolled back (canceled).
     async fn commit(&self, db: &mut DBase) -> Result<()> {
         let mut ta = db.begin().await?;
         for item in self.iter() {
