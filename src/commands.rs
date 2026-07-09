@@ -24,10 +24,11 @@ pub trait Commit {
     async fn commit(&self, db: &mut DBase) -> Result<()>;
 }
 
-pub struct Updates<T>(Vec<T>);
+/// A queue for updates.
+pub struct Updates<T: Commit>(Vec<T>);
 
-impl<T> Updates<T> {
-    /// Create new queue for updates.
+impl<T: Commit> Updates<T> {
+    /// Create a new queue for updates.
     pub fn new() -> Self {
         Self(Vec::new())
     }
@@ -43,7 +44,7 @@ impl<T> Updates<T> {
     }
 }
 
-impl<T> Default for Updates<T> {
+impl<T: Commit> Default for Updates<T> {
     fn default() -> Self {
         Self::new()
     }
