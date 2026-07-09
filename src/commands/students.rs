@@ -206,7 +206,7 @@ enum UpdateStudentField {
 impl Student {
     pub fn set_lastname<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
         match name.normalize() {
-            None => Err("Sopimaton sukunimi.".into()),
+            None => Err(format!("Sopimaton sukunimi: ”{name}”.").into()),
             Some(n) => Ok(UpdateStudent {
                 student: self,
                 field: UpdateStudentField::Lastname(n),
@@ -216,7 +216,7 @@ impl Student {
 
     pub fn set_firstname<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
         match name.normalize() {
-            None => Err("Sopimaton etunimi.".into()),
+            None => Err(format!("Sopimaton etunimi: ”{name}”.").into()),
             Some(n) => Ok(UpdateStudent {
                 student: self,
                 field: UpdateStudentField::Firstname(n),
@@ -226,7 +226,7 @@ impl Student {
 
     pub fn add_group<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
         match name.normalize() {
-            None => Err("Sopimaton ryhmätunnus.".into()),
+            None => Err(format!("Sopimaton ryhmätunnus: ”{name}”.").into()),
             Some(n) => {
                 n.is_valid_group_name()?;
                 Ok(UpdateStudent {
@@ -239,7 +239,7 @@ impl Student {
 
     pub fn remove_group<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
         match name.normalize() {
-            None => Err("Sopimaton ryhmätunnus.".into()),
+            None => Err(format!("Sopimaton ryhmätunnus: ”{name}”.").into()),
             Some(n) => {
                 n.is_valid_group_name()?;
                 Ok(UpdateStudent {
@@ -252,7 +252,7 @@ impl Student {
 
     pub fn set_description<'a>(&'a self, desc: &str) -> Result<UpdateStudent<'a>> {
         match desc.normalize() {
-            None => Err("Sopimaton oppilaan kuvaus.".into()),
+            None => Err(format!("Sopimaton oppilaan kuvaus: ”{desc}”.").into()),
             Some(d) => Ok(UpdateStudent {
                 student: self,
                 field: UpdateStudentField::Description(d),
