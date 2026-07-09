@@ -31,22 +31,45 @@ pub trait Commit {
 }
 
 /// A queue for updates.
+///
+/// # Examples
+/// ```compile_fail
+/// let mut updates = Updates::new();
+/// updates.push(/* item */);
+/// updates.push(/* item */);
+/// updates.commit(/* &mut PgConnection */).await?;
+/// ```
 pub struct Updates<T: Commit>(Vec<T>);
 
 impl<T: Commit> Updates<T> {
-    /// Create a new queue for updates.
+    /// Create a new empty queue for updates.
     pub fn new() -> Self {
         Self(Vec::new())
     }
 
-    /// Push new item to a queue of updates.
+    /// Push new item to the queue of updates.
     pub fn push(&mut self, item: T) {
         self.0.push(item);
     }
 
-    /// Iterate over a queue.
+    /// Iterate over the queue.
     pub fn iter(&self) -> impl Iterator<Item = &T> {
         self.0.iter()
+    }
+
+    /// Return how many items are in the queue.
+    pub fn count(&self) -> usize {
+        self.0.len()
+    }
+
+    /// Return an immutable reference to the queue vector.
+    pub fn as_vec(&self) -> &Vec<T> {
+        &self.0
+    }
+
+    /// Return a mutable reference to the queue vector.
+    pub fn as_vec_mut(&mut self) -> &mut Vec<T> {
+        &mut self.0
     }
 }
 
