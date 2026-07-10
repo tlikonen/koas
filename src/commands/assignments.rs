@@ -75,7 +75,7 @@ pub async fn insert_assignment(
     Ok(())
 }
 
-impl Edit for EditItems<'_, Assignment> {
+impl DeprecatedEdit for DeprecatedEditItems<'_, Assignment> {
     async fn edit(&self, db: &mut DBase) -> Result<()> {
         let name = self.field(0); // suoritus
         let short = self.field(1); // lyhenne
@@ -92,43 +92,43 @@ impl Edit for EditItems<'_, Assignment> {
 
         // Convert from &Field<String> to Field<i32>.
         let weight = match weight {
-            Field::Set(s) => match s.trim().parse::<i32>() {
-                Ok(n) if n >= 1 => Field::Set(n),
+            DeprecatedField::Set(s) => match s.trim().parse::<i32>() {
+                Ok(n) if n >= 1 => DeprecatedField::Set(n),
                 _ => {
                     return Err(
                         "Painokertoimen täytyy olla positiivinen kokonaisluku (tai tyhjä).".into(),
                     );
                 }
             },
-            Field::Clear => Field::Clear,
-            Field::Ignore => Field::Ignore,
+            DeprecatedField::Clear => DeprecatedField::Clear,
+            DeprecatedField::Ignore => DeprecatedField::Ignore,
         };
 
         // Convert from &Field<String> to Field<i32>.
         let position = match position {
-            Field::Set(s) => match s.trim().parse::<i32>() {
-                Ok(n) => Field::Set(n),
+            DeprecatedField::Set(s) => match s.trim().parse::<i32>() {
+                Ok(n) => DeprecatedField::Set(n),
                 _ => return Err("Järjestysnumeron täytyy olla kokonaisluku.".into()),
             },
-            Field::Clear | Field::Ignore => Field::Ignore,
+            DeprecatedField::Clear | DeprecatedField::Ignore => DeprecatedField::Ignore,
         };
 
         for group_assignment in self.iter() {
-            if let Field::Set(n) = name {
+            if let DeprecatedField::Set(n) = name {
                 group_assignment.update_name(db, n).await?;
             }
 
-            if let Field::Set(s) = short {
+            if let DeprecatedField::Set(s) = short {
                 group_assignment.update_short(db, s).await?;
             }
 
             match weight {
-                Field::Set(w) => group_assignment.update_weight(db, Some(w)).await?,
-                Field::Clear => group_assignment.update_weight(db, None).await?,
-                Field::Ignore => (),
+                DeprecatedField::Set(w) => group_assignment.update_weight(db, Some(w)).await?,
+                DeprecatedField::Clear => group_assignment.update_weight(db, None).await?,
+                DeprecatedField::Ignore => (),
             }
 
-            if let Field::Set(p) = position {
+            if let DeprecatedField::Set(p) = position {
                 group_assignment.update_position(db, p).await?;
             }
         }
@@ -136,7 +136,7 @@ impl Edit for EditItems<'_, Assignment> {
     }
 }
 
-impl Delete for DeleteItems<'_, Assignment> {
+impl DeprecatedDelete for DeprecatedDeleteItems<'_, Assignment> {
     async fn delete(&self, db: &mut DBase) -> Result<()> {
         let mut rid_list = Vec::with_capacity(1);
         for assignment in self.iter() {

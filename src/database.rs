@@ -14,7 +14,9 @@ use futures::TryStreamExt;
 use std::io;
 use std::io::Write as _;
 
-pub(crate) use self::deprecated::{Delete, DeleteItems, Edit, EditItems, Field};
+pub(crate) use self::deprecated::{
+    DeprecatedDelete, DeprecatedDeleteItems, DeprecatedEdit, DeprecatedEditItems, DeprecatedField,
+};
 pub(crate) use self::students::*;
 pub(crate) use sqlx::{Connection as _, PgConnection as DBase, Row as _};
 

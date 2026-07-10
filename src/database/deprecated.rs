@@ -2,7 +2,11 @@ use super::*;
 use crate::prelude::*;
 
 impl<T> QueryList<T> {
-    pub(crate) fn for_edit<'a, I, S>(&'a self, indexes: Vec<usize>, fields: I) -> EditItems<'a, T>
+    pub(crate) fn for_edit<'a, I, S>(
+        &'a self,
+        indexes: Vec<usize>,
+        fields: I,
+    ) -> DeprecatedEditItems<'a, T>
     where
         I: IntoIterator<Item = S>,
         S: ToString,
@@ -10,38 +14,38 @@ impl<T> QueryList<T> {
         let mut normalized = Vec::with_capacity(4);
         for field in fields.into_iter().map(|x| x.to_string()) {
             normalized.push(if field.is_empty() {
-                Field::Ignore
+                DeprecatedField::Ignore
             } else if !field.has_content() {
-                Field::Clear
+                DeprecatedField::Clear
             } else if let Some(f) = field.normalize() {
-                Field::Set(f)
+                DeprecatedField::Set(f)
             } else {
-                Field::Ignore
+                DeprecatedField::Ignore
             });
         }
 
-        EditItems {
+        DeprecatedEditItems {
             items: self.list(),
             indexes,
             fields: normalized,
         }
     }
 
-    pub(crate) fn for_delete<'a>(&'a self, indexes: Vec<usize>) -> DeleteItems<'a, T> {
-        DeleteItems {
+    pub(crate) fn for_delete<'a>(&'a self, indexes: Vec<usize>) -> DeprecatedDeleteItems<'a, T> {
+        DeprecatedDeleteItems {
             items: self.list(),
             indexes,
         }
     }
 }
 
-pub(crate) struct EditItems<'a, T> {
+pub(crate) struct DeprecatedEditItems<'a, T> {
     items: &'a Vec<T>,
     indexes: Vec<usize>,
-    fields: Vec<Field<String>>,
+    fields: Vec<DeprecatedField<String>>,
 }
 
-impl<'a, T> EditItems<'a, T> {
+impl<'a, T> DeprecatedEditItems<'a, T> {
     pub(crate) fn count(&self) -> usize {
         self.indexes.len()
     }
@@ -50,21 +54,21 @@ impl<'a, T> EditItems<'a, T> {
         self.indexes.iter().filter_map(|i| self.items.get(i - 1))
     }
 
-    pub(crate) fn field(&self, n: usize) -> &Field<String> {
+    pub(crate) fn field(&self, n: usize) -> &DeprecatedField<String> {
         match self.fields.get(n) {
             Some(f) => f,
-            None => &Field::Ignore,
+            None => &DeprecatedField::Ignore,
         }
     }
 }
 
-pub(crate) enum Field<T> {
+pub(crate) enum DeprecatedField<T> {
     Ignore,
     Clear,
     Set(T),
 }
 
-impl<T> Field<T> {
+impl<T> DeprecatedField<T> {
     pub(crate) fn is_none(&self) -> bool {
         matches!(self, Self::Ignore)
     }
@@ -74,21 +78,21 @@ impl<T> Field<T> {
     }
 }
 
-pub(crate) trait Edit {
+pub(crate) trait DeprecatedEdit {
     async fn edit(&self, db: &mut DBase) -> Result<()>;
 }
 
-pub(crate) struct DeleteItems<'a, T> {
+pub(crate) struct DeprecatedDeleteItems<'a, T> {
     items: &'a Vec<T>,
     indexes: Vec<usize>,
 }
 
-impl<'a, T> DeleteItems<'a, T> {
+impl<'a, T> DeprecatedDeleteItems<'a, T> {
     pub(crate) fn iter(&self) -> impl Iterator<Item = &T> {
         self.indexes.iter().filter_map(|i| self.items.get(i - 1))
     }
 }
 
-pub(crate) trait Delete {
+pub(crate) trait DeprecatedDelete {
     async fn delete(&self, db: &mut DBase) -> Result<()>;
 }

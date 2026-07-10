@@ -60,7 +60,7 @@ pub async fn insert_student(
     Ok(())
 }
 
-impl Edit for EditItems<'_, Student> {
+impl DeprecatedEdit for DeprecatedEditItems<'_, Student> {
     async fn edit(&self, db: &mut DBase) -> Result<()> {
         let lastname = self.field(0); // sukunimi
         let firstname = self.field(1); // etunimi
@@ -81,7 +81,7 @@ impl Edit for EditItems<'_, Student> {
         let mut groups_add: Vec<String> = Vec::with_capacity(3);
         let mut groups_remove: Vec<String> = Vec::with_capacity(1);
 
-        if let Field::Set(groups) = groups {
+        if let DeprecatedField::Set(groups) = groups {
             for g in groups.split_whitespace() {
                 let mut chars = g.chars();
                 match chars.next() {
@@ -106,11 +106,11 @@ impl Edit for EditItems<'_, Student> {
         }
 
         for student in self.iter() {
-            if let Field::Set(last) = lastname {
+            if let DeprecatedField::Set(last) = lastname {
                 student.update_lastname(db, last).await?;
             }
 
-            if let Field::Set(first) = firstname {
+            if let DeprecatedField::Set(first) = firstname {
                 student.update_firstname(db, first).await?;
             }
 
@@ -154,9 +154,9 @@ impl Edit for EditItems<'_, Student> {
             }
 
             match desc {
-                Field::Set(d) => student.update_description(db, d).await?,
-                Field::Clear => student.update_description(db, "").await?,
-                Field::Ignore => (),
+                DeprecatedField::Set(d) => student.update_description(db, d).await?,
+                DeprecatedField::Clear => student.update_description(db, "").await?,
+                DeprecatedField::Ignore => (),
             }
         }
 
@@ -165,7 +165,7 @@ impl Edit for EditItems<'_, Student> {
     }
 }
 
-impl Delete for DeleteItems<'_, Student> {
+impl DeprecatedDelete for DeprecatedDeleteItems<'_, Student> {
     async fn delete(&self, db: &mut DBase) -> Result<()> {
         for student in self.iter() {
             let count = student.count_grades(db).await?;

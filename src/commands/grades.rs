@@ -158,7 +158,7 @@ pub async fn grade_distribution(
     Ok(dist)
 }
 
-impl Edit for EditItems<'_, Grade> {
+impl DeprecatedEdit for DeprecatedEditItems<'_, Grade> {
     async fn edit(&self, db: &mut DBase) -> Result<()> {
         let grade = self.field(0); // arvosana
         let desc = self.field(1); // lisätiedot
@@ -169,15 +169,15 @@ impl Edit for EditItems<'_, Grade> {
 
         for student_grade in self.iter() {
             match grade {
-                Field::Set(s) => student_grade.update_grade(db, Some(s)).await?,
-                Field::Clear => student_grade.update_grade(db, None).await?,
-                Field::Ignore => (),
+                DeprecatedField::Set(s) => student_grade.update_grade(db, Some(s)).await?,
+                DeprecatedField::Clear => student_grade.update_grade(db, None).await?,
+                DeprecatedField::Ignore => (),
             }
 
             match desc {
-                Field::Set(d) => student_grade.update_description(db, Some(d)).await?,
-                Field::Clear => student_grade.update_description(db, None).await?,
-                Field::Ignore => (),
+                DeprecatedField::Set(d) => student_grade.update_description(db, Some(d)).await?,
+                DeprecatedField::Clear => student_grade.update_description(db, None).await?,
+                DeprecatedField::Ignore => (),
             }
 
             student_grade.delete_if_empty(db).await?;
@@ -186,7 +186,7 @@ impl Edit for EditItems<'_, Grade> {
     }
 }
 
-impl Delete for DeleteItems<'_, Grade> {
+impl DeprecatedDelete for DeprecatedDeleteItems<'_, Grade> {
     async fn delete(&self, db: &mut DBase) -> Result<()> {
         for grade in self.iter() {
             grade.delete(db).await?;

@@ -9,7 +9,7 @@ pub async fn groups(db: &mut DBase, name: &str, description: &str) -> Result<Que
     Group::query(db, name, description).await
 }
 
-impl Edit for EditItems<'_, Group> {
+impl DeprecatedEdit for DeprecatedEditItems<'_, Group> {
     async fn edit(&self, db: &mut DBase) -> Result<()> {
         let name = self.field(0); // ryhmä
         let desc = self.field(1); // lisätiedot
@@ -22,21 +22,21 @@ impl Edit for EditItems<'_, Group> {
             return Err("Usealle ryhmälle ei voi antaa samaa nimeä.".into());
         }
 
-        if let Field::Set(s) = &name
+        if let DeprecatedField::Set(s) = &name
             && s.split_whitespace().nth(1).is_some()
         {
             return Err("Ryhmätunnuksen pitää olla yksi sana.".into());
         }
 
         for group in self.iter() {
-            if let Field::Set(n) = name {
+            if let DeprecatedField::Set(n) = name {
                 group.update_name(db, n).await?;
             }
 
             match desc {
-                Field::Set(d) => group.update_description(db, d).await?,
-                Field::Clear => group.update_description(db, "").await?,
-                Field::Ignore => (),
+                DeprecatedField::Set(d) => group.update_description(db, d).await?,
+                DeprecatedField::Clear => group.update_description(db, "").await?,
+                DeprecatedField::Ignore => (),
             }
         }
         Ok(())
