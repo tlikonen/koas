@@ -177,3 +177,6 @@ pub enum UpdateStudentField {
     Description(String),
     DescriptionClear,
 }
+
+pub type UpdateStudent<'a> = Update<'a, Student, UpdateStudentField>;
+pub type DeleteStudent<'a> = Delete<'a, Student>;

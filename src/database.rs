@@ -28,7 +28,7 @@ pub use {
             SimpleGrade, SimpleStudent, StudentRanking,
         },
         groups::Group,
-        students::Student,
+        students::{DeleteStudent, Student, UpdateStudent},
     },
     sqlx::{Connection, PgConnection},
 };

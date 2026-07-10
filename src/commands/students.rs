@@ -189,13 +189,10 @@ impl Student {
     /// Prepare update for student's lastname.
     ///
     /// See [`Commit`] trait for more information.
-    pub fn set_lastname<'a>(
-        &'a self,
-        name: &str,
-    ) -> Result<Update<'a, Student, UpdateStudentField>> {
+    pub fn set_lastname<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
         match name.normalize() {
             None => Err(format!("Sopimaton sukunimi: ”{name}”.").into()),
-            Some(n) => Ok(Update {
+            Some(n) => Ok(UpdateStudent {
                 item: self,
                 field: UpdateStudentField::Lastname(n),
             }),
@@ -205,13 +202,10 @@ impl Student {
     /// Prepare update for student's firstname.
     ///
     /// See [`Commit`] trait for more information.
-    pub fn set_firstname<'a>(
-        &'a self,
-        name: &str,
-    ) -> Result<Update<'a, Student, UpdateStudentField>> {
+    pub fn set_firstname<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
         match name.normalize() {
             None => Err(format!("Sopimaton etunimi: ”{name}”.").into()),
-            Some(n) => Ok(Update {
+            Some(n) => Ok(UpdateStudent {
                 item: self,
                 field: UpdateStudentField::Firstname(n),
             }),
@@ -221,12 +215,12 @@ impl Student {
     /// Prepare addition for student's groups.
     ///
     /// See [`Commit`] trait for more information.
-    pub fn add_group<'a>(&'a self, name: &str) -> Result<Update<'a, Student, UpdateStudentField>> {
+    pub fn add_group<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
         match name.normalize() {
             None => Err(format!("Sopimaton ryhmätunnus: ”{name}”.").into()),
             Some(n) => {
                 n.is_valid_group_name()?;
-                Ok(Update {
+                Ok(UpdateStudent {
                     item: self,
                     field: UpdateStudentField::GroupAdd(n),
                 })
@@ -237,15 +231,12 @@ impl Student {
     /// Prepare removal for student's groups.
     ///
     /// See [`Commit`] trait for more information.
-    pub fn remove_group<'a>(
-        &'a self,
-        name: &str,
-    ) -> Result<Update<'a, Student, UpdateStudentField>> {
+    pub fn remove_group<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
         match name.normalize() {
             None => Err(format!("Sopimaton ryhmätunnus: ”{name}”.").into()),
             Some(n) => {
                 n.is_valid_group_name()?;
-                Ok(Update {
+                Ok(UpdateStudent {
                     item: self,
                     field: UpdateStudentField::GroupRemove(n),
                 })
@@ -256,13 +247,10 @@ impl Student {
     /// Prepare update for student's description.
     ///
     /// See [`Commit`] trait for more information.
-    pub fn set_description<'a>(
-        &'a self,
-        desc: &str,
-    ) -> Result<Update<'a, Student, UpdateStudentField>> {
+    pub fn set_description<'a>(&'a self, desc: &str) -> Result<UpdateStudent<'a>> {
         match desc.normalize() {
             None => Err(format!("Sopimaton oppilaan kuvaus: ”{desc}”.").into()),
-            Some(d) => Ok(Update {
+            Some(d) => Ok(UpdateStudent {
                 item: self,
                 field: UpdateStudentField::Description(d),
             }),
@@ -272,8 +260,8 @@ impl Student {
     /// Prepare to clear student's description.
     ///
     /// See [`Commit`] trait for more information.
-    pub fn clear_description<'a>(&'a self) -> Update<'a, Student, UpdateStudentField> {
-        Update {
+    pub fn clear_description<'a>(&'a self) -> UpdateStudent<'a> {
+        UpdateStudent {
             item: self,
             field: UpdateStudentField::DescriptionClear,
         }
@@ -282,12 +270,12 @@ impl Student {
     /// Prepare deletion of student.
     ///
     /// See [`Commit`] trait for more information.
-    pub fn mark_deleted<'a>(&'a self) -> Delete<'a, Student> {
-        Delete { item: self }
+    pub fn mark_deleted<'a>(&'a self) -> DeleteStudent<'a> {
+        DeleteStudent { item: self }
     }
 }
 
-impl Commit for Update<'_, Student, UpdateStudentField> {
+impl Commit for UpdateStudent<'_> {
     async fn commit(&self, db: &mut DBase) -> Result<()> {
         let mut ta = db.begin().await?;
         let student = self.item;
@@ -349,7 +337,7 @@ impl Commit for Update<'_, Student, UpdateStudentField> {
     }
 }
 
-impl Commit for Delete<'_, Student> {
+impl Commit for DeleteStudent<'_> {
     async fn commit(&self, db: &mut DBase) -> Result<()> {
         let mut ta = db.begin().await?;
         let student = self.item;
