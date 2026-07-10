@@ -17,6 +17,7 @@ use std::io::Write as _;
 pub(crate) use self::deprecated::{
     DeprecatedDelete, DeprecatedDeleteItems, DeprecatedEdit, DeprecatedEditItems, DeprecatedField,
 };
+pub(crate) use self::groups::UpdateGroupField;
 pub(crate) use self::students::UpdateStudentField;
 pub(crate) use sqlx::{Connection as _, PgConnection as DBase, Row as _};
 
@@ -27,7 +28,7 @@ pub use {
             Grade, GradeDistribution, GradesForAssignment, GradesForGroup, GradesForStudent,
             SimpleGrade, SimpleStudent, StudentRanking,
         },
-        groups::Group,
+        groups::{Group, UpdateGroup},
         students::{DeleteStudent, Student, UpdateStudent},
     },
     sqlx::{Connection, PgConnection},

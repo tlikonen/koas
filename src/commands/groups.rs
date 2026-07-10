@@ -41,3 +41,60 @@ impl DeprecatedEdit for DeprecatedEditItems<'_, Group> {
         Ok(())
     }
 }
+
+impl Group {
+    /// Prepare update for group's name.
+    ///
+    /// See [`Commit`] trait for more information.
+    pub fn set_name<'a>(&'a self, name: &str) -> Result<UpdateGroup<'a>> {
+        match name.normalize() {
+            None => Err(format!("Sopimaton ryhmän nimi: ”{name}”.").into()),
+            Some(n) => {
+                n.is_valid_group_name()?;
+                Ok(UpdateGroup {
+                    item: self,
+                    field: UpdateGroupField::Name(n),
+                })
+            }
+        }
+    }
+
+    /// Prepare update for group's description.
+    ///
+    /// See [`Commit`] trait for more information.
+    pub fn set_description<'a>(&'a self, desc: &str) -> Result<UpdateGroup<'a>> {
+        match desc.normalize() {
+            None => Err(format!("Sopimaton ryhmän kuvaus: ”{desc}”.").into()),
+            Some(d) => Ok(UpdateGroup {
+                item: self,
+                field: UpdateGroupField::Description(d),
+            }),
+        }
+    }
+
+    /// Prepare to clear group's description.
+    ///
+    /// See [`Commit`] trait for more information.
+    pub fn clear_description<'a>(&'a self) -> UpdateGroup<'a> {
+        UpdateGroup {
+            item: self,
+            field: UpdateGroupField::DescriptionClear,
+        }
+    }
+}
+
+impl Commit for UpdateGroup<'_> {
+    async fn commit(&self, db: &mut DBase) -> Result<()> {
+        let mut ta = db.begin().await?;
+        let group = self.item;
+
+        match &self.field {
+            UpdateGroupField::Name(name) => group.update_name(&mut ta, name).await?,
+            UpdateGroupField::Description(desc) => group.update_description(&mut ta, desc).await?,
+            UpdateGroupField::DescriptionClear => group.update_description(&mut ta, "").await?,
+        }
+
+        ta.commit().await?;
+        Ok(())
+    }
+}

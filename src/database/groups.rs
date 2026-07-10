@@ -101,3 +101,11 @@ impl CopyToEditable for QueryList<Group> {
         ed.set(Editable::Groups(self.clone()));
     }
 }
+
+pub enum UpdateGroupField {
+    Name(String),
+    Description(String),
+    DescriptionClear,
+}
+
+pub type UpdateGroup<'a> = Update<'a, Group, UpdateGroupField>;
