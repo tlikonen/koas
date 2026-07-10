@@ -1,12 +1,13 @@
 pub(crate) use {
     crate::{
-        commands::Commit,
         config::Config,
+        database::Commit,
         error::{Error, Result},
         objects::{
-            Assignment, AssignmentsForGroup, CopyToEditable, Delete, DeleteItems, Edit, EditItems,
-            Editable, Field, FullQuery, Grade, GradeDistribution, GradesForAssignment,
-            GradesForGroup, GradesForStudent, Group, QueryList, Stats, Student, StudentRanking,
+            Assignment, AssignmentsForGroup, CopyToEditable, Delete, DeleteItems, DeleteStudent,
+            Edit, EditItems, Editable, Field, FullQuery, Grade, GradeDistribution,
+            GradesForAssignment, GradesForGroup, GradesForStudent, Group, QueryList, Stats,
+            Student, StudentRanking, UpdateStudent, UpdateStudentField,
         },
         output::Output,
         tools::{self, Normalize, StrExt},

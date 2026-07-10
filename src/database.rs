@@ -5,9 +5,9 @@ use futures::TryStreamExt;
 
 pub use {
     crate::objects::{
-        Assignment, AssignmentsForGroup, CopyToEditable, Editable, Grade, GradeDistribution,
-        GradesForAssignment, GradesForGroup, GradesForStudent, Group, HasData, QueryList,
-        SimpleGrade, SimpleStudent, Stats, Student, StudentRanking,
+        Assignment, AssignmentsForGroup, CopyToEditable, Editable, FullQuery, Grade,
+        GradeDistribution, GradesForAssignment, GradesForGroup, GradesForStudent, Group, HasData,
+        QueryList, SimpleGrade, SimpleStudent, Stats, Student, StudentRanking,
     },
     sqlx::{Connection, PgConnection},
 };
@@ -25,6 +25,84 @@ pub async fn connect(config: &Config) -> Result<DBase> {
     let mut db = DBase::connect(&connect_string).await?;
     init::initialize(&mut db).await?;
     Ok(db)
+}
+
+/// Commit prepared changes to the database.
+///
+/// The [`Commit::commit`] method commits prepared updates to the
+/// database. Updates can be prepared with methods of [`Student`],
+/// [`Group`], [`Assignment`] and [`Grade`], as well as methods of
+/// [`Updates`] which represents a queue of updates.
+#[allow(async_fn_in_trait)]
+pub trait Commit {
+    /// Commit the database update.
+    async fn commit(&self, db: &mut DBase) -> Result<()>;
+}
+
+/// A queue for updates.
+///
+/// # Examples
+/// ```compile_fail
+/// let mut updates = Updates::new();
+/// updates.push(/* item */);
+/// updates.push(/* item */);
+/// updates.commit(/* &mut PgConnection */).await?;
+/// ```
+pub struct Updates<T: Commit>(Vec<T>);
+
+impl<T: Commit> Updates<T> {
+    /// Create a new empty queue for updates.
+    pub fn new() -> Self {
+        Self(Vec::new())
+    }
+
+    /// Push new item to the queue of updates.
+    pub fn push(&mut self, item: T) {
+        self.0.push(item);
+    }
+
+    /// Iterate over the queue.
+    pub fn iter(&self) -> impl Iterator<Item = &T> {
+        self.0.iter()
+    }
+
+    /// Return how many items are in the queue.
+    pub fn count(&self) -> usize {
+        self.0.len()
+    }
+
+    /// Return an immutable reference to the queue vector.
+    pub fn as_vec(&self) -> &Vec<T> {
+        &self.0
+    }
+
+    /// Return a mutable reference to the queue vector.
+    pub fn as_vec_mut(&mut self) -> &mut Vec<T> {
+        &mut self.0
+    }
+}
+
+impl<T: Commit> Default for Updates<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<T: Commit> Commit for Updates<T> {
+    /// Commit a queue of updates.
+    ///
+    /// The whole queue is committed as a single database transaction.
+    /// It is faster than several separate commits. If anything fails in
+    /// the transaction then the whole queue of changes is rolled back
+    /// (canceled).
+    async fn commit(&self, db: &mut DBase) -> Result<()> {
+        let mut ta = db.begin().await?;
+        for item in self.iter() {
+            item.commit(&mut ta).await?;
+        }
+        ta.commit().await?;
+        Ok(())
+    }
 }
 
 impl Stats {

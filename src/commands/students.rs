@@ -185,24 +185,6 @@ impl Delete for DeleteItems<'_, Student> {
     }
 }
 
-pub struct UpdateStudent<'a> {
-    pub student: &'a Student,
-    field: UpdateStudentField,
-}
-
-pub struct DeleteStudent<'a> {
-    pub student: &'a Student,
-}
-
-enum UpdateStudentField {
-    Lastname(String),
-    Firstname(String),
-    GroupAdd(String),
-    GroupRemove(String),
-    Description(String),
-    DescriptionClear,
-}
-
 impl Student {
     /// Prepare update for student's lastname.
     ///

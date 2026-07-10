@@ -300,3 +300,21 @@ impl<'a, T> DeleteItems<'a, T> {
 pub(crate) trait Delete {
     async fn delete(&self, db: &mut DBase) -> Result<()>;
 }
+
+pub struct UpdateStudent<'a> {
+    pub student: &'a Student,
+    pub(crate) field: UpdateStudentField,
+}
+
+pub struct DeleteStudent<'a> {
+    pub student: &'a Student,
+}
+
+pub(crate) enum UpdateStudentField {
+    Lastname(String),
+    Firstname(String),
+    GroupAdd(String),
+    GroupRemove(String),
+    Description(String),
+    DescriptionClear,
+}

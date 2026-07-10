@@ -1,12 +1,6 @@
 use {
     just_getopt::{Args, OptFlags, OptSpecs, OptValue},
-    koas::{
-        commands::{Commit, FullQuery, Updates},
-        database::*,
-        output::*,
-        tools::StrExt,
-        *,
-    },
+    koas::{database::*, output::*, tools::StrExt, *},
     std::{
         io::{self, Write as _},
         process::ExitCode,
