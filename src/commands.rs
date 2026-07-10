@@ -16,7 +16,7 @@ use crate::tools;
 use crate::tools::Normalize;
 use crate::tools::StrExt;
 
-/// Print statistics about the database.
+/// Return statistics about the database.
 pub async fn stats(db: &mut DBase) -> Result<Stats> {
     Stats::query(db).await
 }
