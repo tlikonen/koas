@@ -204,7 +204,7 @@ enum UpdateStudentField {
 }
 
 impl Student {
-    /// Prepare update to student's lastname.
+    /// Prepare update for student's lastname.
     ///
     /// See [`Commit`] trait for more information.
     pub fn set_lastname<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
@@ -217,7 +217,7 @@ impl Student {
         }
     }
 
-    /// Prepare update to student's firstname.
+    /// Prepare update for student's firstname.
     ///
     /// See [`Commit`] trait for more information.
     pub fn set_firstname<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
@@ -230,7 +230,7 @@ impl Student {
         }
     }
 
-    /// Prepare addition to student's groups.
+    /// Prepare addition for student's groups.
     ///
     /// See [`Commit`] trait for more information.
     pub fn add_group<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
@@ -246,7 +246,7 @@ impl Student {
         }
     }
 
-    /// Prepare removal to student's groups.
+    /// Prepare removal for student's groups.
     ///
     /// See [`Commit`] trait for more information.
     pub fn remove_group<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
@@ -262,7 +262,7 @@ impl Student {
         }
     }
 
-    /// Prepare update to student's description.
+    /// Prepare update for student's description.
     ///
     /// See [`Commit`] trait for more information.
     pub fn set_description<'a>(&'a self, desc: &str) -> Result<UpdateStudent<'a>> {
