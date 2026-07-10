@@ -17,7 +17,7 @@ use std::io::Write as _;
 pub(crate) use self::deprecated::{
     DeprecatedDelete, DeprecatedDeleteItems, DeprecatedEdit, DeprecatedEditItems, DeprecatedField,
 };
-pub(crate) use self::students::*;
+pub(crate) use self::students::UpdateStudentField;
 pub(crate) use sqlx::{Connection as _, PgConnection as DBase, Row as _};
 
 pub use {
@@ -28,7 +28,7 @@ pub use {
             SimpleGrade, SimpleStudent, StudentRanking,
         },
         groups::Group,
-        students::{Student, UpdateStudent},
+        students::Student,
     },
     sqlx::{Connection, PgConnection},
 };
@@ -255,8 +255,13 @@ impl<T: Commit> Commit for Updates<T> {
     }
 }
 
+pub struct Update<'a, I, F> {
+    pub(crate) item: &'a I,
+    pub(crate) field: F,
+}
+
 pub struct Delete<'a, T> {
-    pub item: &'a T,
+    pub(crate) item: &'a T,
 }
 
 pub struct FullQuery<'a> {

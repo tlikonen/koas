@@ -189,11 +189,14 @@ impl Student {
     /// Prepare update for student's lastname.
     ///
     /// See [`Commit`] trait for more information.
-    pub fn set_lastname<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
+    pub fn set_lastname<'a>(
+        &'a self,
+        name: &str,
+    ) -> Result<Update<'a, Student, UpdateStudentField>> {
         match name.normalize() {
             None => Err(format!("Sopimaton sukunimi: ”{name}”.").into()),
-            Some(n) => Ok(UpdateStudent {
-                student: self,
+            Some(n) => Ok(Update {
+                item: self,
                 field: UpdateStudentField::Lastname(n),
             }),
         }
@@ -202,11 +205,14 @@ impl Student {
     /// Prepare update for student's firstname.
     ///
     /// See [`Commit`] trait for more information.
-    pub fn set_firstname<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
+    pub fn set_firstname<'a>(
+        &'a self,
+        name: &str,
+    ) -> Result<Update<'a, Student, UpdateStudentField>> {
         match name.normalize() {
             None => Err(format!("Sopimaton etunimi: ”{name}”.").into()),
-            Some(n) => Ok(UpdateStudent {
-                student: self,
+            Some(n) => Ok(Update {
+                item: self,
                 field: UpdateStudentField::Firstname(n),
             }),
         }
@@ -215,13 +221,13 @@ impl Student {
     /// Prepare addition for student's groups.
     ///
     /// See [`Commit`] trait for more information.
-    pub fn add_group<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
+    pub fn add_group<'a>(&'a self, name: &str) -> Result<Update<'a, Student, UpdateStudentField>> {
         match name.normalize() {
             None => Err(format!("Sopimaton ryhmätunnus: ”{name}”.").into()),
             Some(n) => {
                 n.is_valid_group_name()?;
-                Ok(UpdateStudent {
-                    student: self,
+                Ok(Update {
+                    item: self,
                     field: UpdateStudentField::GroupAdd(n),
                 })
             }
@@ -231,13 +237,16 @@ impl Student {
     /// Prepare removal for student's groups.
     ///
     /// See [`Commit`] trait for more information.
-    pub fn remove_group<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
+    pub fn remove_group<'a>(
+        &'a self,
+        name: &str,
+    ) -> Result<Update<'a, Student, UpdateStudentField>> {
         match name.normalize() {
             None => Err(format!("Sopimaton ryhmätunnus: ”{name}”.").into()),
             Some(n) => {
                 n.is_valid_group_name()?;
-                Ok(UpdateStudent {
-                    student: self,
+                Ok(Update {
+                    item: self,
                     field: UpdateStudentField::GroupRemove(n),
                 })
             }
@@ -247,11 +256,14 @@ impl Student {
     /// Prepare update for student's description.
     ///
     /// See [`Commit`] trait for more information.
-    pub fn set_description<'a>(&'a self, desc: &str) -> Result<UpdateStudent<'a>> {
+    pub fn set_description<'a>(
+        &'a self,
+        desc: &str,
+    ) -> Result<Update<'a, Student, UpdateStudentField>> {
         match desc.normalize() {
             None => Err(format!("Sopimaton oppilaan kuvaus: ”{desc}”.").into()),
-            Some(d) => Ok(UpdateStudent {
-                student: self,
+            Some(d) => Ok(Update {
+                item: self,
                 field: UpdateStudentField::Description(d),
             }),
         }
@@ -260,9 +272,9 @@ impl Student {
     /// Prepare to clear student's description.
     ///
     /// See [`Commit`] trait for more information.
-    pub fn clear_description<'a>(&'a self) -> UpdateStudent<'a> {
-        UpdateStudent {
-            student: self,
+    pub fn clear_description<'a>(&'a self) -> Update<'a, Student, UpdateStudentField> {
+        Update {
+            item: self,
             field: UpdateStudentField::DescriptionClear,
         }
     }
@@ -275,23 +287,22 @@ impl Student {
     }
 }
 
-impl Commit for UpdateStudent<'_> {
+impl Commit for Update<'_, Student, UpdateStudentField> {
     async fn commit(&self, db: &mut DBase) -> Result<()> {
         let mut ta = db.begin().await?;
+        let student = self.item;
 
         match &self.field {
-            UpdateStudentField::Lastname(last) => {
-                self.student.update_lastname(&mut ta, last).await?
-            }
+            UpdateStudentField::Lastname(last) => student.update_lastname(&mut ta, last).await?,
 
             UpdateStudentField::Firstname(first) => {
-                self.student.update_firstname(&mut ta, first).await?
+                student.update_firstname(&mut ta, first).await?
             }
 
             UpdateStudentField::GroupAdd(name) => {
                 let rid = Group::get_or_insert(&mut ta, name).await?;
-                if !self.student.in_group(&mut ta, rid).await? {
-                    self.student.add_to_group(&mut ta, rid).await?;
+                if !student.in_group(&mut ta, rid).await? {
+                    student.add_to_group(&mut ta, rid).await?;
                 }
             }
 
@@ -300,39 +311,37 @@ impl Commit for UpdateStudent<'_> {
                     return Ok(()); // No such group.
                 };
 
-                if !self.student.in_group(&mut ta, rid).await? {
+                if !student.in_group(&mut ta, rid).await? {
                     return Ok(());
                 }
 
-                let count = self.student.count_grades_group(&mut ta, rid).await?;
+                let count = student.count_grades_group(&mut ta, rid).await?;
                 if count > 0 {
                     return Err(format!(
                         "Oppilaalle ”{l}, {f}” on ryhmässä ”{g}” kirjattu {c} arvosana(a).\n\
                          Säilytetään ryhmät ja perutaan toiminto.",
-                        l = self.student.lastname,
-                        f = self.student.firstname,
+                        l = student.lastname,
+                        f = student.firstname,
                         c = count,
                         g = name,
                     )
                     .into());
                 }
 
-                if self.student.only_one_group(&mut ta).await? {
+                if student.only_one_group(&mut ta).await? {
                     return Err("Oppilaan pitää kuulua vähintään yhteen ryhmään.".into());
                 } else {
-                    self.student.remove_from_group(&mut ta, rid).await?;
+                    student.remove_from_group(&mut ta, rid).await?;
                 }
 
                 Group::delete_empty(&mut ta).await?;
             }
 
             UpdateStudentField::Description(desc) => {
-                self.student.update_description(&mut ta, desc).await?
+                student.update_description(&mut ta, desc).await?
             }
 
-            UpdateStudentField::DescriptionClear => {
-                self.student.update_description(&mut ta, "").await?
-            }
+            UpdateStudentField::DescriptionClear => student.update_description(&mut ta, "").await?,
         }
 
         ta.commit().await?;

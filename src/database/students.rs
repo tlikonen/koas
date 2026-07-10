@@ -169,12 +169,7 @@ impl CopyToEditable for QueryList<Student> {
     }
 }
 
-pub struct UpdateStudent<'a> {
-    pub student: &'a Student,
-    pub(crate) field: UpdateStudentField,
-}
-
-pub(crate) enum UpdateStudentField {
+pub enum UpdateStudentField {
     Lastname(String),
     Firstname(String),
     GroupAdd(String),
