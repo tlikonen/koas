@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-pub(crate) fn parse_number_list(s: &str) -> Result<Vec<usize>> {
+pub fn parse_number_list(s: &str) -> Result<Vec<usize>> {
     let mut vec: Vec<usize> = Vec::with_capacity(25);
     let errmsg = |v| format!("Sopimaton tietueen numero: ”{v}”.");
 
@@ -50,7 +50,7 @@ pub(crate) fn parse_number_list(s: &str) -> Result<Vec<usize>> {
     Ok(vec)
 }
 
-pub(crate) fn is_within_limits(limit: usize, list: &[usize]) -> bool {
+pub fn is_within_limits(limit: usize, list: &[usize]) -> bool {
     list.iter().all(|n| *n <= limit)
 }
 
@@ -159,7 +159,7 @@ pub fn split_first(s: &str) -> (&str, &str) {
     }
 }
 
-pub(crate) trait StrExt {
+pub trait StrExt {
     fn has_content(&self) -> bool;
     fn has_whitespace(&self) -> bool;
     fn is_all_digits(&self) -> bool;

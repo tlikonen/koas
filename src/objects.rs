@@ -37,15 +37,15 @@ impl Editable {
         self.set(Self::None);
     }
 
-    pub(crate) fn is_none(&self) -> bool {
+    pub fn is_none(&self) -> bool {
         matches!(self, Self::None)
     }
 
-    pub(crate) fn is_grade(&self) -> bool {
+    pub fn is_grade(&self) -> bool {
         matches!(self, Self::Grades(_))
     }
 
-    pub(crate) fn count(&self) -> usize {
+    pub fn count(&self) -> usize {
         match self {
             Self::None => 0,
             Self::Students(v) => v.count(),
@@ -82,6 +82,14 @@ impl<T> QueryList<T> {
 
     pub fn list(&self) -> &Vec<T> {
         &self.0
+    }
+
+    /// Return iterator over items by 1-based indices.
+    pub fn iter_index1<I>(&self, indices: I) -> impl Iterator<Item = &T>
+    where
+        I: IntoIterator<Item = usize>,
+    {
+        indices.into_iter().filter_map(|i| self.0.get(i - 1))
     }
 
     pub fn count(&self) -> usize {

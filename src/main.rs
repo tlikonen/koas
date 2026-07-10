@@ -1,6 +1,12 @@
 use {
     just_getopt::{Args, OptFlags, OptSpecs, OptValue},
-    koas::{commands::FullQuery, database::*, output::*, *},
+    koas::{
+        commands::{Commit, FullQuery, Updates},
+        database::*,
+        output::*,
+        tools::StrExt,
+        *,
+    },
     std::{
         io::{self, Write as _},
         process::ExitCode,
@@ -458,6 +464,38 @@ async fn commands(
                 .await?;
         }
 
+        "uusi-m" if matches!(mode, Mode::Interactive) => {
+            if editable.is_none() {
+                return Err("Edellinen komento ei sisällä muokattavia tietueita.".into());
+            }
+
+            if args.is_empty() {
+                return Err(
+                    "Argumentiksi pitää antaa tietueiden numerot ja muokattavat kentät.".into(),
+                );
+            }
+
+            let (indices, fields) = {
+                let (first, rest) = tools::split_first(args);
+                let n = tools::parse_number_list(first)?;
+                let f = tools::split_sep(rest);
+
+                let max = editable.count();
+                if !tools::is_within_limits(max, &n) {
+                    return Err(format!("Suurin muokattava tietue on {max}.").into());
+                }
+
+                (n, f)
+            };
+
+            match editable {
+                Editable::Students(students) => {
+                    edit_students(db, students.iter_index1(indices), fields).await?
+                }
+                _ => return Err("Toimintoa ei ole toteutettu vielä.".into()),
+            }
+        }
+
         "m" if matches!(mode, Mode::Interactive) => commands::edit(db, editable, args).await?,
 
         "ms" if matches!(mode, Mode::Interactive) => {
@@ -490,6 +528,83 @@ async fn commands(
 
         c => return Err(Error::unknown_cmd(c)),
     }
+    Ok(())
+}
+
+async fn edit_students(
+    db: &mut PgConnection,
+    students: impl Iterator<Item = &Student>,
+    mut fields: impl Iterator<Item = &str>,
+) -> Result<()> {
+    let lastname = fields.next().filter(|x| x.has_content()); // sukunimi
+    let firstname = fields.next().filter(|x| x.has_content()); // etunimi
+    let groups = fields.next().filter(|x| x.has_content()); // ryhmät
+    let description = fields.next(); // lisätiedot
+    if fields.next().is_some() {
+        return Err("Liikaa kenttiä. Vain neljä hyväksytään.".into());
+    }
+
+    if lastname.is_none() && firstname.is_none() && groups.is_none() && description.is_none() {
+        return Err("Anna muokattavia kenttiä.".into());
+    }
+
+    let students: Vec<&Student> = students.collect();
+
+    if students.len() > 1 && (lastname.is_some() || firstname.is_some()) {
+        return Err("Usealle henkilölle ei voi muuttaa kerralla samaa nimeä.\n\
+                    Muuta yksi kerrallaan, jos se on todella tarkoituksena."
+            .into());
+    }
+
+    let mut groups_add: Vec<String> = Vec::with_capacity(3);
+    let mut groups_remove: Vec<String> = Vec::with_capacity(1);
+
+    if let Some(groups) = groups {
+        for g in groups.split_whitespace() {
+            let mut chars = g.chars();
+            match chars.next() {
+                Some('+') => groups_add.push(chars.collect()),
+                Some('-') => groups_remove.push(chars.collect()),
+                _ => {
+                    return Err(
+                        "Kirjoita oppilaan ryhmätunnuksen alkuun merkki ”+” (lisää ryhmä) \
+                         tai ”-” (poista ryhmä).\nErota eri ryhmät välilyönnillä."
+                            .into(),
+                    );
+                }
+            }
+        }
+    }
+
+    let mut updates = Updates::new();
+
+    for student in &students {
+        if let Some(name) = lastname {
+            updates.push(student.set_lastname(name)?);
+        }
+
+        if let Some(name) = firstname {
+            updates.push(student.set_firstname(name)?);
+        }
+
+        for name in &groups_add {
+            updates.push(student.add_group(name)?);
+        }
+
+        for name in &groups_remove {
+            updates.push(student.remove_group(name)?);
+        }
+
+        if let Some(desc) = description {
+            if desc.has_content() {
+                updates.push(student.set_description(desc)?);
+            } else {
+                updates.push(student.clear_description());
+            }
+        }
+    }
+
+    updates.commit(db).await?;
     Ok(())
 }
 
