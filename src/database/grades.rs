@@ -1,6 +1,67 @@
 use super::*;
 use crate::prelude::*;
 
+#[derive(Clone)]
+pub struct Grade {
+    pub(crate) oid: i32,
+    pub lastname: String,
+    pub firstname: String,
+    pub(crate) sid: i32,
+    pub assignment: String,
+    pub weight: Option<i32>,
+    pub grade: Option<String>,
+    pub grade_description: Option<String>,
+}
+
+#[derive(Default)]
+pub struct GradesForAssignment {
+    pub assignment: String,
+    pub group: String,
+    pub grades: Vec<Grade>,
+}
+
+#[derive(Default)]
+pub struct GradesForStudent {
+    pub lastname: String,
+    pub firstname: String,
+    pub group: String,
+    pub grades: Vec<Grade>,
+}
+
+#[derive(Default)]
+pub struct GradesForGroup {
+    pub group: String,
+    pub students: Vec<SimpleStudent>,
+    pub assignments: Vec<Assignment>,
+}
+
+pub struct SimpleStudent {
+    pub name: String,
+    pub grades: Vec<SimpleGrade>,
+}
+
+pub struct SimpleGrade {
+    pub weight: Option<i32>,
+    pub grade: Option<String>,
+}
+
+#[derive(Default)]
+pub(crate) struct StudentRank {
+    pub(crate) name: String,
+    pub(crate) groups: Vec<String>,
+    pub(crate) sum: f64,
+    pub(crate) count: i32,
+    pub(crate) grade_count: usize,
+}
+
+pub struct StudentRanking {
+    pub(crate) data: HashMap<i32, StudentRank>,
+}
+
+pub struct GradeDistribution {
+    pub(crate) data: HashMap<String, i32>,
+}
+
 impl Grade {
     async fn exists(&self, db: &mut DBase) -> Result<bool> {
         let result = sqlx::query("SELECT 1 FROM arvosanat WHERE sid = $1 AND oid = $2")

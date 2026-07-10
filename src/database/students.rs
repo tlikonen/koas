@@ -1,6 +1,15 @@
 use super::*;
 use crate::prelude::*;
 
+#[derive(Default, Clone)]
+pub struct Student {
+    pub(crate) oid: i32,
+    pub lastname: String,
+    pub firstname: String,
+    pub groups: String,
+    pub description: String,
+}
+
 impl Student {
     pub(crate) async fn query(
         db: &mut DBase,
@@ -159,4 +168,22 @@ impl CopyToEditable for QueryList<Student> {
     fn copy_to(&self, ed: &mut Editable) {
         ed.set(Editable::Students(self.clone()));
     }
+}
+
+pub struct UpdateStudent<'a> {
+    pub student: &'a Student,
+    pub(crate) field: UpdateStudentField,
+}
+
+pub struct DeleteStudent<'a> {
+    pub student: &'a Student,
+}
+
+pub(crate) enum UpdateStudentField {
+    Lastname(String),
+    Firstname(String),
+    GroupAdd(String),
+    GroupRemove(String),
+    Description(String),
+    DescriptionClear,
 }

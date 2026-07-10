@@ -2,7 +2,6 @@ pub mod commands;
 mod config;
 pub mod database;
 mod error;
-mod objects;
 pub mod output;
 mod prelude;
 pub mod tools;

@@ -1,6 +1,13 @@
 use super::*;
 use crate::prelude::*;
 
+#[derive(Clone)]
+pub struct Group {
+    pub(crate) rid: i32,
+    pub name: String,
+    pub description: String,
+}
+
 impl Group {
     pub(crate) async fn query(db: &mut DBase, group: &str, desc: &str) -> Result<QueryList<Self>> {
         let mut rows = sqlx::query(

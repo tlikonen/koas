@@ -1,6 +1,21 @@
 use super::*;
 use crate::prelude::*;
 
+#[derive(Clone, Default)]
+pub struct Assignment {
+    pub(crate) rid: i32,
+    pub(crate) sid: i32,
+    pub assignment: String,
+    pub assignment_short: String,
+    pub weight: Option<i32>,
+}
+
+#[derive(Default)]
+pub struct AssignmentsForGroup {
+    pub group: String,
+    pub assignments: Vec<Assignment>,
+}
+
 impl Assignment {
     pub(crate) async fn update_name(&self, db: &mut DBase, name: &str) -> Result<()> {
         sqlx::query("UPDATE suoritukset SET nimi = $1 WHERE sid = $2")

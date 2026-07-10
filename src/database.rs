@@ -1,17 +1,24 @@
 mod assignments;
+mod deprecated;
 mod grades;
 mod groups;
 mod init;
 mod students;
 
+pub(crate) use self::deprecated::{Delete, DeleteItems, Edit, EditItems, Field};
+pub(crate) use self::students::*;
 use crate::prelude::*;
 use futures::TryStreamExt;
 
 pub use {
-    crate::objects::{
-        Assignment, AssignmentsForGroup, CopyToEditable, Editable, FullQuery, Grade,
-        GradeDistribution, GradesForAssignment, GradesForGroup, GradesForStudent, Group, HasData,
-        QueryList, SimpleGrade, SimpleStudent, Stats, Student, StudentRanking,
+    self::{
+        assignments::{Assignment, AssignmentsForGroup},
+        grades::{
+            Grade, GradeDistribution, GradesForAssignment, GradesForGroup, GradesForStudent,
+            SimpleGrade, SimpleStudent, StudentRanking,
+        },
+        groups::Group,
+        students::{DeleteStudent, Student, UpdateStudent},
     },
     sqlx::{Connection, PgConnection},
 };
@@ -29,6 +36,135 @@ pub async fn connect(config: &Config) -> Result<DBase> {
     let mut db = DBase::connect(&connect_string).await?;
     init::initialize(&mut db).await?;
     Ok(db)
+}
+
+pub trait HasData {
+    fn has_data(self) -> Result<Self>
+    where
+        Self: Sized,
+    {
+        match self.is_empty() {
+            false => Ok(self),
+            true => Err("Ei löytynyt.".into()),
+        }
+    }
+
+    fn is_empty(&self) -> bool;
+}
+
+pub trait CopyToEditable {
+    fn copy_to(&self, ed: &mut Editable);
+}
+
+#[derive(Default)]
+pub enum Editable {
+    #[default]
+    None,
+    Students(QueryList<Student>),
+    Groups(QueryList<Group>),
+    Assignments(QueryList<Assignment>),
+    Grades(QueryList<Grade>),
+}
+
+impl Editable {
+    pub(crate) fn set(&mut self, value: Self) {
+        *self = value;
+    }
+
+    pub fn clear(&mut self) {
+        self.set(Self::None);
+    }
+
+    pub fn is_none(&self) -> bool {
+        matches!(self, Self::None)
+    }
+
+    pub fn is_grade(&self) -> bool {
+        matches!(self, Self::Grades(_))
+    }
+
+    pub fn count(&self) -> usize {
+        match self {
+            Self::None => 0,
+            Self::Students(v) => v.count(),
+            Self::Groups(v) => v.count(),
+            Self::Assignments(v) => v.count(),
+            Self::Grades(v) => v.count(),
+        }
+    }
+
+    pub fn print_fields(&self, fields: &[&str]) -> Result<()> {
+        let mut s = String::with_capacity(50);
+        let mut stdout = io::stdout();
+
+        for (n, f) in (1..).zip(fields) {
+            s.push_str(&format!(" / {}:{}", n, f));
+        }
+
+        match self.count() {
+            0 => (),
+            1 => writeln!(stdout, "Tietue: 1. Kentät:{s}")?,
+            n => writeln!(stdout, "Tietueet: 1–{n}. Kentät:{s}")?,
+        }
+        Ok(())
+    }
+}
+
+#[derive(Default, Clone)]
+pub struct QueryList<T>(Vec<T>);
+
+impl<T> QueryList<T> {
+    pub(crate) fn new(v: Vec<T>) -> Self {
+        Self(v)
+    }
+
+    pub fn list(&self) -> &Vec<T> {
+        &self.0
+    }
+
+    /// Return iterator over items by 1-based indices.
+    pub fn iter_index1<I>(&self, indices: I) -> impl Iterator<Item = &T>
+    where
+        I: IntoIterator<Item = usize>,
+    {
+        indices.into_iter().filter_map(|i| self.0.get(i - 1))
+    }
+
+    pub fn count(&self) -> usize {
+        self.0.len()
+    }
+
+    pub fn get(&self, n: usize) -> Option<&T> {
+        self.0.get(n)
+    }
+}
+
+pub struct Stats {
+    pub students: i64,
+    pub groups: i64,
+    pub assignments: i64,
+    pub grades: i64,
+}
+
+impl Stats {
+    pub(crate) async fn query(db: &mut DBase) -> Result<Self> {
+        let row = sqlx::query(
+            "SELECT \
+             (SELECT count(*) FROM oppilaat) oppilaat, \
+             (SELECT count(*) FROM ryhmat) ryhmat, \
+             (SELECT count(*) FROM suoritukset) suoritukset, \
+             (SELECT count(*) FROM arvosanat WHERE arvosana LIKE '_%' ESCAPE '\\') arvosanat",
+        )
+        .fetch_one(db)
+        .await?;
+
+        Ok(Self {
+            students: row.try_get("oppilaat")?,
+            groups: row.try_get("ryhmat")?,
+            assignments: row.try_get("suoritukset")?,
+            grades: row.try_get("arvosanat")?,
+        })
+    }
 }
 
 /// Commit prepared changes to the database.
@@ -109,25 +245,13 @@ impl<T: Commit> Commit for Updates<T> {
     }
 }
 
-impl Stats {
-    pub(crate) async fn query(db: &mut DBase) -> Result<Self> {
-        let row = sqlx::query(
-            "SELECT \
-             (SELECT count(*) FROM oppilaat) oppilaat, \
-             (SELECT count(*) FROM ryhmat) ryhmat, \
-             (SELECT count(*) FROM suoritukset) suoritukset, \
-             (SELECT count(*) FROM arvosanat WHERE arvosana LIKE '_%' ESCAPE '\\') arvosanat",
-        )
-        .fetch_one(db)
-        .await?;
-
-        Ok(Self {
-            students: row.try_get("oppilaat")?,
-            groups: row.try_get("ryhmat")?,
-            assignments: row.try_get("suoritukset")?,
-            grades: row.try_get("arvosanat")?,
-        })
-    }
+pub struct FullQuery<'a> {
+    pub group: &'a str,
+    pub assignment: &'a str,
+    pub assignment_short: &'a str,
+    pub lastname: &'a str,
+    pub firstname: &'a str,
+    pub description: &'a str,
 }
 
 fn like_esc_wild_around(string: &str) -> String {
