@@ -1,5 +1,4 @@
 use super::*;
-use crate::prelude::*;
 
 #[derive(Default, Clone)]
 pub struct Student {

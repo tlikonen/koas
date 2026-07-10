@@ -1,5 +1,4 @@
 use super::*;
-use crate::prelude::*;
 
 impl<T> QueryList<T> {
     pub(crate) fn for_edit<'a, I, S>(
