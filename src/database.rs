@@ -28,7 +28,7 @@ pub use {
             SimpleGrade, SimpleStudent, StudentRanking,
         },
         groups::Group,
-        students::{DeleteStudent, Student, UpdateStudent},
+        students::{Student, UpdateStudent},
     },
     sqlx::{Connection, PgConnection},
 };
@@ -253,6 +253,10 @@ impl<T: Commit> Commit for Updates<T> {
         ta.commit().await?;
         Ok(())
     }
+}
+
+pub struct Delete<'a, T> {
+    pub item: &'a T,
 }
 
 pub struct FullQuery<'a> {

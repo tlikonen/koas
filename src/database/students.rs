@@ -175,10 +175,6 @@ pub struct UpdateStudent<'a> {
     pub(crate) field: UpdateStudentField,
 }
 
-pub struct DeleteStudent<'a> {
-    pub student: &'a Student,
-}
-
 pub(crate) enum UpdateStudentField {
     Lastname(String),
     Firstname(String),

@@ -271,8 +271,8 @@ impl Student {
     /// Prepare deletion of student.
     ///
     /// See [`Commit`] trait for more information.
-    pub fn mark_deleted<'a>(&'a self) -> DeleteStudent<'a> {
-        DeleteStudent { student: self }
+    pub fn mark_deleted<'a>(&'a self) -> Delete<'a, Student> {
+        Delete { item: self }
     }
 }
 
@@ -341,22 +341,22 @@ impl Commit for UpdateStudent<'_> {
     }
 }
 
-impl Commit for DeleteStudent<'_> {
+impl Commit for Delete<'_, Student> {
     async fn commit(&self, db: &mut DBase) -> Result<()> {
         let mut ta = db.begin().await?;
 
-        let count = self.student.count_grades(&mut ta).await?;
+        let count = self.item.count_grades(&mut ta).await?;
         if count > 0 {
             return Err(format!(
                 "Oppilaalle ”{l}, {f}” on kirjattu {c} arvosana(a). Poista ne ensin.",
-                l = self.student.lastname,
-                f = self.student.firstname,
+                l = self.item.lastname,
+                f = self.item.firstname,
                 c = count
             )
             .into());
         }
 
-        self.student.delete(&mut ta).await?;
+        self.item.delete(&mut ta).await?;
         Group::delete_empty(&mut ta).await?;
         ta.commit().await?;
         Ok(())
