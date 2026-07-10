@@ -343,19 +343,20 @@ impl Commit for UpdateStudent<'_> {
 impl Commit for Delete<'_, Student> {
     async fn commit(&self, db: &mut DBase) -> Result<()> {
         let mut ta = db.begin().await?;
+        let student = self.item;
 
-        let count = self.item.count_grades(&mut ta).await?;
+        let count = student.count_grades(&mut ta).await?;
         if count > 0 {
             return Err(format!(
                 "Oppilaalle ”{l}, {f}” on kirjattu {c} arvosana(a). Poista ne ensin.",
-                l = self.item.lastname,
-                f = self.item.firstname,
+                l = student.lastname,
+                f = student.firstname,
                 c = count
             )
             .into());
         }
 
-        self.item.delete(&mut ta).await?;
+        student.delete(&mut ta).await?;
         Group::delete_empty(&mut ta).await?;
         ta.commit().await?;
         Ok(())
