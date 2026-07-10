@@ -1,5 +1,6 @@
 use super::*;
 use crate::prelude::*;
+use std::collections::HashMap;
 
 #[derive(Clone)]
 pub struct Grade {

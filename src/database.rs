@@ -5,10 +5,18 @@ mod groups;
 mod init;
 mod students;
 
+use crate::config::Config;
+use crate::prelude::*;
+use crate::tools;
+use crate::tools::Normalize;
+use crate::tools::StrExt;
+use futures::TryStreamExt;
+use std::io;
+use std::io::Write as _;
+
 pub(crate) use self::deprecated::{Delete, DeleteItems, Edit, EditItems, Field};
 pub(crate) use self::students::*;
-use crate::prelude::*;
-use futures::TryStreamExt;
+pub(crate) use sqlx::{Connection as _, PgConnection as DBase, Row as _};
 
 pub use {
     self::{

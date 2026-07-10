@@ -1,4 +1,7 @@
+use super::*;
 use crate::prelude::*;
+use std::io;
+use std::io::Write as _;
 
 pub async fn edit(db: &mut DBase, editable: &mut Editable, args: &str) -> Result<()> {
     if editable.is_none() {

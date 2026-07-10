@@ -1,7 +1,10 @@
-use {
-    crate::prelude::*,
-    std::path::{Path, PathBuf},
-};
+use crate::output::Output;
+use crate::prelude::*;
+use std::fs;
+use std::io;
+use std::io::Write as _;
+use std::path::Path;
+use std::path::PathBuf;
 
 static CONFIG_FILE: &str = env!("CARGO_PKG_NAME");
 
