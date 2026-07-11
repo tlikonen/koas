@@ -37,7 +37,11 @@ pub async fn grades_for_group(db: &mut DBase, group: &str) -> Result<QueryList<G
     GradesForGroup::query(db, group).await
 }
 
-pub async fn convert_to_grade(db: &mut DBase, editable: &mut Editable, args: &str) -> Result<()> {
+pub async fn deprecated_convert_to_grade(
+    db: &mut DBase,
+    editable: &mut Editable,
+    args: &str,
+) -> Result<()> {
     if editable.is_none() {
         return Err("Edellinen komento ei sisällä muokattavia tietueita.".into());
     }
@@ -79,7 +83,11 @@ pub async fn convert_to_grade(db: &mut DBase, editable: &mut Editable, args: &st
     Ok(())
 }
 
-pub async fn convert_to_decimal(db: &mut DBase, editable: &mut Editable, args: &str) -> Result<()> {
+pub async fn deprecated_convert_to_decimal(
+    db: &mut DBase,
+    editable: &mut Editable,
+    args: &str,
+) -> Result<()> {
     if editable.is_none() {
         return Err("Edellinen komento ei sisällä muokattavia tietueita.".into());
     }

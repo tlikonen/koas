@@ -2,7 +2,7 @@ use super::*;
 use std::io;
 use std::io::Write as _;
 
-pub async fn edit(db: &mut DBase, editable: &mut Editable, args: &str) -> Result<()> {
+pub async fn deprecated_edit(db: &mut DBase, editable: &mut Editable, args: &str) -> Result<()> {
     if editable.is_none() {
         return Err("Edellinen komento ei sisällä muokattavia tietueita.".into());
     }
@@ -44,7 +44,11 @@ pub async fn edit(db: &mut DBase, editable: &mut Editable, args: &str) -> Result
     Ok(())
 }
 
-pub async fn edit_series(db: &mut DBase, editable: &mut Editable, args: &str) -> Result<()> {
+pub async fn deprecated_edit_series(
+    db: &mut DBase,
+    editable: &mut Editable,
+    args: &str,
+) -> Result<()> {
     let mut stdout = io::stdout();
 
     if editable.is_none() {
@@ -172,7 +176,7 @@ pub async fn edit_series(db: &mut DBase, editable: &mut Editable, args: &str) ->
     Ok(())
 }
 
-pub async fn delete(db: &mut DBase, editable: &mut Editable, args: &str) -> Result<()> {
+pub async fn deprecated_delete(db: &mut DBase, editable: &mut Editable, args: &str) -> Result<()> {
     if editable.is_none() {
         return Err("Edellinen komento ei sisällä poistettavia tietueita.".into());
     }

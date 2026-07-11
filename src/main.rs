@@ -495,22 +495,24 @@ async fn commands(
             }
         }
 
-        "m" if matches!(mode, Mode::Interactive) => commands::edit(db, editable, args).await?,
+        "m" if matches!(mode, Mode::Interactive) => {
+            commands::deprecated_edit(db, editable, args).await?
+        }
 
         "ms" if matches!(mode, Mode::Interactive) => {
-            commands::edit_series(db, editable, args).await?
+            commands::deprecated_edit_series(db, editable, args).await?
         }
 
         "ma" if matches!(mode, Mode::Interactive) => {
-            commands::convert_to_grade(db, editable, args).await?
+            commands::deprecated_convert_to_grade(db, editable, args).await?
         }
 
         "md" if matches!(mode, Mode::Interactive) => {
-            commands::convert_to_decimal(db, editable, args).await?
+            commands::deprecated_convert_to_decimal(db, editable, args).await?
         }
 
         "poista" if matches!(mode, Mode::Interactive) => {
-            commands::delete(db, editable, args).await?
+            commands::deprecated_delete(db, editable, args).await?
         }
 
         "tlk" => table_format(modes, args)?,
