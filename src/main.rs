@@ -515,6 +515,52 @@ async fn commands(
             commands::deprecated_convert_to_decimal(db, editable, args).await?
         }
 
+        "uusi-poista" if matches!(mode, Mode::Interactive) => {
+            if editable.is_none() {
+                return Err("Edellinen komento ei sisällä poistettavia tietueita.".into());
+            }
+
+            if args.is_empty() {
+                return Err("Puuttuu tietueiden numerot.".into());
+            }
+
+            let indices = {
+                let (first, _) = tools::split_first(args);
+                let i = tools::parse_number_list(first)?;
+                let max = editable.count();
+                if !tools::is_within_limits(max, &i) {
+                    return Err(format!("Suurin poistettava tietue on {max}.").into());
+                }
+                i
+            };
+
+            match editable {
+                Editable::Students(students) => {
+                    let mut updates = Updates::new();
+                    for student in students.iter_index1(indices) {
+                        updates.push(student.mark_deleted());
+                    }
+                    updates.commit(db).await?;
+                }
+
+                Editable::Groups(_) => {
+                    return Err("Ryhmiä ei voi poistaa näin. Ryhmä poistuu itsestään,\n\
+                                kun siltä poistaa kaikki oppilaat ja suoritukset."
+                        .into());
+                }
+
+                Editable::Assignments(assignments) => {
+                    let mut updates = Updates::new();
+                    for assignment in assignments.iter_index1(indices) {
+                        updates.push(assignment.mark_deleted());
+                    }
+                    updates.commit(db).await?;
+                }
+
+                _ => return Err("Toimintoa ei ole toteutettu vielä.".into()),
+            }
+        }
+
         "poista" if matches!(mode, Mode::Interactive) => {
             commands::deprecated_delete(db, editable, args).await?
         }
