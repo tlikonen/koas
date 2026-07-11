@@ -538,7 +538,7 @@ async fn edit_students(
     let lastname = fields.next().filter(|x| x.has_content()); // sukunimi
     let firstname = fields.next().filter(|x| x.has_content()); // etunimi
     let groups = fields.next().filter(|x| x.has_content()); // ryhmät
-    let description = fields.next(); // lisätiedot
+    let description = fields.next().filter(|x| !x.is_empty()); // lisätiedot
     if fields.next().is_some() {
         return Err("Liikaa kenttiä. Vain neljä hyväksytään.".into());
     }
@@ -613,7 +613,7 @@ async fn edit_groups(
     mut fields: impl Iterator<Item = &str>,
 ) -> Result<()> {
     let name = fields.next().filter(|x| x.has_content()); // ryhmä
-    let description = fields.next(); // lisätiedot
+    let description = fields.next().filter(|x| !x.is_empty()); // lisätiedot
     if fields.next().is_some() {
         return Err("Liikaa kenttiä. Vain kaksi hyväksytään.".into());
     }
