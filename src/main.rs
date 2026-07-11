@@ -491,6 +491,10 @@ async fn commands(
                     edit_groups(db, groups.iter_index1(indices), fields).await?
                 }
 
+                Editable::Assignments(assignments) => {
+                    edit_assignments(db, assignments.iter_index1(indices), fields).await?
+                }
+
                 _ => return Err("Toimintoa ei ole toteutettu vielä.".into()),
             }
         }
@@ -643,6 +647,57 @@ async fn edit_groups(
             } else {
                 updates.push(group.clear_description());
             }
+        }
+    }
+
+    updates.commit(db).await?;
+    Ok(())
+}
+
+async fn edit_assignments(
+    db: &mut PgConnection,
+    assignments: impl Iterator<Item = &Assignment>,
+    mut fields: impl Iterator<Item = &str>,
+) -> Result<()> {
+    let name = fields.next().filter(|x| x.has_content()); // suoritus
+    let short = fields.next().filter(|x| x.has_content()); // suoritus
+    let weight = fields.next().filter(|x| !x.is_empty()); // painokerroin
+    let position = fields.next().filter(|x| x.has_content()); // sija
+    if fields.next().is_some() {
+        return Err("Liikaa kenttiä. Vain neljä hyväksytään.".into());
+    }
+
+    if name.is_none() && short.is_none() && weight.is_none() && position.is_none() {
+        return Err("Anna muokattavia kenttiä.".into());
+    }
+
+    let assignments: Vec<&Assignment> = assignments.collect();
+
+    if assignments.len() > 1 && position.is_some() {
+        return Err("Usealle suoritukselle ei voi asettaa samaa järjestysnumeroa.".into());
+    }
+
+    let mut updates = Updates::new();
+
+    for assignment in &assignments {
+        if let Some(n) = name {
+            updates.push(assignment.set_name(n)?);
+        }
+
+        if let Some(n) = short {
+            updates.push(assignment.set_short(n)?);
+        }
+
+        if let Some(w) = weight {
+            if w.has_content() {
+                updates.push(assignment.set_weight(w)?);
+            } else {
+                updates.push(assignment.clear_weight());
+            }
+        }
+
+        if let Some(p) = position {
+            updates.push(assignment.set_position(p)?);
         }
     }
 

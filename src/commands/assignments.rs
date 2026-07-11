@@ -208,7 +208,7 @@ impl Assignment {
                 field: UpdateAssignmentField::Weight(n),
             }),
 
-            _ => Err("Painokertoimen täytyy olla positiivinen kokonaisluku.".into()),
+            _ => Err("Painokertoimen täytyy olla positiivinen kokonaisluku (tai tyhjä).".into()),
         }
     }
 
