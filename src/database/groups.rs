@@ -96,12 +96,6 @@ impl HasData for QueryList<Group> {
     }
 }
 
-impl CopyToEditable for QueryList<Group> {
-    fn copy_to(&self, ed: &mut Editable) {
-        ed.set(Editable::Groups(self.clone()));
-    }
-}
-
 pub enum UpdateGroupField {
     Name(String),
     Description(String),

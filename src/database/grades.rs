@@ -228,12 +228,6 @@ impl HasData for QueryList<GradesForAssignment> {
     }
 }
 
-impl CopyToEditable for GradesForAssignment {
-    fn copy_to(&self, ed: &mut Editable) {
-        ed.set(Editable::Grades(QueryList::new(self.grades.clone())));
-    }
-}
-
 impl GradesForStudent {
     pub(crate) async fn query(
         db: &mut DBase,
@@ -316,12 +310,6 @@ impl GradesForStudent {
 impl HasData for QueryList<GradesForStudent> {
     fn is_empty(&self) -> bool {
         self.list().is_empty()
-    }
-}
-
-impl CopyToEditable for GradesForStudent {
-    fn copy_to(&self, ed: &mut Editable) {
-        ed.set(Editable::Grades(QueryList::new(self.grades.clone())));
     }
 }
 

@@ -228,11 +228,3 @@ impl HasData for QueryList<AssignmentsForGroup> {
         self.list().is_empty()
     }
 }
-
-impl CopyToEditable for AssignmentsForGroup {
-    fn copy_to(&self, ed: &mut Editable) {
-        ed.set(Editable::Assignments(QueryList::new(
-            self.assignments.clone(),
-        )));
-    }
-}

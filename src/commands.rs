@@ -1,11 +1,11 @@
 mod assignments;
-mod edit;
+mod deprecated;
 mod grades;
 mod groups;
 mod students;
 
 pub use assignments::*;
-pub use edit::*;
+pub use deprecated::*;
 pub use grades::*;
 pub use groups::*;
 pub use students::*;

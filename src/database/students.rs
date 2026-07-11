@@ -163,12 +163,6 @@ impl HasData for QueryList<Student> {
     }
 }
 
-impl CopyToEditable for QueryList<Student> {
-    fn copy_to(&self, ed: &mut Editable) {
-        ed.set(Editable::Students(self.clone()));
-    }
-}
-
 pub enum UpdateStudentField {
     Lastname(String),
     Firstname(String),
