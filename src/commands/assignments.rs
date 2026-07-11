@@ -10,6 +10,11 @@ pub async fn assignments(db: &mut DBase, group: &str) -> Result<QueryList<Assign
     AssignmentsForGroup::query(db, group).await
 }
 
+/// Insert new assignment for a group.
+///
+/// TODO: Korvataan funktiolla Assignment::new, joka valmistelee
+/// InsertAssignmentin, joka viimeistellään commitilla tai lisätään
+/// jonoon.
 pub async fn insert_assignment(
     db: &mut DBase,
     groups: impl IntoIterator<Item = &str>,

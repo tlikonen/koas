@@ -15,6 +15,9 @@ pub async fn students(
 }
 
 /// Insert new student.
+///
+/// TODO: Korvataan funktiolla Student::new, joka valmistelee
+/// InsertStudentin, joka viimeistellään commitilla tai lisätään jonoon.
 pub async fn insert_student(
     db: &mut DBase,
     lastname: &str,
