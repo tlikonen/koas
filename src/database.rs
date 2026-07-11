@@ -14,6 +14,7 @@ use futures::TryStreamExt;
 use std::io;
 use std::io::Write as _;
 
+pub(crate) use self::assignments::UpdateAssignmentField;
 pub(crate) use self::deprecated::{
     DeprecatedDelete, DeprecatedDeleteItems, DeprecatedEdit, DeprecatedEditItems, DeprecatedField,
 };
@@ -23,7 +24,7 @@ pub(crate) use sqlx::{Connection as _, PgConnection as DBase, Row as _};
 
 pub use {
     self::{
-        assignments::{Assignment, AssignmentsForGroup},
+        assignments::{Assignment, AssignmentsForGroup, DeleteAssignment, UpdateAssignment},
         deprecated::{CopyToEditable, Editable},
         grades::{
             Grade, GradeDistribution, GradesForAssignment, GradesForGroup, GradesForStudent,

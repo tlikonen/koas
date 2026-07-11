@@ -228,3 +228,14 @@ impl HasData for QueryList<AssignmentsForGroup> {
         self.list().is_empty()
     }
 }
+
+pub enum UpdateAssignmentField {
+    Name(String),
+    Short(String),
+    Weight(i32),
+    WeightClear,
+    Position(i32),
+}
+
+pub type UpdateAssignment<'a> = Update<'a, Assignment, UpdateAssignmentField>;
+pub type DeleteAssignment<'a> = Delete<'a, Assignment>;

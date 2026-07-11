@@ -170,3 +170,122 @@ impl DeprecatedDelete for DeprecatedDeleteItems<'_, Assignment> {
         Ok(())
     }
 }
+
+impl Assignment {
+    /// Prepare update for assignment's name.
+    ///
+    /// See [`Commit`] trait for more information.
+    pub fn set_name<'a>(&'a self, name: &str) -> Result<UpdateAssignment<'a>> {
+        match name.normalize() {
+            None => Err(format!("Sopimaton suorituksen nimi: ”{name}”.").into()),
+            Some(n) => Ok(UpdateAssignment {
+                item: self,
+                field: UpdateAssignmentField::Name(n),
+            }),
+        }
+    }
+
+    /// Prepare update for assignment's short name.
+    ///
+    /// See [`Commit`] trait for more information.
+    pub fn set_short<'a>(&'a self, name: &str) -> Result<UpdateAssignment<'a>> {
+        match name.normalize() {
+            None => Err(format!("Sopimaton suorituksen lyhenne: ”{name}”.").into()),
+            Some(n) => Ok(UpdateAssignment {
+                item: self,
+                field: UpdateAssignmentField::Short(n),
+            }),
+        }
+    }
+
+    /// Prepare update for assignment's weight.
+    ///
+    /// See [`Commit`] trait for more information.
+    pub fn set_weight<'a>(&'a self, number: &str) -> Result<UpdateAssignment<'a>> {
+        match number.trim().parse::<i32>() {
+            Ok(n) if n >= 1 => Ok(UpdateAssignment {
+                item: self,
+                field: UpdateAssignmentField::Weight(n),
+            }),
+
+            _ => Err("Painokertoimen täytyy olla positiivinen kokonaisluku.".into()),
+        }
+    }
+
+    /// Prepare to clear assignment's weight.
+    ///
+    /// See [`Commit`] trait for more information.
+    pub fn clear_weight<'a>(&'a self) -> UpdateAssignment<'a> {
+        UpdateAssignment {
+            item: self,
+            field: UpdateAssignmentField::WeightClear,
+        }
+    }
+
+    /// Prepare update for assignment's position.
+    ///
+    /// See [`Commit`] trait for more information.
+    pub fn set_position<'a>(&'a self, number: &str) -> Result<UpdateAssignment<'a>> {
+        match number.trim().parse::<i32>() {
+            Ok(n) => Ok(UpdateAssignment {
+                item: self,
+                field: UpdateAssignmentField::Position(n),
+            }),
+
+            _ => Err("Järjestysnumeron täytyy olla kokonaisluku.".into()),
+        }
+    }
+
+    /// Prepare deletion of assignment.
+    ///
+    /// See [`Commit`] trait for more information.
+    pub fn mark_deleted<'a>(&'a self) -> DeleteAssignment<'a> {
+        DeleteAssignment { item: self }
+    }
+}
+
+impl Commit for UpdateAssignment<'_> {
+    async fn commit(&self, db: &mut DBase) -> Result<()> {
+        let mut ta = db.begin().await?;
+        let assignment = self.item;
+
+        match &self.field {
+            UpdateAssignmentField::Name(name) => assignment.update_name(&mut ta, name).await?,
+            UpdateAssignmentField::Short(short) => assignment.update_short(&mut ta, short).await?,
+            UpdateAssignmentField::Weight(weight) => {
+                assignment.update_weight(&mut ta, Some(*weight)).await?
+            }
+            UpdateAssignmentField::WeightClear => assignment.update_weight(&mut ta, None).await?,
+            UpdateAssignmentField::Position(pos) => {
+                assignment.update_position(&mut ta, *pos).await?
+            }
+        }
+
+        ta.commit().await?;
+        Ok(())
+    }
+}
+
+impl Commit for DeleteAssignment<'_> {
+    async fn commit(&self, db: &mut DBase) -> Result<()> {
+        let mut ta = db.begin().await?;
+        let assignment = self.item;
+
+        let count = assignment.count_grades(&mut ta).await?;
+        if count > 0 {
+            return Err(format!(
+                "Suoritukselle ”{a}” on kirjattu {c} arvosana(a). Poista ne ensin.",
+                a = assignment.assignment,
+                c = count,
+            )
+            .into());
+        }
+
+        assignment.delete(&mut ta).await?;
+        Assignment::reposition(&mut ta, assignment.rid).await?;
+        Group::delete_empty(&mut ta).await?;
+
+        ta.commit().await?;
+        Ok(())
+    }
+}
