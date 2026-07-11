@@ -486,6 +486,11 @@ async fn commands(
                 Editable::Students(students) => {
                     edit_students(db, students.iter_index1(indices), fields).await?
                 }
+
+                Editable::Groups(groups) => {
+                    edit_groups(db, groups.iter_index1(indices), fields).await?
+                }
+
                 _ => return Err("Toimintoa ei ole toteutettu vielä.".into()),
             }
         }
@@ -594,6 +599,47 @@ async fn edit_students(
                 updates.push(student.set_description(desc)?);
             } else {
                 updates.push(student.clear_description());
+            }
+        }
+    }
+
+    updates.commit(db).await?;
+    Ok(())
+}
+
+async fn edit_groups(
+    db: &mut PgConnection,
+    groups: impl Iterator<Item = &Group>,
+    mut fields: impl Iterator<Item = &str>,
+) -> Result<()> {
+    let name = fields.next().filter(|x| x.has_content()); // ryhmä
+    let description = fields.next(); // lisätiedot
+    if fields.next().is_some() {
+        return Err("Liikaa kenttiä. Vain kaksi hyväksytään.".into());
+    }
+
+    if name.is_none() && description.is_none() {
+        return Err("Anna muokattavia kenttiä.".into());
+    }
+
+    let groups: Vec<&Group> = groups.collect();
+
+    if groups.len() > 1 && name.is_some() {
+        return Err("Usealle ryhmälle ei voi antaa samaa nimeä.".into());
+    }
+
+    let mut updates = Updates::new();
+
+    for group in &groups {
+        if let Some(n) = name {
+            updates.push(group.set_name(n)?);
+        }
+
+        if let Some(desc) = description {
+            if desc.has_content() {
+                updates.push(group.set_description(desc)?);
+            } else {
+                updates.push(group.clear_description());
             }
         }
     }
