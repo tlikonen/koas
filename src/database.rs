@@ -18,6 +18,7 @@ pub(crate) use self::assignments::UpdateAssignmentField;
 pub(crate) use self::deprecated::{
     DeprecatedDelete, DeprecatedDeleteItems, DeprecatedEdit, DeprecatedEditItems, DeprecatedField,
 };
+pub(crate) use self::grades::UpdateGradeField;
 pub(crate) use self::groups::UpdateGroupField;
 pub(crate) use self::students::UpdateStudentField;
 pub(crate) use sqlx::{Connection as _, PgConnection as DBase, Row as _};
@@ -27,8 +28,8 @@ pub use {
         assignments::{Assignment, AssignmentsForGroup, DeleteAssignment, UpdateAssignment},
         deprecated::{CopyToEditable, Editable},
         grades::{
-            Grade, GradeDistribution, GradesForAssignment, GradesForGroup, GradesForStudent,
-            SimpleGrade, SimpleStudent, StudentRanking,
+            DeleteGrade, Grade, GradeDistribution, GradesForAssignment, GradesForGroup,
+            GradesForStudent, SimpleGrade, SimpleStudent, StudentRanking, UpdateGrade,
         },
         groups::{Group, UpdateGroup},
         students::{DeleteStudent, Student, UpdateStudent},

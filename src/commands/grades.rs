@@ -201,3 +201,58 @@ impl DeprecatedDelete for DeprecatedDeleteItems<'_, Grade> {
         Ok(())
     }
 }
+
+impl Grade {
+    /// Prepare update for grade.
+    ///
+    /// See [`Commit`] trait for more information.
+    pub fn set_grade<'a>(&'a self, grade: &str) -> Result<UpdateGrade<'a>> {
+        match grade.normalize() {
+            None => Err(format!("Sopimaton oppilaan kuvaus: ”{grade}”.").into()),
+            Some(g) => Ok(UpdateGrade {
+                item: self,
+                field: UpdateGradeField::Grade(g),
+            }),
+        }
+    }
+
+    /// Prepare to clear grade's description.
+    ///
+    /// See [`Commit`] trait for more information.
+    pub fn clear_grade<'a>(&'a self) -> UpdateGrade<'a> {
+        UpdateGrade {
+            item: self,
+            field: UpdateGradeField::GradeClear,
+        }
+    }
+
+    /// Prepare update for grade's description.
+    ///
+    /// See [`Commit`] trait for more information.
+    pub fn set_description<'a>(&'a self, desc: &str) -> Result<UpdateGrade<'a>> {
+        match desc.normalize() {
+            None => Err(format!("Sopimaton oppilaan kuvaus: ”{desc}”.").into()),
+            Some(d) => Ok(UpdateGrade {
+                item: self,
+                field: UpdateGradeField::Description(d),
+            }),
+        }
+    }
+
+    /// Prepare to clear grade's description.
+    ///
+    /// See [`Commit`] trait for more information.
+    pub fn clear_description<'a>(&'a self) -> UpdateGrade<'a> {
+        UpdateGrade {
+            item: self,
+            field: UpdateGradeField::DescriptionClear,
+        }
+    }
+
+    /// Prepare deletion of grade.
+    ///
+    /// See [`Commit`] trait for more information.
+    pub fn mark_deleted<'a>(&'a self) -> DeleteGrade<'a> {
+        DeleteGrade { item: self }
+    }
+}

@@ -550,3 +550,13 @@ impl HasData for GradeDistribution {
         self.data.is_empty()
     }
 }
+
+pub enum UpdateGradeField {
+    Grade(String),
+    GradeClear,
+    Description(String),
+    DescriptionClear,
+}
+
+pub type UpdateGrade<'a> = Update<'a, Grade, UpdateGradeField>;
+pub type DeleteGrade<'a> = Delete<'a, Grade>;
