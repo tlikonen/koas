@@ -536,7 +536,7 @@ async fn commands(
 
             match editable {
                 Editable::Students(students) => {
-                    let mut updates = Updates::new();
+                    let mut updates = Queue::new();
                     for student in students.iter_index1(indices) {
                         updates.push(student.mark_deleted());
                     }
@@ -550,7 +550,7 @@ async fn commands(
                 }
 
                 Editable::Assignments(assignments) => {
-                    let mut updates = Updates::new();
+                    let mut updates = Queue::new();
                     for assignment in assignments.iter_index1(indices) {
                         updates.push(assignment.mark_deleted());
                     }
@@ -627,7 +627,7 @@ async fn edit_students(
         }
     }
 
-    let mut updates = Updates::new();
+    let mut updates = Queue::new();
 
     for student in &students {
         if let Some(name) = lastname {
@@ -680,7 +680,7 @@ async fn edit_groups(
         return Err("Usealle ryhmälle ei voi antaa samaa nimeä.".into());
     }
 
-    let mut updates = Updates::new();
+    let mut updates = Queue::new();
 
     for group in &groups {
         if let Some(n) = name {
@@ -723,7 +723,7 @@ async fn edit_assignments(
         return Err("Usealle suoritukselle ei voi asettaa samaa järjestysnumeroa.".into());
     }
 
-    let mut updates = Updates::new();
+    let mut updates = Queue::new();
 
     for assignment in &assignments {
         if let Some(n) = name {

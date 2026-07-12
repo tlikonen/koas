@@ -138,14 +138,14 @@ pub trait Commit {
 ///
 /// # Examples
 /// ```compile_fail
-/// let mut updates = Updates::new();
+/// let mut updates = Queue::new();
 /// updates.push(/* item */);
 /// updates.push(/* item */);
 /// updates.commit(/* &mut PgConnection */).await?;
 /// ```
-pub struct Updates<T: Commit>(Vec<T>);
+pub struct Queue<T: Commit>(Vec<T>);
 
-impl<T: Commit> Updates<T> {
+impl<T: Commit> Queue<T> {
     /// Create a new empty queue for updates.
     pub fn new() -> Self {
         Self(Vec::new())
@@ -177,13 +177,13 @@ impl<T: Commit> Updates<T> {
     }
 }
 
-impl<T: Commit> Default for Updates<T> {
+impl<T: Commit> Default for Queue<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T: Commit> Commit for Updates<T> {
+impl<T: Commit> Commit for Queue<T> {
     /// Commit a queue of updates.
     ///
     /// The whole queue is committed as a single database transaction.
