@@ -123,11 +123,6 @@ impl Stats {
 }
 
 /// Commit prepared changes to the database.
-///
-/// The [`Commit::commit`] method commits prepared updates to the
-/// database. Updates can be prepared with methods of [`Student`],
-/// [`Group`], [`Assignment`] and [`Grade`], as well as methods of
-/// [`Updates`] which represents a queue of updates.
 #[allow(async_fn_in_trait)]
 pub trait Commit {
     /// Commit the database update.
@@ -135,14 +130,6 @@ pub trait Commit {
 }
 
 /// A queue for updates.
-///
-/// # Examples
-/// ```compile_fail
-/// let mut updates = Queue::new();
-/// updates.push(/* item */);
-/// updates.push(/* item */);
-/// updates.commit(/* &mut PgConnection */).await?;
-/// ```
 pub struct Queue<T: Commit>(Vec<T>);
 
 impl<T: Commit> Queue<T> {
