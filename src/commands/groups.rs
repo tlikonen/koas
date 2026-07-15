@@ -83,6 +83,12 @@ impl Group {
     }
 }
 
+impl<'a> ToQueue<'a> for UpdateGroup<'a> {
+    fn queue(self, q: &mut Queue<'a>) {
+        q.push(QueueItem::UpdateGroup(self));
+    }
+}
+
 impl Commit for UpdateGroup<'_> {
     async fn commit(&self, db: &mut DBase) -> Result<()> {
         let mut ta = db.begin().await?;

@@ -483,6 +483,8 @@ async fn commands(
             };
 
             match editable {
+                Editable::None => (),
+
                 Editable::Students(students) => {
                     edit_students(db, students.iter_index1(indices), fields).await?
                 }
@@ -535,10 +537,12 @@ async fn commands(
             };
 
             match editable {
+                Editable::None => (),
+
                 Editable::Students(students) => {
                     let mut updates = Queue::new();
                     for student in students.iter_index1(indices) {
-                        updates.push(student.mark_deleted());
+                        student.mark_deleted().queue(&mut updates);
                     }
                     updates.commit(db).await?;
                 }
@@ -552,7 +556,7 @@ async fn commands(
                 Editable::Assignments(assignments) => {
                     let mut updates = Queue::new();
                     for assignment in assignments.iter_index1(indices) {
-                        updates.push(assignment.mark_deleted());
+                        assignment.mark_deleted().queue(&mut updates);
                     }
                     updates.commit(db).await?;
                 }
@@ -631,26 +635,26 @@ async fn edit_students(
 
     for student in &students {
         if let Some(name) = lastname {
-            updates.push(student.set_lastname(name)?);
+            student.set_lastname(name)?.queue(&mut updates);
         }
 
         if let Some(name) = firstname {
-            updates.push(student.set_firstname(name)?);
+            student.set_firstname(name)?.queue(&mut updates);
         }
 
         for name in &groups_add {
-            updates.push(student.add_group(name)?);
+            student.add_group(name)?.queue(&mut updates);
         }
 
         for name in &groups_remove {
-            updates.push(student.remove_group(name)?);
+            student.remove_group(name)?.queue(&mut updates);
         }
 
         if let Some(desc) = description {
             if desc.has_content() {
-                updates.push(student.set_description(desc)?);
+                student.set_description(desc)?.queue(&mut updates);
             } else {
-                updates.push(student.clear_description());
+                student.clear_description().queue(&mut updates);
             }
         }
     }
@@ -684,14 +688,14 @@ async fn edit_groups(
 
     for group in &groups {
         if let Some(n) = name {
-            updates.push(group.set_name(n)?);
+            group.set_name(n)?.queue(&mut updates);
         }
 
         if let Some(desc) = description {
             if desc.has_content() {
-                updates.push(group.set_description(desc)?);
+                group.set_description(desc)?.queue(&mut updates);
             } else {
-                updates.push(group.clear_description());
+                group.clear_description().queue(&mut updates);
             }
         }
     }
@@ -727,23 +731,23 @@ async fn edit_assignments(
 
     for assignment in &assignments {
         if let Some(n) = name {
-            updates.push(assignment.set_name(n)?);
+            assignment.set_name(n)?.queue(&mut updates);
         }
 
         if let Some(n) = short {
-            updates.push(assignment.set_short(n)?);
+            assignment.set_short(n)?.queue(&mut updates);
         }
 
         if let Some(w) = weight {
             if w.has_content() {
-                updates.push(assignment.set_weight(w)?);
+                assignment.set_weight(w)?.queue(&mut updates);
             } else {
-                updates.push(assignment.clear_weight());
+                assignment.clear_weight().queue(&mut updates);
             }
         }
 
         if let Some(p) = position {
-            updates.push(assignment.set_position(p)?);
+            assignment.set_position(p)?.queue(&mut updates);
         }
     }
 

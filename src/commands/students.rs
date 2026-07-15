@@ -281,6 +281,12 @@ impl Student {
     }
 }
 
+impl<'a> ToQueue<'a> for UpdateStudent<'a> {
+    fn queue(self, q: &mut Queue<'a>) {
+        q.push(QueueItem::UpdateStudent(self));
+    }
+}
+
 impl Commit for UpdateStudent<'_> {
     async fn commit(&self, db: &mut DBase) -> Result<()> {
         let mut ta = db.begin().await?;

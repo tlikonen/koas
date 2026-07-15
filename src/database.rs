@@ -131,21 +131,35 @@ pub trait Commit {
 }
 
 /// A queue for updates.
-pub struct Queue<T: Commit>(Vec<T>);
+pub struct Queue<'a>(Vec<QueueItem<'a>>);
 
-impl<T: Commit> Queue<T> {
+pub enum QueueItem<'a> {
+    UpdateStudent(UpdateStudent<'a>),
+    UpdateGroup(UpdateGroup<'a>),
+    UpdateAssignment(UpdateAssignment<'a>),
+    UpdateGrade(UpdateGrade<'a>),
+}
+
+impl Commit for QueueItem<'_> {
+    async fn commit(&self, db: &mut DBase) -> Result<()> {
+        match self {
+            QueueItem::UpdateStudent(s) => s.commit(db).await?,
+            QueueItem::UpdateGroup(g) => g.commit(db).await?,
+            QueueItem::UpdateAssignment(a) => a.commit(db).await?,
+            QueueItem::UpdateGrade(_g) => todo!(), // g.commit(&mut ta).await?,
+        }
+        Ok(())
+    }
+}
+
+impl<'a> Queue<'a> {
     /// Create a new empty queue for updates.
     pub fn new() -> Self {
         Self(Vec::new())
     }
 
-    /// Push new item to the queue of updates.
-    pub fn push(&mut self, item: T) {
-        self.0.push(item);
-    }
-
     /// Iterate over the queue.
-    pub fn iter(&self) -> impl Iterator<Item = &T> {
+    pub fn iter(&self) -> impl Iterator<Item = &QueueItem<'_>> {
         self.0.iter()
     }
 
@@ -154,24 +168,18 @@ impl<T: Commit> Queue<T> {
         self.0.len()
     }
 
-    /// Return an immutable reference to the queue vector.
-    pub fn as_vec(&self) -> &Vec<T> {
-        &self.0
-    }
-
-    /// Return a mutable reference to the queue vector.
-    pub fn as_vec_mut(&mut self) -> &mut Vec<T> {
-        &mut self.0
+    pub(crate) fn push(&mut self, item: QueueItem<'a>) {
+        self.0.push(item);
     }
 }
 
-impl<T: Commit> Default for Queue<T> {
+impl Default for Queue<'_> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T: Commit> Commit for Queue<T> {
+impl Commit for Queue<'_> {
     /// Commit a queue of updates.
     ///
     /// The whole queue is committed as a single database transaction.
@@ -191,6 +199,10 @@ impl<T: Commit> Commit for Queue<T> {
 pub struct Update<'a, I, O> {
     pub(crate) item: &'a I,
     pub(crate) operation: O,
+}
+
+pub trait ToQueue<'a> {
+    fn queue(self, q: &mut Queue<'a>);
 }
 
 pub struct FullQuery<'a> {

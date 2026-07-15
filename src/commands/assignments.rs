@@ -247,6 +247,12 @@ impl Assignment {
     }
 }
 
+impl<'a> ToQueue<'a> for UpdateAssignment<'a> {
+    fn queue(self, q: &mut Queue<'a>) {
+        q.push(QueueItem::UpdateAssignment(self));
+    }
+}
+
 impl Commit for UpdateAssignment<'_> {
     async fn commit(&self, db: &mut DBase) -> Result<()> {
         let mut ta = db.begin().await?;
