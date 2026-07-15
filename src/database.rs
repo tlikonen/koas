@@ -14,25 +14,25 @@ use futures::TryStreamExt;
 use std::io;
 use std::io::Write as _;
 
-pub(crate) use self::assignments::UpdateAssignmentField;
+pub(crate) use self::assignments::UpdateAssignmentOp;
 pub(crate) use self::deprecated::{
     DeprecatedDelete, DeprecatedDeleteItems, DeprecatedEdit, DeprecatedEditItems, DeprecatedField,
 };
-pub(crate) use self::grades::UpdateGradeField;
-pub(crate) use self::groups::UpdateGroupField;
-pub(crate) use self::students::UpdateStudentField;
+pub(crate) use self::grades::UpdateGradeOp;
+pub(crate) use self::groups::UpdateGroupOp;
+pub(crate) use self::students::UpdateStudentOp;
 pub(crate) use sqlx::{Connection as _, PgConnection as DBase, Row as _};
 
 pub use {
     self::{
-        assignments::{Assignment, AssignmentsForGroup, DeleteAssignment, UpdateAssignment},
+        assignments::{Assignment, AssignmentsForGroup, UpdateAssignment},
         deprecated::{CopyToEditable, Editable},
         grades::{
-            DeleteGrade, Grade, GradeDistribution, GradesForAssignment, GradesForGroup,
-            GradesForStudent, SimpleGrade, SimpleStudent, StudentRanking, UpdateGrade,
+            Grade, GradeDistribution, GradesForAssignment, GradesForGroup, GradesForStudent,
+            SimpleGrade, SimpleStudent, StudentRanking, UpdateGrade,
         },
         groups::{Group, UpdateGroup},
-        students::{DeleteStudent, Student, UpdateStudent},
+        students::{Student, UpdateStudent},
     },
     sqlx::{Connection, PgConnection},
 };
@@ -188,13 +188,9 @@ impl<T: Commit> Commit for Queue<T> {
     }
 }
 
-pub struct Update<'a, I, F> {
+pub struct Update<'a, I, O> {
     pub(crate) item: &'a I,
-    pub(crate) field: F,
-}
-
-pub struct Delete<'a, T> {
-    pub(crate) item: &'a T,
+    pub(crate) operation: O,
 }
 
 pub struct FullQuery<'a> {

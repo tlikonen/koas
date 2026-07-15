@@ -551,12 +551,12 @@ impl HasData for GradeDistribution {
     }
 }
 
-pub enum UpdateGradeField {
+pub enum UpdateGradeOp {
     Grade(String),
     GradeClear,
     Description(String),
     DescriptionClear,
+    Delete,
 }
 
-pub type UpdateGrade<'a> = Update<'a, Grade, UpdateGradeField>;
-pub type DeleteGrade<'a> = Delete<'a, Grade>;
+pub type UpdateGrade<'a> = Update<'a, Grade, UpdateGradeOp>;

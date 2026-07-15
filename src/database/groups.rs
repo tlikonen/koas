@@ -96,10 +96,10 @@ impl HasData for QueryList<Group> {
     }
 }
 
-pub enum UpdateGroupField {
+pub enum UpdateGroupOp {
     Name(String),
     Description(String),
     DescriptionClear,
 }
 
-pub type UpdateGroup<'a> = Update<'a, Group, UpdateGroupField>;
+pub type UpdateGroup<'a> = Update<'a, Group, UpdateGroupOp>;

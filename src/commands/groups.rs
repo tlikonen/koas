@@ -53,7 +53,7 @@ impl Group {
                 n.is_valid_group_name()?;
                 Ok(UpdateGroup {
                     item: self,
-                    field: UpdateGroupField::Name(n),
+                    operation: UpdateGroupOp::Name(n),
                 })
             }
         }
@@ -67,7 +67,7 @@ impl Group {
             None => Err(format!("Sopimaton ryhmän kuvaus: ”{desc}”.").into()),
             Some(d) => Ok(UpdateGroup {
                 item: self,
-                field: UpdateGroupField::Description(d),
+                operation: UpdateGroupOp::Description(d),
             }),
         }
     }
@@ -78,7 +78,7 @@ impl Group {
     pub fn clear_description<'a>(&'a self) -> UpdateGroup<'a> {
         UpdateGroup {
             item: self,
-            field: UpdateGroupField::DescriptionClear,
+            operation: UpdateGroupOp::DescriptionClear,
         }
     }
 }
@@ -88,10 +88,10 @@ impl Commit for UpdateGroup<'_> {
         let mut ta = db.begin().await?;
         let group = self.item;
 
-        match &self.field {
-            UpdateGroupField::Name(name) => group.update_name(&mut ta, name).await?,
-            UpdateGroupField::Description(desc) => group.update_description(&mut ta, desc).await?,
-            UpdateGroupField::DescriptionClear => group.update_description(&mut ta, "").await?,
+        match &self.operation {
+            UpdateGroupOp::Name(name) => group.update_name(&mut ta, name).await?,
+            UpdateGroupOp::Description(desc) => group.update_description(&mut ta, desc).await?,
+            UpdateGroupOp::DescriptionClear => group.update_description(&mut ta, "").await?,
         }
 
         ta.commit().await?;

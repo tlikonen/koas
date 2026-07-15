@@ -163,14 +163,14 @@ impl HasData for QueryList<Student> {
     }
 }
 
-pub enum UpdateStudentField {
+pub enum UpdateStudentOp {
     Lastname(String),
     Firstname(String),
     GroupAdd(String),
     GroupRemove(String),
     Description(String),
     DescriptionClear,
+    Delete,
 }
 
-pub type UpdateStudent<'a> = Update<'a, Student, UpdateStudentField>;
-pub type DeleteStudent<'a> = Delete<'a, Student>;
+pub type UpdateStudent<'a> = Update<'a, Student, UpdateStudentOp>;

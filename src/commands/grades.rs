@@ -211,7 +211,7 @@ impl Grade {
             None => Err(format!("Sopimaton oppilaan kuvaus: ”{grade}”.").into()),
             Some(g) => Ok(UpdateGrade {
                 item: self,
-                field: UpdateGradeField::Grade(g),
+                operation: UpdateGradeOp::Grade(g),
             }),
         }
     }
@@ -222,7 +222,7 @@ impl Grade {
     pub fn clear_grade<'a>(&'a self) -> UpdateGrade<'a> {
         UpdateGrade {
             item: self,
-            field: UpdateGradeField::GradeClear,
+            operation: UpdateGradeOp::GradeClear,
         }
     }
 
@@ -234,7 +234,7 @@ impl Grade {
             None => Err(format!("Sopimaton oppilaan kuvaus: ”{desc}”.").into()),
             Some(d) => Ok(UpdateGrade {
                 item: self,
-                field: UpdateGradeField::Description(d),
+                operation: UpdateGradeOp::Description(d),
             }),
         }
     }
@@ -245,14 +245,17 @@ impl Grade {
     pub fn clear_description<'a>(&'a self) -> UpdateGrade<'a> {
         UpdateGrade {
             item: self,
-            field: UpdateGradeField::DescriptionClear,
+            operation: UpdateGradeOp::DescriptionClear,
         }
     }
 
     /// Prepare deletion of grade.
     ///
     /// See [`Commit`] trait for more information.
-    pub fn mark_deleted<'a>(&'a self) -> DeleteGrade<'a> {
-        DeleteGrade { item: self }
+    pub fn mark_deleted<'a>(&'a self) -> UpdateGrade<'a> {
+        UpdateGrade {
+            item: self,
+            operation: UpdateGradeOp::Delete,
+        }
     }
 }

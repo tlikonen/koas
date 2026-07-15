@@ -180,7 +180,7 @@ impl Assignment {
             None => Err(format!("Sopimaton suorituksen nimi: ”{name}”.").into()),
             Some(n) => Ok(UpdateAssignment {
                 item: self,
-                field: UpdateAssignmentField::Name(n),
+                operation: UpdateAssignmentOp::Name(n),
             }),
         }
     }
@@ -193,7 +193,7 @@ impl Assignment {
             None => Err(format!("Sopimaton suorituksen lyhenne: ”{name}”.").into()),
             Some(n) => Ok(UpdateAssignment {
                 item: self,
-                field: UpdateAssignmentField::Short(n),
+                operation: UpdateAssignmentOp::Short(n),
             }),
         }
     }
@@ -205,7 +205,7 @@ impl Assignment {
         match number.trim().parse::<i32>() {
             Ok(n) if n >= 1 => Ok(UpdateAssignment {
                 item: self,
-                field: UpdateAssignmentField::Weight(n),
+                operation: UpdateAssignmentOp::Weight(n),
             }),
 
             _ => Err("Painokertoimen täytyy olla positiivinen kokonaisluku (tai tyhjä).".into()),
@@ -218,7 +218,7 @@ impl Assignment {
     pub fn clear_weight<'a>(&'a self) -> UpdateAssignment<'a> {
         UpdateAssignment {
             item: self,
-            field: UpdateAssignmentField::WeightClear,
+            operation: UpdateAssignmentOp::WeightClear,
         }
     }
 
@@ -229,7 +229,7 @@ impl Assignment {
         match number.trim().parse::<i32>() {
             Ok(n) => Ok(UpdateAssignment {
                 item: self,
-                field: UpdateAssignmentField::Position(n),
+                operation: UpdateAssignmentOp::Position(n),
             }),
 
             _ => Err("Järjestysnumeron täytyy olla kokonaisluku.".into()),
@@ -239,8 +239,11 @@ impl Assignment {
     /// Prepare deletion of assignment.
     ///
     /// See [`Commit`] trait for more information.
-    pub fn mark_deleted<'a>(&'a self) -> DeleteAssignment<'a> {
-        DeleteAssignment { item: self }
+    pub fn mark_deleted<'a>(&'a self) -> UpdateAssignment<'a> {
+        UpdateAssignment {
+            item: self,
+            operation: UpdateAssignmentOp::Delete,
+        }
     }
 }
 
@@ -249,41 +252,31 @@ impl Commit for UpdateAssignment<'_> {
         let mut ta = db.begin().await?;
         let assignment = self.item;
 
-        match &self.field {
-            UpdateAssignmentField::Name(name) => assignment.update_name(&mut ta, name).await?,
-            UpdateAssignmentField::Short(short) => assignment.update_short(&mut ta, short).await?,
-            UpdateAssignmentField::Weight(weight) => {
+        match &self.operation {
+            UpdateAssignmentOp::Name(name) => assignment.update_name(&mut ta, name).await?,
+            UpdateAssignmentOp::Short(short) => assignment.update_short(&mut ta, short).await?,
+            UpdateAssignmentOp::Weight(weight) => {
                 assignment.update_weight(&mut ta, Some(*weight)).await?
             }
-            UpdateAssignmentField::WeightClear => assignment.update_weight(&mut ta, None).await?,
-            UpdateAssignmentField::Position(pos) => {
-                assignment.update_position(&mut ta, *pos).await?
+            UpdateAssignmentOp::WeightClear => assignment.update_weight(&mut ta, None).await?,
+            UpdateAssignmentOp::Position(pos) => assignment.update_position(&mut ta, *pos).await?,
+
+            UpdateAssignmentOp::Delete => {
+                let count = assignment.count_grades(&mut ta).await?;
+                if count > 0 {
+                    return Err(format!(
+                        "Suoritukselle ”{a}” on kirjattu {c} arvosana(a). Poista ne ensin.",
+                        a = assignment.assignment,
+                        c = count,
+                    )
+                    .into());
+                }
+
+                assignment.delete(&mut ta).await?;
+                Assignment::reposition(&mut ta, assignment.rid).await?;
+                Group::delete_empty(&mut ta).await?;
             }
         }
-
-        ta.commit().await?;
-        Ok(())
-    }
-}
-
-impl Commit for DeleteAssignment<'_> {
-    async fn commit(&self, db: &mut DBase) -> Result<()> {
-        let mut ta = db.begin().await?;
-        let assignment = self.item;
-
-        let count = assignment.count_grades(&mut ta).await?;
-        if count > 0 {
-            return Err(format!(
-                "Suoritukselle ”{a}” on kirjattu {c} arvosana(a). Poista ne ensin.",
-                a = assignment.assignment,
-                c = count,
-            )
-            .into());
-        }
-
-        assignment.delete(&mut ta).await?;
-        Assignment::reposition(&mut ta, assignment.rid).await?;
-        Group::delete_empty(&mut ta).await?;
 
         ta.commit().await?;
         Ok(())

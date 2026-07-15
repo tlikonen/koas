@@ -229,13 +229,13 @@ impl HasData for QueryList<AssignmentsForGroup> {
     }
 }
 
-pub enum UpdateAssignmentField {
+pub enum UpdateAssignmentOp {
     Name(String),
     Short(String),
     Weight(i32),
     WeightClear,
     Position(i32),
+    Delete,
 }
 
-pub type UpdateAssignment<'a> = Update<'a, Assignment, UpdateAssignmentField>;
-pub type DeleteAssignment<'a> = Delete<'a, Assignment>;
+pub type UpdateAssignment<'a> = Update<'a, Assignment, UpdateAssignmentOp>;

@@ -197,7 +197,7 @@ impl Student {
             None => Err(format!("Sopimaton sukunimi: ”{name}”.").into()),
             Some(n) => Ok(UpdateStudent {
                 item: self,
-                field: UpdateStudentField::Lastname(n),
+                operation: UpdateStudentOp::Lastname(n),
             }),
         }
     }
@@ -210,7 +210,7 @@ impl Student {
             None => Err(format!("Sopimaton etunimi: ”{name}”.").into()),
             Some(n) => Ok(UpdateStudent {
                 item: self,
-                field: UpdateStudentField::Firstname(n),
+                operation: UpdateStudentOp::Firstname(n),
             }),
         }
     }
@@ -225,7 +225,7 @@ impl Student {
                 n.is_valid_group_name()?;
                 Ok(UpdateStudent {
                     item: self,
-                    field: UpdateStudentField::GroupAdd(n),
+                    operation: UpdateStudentOp::GroupAdd(n),
                 })
             }
         }
@@ -241,7 +241,7 @@ impl Student {
                 n.is_valid_group_name()?;
                 Ok(UpdateStudent {
                     item: self,
-                    field: UpdateStudentField::GroupRemove(n),
+                    operation: UpdateStudentOp::GroupRemove(n),
                 })
             }
         }
@@ -255,7 +255,7 @@ impl Student {
             None => Err(format!("Sopimaton oppilaan kuvaus: ”{desc}”.").into()),
             Some(d) => Ok(UpdateStudent {
                 item: self,
-                field: UpdateStudentField::Description(d),
+                operation: UpdateStudentOp::Description(d),
             }),
         }
     }
@@ -266,15 +266,18 @@ impl Student {
     pub fn clear_description<'a>(&'a self) -> UpdateStudent<'a> {
         UpdateStudent {
             item: self,
-            field: UpdateStudentField::DescriptionClear,
+            operation: UpdateStudentOp::DescriptionClear,
         }
     }
 
     /// Prepare deletion of student.
     ///
     /// See [`Commit`] trait for more information.
-    pub fn mark_deleted<'a>(&'a self) -> DeleteStudent<'a> {
-        DeleteStudent { item: self }
+    pub fn mark_deleted<'a>(&'a self) -> UpdateStudent<'a> {
+        UpdateStudent {
+            item: self,
+            operation: UpdateStudentOp::Delete,
+        }
     }
 }
 
@@ -283,21 +286,19 @@ impl Commit for UpdateStudent<'_> {
         let mut ta = db.begin().await?;
         let student = self.item;
 
-        match &self.field {
-            UpdateStudentField::Lastname(last) => student.update_lastname(&mut ta, last).await?,
+        match &self.operation {
+            UpdateStudentOp::Lastname(last) => student.update_lastname(&mut ta, last).await?,
 
-            UpdateStudentField::Firstname(first) => {
-                student.update_firstname(&mut ta, first).await?
-            }
+            UpdateStudentOp::Firstname(first) => student.update_firstname(&mut ta, first).await?,
 
-            UpdateStudentField::GroupAdd(name) => {
+            UpdateStudentOp::GroupAdd(name) => {
                 let rid = Group::get_or_insert(&mut ta, name).await?;
                 if !student.in_group(&mut ta, rid).await? {
                     student.add_to_group(&mut ta, rid).await?;
                 }
             }
 
-            UpdateStudentField::GroupRemove(name) => {
+            UpdateStudentOp::GroupRemove(name) => {
                 let Some(rid) = Group::get_id(&mut ta, name).await? else {
                     return Ok(()); // No such group.
                 };
@@ -328,36 +329,27 @@ impl Commit for UpdateStudent<'_> {
                 Group::delete_empty(&mut ta).await?;
             }
 
-            UpdateStudentField::Description(desc) => {
-                student.update_description(&mut ta, desc).await?
+            UpdateStudentOp::Description(desc) => student.update_description(&mut ta, desc).await?,
+
+            UpdateStudentOp::DescriptionClear => student.update_description(&mut ta, "").await?,
+
+            UpdateStudentOp::Delete => {
+                let count = student.count_grades(&mut ta).await?;
+                if count > 0 {
+                    return Err(format!(
+                        "Oppilaalle ”{l}, {f}” on kirjattu {c} arvosana(a). Poista ne ensin.",
+                        l = student.lastname,
+                        f = student.firstname,
+                        c = count
+                    )
+                    .into());
+                }
+
+                student.delete(&mut ta).await?;
+                Group::delete_empty(&mut ta).await?;
             }
-
-            UpdateStudentField::DescriptionClear => student.update_description(&mut ta, "").await?,
         }
 
-        ta.commit().await?;
-        Ok(())
-    }
-}
-
-impl Commit for DeleteStudent<'_> {
-    async fn commit(&self, db: &mut DBase) -> Result<()> {
-        let mut ta = db.begin().await?;
-        let student = self.item;
-
-        let count = student.count_grades(&mut ta).await?;
-        if count > 0 {
-            return Err(format!(
-                "Oppilaalle ”{l}, {f}” on kirjattu {c} arvosana(a). Poista ne ensin.",
-                l = student.lastname,
-                f = student.firstname,
-                c = count
-            )
-            .into());
-        }
-
-        student.delete(&mut ta).await?;
-        Group::delete_empty(&mut ta).await?;
         ta.commit().await?;
         Ok(())
     }
