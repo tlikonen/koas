@@ -503,6 +503,78 @@ async fn commands(
             }
         }
 
+        "uusi-ms" if matches!(mode, Mode::Interactive) => {
+            if editable.is_none() {
+                return Err("Edellinen komento ei sisällä muokattavia tietueita.".into());
+            }
+
+            if args.is_empty() {
+                return Err("Argumentiksi pitää antaa tietueiden numerot ja kentän numero.".into());
+            }
+
+            let (indices, rest) = {
+                let (first, rest) = tools::split_first(args);
+                if rest.is_empty() {
+                    return Err("Toiseksi argumentiksi täytyy antaa kentän numero.".into());
+                }
+                let i = tools::parse_number_list(first)?;
+
+                let max = editable.count();
+                if !tools::is_within_limits(max, &i) {
+                    return Err(format!("Suurin muokattava tietue on {max}.").into());
+                }
+
+                (i, rest)
+            };
+
+            let (field_num, rest) = {
+                let (f, rest) = tools::split_first(rest);
+                let n = match f.parse::<usize>() {
+                    Ok(n) => n,
+                    Err(_) => return Err("Sopimaton kentän numero.".into()),
+                };
+
+                (n, rest)
+            };
+
+            if !rest.is_empty() {
+                return Err("Vain kaksi argumenttia hyväksytään.".into());
+            }
+
+            let mut stdout = io::stdout();
+
+            write!(
+                stdout,
+                "Syötä kentän {field_num} arvot riveittäin. Pelkkä välilyönti poistaa kentän arvon\n\
+                 (paitsi eräitä pakollisia). Tyhjä rivi jättää kentän ennalleen. Ctrl-d lopettaa.\n\
+                 Tietueet:"
+            )?;
+
+            for i in &indices {
+                write!(stdout, " {i}")?;
+            }
+            writeln!(stdout, "\n---")?;
+            stdout.flush()?;
+
+            let values = read_value_lines(indices.len())?;
+            if values.iter().all(|x| x.is_empty()) {
+                return Err("Ei muutoksia.".into());
+            }
+
+            match editable {
+                Editable::Students(students) => {
+                    edit_student_series(
+                        db,
+                        students.iter_index1(indices),
+                        field_num,
+                        values.iter(),
+                    )
+                    .await?;
+                }
+                _ => todo!(),
+            }
+        }
+
         "ms" if matches!(mode, Mode::Interactive) => {
             commands::deprecated_edit_series(db, editable, args).await?
         }
@@ -613,22 +685,8 @@ async fn edit_students(
 
     let mut groups_add: Vec<String> = Vec::with_capacity(3);
     let mut groups_remove: Vec<String> = Vec::with_capacity(1);
-
     if let Some(groups) = groups {
-        for g in groups.split_whitespace() {
-            let mut chars = g.chars();
-            match chars.next() {
-                Some('+') => groups_add.push(chars.collect()),
-                Some('-') => groups_remove.push(chars.collect()),
-                _ => {
-                    return Err(
-                        "Kirjoita oppilaan ryhmätunnuksen alkuun merkki ”+” (lisää ryhmä) \
-                         tai ”-” (poista ryhmä).\nErota eri ryhmät välilyönnillä."
-                            .into(),
-                    );
-                }
-            }
-        }
+        parse_add_remove_groups(groups, &mut groups_add, &mut groups_remove)?;
     }
 
     let mut updates = Queue::new();
@@ -660,6 +718,28 @@ async fn edit_students(
     }
 
     updates.commit(db).await?;
+    Ok(())
+}
+
+fn parse_add_remove_groups(
+    input: &str,
+    groups_add: &mut Vec<String>,
+    groups_remove: &mut Vec<String>,
+) -> Result<()> {
+    for g in input.split_whitespace() {
+        let mut chars = g.chars();
+        match chars.next() {
+            Some('+') => groups_add.push(chars.collect()),
+            Some('-') => groups_remove.push(chars.collect()),
+            _ => {
+                return Err(
+                    "Kirjoita oppilaan ryhmätunnuksen alkuun merkki ”+” (lisää ryhmä) \
+                     tai ”-” (poista ryhmä).\nErota eri ryhmät välilyönnillä."
+                        .into(),
+                );
+            }
+        }
+    }
     Ok(())
 }
 
@@ -787,6 +867,93 @@ async fn edit_grades(
             } else {
                 student_grade.clear_description().queue(&mut updates);
             }
+        }
+    }
+
+    updates.commit(db).await?;
+    Ok(())
+}
+
+fn read_value_lines(count: usize) -> Result<Vec<String>> {
+    let mut stdout = io::stdout();
+    let mut lines = Vec::with_capacity(10);
+    let mut input = io::stdin().lines();
+    let mut i = 0;
+
+    loop {
+        if i >= count {
+            writeln!(stdout, "Kaikki tiedot kerätty. Lopeta Ctrl-d:llä.")?;
+        }
+
+        let line = match input.next() {
+            None => break,
+            Some(v) => v?,
+        };
+
+        if i < count {
+            lines.push(line);
+        }
+        i += 1;
+    }
+
+    Ok(lines)
+}
+
+async fn edit_student_series(
+    db: &mut PgConnection,
+    students: impl Iterator<Item = &Student>,
+    field_num: usize,
+    values: impl Iterator<Item = &String>,
+) -> Result<()> {
+    let mut updates = Queue::new();
+
+    for (student, value) in students.zip(values) {
+        if value.is_empty() {
+            continue;
+        }
+
+        match field_num {
+            1 => {
+                // sukunimi
+                if value.has_content() {
+                    student.set_lastname(value)?.queue(&mut updates);
+                }
+            }
+
+            2 => {
+                // etunimi
+                if value.has_content() {
+                    student.set_firstname(value)?.queue(&mut updates);
+                }
+            }
+
+            3 => {
+                // ryhmät
+                if value.has_content() {
+                    let mut groups_add = Vec::with_capacity(3);
+                    let mut groups_remove = Vec::with_capacity(1);
+                    parse_add_remove_groups(value, &mut groups_add, &mut groups_remove)?;
+
+                    for name in &groups_add {
+                        student.add_group(name)?.queue(&mut updates);
+                    }
+
+                    for name in &groups_remove {
+                        student.remove_group(name)?.queue(&mut updates);
+                    }
+                }
+            }
+
+            4 => {
+                // lisätiedot
+                if value.has_content() {
+                    student.set_description(value)?.queue(&mut updates);
+                } else {
+                    student.clear_description().queue(&mut updates);
+                }
+            }
+
+            _ => return Err("Kentän mumeron täytyy olla kokonaisluku 1–4.".into()),
         }
     }
 
