@@ -140,37 +140,6 @@ impl DeprecatedEdit for DeprecatedEditItems<'_, Assignment> {
     }
 }
 
-impl DeprecatedDelete for DeprecatedDeleteItems<'_, Assignment> {
-    async fn delete(&self, db: &mut DBase) -> Result<()> {
-        let mut rid_list = Vec::with_capacity(1);
-        for assignment in self.iter() {
-            let count = assignment.count_grades(db).await?;
-            if count > 0 {
-                return Err(format!(
-                    "Suoritukselle ”{a}” on kirjattu {c} arvosana(a). Poista ne ensin.",
-                    a = assignment.assignment,
-                    c = count,
-                )
-                .into());
-            }
-
-            assignment.delete(db).await?;
-
-            if !rid_list.contains(&assignment.rid) {
-                rid_list.push(assignment.rid);
-            }
-        }
-
-        Group::delete_empty(db).await?;
-
-        for rid in rid_list {
-            Assignment::reposition(db, rid).await?;
-        }
-
-        Ok(())
-    }
-}
-
 impl Assignment {
     /// Prepare update for assignment's name.
     ///

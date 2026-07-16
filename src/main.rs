@@ -458,7 +458,7 @@ async fn commands(
                 .await?;
         }
 
-        "uusi-m" if matches!(mode, Mode::Interactive) => {
+        "m" if matches!(mode, Mode::Interactive) => {
             if editable.is_none() {
                 return Err("Edellinen komento ei sisällä muokattavia tietueita.".into());
             }
@@ -503,10 +503,6 @@ async fn commands(
             }
         }
 
-        "m" if matches!(mode, Mode::Interactive) => {
-            commands::deprecated_edit(db, editable, args).await?
-        }
-
         "ms" if matches!(mode, Mode::Interactive) => {
             commands::deprecated_edit_series(db, editable, args).await?
         }
@@ -519,7 +515,7 @@ async fn commands(
             commands::deprecated_convert_to_decimal(db, editable, args).await?
         }
 
-        "uusi-poista" if matches!(mode, Mode::Interactive) => {
+        "poista" if matches!(mode, Mode::Interactive) => {
             if editable.is_none() {
                 return Err("Edellinen komento ei sisällä poistettavia tietueita.".into());
             }
@@ -571,10 +567,6 @@ async fn commands(
                     updates.commit(db).await?;
                 }
             }
-        }
-
-        "poista" if matches!(mode, Mode::Interactive) => {
-            commands::deprecated_delete(db, editable, args).await?
         }
 
         "tlk" => table_format(modes, args)?,

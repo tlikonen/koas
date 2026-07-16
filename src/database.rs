@@ -15,9 +15,7 @@ use std::io;
 use std::io::Write as _;
 
 pub(crate) use self::assignments::UpdateAssignmentOp;
-pub(crate) use self::deprecated::{
-    DeprecatedDelete, DeprecatedDeleteItems, DeprecatedEdit, DeprecatedEditItems, DeprecatedField,
-};
+pub(crate) use self::deprecated::{DeprecatedEdit, DeprecatedEditItems, DeprecatedField};
 pub(crate) use self::grades::UpdateGradeOp;
 pub(crate) use self::groups::UpdateGroupOp;
 pub(crate) use self::students::UpdateStudentOp;

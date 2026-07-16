@@ -193,15 +193,6 @@ impl DeprecatedEdit for DeprecatedEditItems<'_, Grade> {
     }
 }
 
-impl DeprecatedDelete for DeprecatedDeleteItems<'_, Grade> {
-    async fn delete(&self, db: &mut DBase) -> Result<()> {
-        for grade in self.iter() {
-            grade.delete(db).await?;
-        }
-        Ok(())
-    }
-}
-
 impl Grade {
     /// Prepare update for grade.
     ///

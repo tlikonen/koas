@@ -167,27 +167,6 @@ impl DeprecatedEdit for DeprecatedEditItems<'_, Student> {
     }
 }
 
-impl DeprecatedDelete for DeprecatedDeleteItems<'_, Student> {
-    async fn delete(&self, db: &mut DBase) -> Result<()> {
-        for student in self.iter() {
-            let count = student.count_grades(db).await?;
-            if count > 0 {
-                return Err(format!(
-                    "Oppilaalle ”{l}, {f}” on kirjattu {c} arvosana(a). Poista ne ensin.",
-                    l = student.lastname,
-                    f = student.firstname,
-                    c = count
-                )
-                .into());
-            }
-
-            student.delete(db).await?;
-        }
-        Group::delete_empty(db).await?;
-        Ok(())
-    }
-}
-
 impl Student {
     /// Prepare update for student's lastname.
     ///

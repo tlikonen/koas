@@ -119,13 +119,6 @@ impl<T> QueryList<T> {
             fields: normalized,
         }
     }
-
-    pub(crate) fn for_delete<'a>(&'a self, indexes: Vec<usize>) -> DeprecatedDeleteItems<'a, T> {
-        DeprecatedDeleteItems {
-            items: self.list(),
-            indexes,
-        }
-    }
 }
 
 pub(crate) struct DeprecatedEditItems<'a, T> {
@@ -169,19 +162,4 @@ impl<T> DeprecatedField<T> {
 
 pub(crate) trait DeprecatedEdit {
     async fn edit(&self, db: &mut DBase) -> Result<()>;
-}
-
-pub(crate) struct DeprecatedDeleteItems<'a, T> {
-    items: &'a Vec<T>,
-    indexes: Vec<usize>,
-}
-
-impl<'a, T> DeprecatedDeleteItems<'a, T> {
-    pub(crate) fn iter(&self) -> impl Iterator<Item = &T> {
-        self.indexes.iter().filter_map(|i| self.items.get(i - 1))
-    }
-}
-
-pub(crate) trait DeprecatedDelete {
-    async fn delete(&self, db: &mut DBase) -> Result<()>;
 }

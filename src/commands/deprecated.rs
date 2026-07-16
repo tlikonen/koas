@@ -2,48 +2,6 @@ use super::*;
 use std::io;
 use std::io::Write as _;
 
-pub async fn deprecated_edit(db: &mut DBase, editable: &mut Editable, args: &str) -> Result<()> {
-    if editable.is_none() {
-        return Err("Edellinen komento ei sisällä muokattavia tietueita.".into());
-    }
-
-    if args.is_empty() {
-        return Err("Argumentiksi pitää antaa tietueiden numerot ja muokattavat kentät.".into());
-    }
-
-    let (indexes, fields) = {
-        let (first, rest) = tools::split_first(args);
-        let n = tools::parse_number_list(first)?;
-        let f = tools::split_sep(rest);
-
-        let max = editable.count();
-        if !tools::is_within_limits(max, &n) {
-            return Err(format!("Suurin muokattava tietue on {max}.").into());
-        }
-
-        (n, f)
-    };
-
-    let mut ta = db.begin().await?;
-    match editable {
-        Editable::Students(students) => {
-            students.for_edit(indexes, fields).edit(&mut ta).await?;
-        }
-        Editable::Groups(groups) => {
-            groups.for_edit(indexes, fields).edit(&mut ta).await?;
-        }
-        Editable::Assignments(assignments) => {
-            assignments.for_edit(indexes, fields).edit(&mut ta).await?;
-        }
-        Editable::Grades(grades) => {
-            grades.for_edit(indexes, fields).edit(&mut ta).await?;
-        }
-        Editable::None => panic!(),
-    }
-    ta.commit().await?;
-    Ok(())
-}
-
 pub async fn deprecated_edit_series(
     db: &mut DBase,
     editable: &mut Editable,
@@ -172,47 +130,6 @@ pub async fn deprecated_edit_series(
         }
     }
 
-    ta.commit().await?;
-    Ok(())
-}
-
-pub async fn deprecated_delete(db: &mut DBase, editable: &mut Editable, args: &str) -> Result<()> {
-    if editable.is_none() {
-        return Err("Edellinen komento ei sisällä poistettavia tietueita.".into());
-    }
-
-    if args.is_empty() {
-        return Err("Puuttuu tietueiden numerot.".into());
-    }
-
-    let indexes = {
-        let (first, _) = tools::split_first(args);
-        let i = tools::parse_number_list(first)?;
-        let max = editable.count();
-        if !tools::is_within_limits(max, &i) {
-            return Err(format!("Suurin poistettava tietue on {max}.").into());
-        }
-        i
-    };
-
-    let mut ta = db.begin().await?;
-    match editable {
-        Editable::Students(students) => {
-            students.for_delete(indexes).delete(&mut ta).await?;
-        }
-        Editable::Groups(_) => {
-            return Err("Ryhmiä ei voi poistaa näin. Ryhmä poistuu itsestään,\n\
-                        kun siltä poistaa kaikki oppilaat ja suoritukset."
-                .into());
-        }
-        Editable::Assignments(assignments) => {
-            assignments.for_delete(indexes).delete(&mut ta).await?;
-        }
-        Editable::Grades(grades) => {
-            grades.for_delete(indexes).delete(&mut ta).await?;
-        }
-        Editable::None => panic!(),
-    }
     ta.commit().await?;
     Ok(())
 }
