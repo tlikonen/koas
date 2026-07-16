@@ -471,15 +471,15 @@ async fn commands(
 
             let (indices, fields) = {
                 let (first, rest) = tools::split_first(args);
-                let n = tools::parse_number_list(first)?;
+                let i = tools::parse_number_list(first)?;
                 let f = tools::split_sep(rest);
 
                 let max = editable.count();
-                if !tools::is_within_limits(max, &n) {
+                if !tools::is_within_limits(max, &i) {
                     return Err(format!("Suurin muokattava tietue on {max}.").into());
                 }
 
-                (n, f)
+                (i, f)
             };
 
             match editable {
