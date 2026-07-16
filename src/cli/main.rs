@@ -559,8 +559,8 @@ async fn commands(
             writeln!(stdout, "\n---")?;
             stdout.flush()?;
 
-            let values = commands::read_value_lines(indices.len())?;
-            if values.iter().all(|x| x.is_empty()) {
+            let values = commands::read_values(indices.len())?;
+            if values.lines().all(|x| x.is_empty()) {
                 return Err("Ei muutoksia.".into());
             }
 
@@ -570,7 +570,7 @@ async fn commands(
                         db,
                         students.iter_index1(indices),
                         field_num,
-                        values.iter(),
+                        values.lines(),
                     )
                     .await?;
                 }

@@ -221,36 +221,35 @@ pub(super) async fn edit_grades(
     Ok(())
 }
 
-pub(super) fn read_value_lines(count: usize) -> Result<Vec<String>> {
+pub(super) fn read_values(count: usize) -> Result<String> {
     let mut stdout = io::stdout();
-    let mut lines = Vec::with_capacity(10);
-    let mut input = io::stdin().lines();
-    let mut i = 0;
+    let mut rl = rustyline::DefaultEditor::new()?;
+    let mut buffer = String::with_capacity(50);
 
     loop {
-        if i >= count {
+        if buffer.lines().count() >= count {
             writeln!(stdout, "Kaikki tiedot kerätty. Lopeta Ctrl-d:llä.")?;
         }
 
-        let line = match input.next() {
-            None => break,
-            Some(v) => v?,
-        };
+        match rl.readline("") {
+            Ok(s) => {
+                buffer.push_str(&s);
+                buffer.push('\n');
+            }
 
-        if i < count {
-            lines.push(line);
+            Err(rustyline::error::ReadlineError::Eof) => break,
+            Err(e) => return Err(e.into()),
         }
-        i += 1;
     }
 
-    Ok(lines)
+    Ok(buffer)
 }
 
 pub(super) async fn edit_student_series(
     db: &mut PgConnection,
     students: impl Iterator<Item = &Student>,
     field_num: usize,
-    values: impl Iterator<Item = &String>,
+    values: impl Iterator<Item = &str>,
 ) -> Result<()> {
     let mut updates = Queue::new();
 
