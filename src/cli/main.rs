@@ -1,12 +1,13 @@
-mod main_commands;
-use crate::main_commands as cmd;
+mod commands;
 
 use just_getopt::{Args, OptFlags, OptSpecs, OptValue};
+use koas::commands as koascmd;
+use koas::database;
 use koas::database::*;
 use koas::output::*;
-use koas::*;
-use std::io;
-use std::io::Write as _;
+use koas::tools;
+use koas::{Config, Error, Result};
+use std::io::{self, Write as _};
 use std::process::ExitCode;
 
 #[tokio::main]
@@ -107,15 +108,15 @@ fn cli() -> Result<Args> {
     if args.option_exists("help") {
         writeln!(
             stdout,
-            include_str!("../help/usage.txt"),
-            ohjelma = PROGRAM_NAME,
+            include_str!("help/usage.txt"),
+            ohjelma = koas::PROGRAM_NAME,
         )?;
         return Err(Error::Exit);
     }
 
     if args.option_exists("ohje") {
         let topic = args.options_value_last("ohje").map_or("", |v| v);
-        cmd::help(topic)?;
+        commands::help(topic)?;
         return Err(Error::Exit);
     }
 
@@ -125,10 +126,10 @@ fn cli() -> Result<Args> {
             "{name} v{version}\n\
              Tekijä:   {author}\n\
              Lisenssi: {license}",
-            name = PROGRAM_NAME,
-            version = PROGRAM_VERSION,
-            author = PROGRAM_AUTHORS,
-            license = PROGRAM_LICENSE
+            name = koas::PROGRAM_NAME,
+            version = koas::PROGRAM_VERSION,
+            author = koas::PROGRAM_AUTHORS,
+            license = koas::PROGRAM_LICENSE
         )?;
         return Err(Error::Exit);
     }
@@ -189,15 +190,15 @@ async fn command_stage(config: Config, mut modes: Modes) -> Result<()> {
             writeln!(
                 stdout,
                 "{prg} v{ver} (postgres://{user}@{host}:{port}/{db})",
-                prg = PROGRAM_NAME,
-                ver = PROGRAM_VERSION,
+                prg = koas::PROGRAM_NAME,
+                ver = koas::PROGRAM_VERSION,
                 user = config.user,
                 host = config.host,
                 port = config.port,
                 db = config.database,
             )?;
 
-            let prompt = format!("{PROGRAM_NAME}> ");
+            let prompt = format!("{}> ", koas::PROGRAM_NAME);
             let mut rl = rustyline::DefaultEditor::new()?;
 
             loop {
@@ -283,7 +284,7 @@ async fn commands(
             let group = fields.next().unwrap_or(""); // ryhma
             let desc = fields.next().unwrap_or(""); // lisätiedot
 
-            let query = commands::students(db, lastname, firstname, group, desc)
+            let query = koascmd::students(db, lastname, firstname, group, desc)
                 .await?
                 .has_data()?;
 
@@ -303,7 +304,7 @@ async fn commands(
             let name = fields.next().unwrap_or(""); // ryhmä
             let desc = fields.next().unwrap_or(""); // lisätiedot
 
-            let query = commands::groups(db, name, desc).await?.has_data()?;
+            let query = koascmd::groups(db, name, desc).await?.has_data()?;
 
             if modes.is_interactive() {
                 query.copy_to(editable);
@@ -318,7 +319,7 @@ async fn commands(
             editable.clear();
 
             let (group, _) = tools::split_first(args);
-            let query = commands::assignments(db, group).await?.has_data()?;
+            let query = koascmd::assignments(db, group).await?.has_data()?;
 
             if modes.is_interactive()
                 && query.count() == 1
@@ -345,7 +346,7 @@ async fn commands(
             let assign = fields.next().unwrap_or(""); // suoritus
             let assign_short = fields.next().unwrap_or(""); // lyhenne
 
-            let query = commands::grades_for_assignments(db, group, assign, assign_short)
+            let query = koascmd::grades_for_assignments(db, group, assign, assign_short)
                 .await?
                 .has_data()?;
 
@@ -370,7 +371,7 @@ async fn commands(
             let group = fields.next().unwrap_or(""); // ryhmä
             let desc = fields.next().unwrap_or(""); // lisätiedot
 
-            let query = commands::grades_for_students(db, lastname, firstname, group, desc)
+            let query = koascmd::grades_for_students(db, lastname, firstname, group, desc)
                 .await?
                 .has_data()?;
 
@@ -389,7 +390,7 @@ async fn commands(
         "hak" => {
             editable.clear();
             let (group, _) = tools::split_first(args);
-            commands::grades_for_group(db, group)
+            koascmd::grades_for_group(db, group)
                 .await?
                 .has_data()?
                 .print(out)?;
@@ -417,14 +418,14 @@ async fn commands(
 
             match c {
                 "tp" | "tpk" => {
-                    commands::student_ranking(db, queries, include_weightless)
+                    koascmd::student_ranking(db, queries, include_weightless)
                         .await?
                         .has_data()?
                         .print(out)?;
                 }
 
                 "tj" | "tjk" => {
-                    commands::grade_distribution(db, queries, include_weightless)
+                    koascmd::grade_distribution(db, queries, include_weightless)
                         .await?
                         .has_data()?
                         .print(out)?;
@@ -443,7 +444,7 @@ async fn commands(
             let groups = fields.next().unwrap_or("").split_whitespace(); // ryhmät
             let desc = fields.next().unwrap_or(""); // lisätiedot
 
-            commands::insert_student(db, lastname, firstname, groups, desc).await?;
+            koascmd::insert_student(db, lastname, firstname, groups, desc).await?;
         }
 
         "ls" => {
@@ -456,7 +457,7 @@ async fn commands(
             let weight = fields.next(); // painokerroin
             let position = fields.next(); // sija
 
-            commands::insert_assignment(db, groups, assignment, assignment_short, weight, position)
+            koascmd::insert_assignment(db, groups, assignment, assignment_short, weight, position)
                 .await?;
         }
 
@@ -488,19 +489,19 @@ async fn commands(
                 Editable::None => (),
 
                 Editable::Students(students) => {
-                    cmd::edit_students(db, students.iter_index1(indices), fields).await?
+                    commands::edit_students(db, students.iter_index1(indices), fields).await?
                 }
 
                 Editable::Groups(groups) => {
-                    cmd::edit_groups(db, groups.iter_index1(indices), fields).await?
+                    commands::edit_groups(db, groups.iter_index1(indices), fields).await?
                 }
 
                 Editable::Assignments(assignments) => {
-                    cmd::edit_assignments(db, assignments.iter_index1(indices), fields).await?
+                    commands::edit_assignments(db, assignments.iter_index1(indices), fields).await?
                 }
 
                 Editable::Grades(grades) => {
-                    cmd::edit_grades(db, grades.iter_index1(indices), fields).await?
+                    commands::edit_grades(db, grades.iter_index1(indices), fields).await?
                 }
             }
         }
@@ -558,14 +559,14 @@ async fn commands(
             writeln!(stdout, "\n---")?;
             stdout.flush()?;
 
-            let values = cmd::read_value_lines(indices.len())?;
+            let values = commands::read_value_lines(indices.len())?;
             if values.iter().all(|x| x.is_empty()) {
                 return Err("Ei muutoksia.".into());
             }
 
             match editable {
                 Editable::Students(students) => {
-                    cmd::edit_student_series(
+                    commands::edit_student_series(
                         db,
                         students.iter_index1(indices),
                         field_num,
@@ -578,15 +579,15 @@ async fn commands(
         }
 
         "ms" if matches!(mode, Mode::Interactive) => {
-            commands::deprecated_edit_series(db, editable, args).await?
+            koascmd::deprecated_edit_series(db, editable, args).await?
         }
 
         "ma" if matches!(mode, Mode::Interactive) => {
-            commands::deprecated_convert_to_grade(db, editable, args).await?
+            koascmd::deprecated_convert_to_grade(db, editable, args).await?
         }
 
         "md" if matches!(mode, Mode::Interactive) => {
-            commands::deprecated_convert_to_decimal(db, editable, args).await?
+            koascmd::deprecated_convert_to_decimal(db, editable, args).await?
         }
 
         "poista" if matches!(mode, Mode::Interactive) => {
@@ -643,16 +644,16 @@ async fn commands(
             }
         }
 
-        "tlk" => cmd::table_format(modes, args)?,
+        "tlk" => commands::table_format(modes, args)?,
 
         "tk" => {
             editable.clear();
-            commands::stats(db).await?.print(out)?;
+            koascmd::stats(db).await?.print(out)?;
         }
 
         "?" => {
             editable.clear();
-            cmd::help(args)?;
+            commands::help(args)?;
         }
 
         c => return Err(Error::unknown_cmd(c)),

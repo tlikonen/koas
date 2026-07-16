@@ -43,8 +43,7 @@ Arvosanatietokantaa varten Koas tarvitsee erillisen
 [PostgreSQL][Psql]-tietokantapalvelimen. Se täytyy asentaa erikseen tai
 olla käytettävissä jossakin verkkopalvelussa. Koas-ohjelma sisältää
 ohjeita tietokannan valmisteluun Koasia varten (ks.
-[help/database.txt](help/database.txt)). Muutkin ohjelman ohjetekstit
-ovat luettavissa alihakemistossa [help](help).
+[database.txt](src/database.txt)).
 
 Koas käynnistetään komennolla `koas`. Komento käynnistää ohjelman
 vuorovaikutteiseen tilaan, jossa kehote `koas>` ilmaisee, että komentoja

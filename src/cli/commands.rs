@@ -3,8 +3,7 @@ use crate::Output;
 use koas::database::*;
 use koas::tools::StrExt;
 use koas::*;
-use std::io;
-use std::io::Write as _;
+use std::io::{self, Write as _};
 
 pub(super) async fn edit_students(
     db: &mut PgConnection,
@@ -321,29 +320,29 @@ pub(super) fn table_format(modes: &mut Modes, args: &str) -> Result<()> {
 }
 
 pub(super) fn help(topic: &str) -> Result<()> {
-    static HO: &str = include_str!("../help/command-ho.txt");
-    static HR: &str = include_str!("../help/command-hr.txt");
-    static HS: &str = include_str!("../help/command-hs.txt");
-    static HAS: &str = include_str!("../help/command-has.txt");
-    static HAO: &str = include_str!("../help/command-hao.txt");
-    static HAK: &str = include_str!("../help/command-hak.txt");
+    static HO: &str = include_str!("help/command-ho.txt");
+    static HR: &str = include_str!("help/command-hr.txt");
+    static HS: &str = include_str!("help/command-hs.txt");
+    static HAS: &str = include_str!("help/command-has.txt");
+    static HAO: &str = include_str!("help/command-hao.txt");
+    static HAK: &str = include_str!("help/command-hak.txt");
 
-    static M: &str = include_str!("../help/command-m.txt");
-    static MS: &str = include_str!("../help/command-ms.txt");
-    static MA: &str = include_str!("../help/command-ma.txt");
-    static MD: &str = include_str!("../help/command-md.txt");
-    static POISTA: &str = include_str!("../help/command-poista.txt");
+    static M: &str = include_str!("help/command-m.txt");
+    static MS: &str = include_str!("help/command-ms.txt");
+    static MA: &str = include_str!("help/command-ma.txt");
+    static MD: &str = include_str!("help/command-md.txt");
+    static POISTA: &str = include_str!("help/command-poista.txt");
 
-    static LO: &str = include_str!("../help/command-lo.txt");
-    static LS: &str = include_str!("../help/command-ls.txt");
+    static LO: &str = include_str!("help/command-lo.txt");
+    static LS: &str = include_str!("help/command-ls.txt");
 
-    static TP: &str = include_str!("../help/command-tp.txt");
-    static TJ: &str = include_str!("../help/command-tj.txt");
-    static TK: &str = include_str!("../help/command-tk.txt");
-    static TLK: &str = include_str!("../help/command-tlk.txt");
+    static TP: &str = include_str!("help/command-tp.txt");
+    static TJ: &str = include_str!("help/command-tj.txt");
+    static TK: &str = include_str!("help/command-tk.txt");
+    static TLK: &str = include_str!("help/command-tlk.txt");
 
-    static QM: &str = include_str!("../help/command-qm.txt");
-    static QUICK: &str = include_str!("../help/quick.txt");
+    static QM: &str = include_str!("help/command-qm.txt");
+    static QUICK: &str = include_str!("help/quick.txt");
 
     let mut stdout = io::stdout();
 
@@ -375,10 +374,10 @@ pub(super) fn help(topic: &str) -> Result<()> {
         "komennot" => writeln!(
             stdout,
             "\n{QUICK}\n{info}",
-            info = include_str!("../help/command.txt")
+            info = include_str!("help/command.txt")
         )?,
-        "tietokanta" => writeln!(stdout, "\n{}", include_str!("../help/database.txt"))?,
-        "asetukset" => writeln!(stdout, "\n{}", include_str!("../help/settings.txt"))?,
+        "tietokanta" => writeln!(stdout, "\n{}", include_str!("../database.txt"))?,
+        "asetukset" => writeln!(stdout, "\n{}", include_str!("../settings.txt"))?,
 
         u => return Err(format!("Tuntematon ohjeiden aihe: ”{u}”.").into()),
     }
