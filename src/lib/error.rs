@@ -79,6 +79,9 @@ impl From<ParseIntError> for Error {
 
 impl From<ReadlineError> for Error {
     fn from(err: ReadlineError) -> Self {
-        Self::Generic(format!("{err}"))
+        match err {
+            ReadlineError::Eof => Self::Exit,
+            _ => Self::Generic(format!("{err}")),
+        }
     }
 }
