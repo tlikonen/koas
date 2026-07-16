@@ -259,3 +259,36 @@ impl Grade {
         }
     }
 }
+
+impl<'a> ToQueue<'a> for UpdateGrade<'a> {
+    fn queue(self, q: &mut Queue<'a>) {
+        q.push(QueueItem::UpdateGrade(self));
+    }
+}
+
+impl Commit for UpdateGrade<'_> {
+    async fn commit(&self, db: &mut DBase) -> Result<()> {
+        let mut ta = db.begin().await?;
+        let student_grade = self.item;
+
+        match &self.operation {
+            UpdateGradeOp::Grade(g) => student_grade.update_grade(&mut ta, Some(g)).await?,
+
+            UpdateGradeOp::GradeClear => student_grade.update_grade(&mut ta, None).await?,
+
+            UpdateGradeOp::Description(d) => {
+                student_grade.update_description(&mut ta, Some(d)).await?
+            }
+
+            UpdateGradeOp::DescriptionClear => {
+                student_grade.update_description(&mut ta, None).await?
+            }
+
+            UpdateGradeOp::Delete => student_grade.delete(&mut ta).await?,
+        }
+
+        student_grade.delete_if_empty(&mut ta).await?;
+        ta.commit().await?;
+        Ok(())
+    }
+}

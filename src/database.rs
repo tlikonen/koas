@@ -146,7 +146,7 @@ impl Commit for QueueItem<'_> {
             QueueItem::UpdateStudent(s) => s.commit(db).await?,
             QueueItem::UpdateGroup(g) => g.commit(db).await?,
             QueueItem::UpdateAssignment(a) => a.commit(db).await?,
-            QueueItem::UpdateGrade(_g) => todo!(), // g.commit(&mut ta).await?,
+            QueueItem::UpdateGrade(g) => g.commit(db).await?,
         }
         Ok(())
     }

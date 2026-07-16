@@ -497,7 +497,9 @@ async fn commands(
                     edit_assignments(db, assignments.iter_index1(indices), fields).await?
                 }
 
-                _ => return Err("Toimintoa ei ole toteutettu vielä.".into()),
+                Editable::Grades(grades) => {
+                    edit_grades(db, grades.iter_index1(indices), fields).await?
+                }
             }
         }
 
@@ -561,7 +563,13 @@ async fn commands(
                     updates.commit(db).await?;
                 }
 
-                _ => return Err("Toimintoa ei ole toteutettu vielä.".into()),
+                Editable::Grades(grades) => {
+                    let mut updates = Queue::new();
+                    for student_grade in grades.iter_index1(indices) {
+                        student_grade.mark_deleted().queue(&mut updates);
+                    }
+                    updates.commit(db).await?;
+                }
             }
         }
 
@@ -748,6 +756,45 @@ async fn edit_assignments(
 
         if let Some(p) = position {
             assignment.set_position(p)?.queue(&mut updates);
+        }
+    }
+
+    updates.commit(db).await?;
+    Ok(())
+}
+
+async fn edit_grades(
+    db: &mut PgConnection,
+    grades: impl Iterator<Item = &Grade>,
+    mut fields: impl Iterator<Item = &str>,
+) -> Result<()> {
+    let grade = fields.next().filter(|x| !x.is_empty()); // arvosana
+    let description = fields.next().filter(|x| !x.is_empty()); // lisätiedot
+    if fields.next().is_some() {
+        return Err("Liikaa kenttiä. Vain kaksi hyväksytään.".into());
+    }
+
+    if grade.is_none() && description.is_none() {
+        return Err("Anna muokattavia kenttiä.".into());
+    }
+
+    let mut updates = Queue::new();
+
+    for student_grade in grades {
+        if let Some(g) = grade {
+            if g.has_content() {
+                student_grade.set_grade(g)?.queue(&mut updates);
+            } else {
+                student_grade.clear_grade().queue(&mut updates);
+            }
+        }
+
+        if let Some(d) = description {
+            if d.has_content() {
+                student_grade.set_description(d)?.queue(&mut updates);
+            } else {
+                student_grade.clear_description().queue(&mut updates);
+            }
         }
     }
 
