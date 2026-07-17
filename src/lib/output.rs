@@ -66,7 +66,7 @@ pub trait PrintQueryNum {
     fn print_num(&self, out: &Output) -> Result<()>;
 }
 
-impl<T: MakeTable + CopyToEditable> PrintQueryNum for T {
+impl<T: MakeTable> PrintQueryNum for T {
     fn print_num(&self, out: &Output) -> Result<()> {
         let mut stream = output_buffer();
         self.table().numbering().print_tbl(out, &mut stream)?;

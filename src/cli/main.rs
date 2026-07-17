@@ -1,5 +1,7 @@
 mod commands;
+mod editable;
 
+use crate::editable::{CopyToEditable, Editable};
 use just_getopt::{Args, OptFlags, OptSpecs, OptValue};
 use koas::commands as koascmd;
 use koas::database;

@@ -1,11 +1,11 @@
 use super::*;
 
-pub trait CopyToEditable {
+pub(super) trait CopyToEditable {
     fn copy_to(&self, ed: &mut Editable);
 }
 
 #[derive(Default)]
-pub enum Editable {
+pub(super) enum Editable {
     #[default]
     None,
     Students(QueryList<Student>),

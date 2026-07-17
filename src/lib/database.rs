@@ -1,5 +1,4 @@
 mod assignments;
-mod deprecated;
 mod grades;
 mod groups;
 mod init;
@@ -21,7 +20,6 @@ pub(crate) use sqlx::{Connection as _, PgConnection as DBase, Row as _};
 pub use {
     self::{
         assignments::{Assignment, AssignmentsForGroup, UpdateAssignment},
-        deprecated::{CopyToEditable, Editable},
         grades::{
             Grade, GradeDistribution, GradesForAssignment, GradesForGroup, GradesForStudent,
             SimpleGrade, SimpleStudent, StudentRanking, UpdateGrade,
@@ -65,7 +63,7 @@ pub trait HasData {
 pub struct QueryList<T>(Vec<T>);
 
 impl<T> QueryList<T> {
-    pub(crate) fn new(v: Vec<T>) -> Self {
+    pub fn new(v: Vec<T>) -> Self {
         Self(v)
     }
 
