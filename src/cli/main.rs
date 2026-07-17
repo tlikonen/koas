@@ -563,7 +563,7 @@ async fn commands(
                      Tyhjä rivi jättää kentän ennalleen.\n\
                      Pelkkä välilyönti poistaa kentän arvon (paitsi eräitä pakollisia).\n\
                      Ctrl-d keskeyttää mutta tallentaa tähänastiset muutokset.\n\
-                     Ctrl-c keskeyttää ja peruu kaikki muutokset\n\
+                     Ctrl-c keskeyttää ja peruu kaikki muutokset.\n\
                      Tietueet:"
                 )?;
 
