@@ -544,22 +544,27 @@ async fn commands(
                 return Err("Vain kaksi argumenttia hyväksytään.".into());
             }
 
-            let mut stdout = io::stdout();
+            {
+                let mut stream = io::BufWriter::new(io::stdout());
 
-            write!(
-                stdout,
-                "Syötä kentän {field_num} arvot riveittäin. Pelkkä välilyönti poistaa kentän arvon\n\
-                 (paitsi eräitä pakollisia). Tyhjä rivi jättää kentän ennalleen. Ctrl-d lopettaa.\n\
-                 Tietueet:"
-            )?;
+                write!(
+                    stream,
+                    "Syötä kentän {field_num} arvot riveittäin. \
+                     Tyhjä rivi jättää kentän ennalleen.\n\
+                     Pelkkä välilyönti poistaa kentän arvon (paitsi eräitä pakollisia).\n\
+                     Ctrl-d keskeyttää mutta tallentaa tähänastiset muutokset.\n\
+                     Ctrl-c keskeyttää ja peruu kaikki muutokset\n\
+                     Tietueet:"
+                )?;
 
-            for i in &indices {
-                write!(stdout, " {i}")?;
+                for i in &indices {
+                    write!(stream, " {i}")?;
+                }
+                writeln!(stream, "\n---")?;
+                stream.flush()?;
             }
-            writeln!(stdout, "\n---")?;
-            stdout.flush()?;
 
-            let values = commands::read_values(indices.len())?;
+            let values = commands::read_values(&indices)?;
             if values.lines().all(|x| x.is_empty()) {
                 return Err("Ei muutoksia.".into());
             }

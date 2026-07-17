@@ -221,29 +221,54 @@ pub(super) async fn edit_grades(
     Ok(())
 }
 
-pub(super) fn read_values(count: usize) -> Result<String> {
-    let mut stdout = io::stdout();
+pub(super) fn read_values(indices: &[usize]) -> Result<String> {
+    use rustyline::error::ReadlineError;
+
     let mut rl = rustyline::DefaultEditor::new()?;
     let mut buffer = String::with_capacity(50);
 
+    let width = {
+        let max = indices.iter().max().ok_or("Ei tietoja.")?;
+        number_width(*max)
+    };
+
     loop {
-        if buffer.lines().count() >= count {
-            writeln!(stdout, "Kaikki tiedot kerätty.")?;
+        let i = buffer.lines().count();
+
+        if i >= indices.len() {
             break;
         }
 
-        match rl.readline("") {
+        match rl.readline(&format!("{n:w$}: ", n = indices[i], w = width)) {
             Ok(s) => {
                 buffer.push_str(&s);
                 buffer.push('\n');
             }
 
-            Err(rustyline::error::ReadlineError::Eof) => break,
-            Err(e) => return Err(e.into()),
+            Err(err) => match err {
+                ReadlineError::Eof => {
+                    writeln!(
+                        io::stdout(),
+                        "Keskeytetty. Tähänastiset muutokset tallennetaan."
+                    )?;
+                    break;
+                }
+                ReadlineError::Interrupted => Err("Keskeytetty. Kaikki muutokset perutaan.")?,
+                _ => Err(err)?,
+            },
         }
     }
 
     Ok(buffer)
+}
+
+fn number_width(mut number: usize) -> usize {
+    let mut width = 1;
+    while number / 10 > 0 {
+        width += 1;
+        number /= 10;
+    }
+    width
 }
 
 pub(super) async fn edit_student_series(
