@@ -589,6 +589,17 @@ async fn commands(
                     )
                     .await?;
                 }
+
+                Editable::Groups(groups) => {
+                    commands::edit_group_series(
+                        db,
+                        groups.iter_index1(indices),
+                        field_num,
+                        values.lines(),
+                    )
+                    .await?;
+                }
+
                 _ => todo!(),
             }
         }

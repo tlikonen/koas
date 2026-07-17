@@ -333,6 +333,44 @@ pub(super) async fn edit_student_series(
     Ok(())
 }
 
+pub(super) async fn edit_group_series(
+    db: &mut PgConnection,
+    groups: impl Iterator<Item = &Group>,
+    field_num: usize,
+    values: impl Iterator<Item = &str>,
+) -> Result<()> {
+    let mut updates = Queue::new();
+
+    for (group, value) in groups.zip(values) {
+        if value.is_empty() {
+            continue;
+        }
+
+        match field_num {
+            1 => {
+                // ryhmä
+                if value.has_content() {
+                    group.set_name(value)?.queue(&mut updates);
+                }
+            }
+
+            2 => {
+                // lisätiedot
+                if value.has_content() {
+                    group.set_description(value)?.queue(&mut updates);
+                } else {
+                    group.clear_description().queue(&mut updates);
+                }
+            }
+
+            _ => Err("Kentän mumeron täytyy olla kokonaisluku 1–2.")?,
+        }
+    }
+
+    updates.commit(db).await?;
+    Ok(())
+}
+
 pub(super) fn table_format(modes: &mut Modes, args: &str) -> Result<()> {
     let (first, _) = tools::split_first(args);
     if first.is_empty() {
