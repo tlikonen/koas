@@ -180,6 +180,8 @@ fn config(args: Args) -> Result<(Config, Modes)> {
 }
 
 async fn command_stage(config: Config, mut modes: Modes) -> Result<()> {
+    use rustyline::error::ReadlineError;
+
     let mut db = database::connect(&config).await?;
     let mut editable: Editable = Default::default();
     let mut stdout = io::stdout();
@@ -202,10 +204,18 @@ async fn command_stage(config: Config, mut modes: Modes) -> Result<()> {
             let mut rl = rustyline::DefaultEditor::new()?;
 
             loop {
-                let line = rl.readline(&prompt)?;
+                let line = match rl.readline(&prompt) {
+                    Ok(l) => l,
+                    Err(err) => match err {
+                        ReadlineError::Interrupted | ReadlineError::Eof => Err(Error::Exit)?,
+                        _ => Err(err)?,
+                    },
+                };
+
                 if line.is_empty() {
                     break;
                 }
+
                 rl.add_history_entry(&line)?;
 
                 let (cmd, args) = tools::split_first(&line);
