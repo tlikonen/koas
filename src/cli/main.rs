@@ -641,15 +641,19 @@ async fn commands(
                 return Err("Puuttuu tietueiden numerot.".into());
             }
 
-            let indices = {
-                let (first, _) = tools::split_first(args);
+            let (indices, rest) = {
+                let (first, rest) = tools::split_first(args);
                 let i = tools::parse_number_list(first)?;
                 let max = editable.count();
                 if !tools::is_within_limits(max, &i) {
                     return Err(format!("Suurin poistettava tietue on {max}.").into());
                 }
-                i
+                (i, rest)
             };
+
+            if !rest.is_empty() {
+                Err("Vain yksi argumentti hyväksytään.")?;
+            }
 
             match editable {
                 Editable::None => (),
