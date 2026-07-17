@@ -12,10 +12,10 @@ pub struct Student {
 impl Student {
     pub(crate) async fn query(
         db: &mut DBase,
-        lastname: &str,
-        firstname: &str,
-        group: &str,
-        desc: &str,
+        lastname: QueryMatch<'_>,
+        firstname: QueryMatch<'_>,
+        group: QueryMatch<'_>,
+        desc: QueryMatch<'_>,
     ) -> Result<QueryList<Self>> {
         let mut rows = sqlx::query(
             "SELECT DISTINCT view_oppilaat.oid, sukunimi, etunimi, ryhmat, olt FROM view_oppilaat \
@@ -26,10 +26,10 @@ impl Student {
              AND ryhma LIKE $3 ESCAPE '\\' AND olt LIKE $4 ESCAPE '\\'
              ORDER BY sukunimi, etunimi, oid",
         )
-        .bind(like_esc_wild_around(lastname))
-        .bind(like_esc_wild_around(firstname))
-        .bind(like_esc_wild_around(group))
-        .bind(like_esc_wild_around(desc))
+        .bind(lastname.sql_like())
+        .bind(firstname.sql_like())
+        .bind(group.sql_like())
+        .bind(desc.sql_like())
         .fetch(db);
 
         let mut list = Vec::with_capacity(25);

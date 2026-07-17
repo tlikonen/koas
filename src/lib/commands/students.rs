@@ -1,15 +1,12 @@
 use super::*;
 
 /// Query for students.
-///
-/// Wildcard character "*" is allowed in the query arguments and is
-/// implicit in the start and end the strings.
 pub async fn students(
     db: &mut DBase,
-    lastname: &str,
-    firstname: &str,
-    group: &str,
-    description: &str,
+    lastname: QueryMatch<'_>,
+    firstname: QueryMatch<'_>,
+    group: QueryMatch<'_>,
+    description: QueryMatch<'_>,
 ) -> Result<QueryList<Student>> {
     Student::query(db, lastname, firstname, group, description).await
 }

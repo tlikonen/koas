@@ -292,9 +292,15 @@ async fn commands(
             let group = fields.next().unwrap_or(""); // ryhma
             let desc = fields.next().unwrap_or(""); // lisätiedot
 
-            let query = koascmd::students(db, lastname, firstname, group, desc)
-                .await?
-                .has_data()?;
+            let query = koascmd::students(
+                db,
+                QueryMatch::WildAround(lastname),
+                QueryMatch::WildAround(firstname),
+                QueryMatch::WildAround(group),
+                QueryMatch::WildAround(desc),
+            )
+            .await?
+            .has_data()?;
 
             if modes.is_interactive() {
                 query.copy_to(editable);
