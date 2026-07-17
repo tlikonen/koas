@@ -243,6 +243,9 @@ pub(super) fn read_values(indices: &[usize]) -> Result<String> {
             Ok(s) => {
                 buffer.push_str(&s);
                 buffer.push('\n');
+                for line in s.lines() {
+                    rl.add_history_entry(line)?;
+                }
             }
 
             Err(err) => match err {
