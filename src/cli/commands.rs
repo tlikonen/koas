@@ -228,7 +228,8 @@ pub(super) fn read_values(count: usize) -> Result<String> {
 
     loop {
         if buffer.lines().count() >= count {
-            writeln!(stdout, "Kaikki tiedot kerätty. Lopeta Ctrl-d:llä.")?;
+            writeln!(stdout, "Kaikki tiedot kerätty.")?;
+            break;
         }
 
         match rl.readline("") {
