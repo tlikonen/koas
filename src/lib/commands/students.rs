@@ -14,55 +14,41 @@ pub async fn students(
     Student::query(db, lastname, firstname, group, description).await
 }
 
-/// Insert new student.
-///
-/// TODO: Korvataan funktiolla Student::new, joka valmistelee
-/// InsertStudentin, joka viimeistellään commitilla tai lisätään jonoon.
-pub async fn insert_student(
-    db: &mut DBase,
-    lastname: &str,
-    firstname: &str,
-    groups: impl IntoIterator<Item = &str>,
-    description: &str,
-) -> Result<()> {
-    let lastname = lastname.normalize(); // sukunimi
-    let firstname = firstname.normalize(); // etunimi
-    let groups: Vec<String> = groups.into_iter().filter_map(|x| x.normalize()).collect(); // ryhmät
-    let description = description.normalize(); // lisätiedot
-
-    if lastname.is_none() || firstname.is_none() || groups.is_empty() {
-        return Err("Pitää antaa vähintään sukunimi, etunimi ja ryhmä.".into());
-    }
-
-    tools::assert_group_names(&groups)?;
-
-    let mut ta = db.begin().await?;
-
-    if let Some(last) = lastname
-        && let Some(first) = firstname
-    {
-        let mut student = Student {
-            lastname: last,
-            firstname: first,
-            description: description.unwrap_or_default(),
-            ..Student::default()
-        };
-
-        student.insert(&mut ta).await?;
-
-        for group in groups {
-            let rid = Group::get_or_insert(&mut ta, &group).await?;
-            student.add_to_group(&mut ta, rid).await?;
-        }
-    } else {
-        return Err("Oppilaan lisääminen epäonnistui.".into());
-    }
-
-    ta.commit().await?;
-    Ok(())
-}
-
 impl Student {
+    /// Prepare to insert new student.
+    ///
+    /// See [`Commit`] trait for more information.
+    pub fn insert<'a>(
+        lastname: &str,
+        firstname: &str,
+        groups: impl IntoIterator<Item = &'a str>,
+        description: &str,
+    ) -> Result<InsertStudent> {
+        let lastname = lastname.normalize(); // sukunimi
+        let firstname = firstname.normalize(); // etunimi
+        let groups: Vec<String> = groups.into_iter().filter_map(|x| x.normalize()).collect(); // ryhmät
+        let description = description.normalize(); // lisätiedot
+
+        if lastname.is_none() || firstname.is_none() || groups.is_empty() {
+            return Err("Pitää antaa vähintään sukunimi, etunimi ja ryhmä.".into());
+        }
+
+        tools::assert_group_names(&groups)?;
+
+        if let Some(last) = lastname
+            && let Some(first) = firstname
+        {
+            Ok(InsertStudent {
+                lastname: last,
+                firstname: first,
+                groups,
+                description: description.unwrap_or_default(),
+            })
+        } else {
+            Err(Error::from("Oppilaan lisääminen epäonnistui."))
+        }
+    }
+
     /// Prepare update for student's lastname.
     ///
     /// See [`Commit`] trait for more information.
@@ -228,6 +214,35 @@ impl Commit for UpdateStudent<'_> {
                 student.delete(&mut ta).await?;
                 Group::delete_empty(&mut ta).await?;
             }
+        }
+
+        ta.commit().await?;
+        Ok(())
+    }
+}
+
+impl<'a> ToQueue<'a> for InsertStudent {
+    fn queue(self, q: &mut Queue<'a>) {
+        q.push(QueueItem::InsertStudent(self))
+    }
+}
+
+impl Commit for InsertStudent {
+    async fn commit(&self, db: &mut DBase) -> Result<()> {
+        let mut ta = db.begin().await?;
+
+        let mut student = Student {
+            lastname: self.lastname.clone(),
+            firstname: self.firstname.clone(),
+            description: self.description.clone(),
+            ..Student::default()
+        };
+
+        student.insert_db(&mut ta).await?;
+
+        for group in &self.groups {
+            let rid = Group::get_or_insert(&mut ta, group).await?;
+            student.add_to_group(&mut ta, rid).await?;
         }
 
         ta.commit().await?;

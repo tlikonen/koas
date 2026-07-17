@@ -452,7 +452,9 @@ async fn commands(
             let groups = fields.next().unwrap_or("").split_whitespace(); // ryhmät
             let desc = fields.next().unwrap_or(""); // lisätiedot
 
-            koascmd::insert_student(db, lastname, firstname, groups, desc).await?;
+            Student::insert(lastname, firstname, groups, desc)?
+                .commit(db)
+                .await?;
         }
 
         "ls" => {

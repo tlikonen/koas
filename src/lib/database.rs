@@ -17,18 +17,14 @@ pub(crate) use self::groups::UpdateGroupOp;
 pub(crate) use self::students::UpdateStudentOp;
 pub(crate) use sqlx::{Connection as _, PgConnection as DBase, Row as _};
 
-pub use {
-    self::{
-        assignments::{Assignment, AssignmentsForGroup, UpdateAssignment},
-        grades::{
-            Grade, GradeDistribution, GradesForAssignment, GradesForGroup, GradesForStudent,
-            SimpleGrade, SimpleStudent, StudentRanking, UpdateGrade,
-        },
-        groups::{Group, UpdateGroup},
-        students::{Student, UpdateStudent},
-    },
-    sqlx::{Connection, PgConnection},
+pub use self::assignments::{Assignment, AssignmentsForGroup, UpdateAssignment};
+pub use self::grades::{
+    Grade, GradeDistribution, GradesForAssignment, GradesForGroup, GradesForStudent, SimpleGrade,
+    SimpleStudent, StudentRanking, UpdateGrade,
 };
+pub use self::groups::{Group, UpdateGroup};
+pub use self::students::{InsertStudent, Student, UpdateStudent};
+pub use sqlx::{Connection, PgConnection};
 
 pub async fn connect(config: &Config) -> Result<DBase> {
     let connect_string = format!(
@@ -116,7 +112,10 @@ impl Stats {
     }
 }
 
-/// Commit prepared changes to the database.
+/// Commit prepared updates to the database.
+///
+/// Updates are prepared with methods of [`Student`], [`Group`],
+/// [`Assignment`], [`Grade`].
 #[allow(async_fn_in_trait)]
 pub trait Commit {
     /// Commit the database update.
@@ -131,6 +130,7 @@ pub enum QueueItem<'a> {
     UpdateGroup(UpdateGroup<'a>),
     UpdateAssignment(UpdateAssignment<'a>),
     UpdateGrade(UpdateGrade<'a>),
+    InsertStudent(InsertStudent),
 }
 
 impl Commit for QueueItem<'_> {
@@ -140,6 +140,7 @@ impl Commit for QueueItem<'_> {
             QueueItem::UpdateGroup(g) => g.commit(db).await?,
             QueueItem::UpdateAssignment(a) => a.commit(db).await?,
             QueueItem::UpdateGrade(g) => g.commit(db).await?,
+            QueueItem::InsertStudent(s) => s.commit(db).await?,
         }
         Ok(())
     }

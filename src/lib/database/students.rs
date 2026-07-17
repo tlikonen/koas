@@ -133,7 +133,7 @@ impl Student {
         Ok(count)
     }
 
-    pub(crate) async fn insert(&mut self, db: &mut DBase) -> Result<()> {
+    pub(crate) async fn insert_db(&mut self, db: &mut DBase) -> Result<()> {
         let row = sqlx::query(
             "INSERT INTO oppilaat (sukunimi, etunimi, lisatiedot) \
              VALUES ($1, $2, $3) RETURNING oid",
@@ -174,3 +174,10 @@ pub enum UpdateStudentOp {
 }
 
 pub type UpdateStudent<'a> = Update<'a, Student, UpdateStudentOp>;
+
+pub struct InsertStudent {
+    pub(crate) lastname: String,
+    pub(crate) firstname: String,
+    pub(crate) groups: Vec<String>,
+    pub(crate) description: String,
+}
