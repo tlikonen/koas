@@ -580,6 +580,8 @@ async fn commands(
             }
 
             match editable {
+                Editable::None => (),
+
                 Editable::Students(students) => {
                     commands::edit_student_series(
                         db,
@@ -600,7 +602,17 @@ async fn commands(
                     .await?;
                 }
 
-                _ => todo!(),
+                Editable::Assignments(assignments) => {
+                    commands::edit_assignment_series(
+                        db,
+                        assignments.iter_index1(indices),
+                        field_num,
+                        values.lines(),
+                    )
+                    .await?;
+                }
+
+                Editable::Grades(_) => todo!(),
             }
         }
 
