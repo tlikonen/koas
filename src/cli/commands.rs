@@ -426,6 +426,46 @@ pub(super) async fn edit_assignment_series(
     Ok(())
 }
 
+pub(super) async fn edit_grade_series(
+    db: &mut PgConnection,
+    grades: impl Iterator<Item = &Grade>,
+    field_num: usize,
+    values: impl Iterator<Item = &str>,
+) -> Result<()> {
+    let mut updates = Queue::new();
+
+    for (grade, value) in grades.zip(values) {
+        if value.is_empty() {
+            continue;
+        }
+
+        match field_num {
+            1 => {
+                // arvosana
+                if value.has_content() {
+                    grade.set_grade(value)?.queue(&mut updates);
+                } else {
+                    grade.clear_grade().queue(&mut updates);
+                }
+            }
+
+            2 => {
+                // lisätiedot
+                if value.has_content() {
+                    grade.set_description(value)?.queue(&mut updates);
+                } else {
+                    grade.clear_description().queue(&mut updates);
+                }
+            }
+
+            _ => Err("Kentän mumeron täytyy olla kokonaisluku 1–2.")?,
+        }
+    }
+
+    updates.commit(db).await?;
+    Ok(())
+}
+
 pub(super) fn table_format(modes: &mut Modes, args: &str) -> Result<()> {
     let (first, _) = tools::split_first(args);
     if first.is_empty() {

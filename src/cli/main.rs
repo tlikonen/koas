@@ -612,7 +612,15 @@ async fn commands(
                     .await?;
                 }
 
-                Editable::Grades(_) => todo!(),
+                Editable::Grades(grades) => {
+                    commands::edit_grade_series(
+                        db,
+                        grades.iter_index1(indices),
+                        field_num,
+                        values.lines(),
+                    )
+                    .await?;
+                }
             }
         }
 
