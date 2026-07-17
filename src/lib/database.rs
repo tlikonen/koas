@@ -41,6 +41,29 @@ pub async fn connect(config: &Config) -> Result<DBase> {
     Ok(db)
 }
 
+/// Query field match variants.
+pub enum QueryMatch<'a> {
+    /// The query string must match exactly.
+    Exact(&'a str),
+    /// Wildcard character "*" can be used in the query string. It
+    /// matches any characters zero or more times.
+    Wild(&'a str),
+    /// Wildcard character "*" can be used in the query string. It
+    /// matches any characters zero or more times. Wildcard characters
+    /// are automatically inserted around the string.
+    WildAround(&'a str),
+}
+
+impl QueryMatch<'_> {
+    fn sql_like(&self) -> String {
+        match self {
+            Self::Exact(s) => like_esc(s),
+            Self::Wild(s) => like_esc_wild(s),
+            Self::WildAround(s) => like_esc_wild_around(s),
+        }
+    }
+}
+
 pub trait HasData {
     fn has_data(self) -> Result<Self>
     where
@@ -244,6 +267,22 @@ fn like_esc_wild(string: &str) -> String {
     new
 }
 
+fn like_esc(string: &str) -> String {
+    let mut new = String::with_capacity(string.len() + 3);
+
+    for c in string.chars() {
+        match c {
+            '%' | '_' | '\\' => {
+                new.push('\\');
+                new.push(c);
+            }
+            _ => new.push(c),
+        }
+    }
+
+    new
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -265,5 +304,15 @@ mod tests {
         assert_eq!("\\_\\%\\\\", like_esc_wild("_%\\"));
         assert_eq!("ab%cd", like_esc_wild("ab*cd"));
         assert_eq!("%ab%cd%", like_esc_wild("*ab*cd*"));
+    }
+
+    #[test]
+    fn like_esc_fn() {
+        assert_eq!("abcd", like_esc("abcd"));
+        assert_eq!("a\\%b\\_cd", like_esc("a%b_cd"));
+        assert_eq!("ab\\\\cd", like_esc("ab\\cd"));
+        assert_eq!("\\_\\%\\\\", like_esc("_%\\"));
+        assert_eq!("ab*cd", like_esc("ab*cd"));
+        assert_eq!("*ab*cd*", like_esc("*ab*cd*"));
     }
 }
