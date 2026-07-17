@@ -66,7 +66,7 @@ pub async fn insert_assignment(
                 assignment: long.clone(),
                 assignment_short: short.clone(),
                 weight,
-                ..Default::default()
+                ..Assignment::default()
             };
 
             group_assignment.insert(&mut ta, position).await?;

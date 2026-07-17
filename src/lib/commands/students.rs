@@ -45,7 +45,7 @@ pub async fn insert_student(
             lastname: last,
             firstname: first,
             description: description.unwrap_or_default(),
-            ..Default::default()
+            ..Student::default()
         };
 
         student.insert(&mut ta).await?;

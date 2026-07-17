@@ -166,7 +166,7 @@ fn config(args: Args) -> Result<(Config, Modes)> {
     }
 
     // Choose the mode for command stage: stdin, single or interactive.
-    let mut modes: Modes = Default::default();
+    let mut modes = Modes::default();
     modes.set_output(output);
     if args.other.len() == 1 && args.other[0] == "-" {
         modes.set_mode(Mode::Stdin);
@@ -183,7 +183,7 @@ async fn command_stage(config: Config, mut modes: Modes) -> Result<()> {
     use rustyline::error::ReadlineError;
 
     let mut db = database::connect(&config).await?;
-    let mut editable: Editable = Default::default();
+    let mut editable = Editable::default();
     let mut stdout = io::stdout();
     let mut stderr = io::stderr();
 

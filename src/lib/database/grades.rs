@@ -172,7 +172,7 @@ impl GradesForAssignment {
 
         let mut row = match rows.try_next().await? {
             Some(r) => r,
-            None => return Ok(Default::default()),
+            None => return Ok(QueryList::default()),
         };
 
         let mut list = Vec::with_capacity(1);
@@ -253,7 +253,7 @@ impl GradesForStudent {
 
         let mut row = match rows.try_next().await? {
             Some(r) => r,
-            None => return Ok(Default::default()),
+            None => return Ok(QueryList::default()),
         };
 
         let mut list = Vec::with_capacity(1);
@@ -373,7 +373,7 @@ impl GradesForGroup {
 
         let mut row = match rows.try_next().await? {
             Some(r) => r,
-            None => return Ok(Default::default()),
+            None => return Ok(Self::default()),
         };
 
         let mut students = Vec::with_capacity(25);

@@ -178,7 +178,7 @@ impl AssignmentsForGroup {
 
         let mut row = match rows.try_next().await? {
             Some(r) => r,
-            None => return Ok(Default::default()),
+            None => return Ok(QueryList::default()),
         };
 
         let mut list: Vec<Self> = Vec::with_capacity(10);
