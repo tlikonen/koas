@@ -15,19 +15,18 @@ pub(super) async fn edit_students(
     let groups = fields.next().filter(|x| x.has_content()); // ryhmät
     let description = fields.next().filter(|x| !x.is_empty()); // lisätiedot
     if fields.next().is_some() {
-        return Err("Liikaa kenttiä. Vain neljä hyväksytään.".into());
+        Err("Liikaa kenttiä. Vain neljä hyväksytään.")?;
     }
 
     if lastname.is_none() && firstname.is_none() && groups.is_none() && description.is_none() {
-        return Err("Anna muokattavia kenttiä.".into());
+        Err("Anna muokattavia kenttiä.")?;
     }
 
     let students: Vec<&Student> = students.collect();
 
     if students.len() > 1 && (lastname.is_some() || firstname.is_some()) {
-        return Err("Usealle henkilölle ei voi muuttaa kerralla samaa nimeä.\n\
-                    Muuta yksi kerrallaan, jos se on todella tarkoituksena."
-            .into());
+        Err("Usealle henkilölle ei voi muuttaa kerralla samaa nimeä.\n\
+             Muuta yksi kerrallaan, jos se on todella tarkoituksena.")?;
     }
 
     let mut groups_add: Vec<String> = Vec::with_capacity(3);
@@ -79,11 +78,10 @@ fn parse_add_remove_groups(
             Some('+') => groups_add.push(chars.collect()),
             Some('-') => groups_remove.push(chars.collect()),
             _ => {
-                return Err(
+                Err(
                     "Kirjoita oppilaan ryhmätunnuksen alkuun merkki ”+” (lisää ryhmä) \
-                     tai ”-” (poista ryhmä).\nErota eri ryhmät välilyönnillä."
-                        .into(),
-                );
+                     tai ”-” (poista ryhmä).\nErota eri ryhmät välilyönnillä.",
+                )?;
             }
         }
     }
@@ -98,17 +96,17 @@ pub(super) async fn edit_groups(
     let name = fields.next().filter(|x| x.has_content()); // ryhmä
     let description = fields.next().filter(|x| !x.is_empty()); // lisätiedot
     if fields.next().is_some() {
-        return Err("Liikaa kenttiä. Vain kaksi hyväksytään.".into());
+        Err("Liikaa kenttiä. Vain kaksi hyväksytään.")?;
     }
 
     if name.is_none() && description.is_none() {
-        return Err("Anna muokattavia kenttiä.".into());
+        Err("Anna muokattavia kenttiä.")?;
     }
 
     let groups: Vec<&Group> = groups.collect();
 
     if groups.len() > 1 && name.is_some() {
-        return Err("Usealle ryhmälle ei voi antaa samaa nimeä.".into());
+        Err("Usealle ryhmälle ei voi antaa samaa nimeä.")?;
     }
 
     let mut updates = Queue::new();
@@ -141,17 +139,17 @@ pub(super) async fn edit_assignments(
     let weight = fields.next().filter(|x| !x.is_empty()); // painokerroin
     let position = fields.next().filter(|x| x.has_content()); // sija
     if fields.next().is_some() {
-        return Err("Liikaa kenttiä. Vain neljä hyväksytään.".into());
+        Err("Liikaa kenttiä. Vain neljä hyväksytään.")?;
     }
 
     if name.is_none() && short.is_none() && weight.is_none() && position.is_none() {
-        return Err("Anna muokattavia kenttiä.".into());
+        Err("Anna muokattavia kenttiä.")?;
     }
 
     let assignments: Vec<&Assignment> = assignments.collect();
 
     if assignments.len() > 1 && position.is_some() {
-        return Err("Usealle suoritukselle ei voi asettaa samaa järjestysnumeroa.".into());
+        Err("Usealle suoritukselle ei voi asettaa samaa järjestysnumeroa.")?;
     }
 
     let mut updates = Queue::new();
@@ -190,11 +188,11 @@ pub(super) async fn edit_grades(
     let grade = fields.next().filter(|x| !x.is_empty()); // arvosana
     let description = fields.next().filter(|x| !x.is_empty()); // lisätiedot
     if fields.next().is_some() {
-        return Err("Liikaa kenttiä. Vain kaksi hyväksytään.".into());
+        Err("Liikaa kenttiä. Vain kaksi hyväksytään.")?;
     }
 
     if grade.is_none() && description.is_none() {
-        return Err("Anna muokattavia kenttiä.".into());
+        Err("Anna muokattavia kenttiä.")?;
     }
 
     let mut updates = Queue::new();
@@ -328,7 +326,7 @@ pub(super) async fn edit_student_series(
                 }
             }
 
-            _ => return Err("Kentän mumeron täytyy olla kokonaisluku 1–4.".into()),
+            _ => Err("Kentän mumeron täytyy olla kokonaisluku 1–4.")?,
         }
     }
 
@@ -469,7 +467,7 @@ pub(super) async fn edit_grade_series(
 pub(super) fn table_format(modes: &mut Modes, args: &str) -> Result<()> {
     let (first, _) = tools::split_first(args);
     if first.is_empty() {
-        return Err("Anna argumentiksi taulukkotyyli. Apua saa ?:llä.".into());
+        Err("Anna argumentiksi taulukkotyyli. Apua saa ?:llä.")?;
     }
 
     let new = Output::select(first)?;
@@ -537,7 +535,7 @@ pub(super) fn help(topic: &str) -> Result<()> {
         "tietokanta" => writeln!(stdout, "\n{}", include_str!("../database.txt"))?,
         "asetukset" => writeln!(stdout, "\n{}", include_str!("../settings.txt"))?,
 
-        u => return Err(format!("Tuntematon ohjeiden aihe: ”{u}”.").into()),
+        u => Err(format!("Tuntematon ohjeiden aihe: ”{u}”."))?,
     }
     Ok(())
 }

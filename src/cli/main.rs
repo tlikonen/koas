@@ -104,7 +104,7 @@ fn cli() -> Result<Args> {
     }
 
     if error {
-        return Err("Valitsin ”-h” tulostaa apua.".into());
+        Err("Valitsin ”-h” tulostaa apua.")?;
     }
 
     if args.option_exists("help") {
@@ -113,13 +113,13 @@ fn cli() -> Result<Args> {
             include_str!("help/usage.txt"),
             ohjelma = koas::PROGRAM_NAME,
         )?;
-        return Err(Error::Exit);
+        Err(Error::Exit)?;
     }
 
     if args.option_exists("ohje") {
         let topic = args.options_value_last("ohje").map_or("", |v| v);
         commands::help(topic)?;
-        return Err(Error::Exit);
+        Err(Error::Exit)?;
     }
 
     if args.option_exists("version") {
@@ -133,7 +133,7 @@ fn cli() -> Result<Args> {
             author = koas::PROGRAM_AUTHORS,
             license = koas::PROGRAM_LICENSE
         )?;
-        return Err(Error::Exit);
+        Err(Error::Exit)?;
     }
 
     Ok(args)
@@ -141,21 +141,19 @@ fn cli() -> Result<Args> {
 
 fn config(args: Args) -> Result<(Config, Modes)> {
     let config_file = Config::file()?;
-    let mut output: Output = Default::default();
+    let mut output = Output::default();
 
-    let config: Config = if config_file.exists() {
-        Config::read(&config_file)?
-    } else {
-        let c: Config = Default::default();
-        c.write(&config_file)?;
-        return Err(format!(
+    if !config_file.exists() {
+        Config::default().write(&config_file)?;
+        Err(format!(
             "Luotiin asetustiedosto ”{}”.\n\
              Muokkaa tiedostoa tekstieditorilla ja aseta tietokannan yhteysasetukset.\n\
              Seuraavilla valitsimilla saa apua: ”--ohje=tietokanta” ja ”--ohje=asetukset”.",
             config_file.display()
-        )
-        .into());
-    };
+        ))?;
+    }
+
+    let config = Config::read(&config_file)?;
 
     // Table-printing format.
     if !config.tables.is_empty() {
@@ -243,10 +241,9 @@ async fn command_stage(config: Config, mut modes: Modes) -> Result<()> {
             match commands(&mut modes, &mut db, &mut editable, cmd, args).await {
                 Ok(_) => (),
                 Err(Error::UnknownCmd(cmd)) => {
-                    return Err(format!(
+                    Err(format!(
                         "Tuntematon komento ”{cmd}”. Apua saa valitsimella ”--ohje”."
-                    )
-                    .into());
+                    ))?;
                 }
                 err => return err,
             }
@@ -261,10 +258,9 @@ async fn command_stage(config: Config, mut modes: Modes) -> Result<()> {
                     match commands(&mut modes, &mut ta, &mut editable, cmd, args).await {
                         Ok(_) => (),
                         Err(Error::UnknownCmd(cmd)) => {
-                            return Err(format!(
+                            Err(format!(
                                 "Tuntematon komento ”{cmd}”. Apua saa valitsimella ”--ohje”."
-                            )
-                            .into());
+                            ))?;
                         }
                         err => return err,
                     }
@@ -475,13 +471,11 @@ async fn commands(
 
         "m" if matches!(mode, Mode::Interactive) => {
             if editable.is_none() {
-                return Err("Edellinen komento ei sisällä muokattavia tietueita.".into());
+                Err("Edellinen komento ei sisällä muokattavia tietueita.")?;
             }
 
             if args.is_empty() {
-                return Err(
-                    "Argumentiksi pitää antaa tietueiden numerot ja muokattavat kentät.".into(),
-                );
+                Err("Argumentiksi pitää antaa tietueiden numerot ja muokattavat kentät.")?;
             }
 
             let (indices, fields) = {
@@ -491,7 +485,7 @@ async fn commands(
 
                 let max = editable.count();
                 if !tools::is_within_limits(max, &i) {
-                    return Err(format!("Suurin muokattava tietue on {max}.").into());
+                    Err(format!("Suurin muokattava tietue on {max}."))?;
                 }
 
                 (i, f)
@@ -520,23 +514,23 @@ async fn commands(
 
         "ms" if matches!(mode, Mode::Interactive) => {
             if editable.is_none() {
-                return Err("Edellinen komento ei sisällä muokattavia tietueita.".into());
+                Err("Edellinen komento ei sisällä muokattavia tietueita.")?;
             }
 
             if args.is_empty() {
-                return Err("Argumentiksi pitää antaa tietueiden numerot ja kentän numero.".into());
+                Err("Argumentiksi pitää antaa tietueiden numerot ja kentän numero.")?;
             }
 
             let (indices, rest) = {
                 let (first, rest) = tools::split_first(args);
                 if rest.is_empty() {
-                    return Err("Toiseksi argumentiksi täytyy antaa kentän numero.".into());
+                    Err("Toiseksi argumentiksi täytyy antaa kentän numero.")?;
                 }
                 let i = tools::parse_number_list(first)?;
 
                 let max = editable.count();
                 if !tools::is_within_limits(max, &i) {
-                    return Err(format!("Suurin muokattava tietue on {max}.").into());
+                    Err(format!("Suurin muokattava tietue on {max}."))?;
                 }
 
                 (i, rest)
@@ -546,14 +540,14 @@ async fn commands(
                 let (f, rest) = tools::split_first(rest);
                 let n = match f.parse::<usize>() {
                     Ok(n) => n,
-                    Err(_) => return Err("Sopimaton kentän numero.".into()),
+                    Err(_) => Err("Sopimaton kentän numero.")?,
                 };
 
                 (n, rest)
             };
 
             if !rest.is_empty() {
-                return Err("Vain kaksi argumenttia hyväksytään.".into());
+                Err("Vain kaksi argumenttia hyväksytään.")?;
             }
 
             {
@@ -578,7 +572,7 @@ async fn commands(
 
             let values = commands::read_values(&indices)?;
             if values.lines().all(|x| x.is_empty()) {
-                return Err("Ei muutoksia.".into());
+                Err("Ei muutoksia.")?;
             }
 
             match editable {
@@ -710,11 +704,11 @@ async fn commands(
 
         "poista" if matches!(mode, Mode::Interactive) => {
             if editable.is_none() {
-                return Err("Edellinen komento ei sisällä poistettavia tietueita.".into());
+                Err("Edellinen komento ei sisällä poistettavia tietueita.")?;
             }
 
             if args.is_empty() {
-                return Err("Puuttuu tietueiden numerot.".into());
+                Err("Puuttuu tietueiden numerot.")?;
             }
 
             let (indices, rest) = {
@@ -722,7 +716,7 @@ async fn commands(
                 let i = tools::parse_number_list(first)?;
                 let max = editable.count();
                 if !tools::is_within_limits(max, &i) {
-                    return Err(format!("Suurin poistettava tietue on {max}.").into());
+                    Err(format!("Suurin poistettava tietue on {max}."))?;
                 }
                 (i, rest)
             };
@@ -743,9 +737,8 @@ async fn commands(
                 }
 
                 Editable::Groups(_) => {
-                    return Err("Ryhmiä ei voi poistaa näin. Ryhmä poistuu itsestään,\n\
-                                kun siltä poistaa kaikki oppilaat ja suoritukset."
-                        .into());
+                    Err("Ryhmiä ei voi poistaa näin. Ryhmä poistuu itsestään,\n\
+                         kun siltä poistaa kaikki oppilaat ja suoritukset.")?;
                 }
 
                 Editable::Assignments(assignments) => {
