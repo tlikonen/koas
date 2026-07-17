@@ -516,7 +516,7 @@ async fn commands(
             }
         }
 
-        "uusi-ms" if matches!(mode, Mode::Interactive) => {
+        "ms" if matches!(mode, Mode::Interactive) => {
             if editable.is_none() {
                 return Err("Edellinen komento ei sisällä muokattavia tietueita.".into());
             }
@@ -622,10 +622,6 @@ async fn commands(
                     .await?;
                 }
             }
-        }
-
-        "ms" if matches!(mode, Mode::Interactive) => {
-            koascmd::deprecated_edit_series(db, editable, args).await?
         }
 
         "ma" if matches!(mode, Mode::Interactive) => {
