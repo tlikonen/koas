@@ -165,34 +165,6 @@ pub async fn grade_distribution(
     Ok(dist)
 }
 
-impl DeprecatedEdit for DeprecatedEditItems<'_, Grade> {
-    async fn edit(&self, db: &mut DBase) -> Result<()> {
-        let grade = self.field(0); // arvosana
-        let desc = self.field(1); // lisätiedot
-
-        if grade.is_none() && desc.is_none() {
-            return Err("Anna muokattavia kenttiä.".into());
-        }
-
-        for student_grade in self.iter() {
-            match grade {
-                DeprecatedField::Set(s) => student_grade.update_grade(db, Some(s)).await?,
-                DeprecatedField::Clear => student_grade.update_grade(db, None).await?,
-                DeprecatedField::Ignore => (),
-            }
-
-            match desc {
-                DeprecatedField::Set(d) => student_grade.update_description(db, Some(d)).await?,
-                DeprecatedField::Clear => student_grade.update_description(db, None).await?,
-                DeprecatedField::Ignore => (),
-            }
-
-            student_grade.delete_if_empty(db).await?;
-        }
-        Ok(())
-    }
-}
-
 impl Grade {
     /// Prepare update for grade.
     ///

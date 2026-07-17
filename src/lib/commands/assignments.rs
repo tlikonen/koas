@@ -79,67 +79,6 @@ pub async fn insert_assignment(
     Ok(())
 }
 
-impl DeprecatedEdit for DeprecatedEditItems<'_, Assignment> {
-    async fn edit(&self, db: &mut DBase) -> Result<()> {
-        let name = self.field(0); // suoritus
-        let short = self.field(1); // lyhenne
-        let weight = self.field(2); // painokerroin
-        let position = self.field(3); // sija
-
-        if !name.has_value() && !short.has_value() && weight.is_none() && !position.has_value() {
-            return Err("Anna muokattavia kenttiä.".into());
-        }
-
-        if position.has_value() && self.count() > 1 {
-            return Err("Usealle suoritukselle ei voi asettaa samaa järjestysnumeroa.".into());
-        }
-
-        // Convert from &Field<String> to Field<i32>.
-        let weight = match weight {
-            DeprecatedField::Set(s) => match s.trim().parse::<i32>() {
-                Ok(n) if n >= 1 => DeprecatedField::Set(n),
-                _ => {
-                    return Err(
-                        "Painokertoimen täytyy olla positiivinen kokonaisluku (tai tyhjä).".into(),
-                    );
-                }
-            },
-            DeprecatedField::Clear => DeprecatedField::Clear,
-            DeprecatedField::Ignore => DeprecatedField::Ignore,
-        };
-
-        // Convert from &Field<String> to Field<i32>.
-        let position = match position {
-            DeprecatedField::Set(s) => match s.trim().parse::<i32>() {
-                Ok(n) => DeprecatedField::Set(n),
-                _ => return Err("Järjestysnumeron täytyy olla kokonaisluku.".into()),
-            },
-            DeprecatedField::Clear | DeprecatedField::Ignore => DeprecatedField::Ignore,
-        };
-
-        for group_assignment in self.iter() {
-            if let DeprecatedField::Set(n) = name {
-                group_assignment.update_name(db, n).await?;
-            }
-
-            if let DeprecatedField::Set(s) = short {
-                group_assignment.update_short(db, s).await?;
-            }
-
-            match weight {
-                DeprecatedField::Set(w) => group_assignment.update_weight(db, Some(w)).await?,
-                DeprecatedField::Clear => group_assignment.update_weight(db, None).await?,
-                DeprecatedField::Ignore => (),
-            }
-
-            if let DeprecatedField::Set(p) = position {
-                group_assignment.update_position(db, p).await?;
-            }
-        }
-        Ok(())
-    }
-}
-
 impl Assignment {
     /// Prepare update for assignment's name.
     ///

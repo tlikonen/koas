@@ -116,7 +116,6 @@ impl<T> QueryList<T> {
         DeprecatedEditItems {
             items: self.list(),
             indexes,
-            fields: normalized,
         }
     }
 }
@@ -124,23 +123,11 @@ impl<T> QueryList<T> {
 pub(crate) struct DeprecatedEditItems<'a, T> {
     items: &'a Vec<T>,
     indexes: Vec<usize>,
-    fields: Vec<DeprecatedField<String>>,
 }
 
 impl<'a, T> DeprecatedEditItems<'a, T> {
-    pub(crate) fn count(&self) -> usize {
-        self.indexes.len()
-    }
-
     pub(crate) fn iter(&self) -> impl Iterator<Item = &T> {
         self.indexes.iter().filter_map(|i| self.items.get(i - 1))
-    }
-
-    pub(crate) fn field(&self, n: usize) -> &DeprecatedField<String> {
-        match self.fields.get(n) {
-            Some(f) => f,
-            None => &DeprecatedField::Ignore,
-        }
     }
 }
 
@@ -148,18 +135,4 @@ pub(crate) enum DeprecatedField<T> {
     Ignore,
     Clear,
     Set(T),
-}
-
-impl<T> DeprecatedField<T> {
-    pub(crate) fn is_none(&self) -> bool {
-        matches!(self, Self::Ignore)
-    }
-
-    pub(crate) fn has_value(&self) -> bool {
-        matches!(self, Self::Set(_))
-    }
-}
-
-pub(crate) trait DeprecatedEdit {
-    async fn edit(&self, db: &mut DBase) -> Result<()>;
 }
