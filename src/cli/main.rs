@@ -666,7 +666,44 @@ async fn commands(
         }
 
         "md" if matches!(mode, Mode::Interactive) => {
-            koascmd::deprecated_convert_to_decimal(db, editable, args).await?
+            if editable.is_none() {
+                Err("Edellinen komento ei sisällä muokattavia tietueita.")?;
+            }
+
+            if !editable.is_grade() {
+                Err("Vain arvosanoja voi muokata tällä komennolla.")?;
+            }
+
+            if args.is_empty() {
+                Err("Puuttuu tietueiden numerot.")?;
+            }
+
+            let (indices, rest) = {
+                let (first, rest) = tools::split_first(args);
+                let i = tools::parse_number_list(first)?;
+                let max = editable.count();
+                if !tools::is_within_limits(max, &i) {
+                    Err(format!("Suurin muokattava tietue on {max}."))?;
+                }
+                (i, rest)
+            };
+
+            if !rest.is_empty() {
+                Err("Vain yksi argumentti hyväksytään.")?;
+            }
+
+            if let Editable::Grades(student_grades) = editable {
+                let mut updates = Queue::new();
+                for student_grade in student_grades.iter_index1(indices) {
+                    if let Some(ss) = &student_grade.grade
+                        && let Some(old) = tools::parse_number(ss)
+                    {
+                        let new = tools::format_decimal(old);
+                        student_grade.set_grade(&new)?.queue(&mut updates);
+                    }
+                }
+                updates.commit(db).await?;
+            }
         }
 
         "poista" if matches!(mode, Mode::Interactive) => {

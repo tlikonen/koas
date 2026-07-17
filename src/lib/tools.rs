@@ -220,7 +220,7 @@ impl Normalize for str {
     }
 }
 
-pub(crate) fn format_decimal(num: f64) -> String {
+pub fn format_decimal(num: f64) -> String {
     const PRECISION: f64 = 100.0;
     format!("{:.2}", (num * PRECISION).round() / PRECISION).replace(".", ",")
 }
