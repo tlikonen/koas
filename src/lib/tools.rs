@@ -54,7 +54,7 @@ pub fn is_within_limits(limit: usize, list: &[usize]) -> bool {
     list.iter().all(|n| *n <= limit)
 }
 
-pub(crate) fn parse_number(s: &str) -> Option<f64> {
+pub fn parse_number(s: &str) -> Option<f64> {
     use std::cmp::max;
     const MINUS_CHARS: &str = "-–−";
 
@@ -123,7 +123,7 @@ pub(crate) fn parse_number(s: &str) -> Option<f64> {
     }
 }
 
-pub(crate) fn float_to_grade(float: f64) -> Option<String> {
+pub fn float_to_grade(float: f64) -> Option<String> {
     if float < 0.0 {
         return None;
     }

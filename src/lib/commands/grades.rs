@@ -37,52 +37,6 @@ pub async fn grades_for_group(db: &mut DBase, group: &str) -> Result<QueryList<G
     GradesForGroup::query(db, group).await
 }
 
-pub async fn deprecated_convert_to_grade(
-    db: &mut DBase,
-    editable: &mut Editable,
-    args: &str,
-) -> Result<()> {
-    if editable.is_none() {
-        return Err("Edellinen komento ei sisällä muokattavia tietueita.".into());
-    }
-
-    if !editable.is_grade() {
-        return Err("Vain arvosanoja voi muokata tällä komennolla.".into());
-    }
-
-    if args.is_empty() {
-        return Err("Puuttuu tietueiden numerot.".into());
-    }
-
-    let indexes = {
-        let (first, _) = tools::split_first(args);
-        let i = tools::parse_number_list(first)?;
-        let max = editable.count();
-        if !tools::is_within_limits(max, &i) {
-            return Err(format!("Suurin muokattava tietue on {max}.").into());
-        }
-        i
-    };
-
-    let mut ta = db.begin().await?;
-    match editable {
-        Editable::Grades(student_grades) => {
-            let edits = student_grades.for_edit(indexes, [""; 0]); // empty fields
-            for student_grade in edits.iter() {
-                if let Some(ss) = &student_grade.grade
-                    && let Some(old) = tools::parse_number(ss)
-                    && let Some(new) = tools::float_to_grade(old)
-                {
-                    student_grade.update_grade(&mut ta, Some(&new)).await?;
-                }
-            }
-        }
-        _ => panic!(),
-    }
-    ta.commit().await?;
-    Ok(())
-}
-
 pub async fn deprecated_convert_to_decimal(
     db: &mut DBase,
     editable: &mut Editable,
