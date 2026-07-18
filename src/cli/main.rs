@@ -463,14 +463,14 @@ async fn commands(
 
             match c {
                 "tp" | "tpk" => {
-                    StudentRanking::query(db, queries, include_weightless)
+                    StudentRanking::query(db, &queries, include_weightless)
                         .await?
                         .has_data()?
                         .print(out)?;
                 }
 
                 "tj" | "tjk" => {
-                    GradeDistribution::query(db, queries, include_weightless)
+                    GradeDistribution::query(db, &queries, include_weightless)
                         .await?
                         .has_data()?
                         .print(out)?;

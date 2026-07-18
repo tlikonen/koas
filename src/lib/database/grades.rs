@@ -450,19 +450,19 @@ impl StudentRanking {
     /// Assignments' weight is included. If `include_weightless` is `true`
     /// also include assignments with no weight and count them with weight
     /// 1.
-    pub async fn query(
+    pub async fn query<'a>(
         db: &mut DBase,
-        queries: Vec<FullQuery<'_>>,
+        queries: impl IntoIterator<Item = &'a FullQuery<'a>>,
         include_weightless: bool,
     ) -> Result<Self> {
         let mut ranks = Self::new();
-        for query in queries {
+        for query in queries.into_iter() {
             ranks.query_db(db, query, include_weightless).await?;
         }
         Ok(ranks)
     }
 
-    async fn query_db(&mut self, db: &mut DBase, args: FullQuery<'_>, all: bool) -> Result<()> {
+    async fn query_db(&mut self, db: &mut DBase, args: &FullQuery<'_>, all: bool) -> Result<()> {
         let mut rows = sqlx::query(
             "SELECT oid, sukunimi, etunimi, ryhma, arvosana, painokerroin FROM view_arvosanat \
              WHERE sukunimi LIKE $1 ESCAPE '\\' AND etunimi LIKE $2 ESCAPE '\\' \
@@ -531,19 +531,19 @@ impl GradeDistribution {
     /// `include_weightless` is `false` only assignments with weight are
     /// included. If `include_weightless` is `true` also include assignments
     /// with no weight.
-    pub async fn query(
+    pub async fn query<'a>(
         db: &mut DBase,
-        queries: Vec<FullQuery<'_>>,
+        queries: impl IntoIterator<Item = &'a FullQuery<'a>>,
         include_weightless: bool,
     ) -> Result<Self> {
         let mut dist = Self::new();
-        for query in queries {
+        for query in queries.into_iter() {
             dist.query_db(db, query, include_weightless).await?;
         }
         Ok(dist)
     }
 
-    async fn query_db(&mut self, db: &mut DBase, args: FullQuery<'_>, all: bool) -> Result<()> {
+    async fn query_db(&mut self, db: &mut DBase, args: &FullQuery<'_>, all: bool) -> Result<()> {
         let mut rows = sqlx::query(
             "SELECT arvosana, painokerroin FROM view_arvosanat \
              WHERE sukunimi LIKE $1 ESCAPE '\\' AND etunimi LIKE $2 ESCAPE '\\' \
