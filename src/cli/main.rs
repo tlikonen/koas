@@ -325,7 +325,13 @@ async fn commands(
                 Err("Liikaa kenttiä. Vain kaksi hyväksytään.")?;
             }
 
-            let query = koascmd::groups(db, name, desc).await?.has_data()?;
+            let query = koascmd::groups(
+                db,
+                QueryMatch::WildAround(name),
+                QueryMatch::WildAround(desc),
+            )
+            .await?
+            .has_data()?;
 
             if modes.is_interactive() {
                 query.copy_to(editable);
@@ -340,7 +346,9 @@ async fn commands(
             editable.clear();
 
             let (group, _) = tools::split_first(args);
-            let query = koascmd::assignments(db, group).await?.has_data()?;
+            let query = koascmd::assignments(db, QueryMatch::Wild(group))
+                .await?
+                .has_data()?;
 
             if modes.is_interactive()
                 && query.count() == 1

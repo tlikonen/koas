@@ -62,6 +62,14 @@ impl QueryMatch<'_> {
             Self::WildAround(s) => like_esc_wild_around(s),
         }
     }
+
+    pub(crate) fn is_empty(&self) -> bool {
+        match self {
+            Self::Exact(s) => s.is_empty(),
+            Self::Wild(s) => s.is_empty(),
+            Self::WildAround(s) => s.is_empty(),
+        }
+    }
 }
 
 pub trait HasData {

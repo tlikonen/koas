@@ -168,12 +168,12 @@ impl Assignment {
 }
 
 impl AssignmentsForGroup {
-    pub(crate) async fn query(db: &mut DBase, group: &str) -> Result<QueryList<Self>> {
+    pub(crate) async fn query(db: &mut DBase, group: QueryMatch<'_>) -> Result<QueryList<Self>> {
         let mut rows = sqlx::query(
             "SELECT rid, ryhma, sid, suoritus, lyhenne, painokerroin FROM view_suoritukset \
              WHERE ryhma LIKE $1 ESCAPE '\\' ORDER BY ryhma, rid, sija, sid",
         )
-        .bind(like_esc_wild(group))
+        .bind(group.sql_like())
         .fetch(db);
 
         let mut row = match rows.try_next().await? {

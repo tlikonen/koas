@@ -8,14 +8,18 @@ pub struct Group {
 }
 
 impl Group {
-    pub(crate) async fn query(db: &mut DBase, group: &str, desc: &str) -> Result<QueryList<Self>> {
+    pub(crate) async fn query(
+        db: &mut DBase,
+        group: QueryMatch<'_>,
+        desc: QueryMatch<'_>,
+    ) -> Result<QueryList<Self>> {
         let mut rows = sqlx::query(
             "SELECT rid, nimi, lisatiedot FROM ryhmat \
              WHERE nimi LIKE $1 ESCAPE '\\' AND lisatiedot LIKE $2 ESCAPE '\\' \
              ORDER BY nimi, lisatiedot, rid",
         )
-        .bind(like_esc_wild_around(group))
-        .bind(like_esc_wild_around(desc))
+        .bind(group.sql_like())
+        .bind(desc.sql_like())
         .fetch(db);
 
         let mut list = Vec::with_capacity(10);

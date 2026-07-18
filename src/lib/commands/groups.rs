@@ -1,10 +1,11 @@
 use super::*;
 
 /// Query for groups.
-///
-/// Wildcard character "*" is allowed in the query strings and is
-/// implicit in the start and end the strings.
-pub async fn groups(db: &mut DBase, name: &str, description: &str) -> Result<QueryList<Group>> {
+pub async fn groups(
+    db: &mut DBase,
+    name: QueryMatch<'_>,
+    description: QueryMatch<'_>,
+) -> Result<QueryList<Group>> {
     Group::query(db, name, description).await
 }
 

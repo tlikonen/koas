@@ -3,7 +3,10 @@ use super::*;
 /// Query for assignments.
 ///
 /// Wildcard character "*" is allowed in the `group` argument.
-pub async fn assignments(db: &mut DBase, group: &str) -> Result<QueryList<AssignmentsForGroup>> {
+pub async fn assignments(
+    db: &mut DBase,
+    group: QueryMatch<'_>,
+) -> Result<QueryList<AssignmentsForGroup>> {
     if group.is_empty() {
         return Err("Argumentiksi pitää antaa ryhmän nimi.".into());
     }
