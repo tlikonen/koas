@@ -1,8 +1,7 @@
 use super::*;
 use std::cmp::Ordering;
 
-pub(super) const PROGRAM_DB_VERSION: i32 = 10;
-const UPGRADE_COMMAND: &str = "päivitä";
+const PROGRAM_DB_VERSION: i32 = 10;
 
 pub(super) async fn initialize(db: &mut DBase) -> Result<()> {
     let mut stderr = io::stderr();
@@ -20,22 +19,8 @@ pub(super) async fn initialize(db: &mut DBase) -> Result<()> {
 
         match db_version.cmp(&PROGRAM_DB_VERSION) {
             Ordering::Equal => (),
-
-            Ordering::Greater => {
-                return Err(
-                    "Arvosanatietokannan versio on uudempi kuin tämä ohjelma tukee.\n\
-                     Päivitä ohjelma, koska se ei välttämättä toimi oikein."
-                        .into(),
-                );
-            }
-
-            Ordering::Less => {
-                // modes.set_upgrade();
-                return Err(format!(
-                        "Arvosanatietokannan versio on vanhentunut, eikä se ehkä toimi oikein.\n\
-                         Päivitä tietokanta vuorovaikutteisessa tilassa komennolla ”{UPGRADE_COMMAND}”."
-                    ).into());
-            }
+            Ordering::Greater => Err(Error::OldProgram)?,
+            Ordering::Less => Err(Error::OldDatabase)?,
         }
     } else {
         // Database objects don't exist. Create all.

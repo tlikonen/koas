@@ -16,6 +16,8 @@ pub enum Error {
     UnknownCmd(String),
     UnknownTbl(String),
     GroupName(String),
+    OldDatabase,
+    OldProgram,
 }
 
 impl Error {
@@ -39,6 +41,11 @@ impl fmt::Display for Error {
             Self::UnknownCmd(v) => write!(f, "Tuntematon komento ”{v}”."),
             Self::UnknownTbl(v) => write!(f, "Tuntematon taulukkotyyppi ”{v}”."),
             Self::GroupName(v) => write!(f, "Sopimaton ryhmän nimi ”{v}”."),
+            Self::OldDatabase => write!(f, "Arvosanatietokannan versio on vanhentunut."),
+            Self::OldProgram => write!(
+                f,
+                "Ohjelman versio on vanhentunut, ja tietokanta vaatii uudemman."
+            ),
             _ => Ok(()),
         }
     }
