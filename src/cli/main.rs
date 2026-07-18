@@ -292,6 +292,9 @@ async fn commands(
             let firstname = fields.next().unwrap_or(""); // etunimi
             let group = fields.next().unwrap_or(""); // ryhma
             let desc = fields.next().unwrap_or(""); // lisätiedot
+            if fields.next().is_some() {
+                Err("Liikaa kenttiä. Vain neljä hyväksytään.")?;
+            }
 
             let query = koascmd::students(
                 db,
@@ -318,6 +321,9 @@ async fn commands(
             let mut fields = tools::split_sep(args);
             let name = fields.next().unwrap_or(""); // ryhmä
             let desc = fields.next().unwrap_or(""); // lisätiedot
+            if fields.next().is_some() {
+                Err("Liikaa kenttiä. Vain kaksi hyväksytään.")?;
+            }
 
             let query = koascmd::groups(db, name, desc).await?.has_data()?;
 
@@ -360,6 +366,9 @@ async fn commands(
             let group = fields.next().unwrap_or(""); // ryhmä
             let assign = fields.next().unwrap_or(""); // suoritus
             let assign_short = fields.next().unwrap_or(""); // lyhenne
+            if fields.next().is_some() {
+                Err("Liikaa kenttiä. Vain kolme hyväksytään.")?;
+            }
 
             let query = koascmd::grades_for_assignments(db, group, assign, assign_short)
                 .await?
@@ -385,6 +394,9 @@ async fn commands(
             let firstname = fields.next().unwrap_or(""); // etunimi
             let group = fields.next().unwrap_or(""); // ryhmä
             let desc = fields.next().unwrap_or(""); // lisätiedot
+            if fields.next().is_some() {
+                Err("Liikaa kenttiä. Vain neljä hyväksytään.")?;
+            }
 
             let query = koascmd::grades_for_students(db, lastname, firstname, group, desc)
                 .await?
@@ -458,6 +470,9 @@ async fn commands(
             let firstname = fields.next().unwrap_or(""); // etunimi
             let groups = fields.next().unwrap_or("").split_whitespace(); // ryhmät
             let desc = fields.next().unwrap_or(""); // lisätiedot
+            if fields.next().is_some() {
+                Err("Liikaa kenttiä. Vain neljä hyväksytään.")?;
+            }
 
             Student::insert(lastname, firstname, groups, desc)?
                 .commit(db)
@@ -473,6 +488,9 @@ async fn commands(
             let assignment_short = fields.next().unwrap_or(""); // lyhenne
             let weight = fields.next(); // painokerroin
             let position = fields.next(); // sija
+            if fields.next().is_some() {
+                Err("Liikaa kenttiä. Vain viisi hyväksytään.")?;
+            }
 
             if !groups.has_content() {
                 Err("Pitää antaa vähintään ryhmä, suorituksen nimi ja lyhenne.")?;
