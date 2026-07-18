@@ -186,11 +186,6 @@ impl Commit for QueueItem<'_> {
 }
 
 impl<'a> Queue<'a> {
-    /// Create a new empty queue for updates.
-    pub fn new() -> Self {
-        Self(Vec::new())
-    }
-
     /// Iterate over the queue.
     pub fn iter(&self) -> impl Iterator<Item = &QueueItem<'_>> {
         self.0.iter()

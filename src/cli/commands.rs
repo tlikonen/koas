@@ -36,7 +36,7 @@ pub(super) async fn edit_students(
         parse_add_remove_groups(groups, &mut groups_add, &mut groups_remove)?;
     }
 
-    let mut updates = Queue::new();
+    let mut updates = Queue::default();
 
     for student in &students {
         if let Some(name) = lastname {
@@ -111,7 +111,7 @@ pub(super) async fn edit_groups(
         Err("Usealle ryhmälle ei voi antaa samaa nimeä.")?;
     }
 
-    let mut updates = Queue::new();
+    let mut updates = Queue::default();
 
     for group in &groups {
         if let Some(n) = name {
@@ -155,7 +155,7 @@ pub(super) async fn edit_assignments(
         Err("Usealle suoritukselle ei voi asettaa samaa järjestysnumeroa.")?;
     }
 
-    let mut updates = Queue::new();
+    let mut updates = Queue::default();
 
     for assignment in &assignments {
         if let Some(n) = name {
@@ -199,7 +199,7 @@ pub(super) async fn edit_grades(
         Err("Anna muokattavia kenttiä.")?;
     }
 
-    let mut updates = Queue::new();
+    let mut updates = Queue::default();
 
     for student_grade in grades.into_iter() {
         if let Some(g) = grade {
@@ -282,7 +282,7 @@ pub(super) async fn edit_student_series(
     field_num: usize,
     values: impl IntoIterator<Item = &str>,
 ) -> Result<()> {
-    let mut updates = Queue::new();
+    let mut updates = Queue::default();
 
     for (student, value) in students.into_iter().zip(values) {
         if value.is_empty() {
@@ -344,7 +344,7 @@ pub(super) async fn edit_group_series(
     field_num: usize,
     values: impl IntoIterator<Item = &str>,
 ) -> Result<()> {
-    let mut updates = Queue::new();
+    let mut updates = Queue::default();
 
     for (group, value) in groups.into_iter().zip(values) {
         if value.is_empty() {
@@ -382,7 +382,7 @@ pub(super) async fn edit_assignment_series(
     field_num: usize,
     values: impl IntoIterator<Item = &str>,
 ) -> Result<()> {
-    let mut updates = Queue::new();
+    let mut updates = Queue::default();
 
     for (assignment, value) in assignments.into_iter().zip(values) {
         if value.is_empty() {
@@ -434,7 +434,7 @@ pub(super) async fn edit_grade_series(
     field_num: usize,
     values: impl IntoIterator<Item = &str>,
 ) -> Result<()> {
-    let mut updates = Queue::new();
+    let mut updates = Queue::default();
 
     for (grade, value) in grades.into_iter().zip(values) {
         if value.is_empty() {

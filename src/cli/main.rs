@@ -514,7 +514,7 @@ async fn commands(
                 Err("Pitää antaa vähintään ryhmä, suorituksen nimi ja lyhenne.")?;
             }
 
-            let mut updates = Queue::new();
+            let mut updates = Queue::default();
             for group in groups.split_whitespace() {
                 Assignment::insert(group, assignment, assignment_short, weight, position)?
                     .queue(&mut updates);
@@ -701,7 +701,7 @@ async fn commands(
             }
 
             if let Editable::Grades(student_grades) = editable {
-                let mut updates = Queue::new();
+                let mut updates = Queue::default();
                 for student_grade in student_grades.iter_index1(indices) {
                     if let Some(ss) = &student_grade.grade
                         && let Some(old) = tools::parse_number(ss)
@@ -742,7 +742,7 @@ async fn commands(
             }
 
             if let Editable::Grades(student_grades) = editable {
-                let mut updates = Queue::new();
+                let mut updates = Queue::default();
                 for student_grade in student_grades.iter_index1(indices) {
                     if let Some(ss) = &student_grade.grade
                         && let Some(old) = tools::parse_number(ss)
@@ -782,7 +782,7 @@ async fn commands(
                 Editable::None => (),
 
                 Editable::Students(students) => {
-                    let mut updates = Queue::new();
+                    let mut updates = Queue::default();
                     for student in students.iter_index1(indices) {
                         student.mark_deleted().queue(&mut updates);
                     }
@@ -795,7 +795,7 @@ async fn commands(
                 }
 
                 Editable::Assignments(assignments) => {
-                    let mut updates = Queue::new();
+                    let mut updates = Queue::default();
                     for assignment in assignments.iter_index1(indices) {
                         assignment.mark_deleted().queue(&mut updates);
                     }
@@ -803,7 +803,7 @@ async fn commands(
                 }
 
                 Editable::Grades(grades) => {
-                    let mut updates = Queue::new();
+                    let mut updates = Queue::default();
                     for student_grade in grades.iter_index1(indices) {
                         student_grade.mark_deleted().queue(&mut updates);
                     }
