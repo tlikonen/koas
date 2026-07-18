@@ -17,7 +17,7 @@ pub(crate) use self::groups::UpdateGroupOp;
 pub(crate) use self::students::UpdateStudentOp;
 pub(crate) use sqlx::{Connection as _, PgConnection as DBase, Row as _};
 
-pub use self::assignments::{Assignment, AssignmentsForGroup, UpdateAssignment};
+pub use self::assignments::{Assignment, AssignmentsForGroup, InsertAssignment, UpdateAssignment};
 pub use self::grades::{
     Grade, GradeDistribution, GradesForAssignment, GradesForGroup, GradesForStudent, SimpleGrade,
     SimpleStudent, StudentRanking, UpdateGrade,
@@ -154,16 +154,18 @@ pub enum QueueItem<'a> {
     UpdateAssignment(UpdateAssignment<'a>),
     UpdateGrade(UpdateGrade<'a>),
     InsertStudent(InsertStudent),
+    InsertAssignment(InsertAssignment),
 }
 
 impl Commit for QueueItem<'_> {
     async fn commit(&self, db: &mut DBase) -> Result<()> {
         match self {
-            QueueItem::UpdateStudent(s) => s.commit(db).await?,
-            QueueItem::UpdateGroup(g) => g.commit(db).await?,
-            QueueItem::UpdateAssignment(a) => a.commit(db).await?,
-            QueueItem::UpdateGrade(g) => g.commit(db).await?,
-            QueueItem::InsertStudent(s) => s.commit(db).await?,
+            Self::UpdateStudent(s) => s.commit(db).await?,
+            Self::UpdateGroup(g) => g.commit(db).await?,
+            Self::UpdateAssignment(a) => a.commit(db).await?,
+            Self::UpdateGrade(g) => g.commit(db).await?,
+            Self::InsertStudent(s) => s.commit(db).await?,
+            Self::InsertAssignment(a) => a.commit(db).await?,
         }
         Ok(())
     }

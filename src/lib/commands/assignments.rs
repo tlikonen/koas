@@ -10,76 +10,66 @@ pub async fn assignments(db: &mut DBase, group: &str) -> Result<QueryList<Assign
     AssignmentsForGroup::query(db, group).await
 }
 
-/// Insert new assignment for a group.
-///
-/// TODO: Korvataan funktiolla Assignment::new, joka valmistelee
-/// InsertAssignmentin, joka viimeistellään commitilla tai lisätään
-/// jonoon.
-pub async fn insert_assignment(
-    db: &mut DBase,
-    groups: impl IntoIterator<Item = &str>,
-    assignment: &str,
-    assignment_short: &str,
-    weight: Option<&str>,
-    position: Option<&str>,
-) -> Result<()> {
-    let groups: Vec<String> = groups.into_iter().filter_map(|x| x.normalize()).collect(); // ryhmät
-    let assignment = assignment.normalize(); // suoritus
-    let assignment_short = assignment_short.normalize(); // lyhenne
-    let weight = weight.filter(|x| x.has_content()); // painokerroin
-    let position = position.filter(|x| x.has_content()); // sija
-
-    if groups.is_empty() || assignment.is_none() || assignment_short.is_none() {
-        return Err("Pitää antaa vähintään ryhmä, suorituksen nimi ja lyhenne.".into());
-    }
-
-    tools::assert_group_names(&groups)?;
-
-    let weight = match weight {
-        Some(s) => match s.trim().parse::<i32>() {
-            Ok(n) if n >= 1 => Some(n),
-            _ => {
-                return Err(
-                    "Painokertoimen täytyy olla positiivinen kokonaisluku (tai tyhjä).".into(),
-                );
-            }
-        },
-        None => None,
-    };
-
-    let position = match position {
-        Some(s) => match s.trim().parse::<i32>() {
-            Ok(n) => n,
-            _ => return Err("Järjestysnumeron täytyy olla kokonaisluku.".into()),
-        },
-        None => i32::MAX,
-    };
-
-    let mut ta = db.begin().await?;
-
-    if let Some(long) = assignment
-        && let Some(short) = assignment_short
-    {
-        for group in groups {
-            let mut group_assignment = Assignment {
-                rid: Group::get_or_insert(&mut ta, &group).await?,
-                assignment: long.clone(),
-                assignment_short: short.clone(),
-                weight,
-                ..Assignment::default()
-            };
-
-            group_assignment.insert(&mut ta, position).await?;
-        }
-    } else {
-        return Err("Suorituksen lisääminen epäonnistui.".into());
-    }
-
-    ta.commit().await?;
-    Ok(())
-}
-
 impl Assignment {
+    /// Prepare to insert a new assignment.
+    ///
+    /// See [`Commit`] trait for more information.
+    pub fn insert(
+        group: &str,
+        assignment: &str,
+        assignment_short: &str,
+        weight: Option<&str>,
+        position: Option<&str>,
+    ) -> Result<InsertAssignment> {
+        let group = group.normalize(); // ryhmä
+        let assignment = assignment.normalize(); // suoritus
+        let assignment_short = assignment_short.normalize(); // lyhenne
+        let weight = weight.filter(|x| x.has_content()); // painokerroin
+        let position = position.filter(|x| x.has_content()); // sija
+
+        if group.is_none() || assignment.is_none() || assignment_short.is_none() {
+            Err("Pitää antaa vähintään ryhmä, suorituksen nimi ja lyhenne.")?;
+        }
+
+        // Convert from Option<&str> to Option<i32>.
+        let weight = match weight {
+            Some(s) => match s.trim().parse::<i32>() {
+                Ok(n) if n >= 1 => Some(n),
+                _ => {
+                    return Err(
+                        "Painokertoimen täytyy olla positiivinen kokonaisluku (tai tyhjä).".into(),
+                    );
+                }
+            },
+            None => None,
+        };
+
+        // Convert from Option<&str> to Option<i32>.
+        let position = match position {
+            Some(s) => match s.trim().parse::<i32>() {
+                Ok(n) => Some(n),
+                _ => return Err("Järjestysnumeron täytyy olla kokonaisluku.".into()),
+            },
+            None => None,
+        };
+
+        if let Some(gr) = group
+            && let Some(long) = assignment
+            && let Some(short) = assignment_short
+        {
+            gr.is_valid_group_name()?;
+            Ok(InsertAssignment {
+                group: gr,
+                assignment: long,
+                assignment_short: short,
+                weight,
+                position,
+            })
+        } else {
+            Err(Error::from("Suorituksen lisääminen epäonnistui."))
+        }
+    }
+
     /// Prepare update for assignment's name.
     ///
     /// See [`Commit`] trait for more information.
@@ -191,6 +181,33 @@ impl Commit for UpdateAssignment<'_> {
                 Group::delete_empty(&mut ta).await?;
             }
         }
+
+        ta.commit().await?;
+        Ok(())
+    }
+}
+
+impl<'a> ToQueue<'a> for InsertAssignment {
+    fn queue(self, q: &mut Queue<'a>) {
+        q.push(QueueItem::InsertAssignment(self))
+    }
+}
+
+impl Commit for InsertAssignment {
+    async fn commit(&self, db: &mut DBase) -> Result<()> {
+        let mut ta = db.begin().await?;
+
+        let mut group_assignment = Assignment {
+            rid: Group::get_or_insert(&mut ta, &self.group).await?,
+            assignment: self.assignment.clone(),
+            assignment_short: self.assignment_short.clone(),
+            weight: self.weight,
+            ..Assignment::default()
+        };
+
+        let pos = self.position.unwrap_or(i32::MAX);
+
+        group_assignment.insert_db(&mut ta, pos).await?;
 
         ta.commit().await?;
         Ok(())

@@ -112,7 +112,7 @@ impl Assignment {
         Ok(count)
     }
 
-    pub(crate) async fn insert(&mut self, db: &mut DBase, pos: i32) -> Result<()> {
+    pub(crate) async fn insert_db(&mut self, db: &mut DBase, pos: i32) -> Result<()> {
         let row = sqlx::query(
             "INSERT INTO suoritukset (rid, nimi, lyhenne, painokerroin, sija) \
              VALUES ($1, $2, $3, $4, $5) RETURNING sid",
@@ -239,3 +239,11 @@ pub enum UpdateAssignmentOp {
 }
 
 pub type UpdateAssignment<'a> = Update<'a, Assignment, UpdateAssignmentOp>;
+
+pub struct InsertAssignment {
+    pub(crate) group: String,
+    pub(crate) assignment: String,
+    pub(crate) assignment_short: String,
+    pub(crate) weight: Option<i32>,
+    pub(crate) position: Option<i32>,
+}

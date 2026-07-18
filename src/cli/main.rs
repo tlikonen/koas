@@ -8,6 +8,7 @@ use koas::database;
 use koas::database::*;
 use koas::output::*;
 use koas::tools;
+use koas::tools::StrExt;
 use koas::{Config, Error, Result};
 use std::io::{self, Write as _};
 use std::process::ExitCode;
@@ -467,14 +468,22 @@ async fn commands(
             editable.clear();
 
             let mut fields = tools::split_sep(args);
-            let groups = fields.next().unwrap_or("").split_whitespace(); // ryhmät
+            let groups = fields.next().unwrap_or(""); // ryhmät
             let assignment = fields.next().unwrap_or(""); // suoritus
             let assignment_short = fields.next().unwrap_or(""); // lyhenne
             let weight = fields.next(); // painokerroin
             let position = fields.next(); // sija
 
-            koascmd::insert_assignment(db, groups, assignment, assignment_short, weight, position)
-                .await?;
+            if !groups.has_content() {
+                Err("Pitää antaa vähintään ryhmä, suorituksen nimi ja lyhenne.")?;
+            }
+
+            let mut updates = Queue::new();
+            for group in groups.split_whitespace() {
+                Assignment::insert(group, assignment, assignment_short, weight, position)?
+                    .queue(&mut updates);
+            }
+            updates.commit(db).await?;
         }
 
         "m" if matches!(mode, Mode::Interactive) => {
