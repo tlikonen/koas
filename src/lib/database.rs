@@ -1,3 +1,49 @@
+//! # Database
+//!
+//! ## Connect
+//!
+//! Call [`connect`] function for connecting to the database server.
+//!
+//! ## Insert Data
+//!
+//!   - [`Student::insert`]
+//!   - [`Assignment::insert`]
+//!
+//! ## Query Data
+//!
+//!   - [`Stats::query`]
+//!   - [`Student::query`]
+//!   - [`Group::query`]
+//!   - [`AssignmentsForGroup::query`]
+//!   - [`GradesForAssignment::query`]
+//!   - [`GradesForStudent::query`]
+//!   - [`GradesForGroup::query`]
+//!   - [`StudentRanking::query`]
+//!   - [`GradeDistribution::query`]
+//!
+//! Query functions' return value can be printed with each type's
+//! respective [`print`](crate::output::PrintQuery::print) method from
+//! [`PrintQuery`](crate::output::PrintQuery) trait or
+//! [`print_num`](crate::output::PrintQueryNum::print_num) method from
+//! [`PrintQueryNum`](crate::output::PrintQueryNum) trait.
+//!
+//! A [`Table`](crate::output::Table) can be constructed with
+//! [`table`](crate::output::MakeTable::table) method which again can be
+//! printed with [`print`](crate::output::PrintQuery::print) method.
+//!
+//! ## Update Data
+//!
+//! Query functions return a type which may contain editable database
+//! types. They are:
+//!
+//!   - [`Student`]
+//!   - [`Group`]
+//!   - [`Assignment`]
+//!   - [`Grade`]
+//!
+//! Methods of those types are used to update or delete the database
+//! data.
+
 mod assignments;
 mod grades;
 mod groups;
@@ -151,7 +197,10 @@ impl Stats {
 /// Commit prepared updates to the database.
 ///
 /// Updates are prepared with methods of [`Student`], [`Group`],
-/// [`Assignment`], [`Grade`].
+/// [`Assignment`], [`Grade`]. Usually it is preferable to queue several
+/// updates and commit the whole queue instead. A [`Queue`] of updates
+/// is constructed with [`queue`](ToQueue::queue) method from
+/// [`ToQueue`] trait.
 #[allow(async_fn_in_trait)]
 pub trait Commit {
     /// Commit the database update.
@@ -159,6 +208,19 @@ pub trait Commit {
 }
 
 /// A queue for updates.
+///
+/// Several updates can be committed in a single database transaction.
+/// It is faster than several individual commits. The queue commit is
+/// also atomic: if there is a failure in the transaction the whole
+/// queue of updates is canceled.
+///
+/// ```compile_fail
+/// let mut updates = Queue::default();
+/// let student1 = /* ... */
+/// let student2 = /* ... */
+/// student1.set_description(/* ... */)?.queue(&mut updates);
+/// student2.set_description(/* ... */)?.queue(&mut updates);
+/// updates.commit(/* &mut PgConnection */).await?;
 #[derive(Default)]
 pub struct Queue<'a>(Vec<QueueItem<'a>>);
 
