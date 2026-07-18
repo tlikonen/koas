@@ -1,41 +1,5 @@
 use super::*;
 
-/// Query for student ranking.
-///
-/// Apply `queries` and build ranking list for students by their grades.
-/// Assignments' weight is included. If `include_weightless` is `true`
-/// also include assignments with no weight and count them with weight
-/// 1.
-pub async fn student_ranking(
-    db: &mut DBase,
-    queries: Vec<FullQuery<'_>>,
-    include_weightless: bool,
-) -> Result<StudentRanking> {
-    let mut ranks = StudentRanking::new();
-    for query in queries {
-        ranks.query(db, query, include_weightless).await?;
-    }
-    Ok(ranks)
-}
-
-/// Build grade distribution graph.
-///
-/// Apply `queries` and build distribution graph for grades. If
-/// `include_weightless` is `false` only assignments with weight are
-/// included. If `include_weightless` is `true` also include assignments
-/// with no weight.
-pub async fn grade_distribution(
-    db: &mut DBase,
-    queries: Vec<FullQuery<'_>>,
-    include_weightless: bool,
-) -> Result<GradeDistribution> {
-    let mut dist = GradeDistribution::new();
-    for query in queries {
-        dist.query(db, query, include_weightless).await?;
-    }
-    Ok(dist)
-}
-
 impl Grade {
     /// Prepare update for grade.
     ///

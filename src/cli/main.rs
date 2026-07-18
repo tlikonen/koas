@@ -3,7 +3,6 @@ mod editable;
 
 use crate::editable::{CopyToEditable, Editable};
 use just_getopt::{Args, OptFlags, OptSpecs, OptValue};
-use koas::commands as koascmd;
 use koas::database;
 use koas::database::*;
 use koas::output::*;
@@ -464,14 +463,14 @@ async fn commands(
 
             match c {
                 "tp" | "tpk" => {
-                    koascmd::student_ranking(db, queries, include_weightless)
+                    StudentRanking::query(db, queries, include_weightless)
                         .await?
                         .has_data()?
                         .print(out)?;
                 }
 
                 "tj" | "tjk" => {
-                    koascmd::grade_distribution(db, queries, include_weightless)
+                    GradeDistribution::query(db, queries, include_weightless)
                         .await?
                         .has_data()?
                         .print(out)?;

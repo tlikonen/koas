@@ -444,18 +444,25 @@ impl HasData for GradesForGroup {
 }
 
 impl StudentRanking {
-    pub(crate) fn new() -> Self {
-        Self {
-            data: HashMap::with_capacity(50),
+    /// Query for student ranking.
+    ///
+    /// Apply `queries` and build ranking list for students by their grades.
+    /// Assignments' weight is included. If `include_weightless` is `true`
+    /// also include assignments with no weight and count them with weight
+    /// 1.
+    pub async fn query(
+        db: &mut DBase,
+        queries: Vec<FullQuery<'_>>,
+        include_weightless: bool,
+    ) -> Result<Self> {
+        let mut ranks = Self::new();
+        for query in queries {
+            ranks.query_db(db, query, include_weightless).await?;
         }
+        Ok(ranks)
     }
 
-    pub(crate) async fn query(
-        &mut self,
-        db: &mut DBase,
-        args: FullQuery<'_>,
-        all: bool,
-    ) -> Result<()> {
+    async fn query_db(&mut self, db: &mut DBase, args: FullQuery<'_>, all: bool) -> Result<()> {
         let mut rows = sqlx::query(
             "SELECT oid, sukunimi, etunimi, ryhma, arvosana, painokerroin FROM view_arvosanat \
              WHERE sukunimi LIKE $1 ESCAPE '\\' AND etunimi LIKE $2 ESCAPE '\\' \
@@ -503,6 +510,12 @@ impl StudentRanking {
 
         Ok(())
     }
+
+    fn new() -> Self {
+        Self {
+            data: HashMap::with_capacity(50),
+        }
+    }
 }
 
 impl HasData for StudentRanking {
@@ -512,18 +525,25 @@ impl HasData for StudentRanking {
 }
 
 impl GradeDistribution {
-    pub(crate) fn new() -> Self {
-        Self {
-            data: HashMap::with_capacity(28),
+    /// Build grade distribution graph.
+    ///
+    /// Apply `queries` and build distribution graph for grades. If
+    /// `include_weightless` is `false` only assignments with weight are
+    /// included. If `include_weightless` is `true` also include assignments
+    /// with no weight.
+    pub async fn query(
+        db: &mut DBase,
+        queries: Vec<FullQuery<'_>>,
+        include_weightless: bool,
+    ) -> Result<Self> {
+        let mut dist = Self::new();
+        for query in queries {
+            dist.query_db(db, query, include_weightless).await?;
         }
+        Ok(dist)
     }
 
-    pub(crate) async fn query(
-        &mut self,
-        db: &mut DBase,
-        args: FullQuery<'_>,
-        all: bool,
-    ) -> Result<()> {
+    async fn query_db(&mut self, db: &mut DBase, args: FullQuery<'_>, all: bool) -> Result<()> {
         let mut rows = sqlx::query(
             "SELECT arvosana, painokerroin FROM view_arvosanat \
              WHERE sukunimi LIKE $1 ESCAPE '\\' AND etunimi LIKE $2 ESCAPE '\\' \
@@ -549,6 +569,12 @@ impl GradeDistribution {
         }
 
         Ok(())
+    }
+
+    fn new() -> Self {
+        Self {
+            data: HashMap::with_capacity(28),
+        }
     }
 }
 

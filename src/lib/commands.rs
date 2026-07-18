@@ -3,8 +3,6 @@ mod grades;
 mod groups;
 mod students;
 
-pub use grades::*;
-
 use crate::database::*;
 use crate::prelude::*;
 use crate::tools;
