@@ -378,9 +378,14 @@ async fn commands(
                 Err("Liikaa kenttiä. Vain kolme hyväksytään.")?;
             }
 
-            let query = koascmd::grades_for_assignments(db, group, assign, assign_short)
-                .await?
-                .has_data()?;
+            let query = koascmd::grades_for_assignments(
+                db,
+                QueryMatch::WildAround(group),
+                QueryMatch::WildAround(assign),
+                QueryMatch::WildAround(assign_short),
+            )
+            .await?
+            .has_data()?;
 
             if modes.is_interactive()
                 && query.count() == 1
@@ -406,9 +411,15 @@ async fn commands(
                 Err("Liikaa kenttiä. Vain neljä hyväksytään.")?;
             }
 
-            let query = koascmd::grades_for_students(db, lastname, firstname, group, desc)
-                .await?
-                .has_data()?;
+            let query = koascmd::grades_for_students(
+                db,
+                QueryMatch::WildAround(lastname),
+                QueryMatch::WildAround(firstname),
+                QueryMatch::WildAround(group),
+                QueryMatch::WildAround(desc),
+            )
+            .await?
+            .has_data()?;
 
             if modes.is_interactive()
                 && query.count() == 1
@@ -425,7 +436,7 @@ async fn commands(
         "hak" => {
             editable.clear();
             let (group, _) = tools::split_first(args);
-            koascmd::grades_for_group(db, group)
+            koascmd::grades_for_group(db, QueryMatch::Wild(group))
                 .await?
                 .has_data()?
                 .print(out)?;

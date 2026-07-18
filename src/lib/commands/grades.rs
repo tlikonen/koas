@@ -1,36 +1,31 @@
 use super::*;
 
 /// Query for grades associated to assignments.
-///
-/// Wildcard character "*" is allowed in the query strings and is
-/// implicit in the start and end the strings.
 pub async fn grades_for_assignments(
     db: &mut DBase,
-    group: &str,
-    assignment: &str,
-    assignment_short: &str,
+    group: QueryMatch<'_>,
+    assignment: QueryMatch<'_>,
+    assignment_short: QueryMatch<'_>,
 ) -> Result<QueryList<GradesForAssignment>> {
     GradesForAssignment::query(db, group, assignment, assignment_short).await
 }
 
 /// Query for grades associated to students.
-///
-/// Wildcard character "*" is allowed in the query strings and is
-/// implicit in the start and end the strings.
 pub async fn grades_for_students(
     db: &mut DBase,
-    lastname: &str,
-    firstname: &str,
-    group: &str,
-    description: &str,
+    lastname: QueryMatch<'_>,
+    firstname: QueryMatch<'_>,
+    group: QueryMatch<'_>,
+    description: QueryMatch<'_>,
 ) -> Result<QueryList<GradesForStudent>> {
     GradesForStudent::query(db, lastname, firstname, group, description).await
 }
 
 /// Query for grades associated to groups.
-///
-/// The wildcard character "*" is allowed in the `group` argument.
-pub async fn grades_for_group(db: &mut DBase, group: &str) -> Result<QueryList<GradesForGroup>> {
+pub async fn grades_for_group(
+    db: &mut DBase,
+    group: QueryMatch<'_>,
+) -> Result<QueryList<GradesForGroup>> {
     if group.is_empty() {
         return Err("Argumentiksi pitää antaa ryhmän nimi.".into());
     }

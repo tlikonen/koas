@@ -153,9 +153,9 @@ impl Grade {
 impl GradesForAssignment {
     pub(crate) async fn query(
         db: &mut DBase,
-        group: &str,
-        assign: &str,
-        assign_short: &str,
+        group: QueryMatch<'_>,
+        assign: QueryMatch<'_>,
+        assign_short: QueryMatch<'_>,
     ) -> Result<QueryList<Self>> {
         let mut rows = sqlx::query(
             "SELECT ryhma, rid, sija, sid, suoritus, painokerroin, \
@@ -165,9 +165,9 @@ impl GradesForAssignment {
              AND lyhenne LIKE $3 ESCAPE '\\' AND oid IS NOT NULL \
              ORDER BY ryhma, rid, sija, sid, sukunimi, etunimi, oid",
         )
-        .bind(like_esc_wild_around(group))
-        .bind(like_esc_wild_around(assign))
-        .bind(like_esc_wild_around(assign_short))
+        .bind(group.sql_like())
+        .bind(assign.sql_like())
+        .bind(assign_short.sql_like())
         .fetch(db);
 
         let mut row = match rows.try_next().await? {
@@ -231,10 +231,10 @@ impl HasData for QueryList<GradesForAssignment> {
 impl GradesForStudent {
     pub(crate) async fn query(
         db: &mut DBase,
-        lastname: &str,
-        firstname: &str,
-        group: &str,
-        student_desc: &str,
+        lastname: QueryMatch<'_>,
+        firstname: QueryMatch<'_>,
+        group: QueryMatch<'_>,
+        student_desc: QueryMatch<'_>,
     ) -> Result<QueryList<Self>> {
         let mut rows = sqlx::query(
             "SELECT oid, sukunimi, etunimi, rid, ryhma, \
@@ -245,10 +245,10 @@ impl GradesForStudent {
              AND sid IS NOT NULL \
              ORDER BY sukunimi, etunimi, oid, ryhma, rid, sija, sid",
         )
-        .bind(like_esc_wild_around(lastname))
-        .bind(like_esc_wild_around(firstname))
-        .bind(like_esc_wild_around(group))
-        .bind(like_esc_wild_around(student_desc))
+        .bind(lastname.sql_like())
+        .bind(firstname.sql_like())
+        .bind(group.sql_like())
+        .bind(student_desc.sql_like())
         .fetch(db);
 
         let mut row = match rows.try_next().await? {
@@ -314,7 +314,7 @@ impl HasData for QueryList<GradesForStudent> {
 }
 
 impl GradesForGroup {
-    pub(crate) async fn query(db: &mut DBase, group: &str) -> Result<QueryList<Self>> {
+    pub(crate) async fn query(db: &mut DBase, group: QueryMatch<'_>) -> Result<QueryList<Self>> {
         let mut groups: Vec<String> = Vec::with_capacity(10);
 
         {
@@ -322,7 +322,7 @@ impl GradesForGroup {
                 "SELECT nimi, rid FROM ryhmat \
                  WHERE nimi LIKE $1 ESCAPE '\\' ORDER BY nimi, rid",
             )
-            .bind(like_esc_wild(group))
+            .bind(group.sql_like())
             .fetch(&mut *db);
 
             while let Some(row) = rows.try_next().await? {
