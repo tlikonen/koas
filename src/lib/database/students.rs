@@ -10,7 +10,8 @@ pub struct Student {
 }
 
 impl Student {
-    pub(crate) async fn query(
+    /// Query for students.
+    pub async fn query(
         db: &mut DBase,
         lastname: QueryMatch<'_>,
         firstname: QueryMatch<'_>,

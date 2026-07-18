@@ -1,37 +1,5 @@
 use super::*;
 
-/// Query for grades associated to assignments.
-pub async fn grades_for_assignments(
-    db: &mut DBase,
-    group: QueryMatch<'_>,
-    assignment: QueryMatch<'_>,
-    assignment_short: QueryMatch<'_>,
-) -> Result<QueryList<GradesForAssignment>> {
-    GradesForAssignment::query(db, group, assignment, assignment_short).await
-}
-
-/// Query for grades associated to students.
-pub async fn grades_for_students(
-    db: &mut DBase,
-    lastname: QueryMatch<'_>,
-    firstname: QueryMatch<'_>,
-    group: QueryMatch<'_>,
-    description: QueryMatch<'_>,
-) -> Result<QueryList<GradesForStudent>> {
-    GradesForStudent::query(db, lastname, firstname, group, description).await
-}
-
-/// Query for grades associated to groups.
-pub async fn grades_for_group(
-    db: &mut DBase,
-    group: QueryMatch<'_>,
-) -> Result<QueryList<GradesForGroup>> {
-    if group.is_empty() {
-        return Err("Argumentiksi pitää antaa ryhmän nimi.".into());
-    }
-    GradesForGroup::query(db, group).await
-}
-
 /// Query for student ranking.
 ///
 /// Apply `queries` and build ranking list for students by their grades.

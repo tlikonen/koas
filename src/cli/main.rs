@@ -296,7 +296,7 @@ async fn commands(
                 Err("Liikaa kenttiä. Vain neljä hyväksytään.")?;
             }
 
-            let query = koascmd::students(
+            let query = Student::query(
                 db,
                 QueryMatch::WildAround(lastname),
                 QueryMatch::WildAround(firstname),
@@ -325,7 +325,7 @@ async fn commands(
                 Err("Liikaa kenttiä. Vain kaksi hyväksytään.")?;
             }
 
-            let query = koascmd::groups(
+            let query = Group::query(
                 db,
                 QueryMatch::WildAround(name),
                 QueryMatch::WildAround(desc),
@@ -346,7 +346,7 @@ async fn commands(
             editable.clear();
 
             let (group, _) = tools::split_first(args);
-            let query = koascmd::assignments(db, QueryMatch::Wild(group))
+            let query = AssignmentsForGroup::query(db, QueryMatch::Wild(group))
                 .await?
                 .has_data()?;
 
@@ -378,7 +378,7 @@ async fn commands(
                 Err("Liikaa kenttiä. Vain kolme hyväksytään.")?;
             }
 
-            let query = koascmd::grades_for_assignments(
+            let query = GradesForAssignment::query(
                 db,
                 QueryMatch::WildAround(group),
                 QueryMatch::WildAround(assign),
@@ -411,7 +411,7 @@ async fn commands(
                 Err("Liikaa kenttiä. Vain neljä hyväksytään.")?;
             }
 
-            let query = koascmd::grades_for_students(
+            let query = GradesForStudent::query(
                 db,
                 QueryMatch::WildAround(lastname),
                 QueryMatch::WildAround(firstname),
@@ -436,7 +436,7 @@ async fn commands(
         "hak" => {
             editable.clear();
             let (group, _) = tools::split_first(args);
-            koascmd::grades_for_group(db, QueryMatch::Wild(group))
+            GradesForGroup::query(db, QueryMatch::Wild(group))
                 .await?
                 .has_data()?
                 .print(out)?;
@@ -817,7 +817,7 @@ async fn commands(
 
         "tk" => {
             editable.clear();
-            koascmd::stats(db).await?.print(out)?;
+            Stats::query(db).await?.print(out)?;
         }
 
         "?" => {

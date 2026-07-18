@@ -1,16 +1,5 @@
 use super::*;
 
-/// Query for students.
-pub async fn students(
-    db: &mut DBase,
-    lastname: QueryMatch<'_>,
-    firstname: QueryMatch<'_>,
-    group: QueryMatch<'_>,
-    description: QueryMatch<'_>,
-) -> Result<QueryList<Student>> {
-    Student::query(db, lastname, firstname, group, description).await
-}
-
 impl Student {
     /// Prepare to insert new student.
     ///

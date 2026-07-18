@@ -151,11 +151,12 @@ impl Grade {
 }
 
 impl GradesForAssignment {
-    pub(crate) async fn query(
+    /// Query for grades associated to assignments.
+    pub async fn query(
         db: &mut DBase,
         group: QueryMatch<'_>,
-        assign: QueryMatch<'_>,
-        assign_short: QueryMatch<'_>,
+        assignment: QueryMatch<'_>,
+        assignment_short: QueryMatch<'_>,
     ) -> Result<QueryList<Self>> {
         let mut rows = sqlx::query(
             "SELECT ryhma, rid, sija, sid, suoritus, painokerroin, \
@@ -166,8 +167,8 @@ impl GradesForAssignment {
              ORDER BY ryhma, rid, sija, sid, sukunimi, etunimi, oid",
         )
         .bind(group.sql_like())
-        .bind(assign.sql_like())
-        .bind(assign_short.sql_like())
+        .bind(assignment.sql_like())
+        .bind(assignment_short.sql_like())
         .fetch(db);
 
         let mut row = match rows.try_next().await? {
@@ -229,7 +230,8 @@ impl HasData for QueryList<GradesForAssignment> {
 }
 
 impl GradesForStudent {
-    pub(crate) async fn query(
+    /// Query for grades associated to students.
+    pub async fn query(
         db: &mut DBase,
         lastname: QueryMatch<'_>,
         firstname: QueryMatch<'_>,
@@ -314,7 +316,12 @@ impl HasData for QueryList<GradesForStudent> {
 }
 
 impl GradesForGroup {
-    pub(crate) async fn query(db: &mut DBase, group: QueryMatch<'_>) -> Result<QueryList<Self>> {
+    /// Query for grades associated to groups.
+    pub async fn query(db: &mut DBase, group: QueryMatch<'_>) -> Result<QueryList<Self>> {
+        if group.is_empty() {
+            Err("Ryhmän nimi puuttuu.")?;
+        }
+
         let mut groups: Vec<String> = Vec::with_capacity(10);
 
         {

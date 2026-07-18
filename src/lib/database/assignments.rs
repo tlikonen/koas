@@ -168,7 +168,12 @@ impl Assignment {
 }
 
 impl AssignmentsForGroup {
-    pub(crate) async fn query(db: &mut DBase, group: QueryMatch<'_>) -> Result<QueryList<Self>> {
+    /// Query for assignments.
+    pub async fn query(db: &mut DBase, group: QueryMatch<'_>) -> Result<QueryList<Self>> {
+        if group.is_empty() {
+            Err("Ryhmän nimi puuttuu.")?;
+        }
+
         let mut rows = sqlx::query(
             "SELECT rid, ryhma, sid, suoritus, lyhenne, painokerroin FROM view_suoritukset \
              WHERE ryhma LIKE $1 ESCAPE '\\' ORDER BY ryhma, rid, sija, sid",

@@ -1,14 +1,5 @@
 use super::*;
 
-/// Query for groups.
-pub async fn groups(
-    db: &mut DBase,
-    name: QueryMatch<'_>,
-    description: QueryMatch<'_>,
-) -> Result<QueryList<Group>> {
-    Group::query(db, name, description).await
-}
-
 impl Group {
     /// Prepare update for group's name.
     ///

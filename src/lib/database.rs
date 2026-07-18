@@ -123,7 +123,8 @@ pub struct Stats {
 }
 
 impl Stats {
-    pub(crate) async fn query(db: &mut DBase) -> Result<Self> {
+    /// Return statistics about the database.
+    pub async fn query(db: &mut DBase) -> Result<Self> {
         let row = sqlx::query(
             "SELECT \
              (SELECT count(*) FROM oppilaat) oppilaat, \

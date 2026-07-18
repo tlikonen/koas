@@ -1,18 +1,5 @@
 use super::*;
 
-/// Query for assignments.
-///
-/// Wildcard character "*" is allowed in the `group` argument.
-pub async fn assignments(
-    db: &mut DBase,
-    group: QueryMatch<'_>,
-) -> Result<QueryList<AssignmentsForGroup>> {
-    if group.is_empty() {
-        return Err("Argumentiksi pitää antaa ryhmän nimi.".into());
-    }
-    AssignmentsForGroup::query(db, group).await
-}
-
 impl Assignment {
     /// Prepare to insert a new assignment.
     ///

@@ -8,7 +8,8 @@ pub struct Group {
 }
 
 impl Group {
-    pub(crate) async fn query(
+    /// Query for groups.
+    pub async fn query(
         db: &mut DBase,
         group: QueryMatch<'_>,
         desc: QueryMatch<'_>,
