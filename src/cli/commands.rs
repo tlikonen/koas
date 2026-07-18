@@ -7,9 +7,10 @@ use std::io::{self, Write as _};
 
 pub(super) async fn edit_students(
     db: &mut PgConnection,
-    students: impl Iterator<Item = &Student>,
-    mut fields: impl Iterator<Item = &str>,
+    students: impl IntoIterator<Item = &Student>,
+    fields: impl IntoIterator<Item = &str>,
 ) -> Result<()> {
+    let mut fields = fields.into_iter();
     let lastname = fields.next().filter(|x| x.has_content()); // sukunimi
     let firstname = fields.next().filter(|x| x.has_content()); // etunimi
     let groups = fields.next().filter(|x| x.has_content()); // ryhmät
@@ -22,7 +23,7 @@ pub(super) async fn edit_students(
         Err("Anna muokattavia kenttiä.")?;
     }
 
-    let students: Vec<&Student> = students.collect();
+    let students: Vec<&Student> = students.into_iter().collect();
 
     if students.len() > 1 && (lastname.is_some() || firstname.is_some()) {
         Err("Usealle henkilölle ei voi muuttaa kerralla samaa nimeä.\n\
@@ -90,9 +91,10 @@ fn parse_add_remove_groups(
 
 pub(super) async fn edit_groups(
     db: &mut PgConnection,
-    groups: impl Iterator<Item = &Group>,
-    mut fields: impl Iterator<Item = &str>,
+    groups: impl IntoIterator<Item = &Group>,
+    fields: impl IntoIterator<Item = &str>,
 ) -> Result<()> {
+    let mut fields = fields.into_iter();
     let name = fields.next().filter(|x| x.has_content()); // ryhmä
     let description = fields.next().filter(|x| !x.is_empty()); // lisätiedot
     if fields.next().is_some() {
@@ -103,7 +105,7 @@ pub(super) async fn edit_groups(
         Err("Anna muokattavia kenttiä.")?;
     }
 
-    let groups: Vec<&Group> = groups.collect();
+    let groups: Vec<&Group> = groups.into_iter().collect();
 
     if groups.len() > 1 && name.is_some() {
         Err("Usealle ryhmälle ei voi antaa samaa nimeä.")?;
@@ -131,9 +133,10 @@ pub(super) async fn edit_groups(
 
 pub(super) async fn edit_assignments(
     db: &mut PgConnection,
-    assignments: impl Iterator<Item = &Assignment>,
-    mut fields: impl Iterator<Item = &str>,
+    assignments: impl IntoIterator<Item = &Assignment>,
+    fields: impl IntoIterator<Item = &str>,
 ) -> Result<()> {
+    let mut fields = fields.into_iter();
     let name = fields.next().filter(|x| x.has_content()); // suoritus
     let short = fields.next().filter(|x| x.has_content()); // suoritus
     let weight = fields.next().filter(|x| !x.is_empty()); // painokerroin
@@ -146,7 +149,7 @@ pub(super) async fn edit_assignments(
         Err("Anna muokattavia kenttiä.")?;
     }
 
-    let assignments: Vec<&Assignment> = assignments.collect();
+    let assignments: Vec<&Assignment> = assignments.into_iter().collect();
 
     if assignments.len() > 1 && position.is_some() {
         Err("Usealle suoritukselle ei voi asettaa samaa järjestysnumeroa.")?;
@@ -182,9 +185,10 @@ pub(super) async fn edit_assignments(
 
 pub(super) async fn edit_grades(
     db: &mut PgConnection,
-    grades: impl Iterator<Item = &Grade>,
-    mut fields: impl Iterator<Item = &str>,
+    grades: impl IntoIterator<Item = &Grade>,
+    fields: impl IntoIterator<Item = &str>,
 ) -> Result<()> {
+    let mut fields = fields.into_iter();
     let grade = fields.next().filter(|x| !x.is_empty()); // arvosana
     let description = fields.next().filter(|x| !x.is_empty()); // lisätiedot
     if fields.next().is_some() {
@@ -197,7 +201,7 @@ pub(super) async fn edit_grades(
 
     let mut updates = Queue::new();
 
-    for student_grade in grades {
+    for student_grade in grades.into_iter() {
         if let Some(g) = grade {
             if g.has_content() {
                 student_grade.set_grade(g)?.queue(&mut updates);
@@ -274,13 +278,13 @@ fn number_width(mut number: usize) -> usize {
 
 pub(super) async fn edit_student_series(
     db: &mut PgConnection,
-    students: impl Iterator<Item = &Student>,
+    students: impl IntoIterator<Item = &Student>,
     field_num: usize,
-    values: impl Iterator<Item = &str>,
+    values: impl IntoIterator<Item = &str>,
 ) -> Result<()> {
     let mut updates = Queue::new();
 
-    for (student, value) in students.zip(values) {
+    for (student, value) in students.into_iter().zip(values) {
         if value.is_empty() {
             continue;
         }
@@ -336,13 +340,13 @@ pub(super) async fn edit_student_series(
 
 pub(super) async fn edit_group_series(
     db: &mut PgConnection,
-    groups: impl Iterator<Item = &Group>,
+    groups: impl IntoIterator<Item = &Group>,
     field_num: usize,
-    values: impl Iterator<Item = &str>,
+    values: impl IntoIterator<Item = &str>,
 ) -> Result<()> {
     let mut updates = Queue::new();
 
-    for (group, value) in groups.zip(values) {
+    for (group, value) in groups.into_iter().zip(values) {
         if value.is_empty() {
             continue;
         }
@@ -374,13 +378,13 @@ pub(super) async fn edit_group_series(
 
 pub(super) async fn edit_assignment_series(
     db: &mut PgConnection,
-    assignments: impl Iterator<Item = &Assignment>,
+    assignments: impl IntoIterator<Item = &Assignment>,
     field_num: usize,
-    values: impl Iterator<Item = &str>,
+    values: impl IntoIterator<Item = &str>,
 ) -> Result<()> {
     let mut updates = Queue::new();
 
-    for (assignment, value) in assignments.zip(values) {
+    for (assignment, value) in assignments.into_iter().zip(values) {
         if value.is_empty() {
             continue;
         }
@@ -426,13 +430,13 @@ pub(super) async fn edit_assignment_series(
 
 pub(super) async fn edit_grade_series(
     db: &mut PgConnection,
-    grades: impl Iterator<Item = &Grade>,
+    grades: impl IntoIterator<Item = &Grade>,
     field_num: usize,
-    values: impl Iterator<Item = &str>,
+    values: impl IntoIterator<Item = &str>,
 ) -> Result<()> {
     let mut updates = Queue::new();
 
-    for (grade, value) in grades.zip(values) {
+    for (grade, value) in grades.into_iter().zip(values) {
         if value.is_empty() {
             continue;
         }
