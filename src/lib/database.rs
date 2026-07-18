@@ -159,6 +159,7 @@ pub trait Commit {
 }
 
 /// A queue for updates.
+#[derive(Default)]
 pub struct Queue<'a>(Vec<QueueItem<'a>>);
 
 pub enum QueueItem<'a> {
@@ -202,12 +203,6 @@ impl<'a> Queue<'a> {
 
     pub(crate) fn push(&mut self, item: QueueItem<'a>) {
         self.0.push(item);
-    }
-}
-
-impl Default for Queue<'_> {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
