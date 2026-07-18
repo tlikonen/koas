@@ -455,12 +455,12 @@ impl StudentRanking {
              AND ryhma LIKE $3 ESCAPE '\\' AND olt LIKE $4 ESCAPE '\\' \
              AND suoritus LIKE $5 ESCAPE '\\' AND lyhenne LIKE $6 ESCAPE '\\'",
         )
-        .bind(like_esc_wild_around(args.lastname))
-        .bind(like_esc_wild_around(args.firstname))
-        .bind(like_esc_wild_around(args.group))
-        .bind(like_esc_wild_around(args.description))
-        .bind(like_esc_wild_around(args.assignment))
-        .bind(like_esc_wild_around(args.assignment_short))
+        .bind(args.lastname.sql_like())
+        .bind(args.firstname.sql_like())
+        .bind(args.group.sql_like())
+        .bind(args.description.sql_like())
+        .bind(args.assignment.sql_like())
+        .bind(args.assignment_short.sql_like())
         .fetch(db);
 
         while let Some(row) = rows.try_next().await? {
@@ -523,12 +523,12 @@ impl GradeDistribution {
              AND ryhma LIKE $3 ESCAPE '\\' AND olt LIKE $4 ESCAPE '\\' \
              AND suoritus LIKE $5 ESCAPE '\\' AND lyhenne LIKE $6 ESCAPE '\\'",
         )
-        .bind(like_esc_wild_around(args.lastname))
-        .bind(like_esc_wild_around(args.firstname))
-        .bind(like_esc_wild_around(args.group))
-        .bind(like_esc_wild_around(args.description))
-        .bind(like_esc_wild_around(args.assignment))
-        .bind(like_esc_wild_around(args.assignment_short))
+        .bind(args.lastname.sql_like())
+        .bind(args.firstname.sql_like())
+        .bind(args.group.sql_like())
+        .bind(args.description.sql_like())
+        .bind(args.assignment.sql_like())
+        .bind(args.assignment_short.sql_like())
         .fetch(db);
 
         while let Some(row) = rows.try_next().await? {

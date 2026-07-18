@@ -451,12 +451,12 @@ async fn commands(
                 let mut fields = tools::split_sep(field_string);
                 queries.push(FullQuery {
                     // Keep the order because of the next() method.
-                    group: fields.next().unwrap_or(""),
-                    assignment: fields.next().unwrap_or(""),
-                    assignment_short: fields.next().unwrap_or(""),
-                    lastname: fields.next().unwrap_or(""),
-                    firstname: fields.next().unwrap_or(""),
-                    description: fields.next().unwrap_or(""),
+                    group: QueryMatch::WildAround(fields.next().unwrap_or("")),
+                    assignment: QueryMatch::WildAround(fields.next().unwrap_or("")),
+                    assignment_short: QueryMatch::WildAround(fields.next().unwrap_or("")),
+                    lastname: QueryMatch::WildAround(fields.next().unwrap_or("")),
+                    firstname: QueryMatch::WildAround(fields.next().unwrap_or("")),
+                    description: QueryMatch::WildAround(fields.next().unwrap_or("")),
                 });
             }
 

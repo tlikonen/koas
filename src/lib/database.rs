@@ -233,12 +233,12 @@ pub trait ToQueue<'a> {
 }
 
 pub struct FullQuery<'a> {
-    pub group: &'a str,
-    pub assignment: &'a str,
-    pub assignment_short: &'a str,
-    pub lastname: &'a str,
-    pub firstname: &'a str,
-    pub description: &'a str,
+    pub group: QueryMatch<'a>,
+    pub assignment: QueryMatch<'a>,
+    pub assignment_short: QueryMatch<'a>,
+    pub lastname: QueryMatch<'a>,
+    pub firstname: QueryMatch<'a>,
+    pub description: QueryMatch<'a>,
 }
 
 fn like_esc_wild_around(string: &str) -> String {
