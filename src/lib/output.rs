@@ -243,7 +243,7 @@ impl MakeTable for QueryList<Student> {
             Row::Midrule,
         ];
 
-        for student in self.list() {
+        for student in self.iter() {
             rows.push(Row::Data(vec![
                 Cell::Left(student.lastname.clone()),
                 Cell::Left(student.firstname.clone()),
@@ -270,7 +270,7 @@ impl MakeTable for QueryList<Group> {
             Row::Midrule,
         ];
 
-        for group in self.list() {
+        for group in self.iter() {
             rows.push(Row::Data(vec![
                 Cell::Left(group.name.clone()),
                 Cell::Multi(line_split(&group.description, DESCRIPTION_WIDTH)),
@@ -314,7 +314,7 @@ impl MakeTable for AssignmentsForGroup {
 impl PrintQuery for QueryList<AssignmentsForGroup> {
     fn print(&self, out: &Output) -> Result<()> {
         let mut stream = output_buffer();
-        for t in self.list() {
+        for t in self.iter() {
             t.table().print_tbl(out, &mut stream)?;
         }
         stream.flush()?;
@@ -380,7 +380,7 @@ impl MakeTable for GradesForAssignment {
 impl PrintQuery for QueryList<GradesForAssignment> {
     fn print(&self, out: &Output) -> Result<()> {
         let mut stream = output_buffer();
-        for t in self.list() {
+        for t in self.iter() {
             t.table().print_tbl(out, &mut stream)?;
         }
         stream.flush()?;
@@ -459,7 +459,7 @@ impl MakeTable for GradesForStudent {
 impl PrintQuery for QueryList<GradesForStudent> {
     fn print(&self, out: &Output) -> Result<()> {
         let mut stream = output_buffer();
-        for t in self.list() {
+        for t in self.iter() {
             t.table().print_tbl(out, &mut stream)?;
         }
         stream.flush()?;
@@ -566,7 +566,7 @@ impl PrintQuery for QueryList<GradesForGroup> {
     fn print(&self, out: &Output) -> Result<()> {
         let mut stream = output_buffer();
 
-        for tbl in self.list() {
+        for tbl in self.iter() {
             tbl.table().print_tbl(out, &mut stream)?;
             writeln!(stream)?;
 

@@ -230,7 +230,7 @@ impl AssignmentsForGroup {
 
 impl HasData for QueryList<AssignmentsForGroup> {
     fn is_empty(&self) -> bool {
-        self.list().is_empty()
+        self.list_is_empty()
     }
 }
 

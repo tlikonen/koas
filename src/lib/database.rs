@@ -94,8 +94,8 @@ impl<T> QueryList<T> {
         Self(v)
     }
 
-    pub fn list(&self) -> &Vec<T> {
-        &self.0
+    pub fn iter(&self) -> impl Iterator<Item = &T> {
+        self.0.iter()
     }
 
     /// Return iterator over items by 1-based indices.
@@ -112,6 +112,10 @@ impl<T> QueryList<T> {
 
     pub fn get(&self, n: usize) -> Option<&T> {
         self.0.get(n)
+    }
+
+    pub(crate) fn list_is_empty(&self) -> bool {
+        self.0.is_empty()
     }
 }
 

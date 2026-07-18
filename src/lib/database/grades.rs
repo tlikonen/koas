@@ -225,7 +225,7 @@ impl GradesForAssignment {
 
 impl HasData for QueryList<GradesForAssignment> {
     fn is_empty(&self) -> bool {
-        self.list().is_empty()
+        self.list_is_empty()
     }
 }
 
@@ -311,7 +311,7 @@ impl GradesForStudent {
 
 impl HasData for QueryList<GradesForStudent> {
     fn is_empty(&self) -> bool {
-        self.list().is_empty()
+        self.list_is_empty()
     }
 }
 
@@ -433,7 +433,7 @@ impl GradesForGroup {
 
 impl HasData for QueryList<GradesForGroup> {
     fn is_empty(&self) -> bool {
-        self.list().is_empty()
+        self.list_is_empty()
     }
 }
 

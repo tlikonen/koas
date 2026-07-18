@@ -97,7 +97,7 @@ impl Group {
 
 impl HasData for QueryList<Group> {
     fn is_empty(&self) -> bool {
-        self.list().is_empty()
+        self.list_is_empty()
     }
 }
 
