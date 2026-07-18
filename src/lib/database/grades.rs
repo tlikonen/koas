@@ -54,10 +54,12 @@ pub(crate) struct StudentRank {
     pub(crate) grade_count: usize,
 }
 
+#[derive(Default)]
 pub struct StudentRanking {
     pub(crate) data: HashMap<i32, StudentRank>,
 }
 
+#[derive(Default)]
 pub struct GradeDistribution {
     pub(crate) data: HashMap<String, i32>,
 }
@@ -455,7 +457,7 @@ impl StudentRanking {
         queries: impl IntoIterator<Item = &'a FullQuery<'a>>,
         include_weightless: bool,
     ) -> Result<Self> {
-        let mut ranks = Self::new();
+        let mut ranks = Self::default();
         for query in queries.into_iter() {
             ranks.query_db(db, query, include_weightless).await?;
         }
@@ -510,12 +512,6 @@ impl StudentRanking {
 
         Ok(())
     }
-
-    fn new() -> Self {
-        Self {
-            data: HashMap::with_capacity(50),
-        }
-    }
 }
 
 impl HasData for StudentRanking {
@@ -536,7 +532,7 @@ impl GradeDistribution {
         queries: impl IntoIterator<Item = &'a FullQuery<'a>>,
         include_weightless: bool,
     ) -> Result<Self> {
-        let mut dist = Self::new();
+        let mut dist = Self::default();
         for query in queries.into_iter() {
             dist.query_db(db, query, include_weightless).await?;
         }
@@ -569,12 +565,6 @@ impl GradeDistribution {
         }
 
         Ok(())
-    }
-
-    fn new() -> Self {
-        Self {
-            data: HashMap::with_capacity(28),
-        }
     }
 }
 
