@@ -531,18 +531,9 @@ async fn commands(
                 Err("Argumentiksi pitää antaa tietueiden numerot ja muokattavat kentät.")?;
             }
 
-            let (indices, fields) = {
-                let (first, rest) = tools::split_first(args);
-                let i = tools::parse_number_list(first)?;
-                let f = tools::split_sep(rest);
-
-                let max = editable.count();
-                if !tools::is_within_limits(max, &i) {
-                    Err(format!("Suurin muokattava tietue on {max}."))?;
-                }
-
-                (i, f)
-            };
+            let list_max = editable.count();
+            let (indices, rest) = parse_next_number_list(args, list_max)?;
+            let fields = tools::split_sep(rest);
 
             match editable {
                 Editable::None => (),
@@ -574,55 +565,13 @@ async fn commands(
                 Err("Argumentiksi pitää antaa tietueiden numerot ja kentän numero.")?;
             }
 
-            let (indices, rest) = {
-                let (first, rest) = tools::split_first(args);
-                if rest.is_empty() {
-                    Err("Toiseksi argumentiksi täytyy antaa kentän numero.")?;
-                }
-                let i = tools::parse_number_list(first)?;
+            let list_max = editable.count();
+            let (indices, rest) = parse_next_number_list(args, list_max)?;
+            let (field_num, rest) = parse_next_number(rest)?;
+            assert_field_num(field_num, editable)?;
+            no_more_arguments(rest)?;
 
-                let max = editable.count();
-                if !tools::is_within_limits(max, &i) {
-                    Err(format!("Suurin muokattava tietue on {max}."))?;
-                }
-
-                (i, rest)
-            };
-
-            let (field_num, rest) = {
-                let (f, rest) = tools::split_first(rest);
-                let n = match f.parse::<usize>() {
-                    Ok(n) => n,
-                    Err(_) => Err("Sopimaton kentän numero.")?,
-                };
-
-                (n, rest)
-            };
-
-            if !rest.is_empty() {
-                Err("Vain kaksi argumenttia hyväksytään.")?;
-            }
-
-            {
-                let mut stream = io::BufWriter::new(io::stdout());
-
-                write!(
-                    stream,
-                    "Syötä kentän {field_num} arvot riveittäin. \
-                     Tyhjä rivi jättää kentän ennalleen.\n\
-                     Pelkkä välilyönti poistaa kentän arvon (paitsi eräitä pakollisia).\n\
-                     Ctrl-d keskeyttää mutta tallentaa tähänastiset muutokset.\n\
-                     Ctrl-c keskeyttää ja peruu kaikki muutokset.\n\
-                     Tietueet:"
-                )?;
-
-                for i in &indices {
-                    write!(stream, " {i}")?;
-                }
-                writeln!(stream, "\n---")?;
-                stream.flush()?;
-            }
-
+            commands::print_read_values_intro(field_num, &indices)?;
             let values = commands::read_values(&indices)?;
             if values.lines().all(|x| x.is_empty()) {
                 Err("Ei muutoksia.")?;
@@ -686,19 +635,9 @@ async fn commands(
                 Err("Puuttuu tietueiden numerot.")?;
             }
 
-            let (indices, rest) = {
-                let (first, rest) = tools::split_first(args);
-                let i = tools::parse_number_list(first)?;
-                let max = editable.count();
-                if !tools::is_within_limits(max, &i) {
-                    Err(format!("Suurin muokattava tietue on {max}."))?;
-                }
-                (i, rest)
-            };
-
-            if !rest.is_empty() {
-                Err("Vain yksi argumentti hyväksytään.")?;
-            }
+            let list_max = editable.count();
+            let (indices, rest) = parse_next_number_list(args, list_max)?;
+            no_more_arguments(rest)?;
 
             if let Editable::Grades(student_grades) = editable {
                 let mut updates = Queue::default();
@@ -727,19 +666,9 @@ async fn commands(
                 Err("Puuttuu tietueiden numerot.")?;
             }
 
-            let (indices, rest) = {
-                let (first, rest) = tools::split_first(args);
-                let i = tools::parse_number_list(first)?;
-                let max = editable.count();
-                if !tools::is_within_limits(max, &i) {
-                    Err(format!("Suurin muokattava tietue on {max}."))?;
-                }
-                (i, rest)
-            };
-
-            if !rest.is_empty() {
-                Err("Vain yksi argumentti hyväksytään.")?;
-            }
+            let list_max = editable.count();
+            let (indices, rest) = parse_next_number_list(args, list_max)?;
+            no_more_arguments(rest)?;
 
             if let Editable::Grades(student_grades) = editable {
                 let mut updates = Queue::default();
@@ -764,19 +693,9 @@ async fn commands(
                 Err("Puuttuu tietueiden numerot.")?;
             }
 
-            let (indices, rest) = {
-                let (first, rest) = tools::split_first(args);
-                let i = tools::parse_number_list(first)?;
-                let max = editable.count();
-                if !tools::is_within_limits(max, &i) {
-                    Err(format!("Suurin poistettava tietue on {max}."))?;
-                }
-                (i, rest)
-            };
-
-            if !rest.is_empty() {
-                Err("Vain yksi argumentti hyväksytään.")?;
-            }
+            let list_max = editable.count();
+            let (indices, rest) = parse_next_number_list(args, list_max)?;
+            no_more_arguments(rest)?;
 
             match editable {
                 Editable::None => (),
@@ -826,5 +745,48 @@ async fn commands(
 
         c => return Err(Error::unknown_cmd(c)),
     }
+    Ok(())
+}
+
+fn parse_next_number_list(s: &str, m: usize) -> Result<(Vec<usize>, &str)> {
+    let (nl, rest) = tools::split_first(s);
+    let list = tools::parse_number_list(nl)?;
+    if !tools::is_within_limits(m, &list) {
+        return Err(Error::from(format!("Suurin muokattava tietue on {m}.")));
+    }
+    Ok((list, rest))
+}
+
+fn parse_next_number(s: &str) -> Result<(usize, &str)> {
+    let (num, rest) = tools::split_first(s);
+    let num = match num.parse::<usize>() {
+        Ok(n) => n,
+        Err(_) => return Err(Error::from("Sopimaton kentän numero.")),
+    };
+
+    Ok((num, rest))
+}
+
+fn no_more_arguments(s: &str) -> Result<()> {
+    if s.is_empty() {
+        Ok(())
+    } else {
+        Err(Error::from("Liikaa argumentteja."))
+    }
+}
+
+fn assert_field_num(field_num: usize, editable: &Editable) -> Result<()> {
+    let field_num_max: usize = match editable {
+        Editable::None => Err("Ei muokattavia tietueita.")?,
+        Editable::Students(_) => 4,
+        Editable::Groups(_) => 2,
+        Editable::Assignments(_) => 4,
+        Editable::Grades(_) => 2,
+    };
+
+    if !(1..=field_num_max).contains(&field_num) {
+        Err(format!("Kentän numeron täytyy olla 1–{field_num_max}."))?;
+    }
+
     Ok(())
 }

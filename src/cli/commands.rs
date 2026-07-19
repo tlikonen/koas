@@ -223,6 +223,27 @@ pub(super) async fn edit_grades(
     Ok(())
 }
 
+pub(super) fn print_read_values_intro(field_num: usize, indices: &Vec<usize>) -> Result<()> {
+    let mut stream = io::BufWriter::new(io::stdout());
+
+    write!(
+        stream,
+        "Syötä kentän {field_num} arvot riveittäin. \
+         Tyhjä rivi jättää kentän ennalleen.\n\
+         Pelkkä välilyönti poistaa kentän arvon (paitsi eräitä pakollisia).\n\
+         Ctrl-d keskeyttää mutta tallentaa tähänastiset muutokset.\n\
+         Ctrl-c keskeyttää ja peruu kaikki muutokset.\n\
+         Tietueet:"
+    )?;
+
+    for i in indices {
+        write!(stream, " {i}")?;
+    }
+    writeln!(stream, "\n---")?;
+    stream.flush()?;
+    Ok(())
+}
+
 pub(super) fn read_values(indices: &[usize]) -> Result<String> {
     use rustyline::error::ReadlineError;
 

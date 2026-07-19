@@ -1,8 +1,12 @@
 use crate::prelude::*;
 
 pub fn parse_number_list(s: &str) -> Result<Vec<usize>> {
-    let mut vec: Vec<usize> = Vec::with_capacity(25);
+    if s.is_empty() {
+        Err("Puuttuu tietueen numero(t).")?;
+    }
+
     let errmsg = |v| format!("Sopimaton tietueen numero: ”{v}”.");
+    let mut vec: Vec<usize> = Vec::with_capacity(25);
 
     for part in s.split(',').filter(|e| !e.is_empty()) {
         if part.is_all_digits() {
@@ -323,11 +327,15 @@ mod tests {
 
     #[test]
     fn parse_number_list_fn() {
+        assert!(parse_number_list("").is_err());
+        assert!(parse_number_list(" ").is_err());
+
         assert!(parse_number_list("0").is_err());
         assert!(parse_number_list(" 3").is_err());
         assert!(parse_number_list("1,2,0").is_err());
 
         assert_eq!(vec![1, 2, 3], parse_number_list("1,2,3").unwrap());
+        assert_eq!(vec![1, 2, 3], parse_number_list("1,2,3-3").unwrap());
         assert_eq!(vec![1, 2, 3], parse_number_list(",1,,,2,3,").unwrap());
 
         assert!(parse_number_list("1,+2,3").is_err());
