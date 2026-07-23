@@ -7,11 +7,11 @@ has /ryhmä/suoritus/lyhenne                 Hakee arvosanat ryhmiltä.
 hao /sukunimi/etunimi/ryhmä/lisätiedot      Hakee arvosanat oppilailta.
 hak ryhmä                                   Hakee ryhmän arvosanojen koonnin.
 
-m  tietueet /.../...            Muokkaa valittuja tietueita ja kenttiä.
-ms tietueet kenttä /.../...     Muokkaa tietueista samaa kenttää.
-ma tietueet                     Muuttaa arvosanat kouluarvosanaksi, jos mahdollista.
-md tietueet                     Muuttaa arvosanat desimaaliluvuksi, jos mahdollista.
-poista tietueet                 Poistaa tietueet.
+m  tietueet /.../...    Muokkaa valittuja tietueita ja kenttiä.
+ms tietueet kenttä      Muokkaa tietueista samaa kenttää.
+ma tietueet             Muuttaa arvosanat kouluarvosanaksi, jos mahdollista.
+md tietueet             Muuttaa arvosanat desimaaliluvuksi, jos mahdollista.
+poista tietueet         Poistaa tietueet.
 
 lo /sukunimi/etunimi/ryhmät/lisätiedot          Lisää uuden oppilaan.
 ls /ryhmät/suoritus/lyhenne/painokerroin/järj   Lisää ryhmille uuden suorituksen.
