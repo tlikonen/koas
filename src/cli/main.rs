@@ -1,7 +1,7 @@
 mod commands;
 mod editable;
 
-use crate::editable::{CopyToEditable, Editable};
+use crate::editable::{Editable, MoveToEditable};
 use just_getopt::{Args, OptFlags, OptSpecs, OptValue};
 use koas::database;
 use koas::database::*;
@@ -306,9 +306,9 @@ async fn commands(
             .has_data()?;
 
             if modes.is_interactive() {
-                query.copy_to(editable);
                 query.print_num(out)?;
                 editable.print_fields(&["Sukunimi", "Etunimi", "Ryhmät", "Lisätiedot"])?;
+                query.move_to(editable);
             } else {
                 query.print(out)?;
             }
@@ -333,9 +333,9 @@ async fn commands(
             .has_data()?;
 
             if modes.is_interactive() {
-                query.copy_to(editable);
                 query.print_num(out)?;
                 editable.print_fields(&["Ryhmä", "Lisätiedot"])?;
+                query.move_to(editable);
             } else {
                 query.print(out)?;
             }
@@ -349,11 +349,8 @@ async fn commands(
                 .await?
                 .has_data()?;
 
-            if modes.is_interactive()
-                && query.count() == 1
-                && let Some(assign) = query.get(0)
-            {
-                assign.copy_to(editable);
+            if modes.is_interactive() && query.count() == 1 {
+                let assign = query.take(0).expect("there should be 0th element");
                 assign.print_num(out)?;
                 editable.print_fields(&[
                     "Suoritus",
@@ -361,6 +358,7 @@ async fn commands(
                     "Painokerroin(K)",
                     "Järjestys",
                 ])?;
+                assign.move_to(editable);
             } else {
                 query.print(out)?;
             }
@@ -386,13 +384,11 @@ async fn commands(
             .await?
             .has_data()?;
 
-            if modes.is_interactive()
-                && query.count() == 1
-                && let Some(grades) = query.get(0)
-            {
-                grades.copy_to(editable);
+            if modes.is_interactive() && query.count() == 1 {
+                let grades = query.take(0).expect("there should be 0th element");
                 grades.print_num(out)?;
                 editable.print_fields(&["Arvosana(As)", "Lisätiedot"])?;
+                grades.move_to(editable);
             } else {
                 query.print(out)?;
             }
@@ -420,13 +416,11 @@ async fn commands(
             .await?
             .has_data()?;
 
-            if modes.is_interactive()
-                && query.count() == 1
-                && let Some(grades) = query.get(0)
-            {
-                grades.copy_to(editable);
+            if modes.is_interactive() && query.count() == 1 {
+                let grades = query.take(0).expect("there should be 0th element");
                 grades.print_num(out)?;
                 editable.print_fields(&["Arvosana(As)", "Lisätiedot"])?;
+                grades.move_to(editable);
             } else {
                 query.print(out)?;
             }

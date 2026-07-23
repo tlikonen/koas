@@ -1,7 +1,7 @@
 use super::*;
 
-pub(super) trait CopyToEditable {
-    fn copy_to(&self, ed: &mut Editable);
+pub(super) trait MoveToEditable {
+    fn move_to(self, ed: &mut Editable);
 }
 
 #[derive(Default)]
@@ -58,34 +58,32 @@ impl Editable {
     }
 }
 
-impl CopyToEditable for QueryList<Student> {
-    fn copy_to(&self, ed: &mut Editable) {
-        ed.set(Editable::Students(self.clone()));
+impl MoveToEditable for QueryList<Student> {
+    fn move_to(self, ed: &mut Editable) {
+        ed.set(Editable::Students(self));
     }
 }
 
-impl CopyToEditable for QueryList<Group> {
-    fn copy_to(&self, ed: &mut Editable) {
-        ed.set(Editable::Groups(self.clone()));
+impl MoveToEditable for QueryList<Group> {
+    fn move_to(self, ed: &mut Editable) {
+        ed.set(Editable::Groups(self));
     }
 }
 
-impl CopyToEditable for AssignmentsForGroup {
-    fn copy_to(&self, ed: &mut Editable) {
-        ed.set(Editable::Assignments(QueryList::new(
-            self.assignments.clone(),
-        )));
+impl MoveToEditable for AssignmentsForGroup {
+    fn move_to(self, ed: &mut Editable) {
+        ed.set(Editable::Assignments(QueryList::new(self.assignments)));
     }
 }
 
-impl CopyToEditable for GradesForAssignment {
-    fn copy_to(&self, ed: &mut Editable) {
-        ed.set(Editable::Grades(QueryList::new(self.grades.clone())));
+impl MoveToEditable for GradesForAssignment {
+    fn move_to(self, ed: &mut Editable) {
+        ed.set(Editable::Grades(QueryList::new(self.grades)));
     }
 }
 
-impl CopyToEditable for GradesForStudent {
-    fn copy_to(&self, ed: &mut Editable) {
-        ed.set(Editable::Grades(QueryList::new(self.grades.clone())));
+impl MoveToEditable for GradesForStudent {
+    fn move_to(self, ed: &mut Editable) {
+        ed.set(Editable::Grades(QueryList::new(self.grades)));
     }
 }

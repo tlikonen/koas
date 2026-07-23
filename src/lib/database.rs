@@ -160,6 +160,10 @@ impl<T> QueryList<T> {
         self.0.get(n)
     }
 
+    pub fn take(self, n: usize) -> Option<T> {
+        self.0.into_iter().nth(n)
+    }
+
     pub(crate) fn list_is_empty(&self) -> bool {
         self.0.is_empty()
     }
