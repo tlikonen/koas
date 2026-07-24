@@ -240,14 +240,13 @@ pub enum QueueItem<'a> {
 impl Commit for QueueItem<'_> {
     async fn commit(&self, db: &mut DBase) -> Result<()> {
         match self {
-            Self::UpdateStudent(s) => s.commit(db).await?,
-            Self::UpdateGroup(g) => g.commit(db).await?,
-            Self::UpdateAssignment(a) => a.commit(db).await?,
-            Self::UpdateGrade(g) => g.commit(db).await?,
-            Self::InsertStudent(s) => s.commit(db).await?,
-            Self::InsertAssignment(a) => a.commit(db).await?,
+            Self::UpdateStudent(s) => s.commit(db).await,
+            Self::UpdateGroup(g) => g.commit(db).await,
+            Self::UpdateAssignment(a) => a.commit(db).await,
+            Self::UpdateGrade(g) => g.commit(db).await,
+            Self::InsertStudent(s) => s.commit(db).await,
+            Self::InsertAssignment(a) => a.commit(db).await,
         }
-        Ok(())
     }
 }
 
