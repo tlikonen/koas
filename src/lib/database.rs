@@ -111,9 +111,7 @@ impl QueryMatch<'_> {
 
     pub(crate) fn is_empty(&self) -> bool {
         match self {
-            Self::Exact(s) => s.is_empty(),
-            Self::Wild(s) => s.is_empty(),
-            Self::WildAround(s) => s.is_empty(),
+            Self::Exact(s) | Self::Wild(s) | Self::WildAround(s) => s.is_empty(),
         }
     }
 }
