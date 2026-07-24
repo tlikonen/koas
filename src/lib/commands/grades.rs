@@ -6,7 +6,7 @@ impl Grade {
     /// See [`Commit`] trait for more information.
     pub fn set_grade<'a>(&'a self, grade: &str) -> Result<UpdateGrade<'a>> {
         match grade.normalize() {
-            None => Err(format!("Sopimaton oppilaan kuvaus: ”{grade}”.").into()),
+            None => Err(format!("Sopimaton arvosana: ”{grade}”.").into()),
             Some(g) => Ok(UpdateGrade {
                 item: self,
                 operation: UpdateGradeOp::Grade(g),
@@ -29,7 +29,7 @@ impl Grade {
     /// See [`Commit`] trait for more information.
     pub fn set_description<'a>(&'a self, desc: &str) -> Result<UpdateGrade<'a>> {
         match desc.normalize() {
-            None => Err(format!("Sopimaton oppilaan kuvaus: ”{desc}”.").into()),
+            None => Err(format!("Sopimaton arvosanan kuvaus: ”{desc}”.").into()),
             Some(d) => Ok(UpdateGrade {
                 item: self,
                 operation: UpdateGradeOp::Description(d),
