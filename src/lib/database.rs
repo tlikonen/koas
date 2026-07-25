@@ -249,14 +249,8 @@ impl Commit for QueueItem<'_> {
 }
 
 impl<'a> Queue<'a> {
-    /// Iterate over the queue.
-    pub fn iter(&self) -> impl Iterator<Item = &QueueItem<'_>> {
+    fn iter(&self) -> impl Iterator<Item = &QueueItem<'_>> {
         self.0.iter()
-    }
-
-    /// Return how many items are in the queue.
-    pub fn count(&self) -> usize {
-        self.0.len()
     }
 
     pub(crate) fn push(&mut self, item: QueueItem<'a>) {
