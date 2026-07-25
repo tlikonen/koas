@@ -30,7 +30,7 @@ pub enum Output {
 
 impl Output {
     pub fn select(value: &str) -> Result<Self> {
-        let out = match value.to_lowercase().as_str() {
+        let out = match value {
             "unicode" | "u" => Self::Unicode,
             "unicode-avoin" | "ua" => Self::UnicodeOpen,
             "ascii" | "a" => Self::Ascii,
