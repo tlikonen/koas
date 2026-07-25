@@ -112,7 +112,7 @@ pub trait HasData {
     {
         match self.is_empty() {
             false => Ok(self),
-            true => Err("Ei löytynyt.".into()),
+            true => Err(Error::from("Ei löytynyt.")),
         }
     }
 

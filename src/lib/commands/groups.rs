@@ -6,7 +6,7 @@ impl Group {
     /// See [`Commit`] trait for more information.
     pub fn set_name<'a>(&'a self, name: &str) -> Result<UpdateGroup<'a>> {
         match name.normalize() {
-            None => Err(format!("Sopimaton ryhmän nimi: ”{name}”.").into()),
+            None => Err(Error::from(format!("Sopimaton ryhmän nimi: ”{name}”."))),
             Some(n) => {
                 n.is_valid_group_name()?;
                 Ok(UpdateGroup {
@@ -22,7 +22,7 @@ impl Group {
     /// See [`Commit`] trait for more information.
     pub fn set_description<'a>(&'a self, desc: &str) -> Result<UpdateGroup<'a>> {
         match desc.normalize() {
-            None => Err(format!("Sopimaton ryhmän kuvaus: ”{desc}”.").into()),
+            None => Err(Error::from(format!("Sopimaton ryhmän kuvaus: ”{desc}”."))),
             Some(d) => Ok(UpdateGroup {
                 item: self,
                 operation: UpdateGroupOp::Description(d),

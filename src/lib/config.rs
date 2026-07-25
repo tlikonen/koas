@@ -121,11 +121,10 @@ impl Config {
             || config.host.is_empty()
             || !port
         {
-            return Err(format!(
+            return Err(Error::from(format!(
                 "Asetustiedostosta ”{}” puuttuu tärkeitä asetuksia. Tarkista ohjeet.",
                 path.display(),
-            )
-            .into());
+            )));
         }
 
         if !config.tables.is_empty() && Output::select(&config.tables).is_err() {
@@ -140,31 +139,29 @@ impl Config {
     }
 
     pub fn write(&self, path: &Path) -> Result<()> {
-        fs::write(
-            path,
-            format!(
-                "käyttäjä={user}\n\
-                 salasana={pw}\n\
-                 tietokanta={db}\n\
-                 osoite={host}\n\
-                 portti={port}\n\
-                 taulukot={tables}\n",
-                host = self.host,
-                port = self.port,
-                db = self.database,
-                user = self.user,
-                pw = self.password,
-                tables = self.tables,
-            ),
-        )
-        .map_err(|e| {
-            format!(
+        let out = format!(
+            "käyttäjä={user}\n\
+             salasana={pw}\n\
+             tietokanta={db}\n\
+             osoite={host}\n\
+             portti={port}\n\
+             taulukot={tables}\n",
+            host = self.host,
+            port = self.port,
+            db = self.database,
+            user = self.user,
+            pw = self.password,
+            tables = self.tables,
+        );
+
+        match fs::write(path, out) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(Error::from(format!(
                 "Asetustiedoston ”{}” kirjoittaminen epäonnistui: {}",
                 path.display(),
                 e.kind()
-            )
-        })?;
-        Ok(())
+            ))),
+        }
     }
 }
 

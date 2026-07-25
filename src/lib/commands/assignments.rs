@@ -18,7 +18,9 @@ impl Assignment {
         let position = position.filter(|x| x.has_content()); // sija
 
         if group.is_none() || assignment.is_none() || assignment_short.is_none() {
-            Err("Pitää antaa vähintään ryhmä, suorituksen nimi ja lyhenne.")?;
+            return Err(Error::from(
+                "Pitää antaa vähintään ryhmä, suorituksen nimi ja lyhenne.",
+            ));
         }
 
         // Convert from Option<&str> to Option<i32>.
@@ -26,9 +28,9 @@ impl Assignment {
             Some(s) => match s.trim().parse::<i32>() {
                 Ok(n) if n >= 1 => Some(n),
                 _ => {
-                    return Err(
-                        "Painokertoimen täytyy olla positiivinen kokonaisluku (tai tyhjä).".into(),
-                    );
+                    return Err(Error::from(
+                        "Painokertoimen täytyy olla positiivinen kokonaisluku (tai tyhjä).",
+                    ));
                 }
             },
             None => None,
@@ -38,7 +40,7 @@ impl Assignment {
         let position = match position {
             Some(s) => match s.trim().parse::<i32>() {
                 Ok(n) => Some(n),
-                _ => return Err("Järjestysnumeron täytyy olla kokonaisluku.".into()),
+                _ => return Err(Error::from("Järjestysnumeron täytyy olla kokonaisluku.")),
             },
             None => None,
         };
@@ -65,7 +67,9 @@ impl Assignment {
     /// See [`Commit`] trait for more information.
     pub fn set_name<'a>(&'a self, name: &str) -> Result<UpdateAssignment<'a>> {
         match name.normalize() {
-            None => Err(format!("Sopimaton suorituksen nimi: ”{name}”.").into()),
+            None => Err(Error::from(format!(
+                "Sopimaton suorituksen nimi: ”{name}”."
+            ))),
             Some(n) => Ok(UpdateAssignment {
                 item: self,
                 operation: UpdateAssignmentOp::Name(n),
@@ -78,7 +82,9 @@ impl Assignment {
     /// See [`Commit`] trait for more information.
     pub fn set_short<'a>(&'a self, name: &str) -> Result<UpdateAssignment<'a>> {
         match name.normalize() {
-            None => Err(format!("Sopimaton suorituksen lyhenne: ”{name}”.").into()),
+            None => Err(Error::from(format!(
+                "Sopimaton suorituksen lyhenne: ”{name}”."
+            ))),
             Some(n) => Ok(UpdateAssignment {
                 item: self,
                 operation: UpdateAssignmentOp::Short(n),
@@ -96,7 +102,9 @@ impl Assignment {
                 operation: UpdateAssignmentOp::Weight(n),
             }),
 
-            _ => Err("Painokertoimen täytyy olla positiivinen kokonaisluku (tai tyhjä).".into()),
+            _ => Err(Error::from(
+                "Painokertoimen täytyy olla positiivinen kokonaisluku (tai tyhjä).",
+            )),
         }
     }
 
@@ -120,7 +128,7 @@ impl Assignment {
                 operation: UpdateAssignmentOp::Position(n),
             }),
 
-            _ => Err("Järjestysnumeron täytyy olla kokonaisluku.".into()),
+            _ => Err(Error::from("Järjestysnumeron täytyy olla kokonaisluku.")),
         }
     }
 
@@ -158,12 +166,11 @@ impl Commit for UpdateAssignment<'_> {
             UpdateAssignmentOp::Delete => {
                 let count = assignment.count_grades(&mut ta).await?;
                 if count > 0 {
-                    return Err(format!(
+                    return Err(Error::from(format!(
                         "Suoritukselle ”{a}” on kirjattu {c} arvosana(a). Poista ne ensin.",
                         a = assignment.assignment,
                         c = count,
-                    )
-                    .into());
+                    )));
                 }
 
                 assignment.delete(&mut ta).await?;

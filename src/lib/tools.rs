@@ -2,34 +2,36 @@ use crate::prelude::*;
 
 pub fn parse_number_list(s: &str) -> Result<Vec<usize>> {
     if s.is_empty() {
-        Err("Puuttuu tietueen numero(t).")?;
+        return Err(Error::from("Puuttuu tietueen numero(t)."));
     }
 
-    let errmsg = |v| format!("Sopimaton tietueen numero: ”{v}”.");
+    let errmsg = |v| Error::from(format!("Sopimaton tietueen numero: ”{v}”."));
     let mut vec: Vec<usize> = Vec::with_capacity(25);
 
     for part in s.split(',').filter(|e| !e.is_empty()) {
         if part.is_all_digits() {
             let num = part.parse::<usize>()?;
             if num == 0 {
-                return Err(errmsg(part).into());
+                return Err(errmsg(part));
             }
             vec.push(num);
             continue;
         }
 
         let (start, end) = match part.split_once('-') {
-            None => return Err(errmsg(part).into()),
+            None => return Err(errmsg(part)),
             Some((s, e)) => {
                 if !s.is_all_digits() || !e.is_all_digits() {
-                    return Err(format!("Sopimaton tietueiden sarja: ”{s}-{e}”.").into());
+                    return Err(Error::from(format!(
+                        "Sopimaton tietueiden sarja: ”{s}-{e}”."
+                    )));
                 }
                 (s.parse::<usize>()?, e.parse::<usize>()?)
             }
         };
 
         if start == 0 || end == 0 {
-            return Err(errmsg("0").into());
+            return Err(errmsg("0"));
         }
 
         if start == end {
@@ -185,9 +187,9 @@ impl StrExt for str {
 
     fn is_valid_group_name(&self) -> Result<()> {
         if self.has_whitespace() {
-            Err("Ryhmätunnuksessa ei voi olla välilyöntejä.".into())
+            Err(Error::from("Ryhmätunnuksessa ei voi olla välilyöntejä."))
         } else if !self.has_content() {
-            Err("Sopimaton ryhmätunnus.".into())
+            Err(Error::from("Sopimaton ryhmätunnus."))
         } else {
             Ok(())
         }
