@@ -191,24 +191,20 @@ impl OldDb {
 
         for version in (db_version + 1)..=PROGRAM_DB_VERSION {
             let mut ta = db.begin().await?;
-            upgrade_to_version(&mut ta, version).await?;
+            match version {
+                11 => upgrade_to_version_11(&mut ta).await?,
+                ver => {
+                    return Err(Error::from(format!(
+                        "Päivittäminen versioon {ver} ei ole mahdollista."
+                    )));
+                }
+            }
             ta.commit().await?;
         }
         Ok(db)
     }
 }
 
-async fn upgrade_to_version(_db: &mut DBase, version: i32) -> Result<()> {
-    match version {
-        11 => {
-            // Kuvaillaan päivitys sanallisesti.
-        }
-
-        ver => {
-            return Err(Error::from(format!(
-                "Päivittäminen versioon {ver} ei ole mahdollista."
-            )));
-        }
-    }
+async fn upgrade_to_version_11(_db: &mut DBase) -> Result<()> {
     Ok(())
 }
