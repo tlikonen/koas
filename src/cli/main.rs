@@ -17,24 +17,25 @@ async fn main() -> ExitCode {
     match program().await {
         Ok(_) | Err(Error::Exit) => ExitCode::SUCCESS,
 
-        Err(Error::Io {
-            kind: io::ErrorKind::BrokenPipe,
-            ..
-        }) => ExitCode::FAILURE,
+        Err(err) => match err {
+            Error::Io {
+                kind: io::ErrorKind::BrokenPipe,
+                ..
+            } => ExitCode::FAILURE,
 
-        Err(Error::OldDatabase { .. }) => {
-            let _ = writeln!(
-                io::stderr(),
-                "Arvosanatietokannan versio on vanhentunut. \
-                 Sen voi päivittää vuorovaikutteisessa tilassa."
-            );
-            ExitCode::FAILURE
-        }
+            Error::OldDatabase { .. } => {
+                let _ = writeln!(
+                    io::stderr(),
+                    "{err} Sen voi päivittää vuorovaikutteisessa tilassa."
+                );
+                ExitCode::FAILURE
+            }
 
-        Err(other) => {
-            let _ = writeln!(io::stderr(), "{other}");
-            ExitCode::FAILURE
-        }
+            other => {
+                let _ = writeln!(io::stderr(), "{other}");
+                ExitCode::FAILURE
+            }
+        },
     }
 }
 
@@ -217,7 +218,7 @@ async fn command_stage(config: Config, mut modes: Modes) -> Result<()> {
                     Ok(l) => l,
                     Err(err) => match err {
                         ReadlineError::Interrupted | ReadlineError::Eof => Err(Error::Exit)?,
-                        _ => Err(err)?,
+                        e => return Err(e.into()),
                     },
                 };
 
@@ -231,15 +232,17 @@ async fn command_stage(config: Config, mut modes: Modes) -> Result<()> {
 
                 match commands(&mut modes, &mut db, &mut editable, cmd, args).await {
                     Ok(_) => (),
-                    Err(Error::UnknownCmd(cmd)) => {
-                        writeln!(stderr, "Tuntematon komento ”{cmd}”. Apua saa ?:llä.")?;
-                    }
-                    Err(Error::UnknownTbl(tbl)) => {
-                        writeln!(stderr, "Tuntematon taulukkotyyppi ”{tbl}”. Apua saa ?:llä.")?;
-                    }
-                    Err(e) => {
-                        writeln!(stderr, "{e}")?;
-                    }
+                    Err(err) => match err {
+                        Error::UnknownCmd(cmd) => {
+                            writeln!(stderr, "Tuntematon komento ”{cmd}”. Apua saa ?:llä.")?;
+                        }
+
+                        Error::UnknownTbl(tbl) => {
+                            writeln!(stderr, "Tuntematon taulukkotyyppi ”{tbl}”. Apua saa ?:llä.")?;
+                        }
+
+                        e => writeln!(stderr, "{e}")?,
+                    },
                 }
             }
         }
@@ -248,12 +251,14 @@ async fn command_stage(config: Config, mut modes: Modes) -> Result<()> {
             let (cmd, args) = tools::split_first(&line);
             match commands(&mut modes, &mut db, &mut editable, cmd, args).await {
                 Ok(_) => (),
-                Err(Error::UnknownCmd(cmd)) => {
-                    Err(format!(
-                        "Tuntematon komento ”{cmd}”. Apua saa valitsimella ”--ohje”."
-                    ))?;
-                }
-                err => return err,
+                Err(err) => match err {
+                    Error::UnknownCmd(cmd) => {
+                        return Err(Error::from(format!(
+                            "Tuntematon komento ”{cmd}”. Apua saa valitsimella ”--ohje”."
+                        )));
+                    }
+                    e => return Err(e),
+                },
             }
         }
 
@@ -265,12 +270,14 @@ async fn command_stage(config: Config, mut modes: Modes) -> Result<()> {
                     let (cmd, args) = tools::split_first(&line);
                     match commands(&mut modes, &mut ta, &mut editable, cmd, args).await {
                         Ok(_) => (),
-                        Err(Error::UnknownCmd(cmd)) => {
-                            Err(format!(
-                                "Tuntematon komento ”{cmd}”. Apua saa valitsimella ”--ohje”."
-                            ))?;
-                        }
-                        err => return err,
+                        Err(err) => match err {
+                            Error::UnknownCmd(cmd) => {
+                                return Err(Error::from(format!(
+                                    "Tuntematon komento ”{cmd}”. Apua saa valitsimella ”--ohje”."
+                                )));
+                            }
+                            e => return Err(e),
+                        },
                     }
                 }
             }
