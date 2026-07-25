@@ -43,10 +43,7 @@ impl Student {
     pub fn set_lastname<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
         match name.normalize() {
             None => Err(Error::from(format!("Sopimaton sukunimi: ”{name}”."))),
-            Some(n) => Ok(UpdateStudent {
-                item: self,
-                operation: UpdateStudentOp::Lastname(n),
-            }),
+            Some(n) => Ok(Update::new(self, UpdateStudentOp::Lastname(n))),
         }
     }
 
@@ -56,10 +53,7 @@ impl Student {
     pub fn set_firstname<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
         match name.normalize() {
             None => Err(Error::from(format!("Sopimaton etunimi: ”{name}”."))),
-            Some(n) => Ok(UpdateStudent {
-                item: self,
-                operation: UpdateStudentOp::Firstname(n),
-            }),
+            Some(n) => Ok(Update::new(self, UpdateStudentOp::Firstname(n))),
         }
     }
 
@@ -71,10 +65,7 @@ impl Student {
             None => Err(Error::from(format!("Sopimaton ryhmätunnus: ”{name}”."))),
             Some(n) => {
                 n.is_valid_group_name()?;
-                Ok(UpdateStudent {
-                    item: self,
-                    operation: UpdateStudentOp::GroupAdd(n),
-                })
+                Ok(Update::new(self, UpdateStudentOp::GroupAdd(n)))
             }
         }
     }
@@ -87,10 +78,7 @@ impl Student {
             None => Err(Error::from(format!("Sopimaton ryhmätunnus: ”{name}”."))),
             Some(n) => {
                 n.is_valid_group_name()?;
-                Ok(UpdateStudent {
-                    item: self,
-                    operation: UpdateStudentOp::GroupRemove(n),
-                })
+                Ok(Update::new(self, UpdateStudentOp::GroupRemove(n)))
             }
         }
     }
@@ -101,10 +89,7 @@ impl Student {
     pub fn set_description<'a>(&'a self, desc: &str) -> Result<UpdateStudent<'a>> {
         match desc.normalize() {
             None => Err(Error::from(format!("Sopimaton oppilaan kuvaus: ”{desc}”."))),
-            Some(d) => Ok(UpdateStudent {
-                item: self,
-                operation: UpdateStudentOp::Description(d),
-            }),
+            Some(d) => Ok(Update::new(self, UpdateStudentOp::Description(d))),
         }
     }
 
@@ -112,20 +97,14 @@ impl Student {
     ///
     /// See [`Commit`] trait for more information.
     pub fn clear_description<'a>(&'a self) -> UpdateStudent<'a> {
-        UpdateStudent {
-            item: self,
-            operation: UpdateStudentOp::DescriptionClear,
-        }
+        Update::new(self, UpdateStudentOp::DescriptionClear)
     }
 
     /// Prepare deletion of student.
     ///
     /// See [`Commit`] trait for more information.
     pub fn mark_deleted<'a>(&'a self) -> UpdateStudent<'a> {
-        UpdateStudent {
-            item: self,
-            operation: UpdateStudentOp::Delete,
-        }
+        Update::new(self, UpdateStudentOp::Delete)
     }
 }
 

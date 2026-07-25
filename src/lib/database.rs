@@ -273,6 +273,12 @@ pub struct Update<'a, I, O> {
     pub(crate) operation: O,
 }
 
+impl<'a, I, O> Update<'a, I, O> {
+    pub(crate) fn new(item: &'a I, operation: O) -> Self {
+        Self { item, operation }
+    }
+}
+
 pub trait ToQueue<'a> {
     fn queue(self, q: &mut Queue<'a>);
 }

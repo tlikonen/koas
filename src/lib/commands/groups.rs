@@ -9,10 +9,7 @@ impl Group {
             None => Err(Error::from(format!("Sopimaton ryhmän nimi: ”{name}”."))),
             Some(n) => {
                 n.is_valid_group_name()?;
-                Ok(UpdateGroup {
-                    item: self,
-                    operation: UpdateGroupOp::Name(n),
-                })
+                Ok(Update::new(self, UpdateGroupOp::Name(n)))
             }
         }
     }
@@ -23,10 +20,7 @@ impl Group {
     pub fn set_description<'a>(&'a self, desc: &str) -> Result<UpdateGroup<'a>> {
         match desc.normalize() {
             None => Err(Error::from(format!("Sopimaton ryhmän kuvaus: ”{desc}”."))),
-            Some(d) => Ok(UpdateGroup {
-                item: self,
-                operation: UpdateGroupOp::Description(d),
-            }),
+            Some(d) => Ok(Update::new(self, UpdateGroupOp::Description(d))),
         }
     }
 
@@ -34,10 +28,7 @@ impl Group {
     ///
     /// See [`Commit`] trait for more information.
     pub fn clear_description<'a>(&'a self) -> UpdateGroup<'a> {
-        UpdateGroup {
-            item: self,
-            operation: UpdateGroupOp::DescriptionClear,
-        }
+        Update::new(self, UpdateGroupOp::DescriptionClear)
     }
 }
 

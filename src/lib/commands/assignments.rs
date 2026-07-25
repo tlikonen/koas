@@ -70,10 +70,7 @@ impl Assignment {
             None => Err(Error::from(format!(
                 "Sopimaton suorituksen nimi: ”{name}”."
             ))),
-            Some(n) => Ok(UpdateAssignment {
-                item: self,
-                operation: UpdateAssignmentOp::Name(n),
-            }),
+            Some(n) => Ok(Update::new(self, UpdateAssignmentOp::Name(n))),
         }
     }
 
@@ -85,10 +82,7 @@ impl Assignment {
             None => Err(Error::from(format!(
                 "Sopimaton suorituksen lyhenne: ”{name}”."
             ))),
-            Some(n) => Ok(UpdateAssignment {
-                item: self,
-                operation: UpdateAssignmentOp::Short(n),
-            }),
+            Some(n) => Ok(Update::new(self, UpdateAssignmentOp::Short(n))),
         }
     }
 
@@ -97,11 +91,7 @@ impl Assignment {
     /// See [`Commit`] trait for more information.
     pub fn set_weight<'a>(&'a self, number: &str) -> Result<UpdateAssignment<'a>> {
         match number.trim().parse::<i32>() {
-            Ok(n) if n >= 1 => Ok(UpdateAssignment {
-                item: self,
-                operation: UpdateAssignmentOp::Weight(n),
-            }),
-
+            Ok(n) if n >= 1 => Ok(Update::new(self, UpdateAssignmentOp::Weight(n))),
             _ => Err(Error::from(
                 "Painokertoimen täytyy olla positiivinen kokonaisluku (tai tyhjä).",
             )),
@@ -112,10 +102,7 @@ impl Assignment {
     ///
     /// See [`Commit`] trait for more information.
     pub fn clear_weight<'a>(&'a self) -> UpdateAssignment<'a> {
-        UpdateAssignment {
-            item: self,
-            operation: UpdateAssignmentOp::WeightClear,
-        }
+        Update::new(self, UpdateAssignmentOp::WeightClear)
     }
 
     /// Prepare update for assignment's position.
@@ -123,11 +110,7 @@ impl Assignment {
     /// See [`Commit`] trait for more information.
     pub fn set_position<'a>(&'a self, number: &str) -> Result<UpdateAssignment<'a>> {
         match number.trim().parse::<i32>() {
-            Ok(n) => Ok(UpdateAssignment {
-                item: self,
-                operation: UpdateAssignmentOp::Position(n),
-            }),
-
+            Ok(n) => Ok(Update::new(self, UpdateAssignmentOp::Position(n))),
             _ => Err(Error::from("Järjestysnumeron täytyy olla kokonaisluku.")),
         }
     }
@@ -136,10 +119,7 @@ impl Assignment {
     ///
     /// See [`Commit`] trait for more information.
     pub fn mark_deleted<'a>(&'a self) -> UpdateAssignment<'a> {
-        UpdateAssignment {
-            item: self,
-            operation: UpdateAssignmentOp::Delete,
-        }
+        Update::new(self, UpdateAssignmentOp::Delete)
     }
 }
 

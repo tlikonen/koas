@@ -7,10 +7,7 @@ impl Grade {
     pub fn set_grade<'a>(&'a self, grade: &str) -> Result<UpdateGrade<'a>> {
         match grade.normalize() {
             None => Err(Error::from(format!("Sopimaton arvosana: ”{grade}”."))),
-            Some(g) => Ok(UpdateGrade {
-                item: self,
-                operation: UpdateGradeOp::Grade(g),
-            }),
+            Some(g) => Ok(Update::new(self, UpdateGradeOp::Grade(g))),
         }
     }
 
@@ -18,10 +15,7 @@ impl Grade {
     ///
     /// See [`Commit`] trait for more information.
     pub fn clear_grade<'a>(&'a self) -> UpdateGrade<'a> {
-        UpdateGrade {
-            item: self,
-            operation: UpdateGradeOp::GradeClear,
-        }
+        Update::new(self, UpdateGradeOp::GradeClear)
     }
 
     /// Prepare update for grade's description.
@@ -32,10 +26,7 @@ impl Grade {
             None => Err(Error::from(format!(
                 "Sopimaton arvosanan kuvaus: ”{desc}”."
             ))),
-            Some(d) => Ok(UpdateGrade {
-                item: self,
-                operation: UpdateGradeOp::Description(d),
-            }),
+            Some(d) => Ok(Update::new(self, UpdateGradeOp::Description(d))),
         }
     }
 
@@ -43,20 +34,14 @@ impl Grade {
     ///
     /// See [`Commit`] trait for more information.
     pub fn clear_description<'a>(&'a self) -> UpdateGrade<'a> {
-        UpdateGrade {
-            item: self,
-            operation: UpdateGradeOp::DescriptionClear,
-        }
+        Update::new(self, UpdateGradeOp::DescriptionClear)
     }
 
     /// Prepare deletion of grade.
     ///
     /// See [`Commit`] trait for more information.
     pub fn mark_deleted<'a>(&'a self) -> UpdateGrade<'a> {
-        UpdateGrade {
-            item: self,
-            operation: UpdateGradeOp::Delete,
-        }
+        Update::new(self, UpdateGradeOp::Delete)
     }
 }
 
