@@ -3,24 +3,29 @@ use std::cmp::Ordering;
 
 const PROGRAM_DB_VERSION: i32 = 10;
 
-pub(super) async fn initialize(db: &mut DBase) -> Result<()> {
+pub async fn connect(config: &Config) -> Result<DBase> {
+    let connect_string = format!(
+        "postgres://{user}:{password}@{host}:{port}/{db}",
+        user = config.user,
+        password = config.password,
+        host = config.host,
+        port = config.port,
+        db = config.database,
+    );
+
+    let db = DBase::connect(&connect_string).await?;
+    init::initialize(db).await
+}
+
+pub(super) async fn initialize(mut db: DBase) -> Result<DBase> {
     let mut stderr = io::stderr();
 
-    let db_exists = sqlx::query("SELECT 1 FROM pg_tables WHERE tablename = 'hallinto'")
-        .fetch_optional(&mut *db)
-        .await?
-        .is_some();
-
-    if db_exists {
-        let db_version: i32 = sqlx::query("SELECT arvo FROM hallinto WHERE avain = 'versio'")
-            .fetch_one(&mut *db)
-            .await?
-            .try_get("arvo")?;
-
+    if db_exists(&mut db).await? {
+        let db_version = get_db_version(&mut db).await?;
         match db_version.cmp(&PROGRAM_DB_VERSION) {
             Ordering::Equal => (),
-            Ordering::Greater => Err(Error::OldProgram)?,
-            Ordering::Less => Err(Error::OldDatabase)?,
+            Ordering::Greater => return Err(Error::OldProgram),
+            Ordering::Less => return Err(Error::OldDatabase { old: OldDb { db } }),
         }
     } else {
         // Database objects don't exist. Create all.
@@ -150,5 +155,60 @@ pub(super) async fn initialize(db: &mut DBase) -> Result<()> {
         ta.commit().await?;
     }
 
+    Ok(db)
+}
+
+async fn db_exists(db: &mut DBase) -> Result<bool> {
+    let exists = sqlx::query("SELECT 1 FROM pg_tables WHERE tablename = 'hallinto'")
+        .fetch_optional(&mut *db)
+        .await?
+        .is_some();
+    Ok(exists)
+}
+
+async fn get_db_version(db: &mut DBase) -> Result<i32> {
+    let version: i32 = sqlx::query("SELECT arvo FROM hallinto WHERE avain = 'versio'")
+        .fetch_one(&mut *db)
+        .await?
+        .try_get("arvo")?;
+    Ok(version)
+}
+
+#[derive(Debug)]
+pub struct OldDb {
+    db: DBase,
+}
+
+impl OldDb {
+    /// Upgrade database and return connection.
+    pub async fn upgrade(self) -> Result<DBase> {
+        let mut db = self.db;
+
+        let db_version = get_db_version(&mut db).await?;
+        if db_version >= PROGRAM_DB_VERSION {
+            return Err(Error::from("Tietokantaa ei päivitetty."));
+        }
+
+        for version in (db_version + 1)..=PROGRAM_DB_VERSION {
+            let mut ta = db.begin().await?;
+            upgrade_to_version(&mut ta, version).await?;
+            ta.commit().await?;
+        }
+        Ok(db)
+    }
+}
+
+async fn upgrade_to_version(_db: &mut DBase, version: i32) -> Result<()> {
+    match version {
+        11 => {
+            // Kuvaillaan päivitys sanallisesti.
+        }
+
+        ver => {
+            return Err(Error::from(format!(
+                "Päivittäminen versioon {ver} ei ole mahdollista."
+            )));
+        }
+    }
     Ok(())
 }

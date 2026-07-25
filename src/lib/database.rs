@@ -61,7 +61,7 @@ pub(crate) use self::assignments::UpdateAssignmentOp;
 pub(crate) use self::grades::UpdateGradeOp;
 pub(crate) use self::groups::UpdateGroupOp;
 pub(crate) use self::students::UpdateStudentOp;
-pub(crate) use sqlx::{Connection as _, PgConnection as DBase, Row as _};
+pub(crate) use sqlx::Row as _;
 
 pub use self::assignments::{Assignment, AssignmentsForGroup, InsertAssignment, UpdateAssignment};
 pub use self::grades::{
@@ -69,23 +69,12 @@ pub use self::grades::{
     SimpleStudent, StudentRanking, UpdateGrade,
 };
 pub use self::groups::{Group, UpdateGroup};
+pub use self::init::OldDb;
+pub use self::init::connect;
 pub use self::students::{InsertStudent, Student, UpdateStudent};
-pub use sqlx::{Connection, PgConnection};
+pub use sqlx::Connection as _;
 
-pub async fn connect(config: &Config) -> Result<DBase> {
-    let connect_string = format!(
-        "postgres://{user}:{password}@{host}:{port}/{db}",
-        user = config.user,
-        password = config.password,
-        host = config.host,
-        port = config.port,
-        db = config.database,
-    );
-
-    let mut db = DBase::connect(&connect_string).await?;
-    init::initialize(&mut db).await?;
-    Ok(db)
-}
+pub type DBase = sqlx::PgConnection;
 
 /// Query field match variants.
 pub enum QueryMatch<'a> {

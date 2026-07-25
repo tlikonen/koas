@@ -22,6 +22,15 @@ async fn main() -> ExitCode {
             ..
         }) => ExitCode::FAILURE,
 
+        Err(Error::OldDatabase { .. }) => {
+            let _ = writeln!(
+                io::stderr(),
+                "Arvosanatietokannan versio on vanhentunut. \
+                 Sen voi päivittää vuorovaikutteisessa tilassa."
+            );
+            ExitCode::FAILURE
+        }
+
         Err(other) => {
             let _ = writeln!(io::stderr(), "{other}");
             ExitCode::FAILURE
@@ -40,7 +49,6 @@ enum Mode {
 struct Modes {
     mode: Option<Mode>,
     output: Option<Output>,
-    // upgrade: bool,
 }
 
 impl Modes {
@@ -63,14 +71,6 @@ impl Modes {
     fn is_interactive(&self) -> bool {
         matches!(self.mode(), Mode::Interactive)
     }
-
-    // pub fn upgrade(&self) -> bool {
-    //     self.upgrade
-    // }
-
-    // pub fn set_upgrade(&mut self) {
-    //     self.upgrade = true;
-    // }
 }
 
 async fn program() -> Result<()> {
@@ -182,7 +182,16 @@ fn config(args: Args) -> Result<(Config, Modes)> {
 async fn command_stage(config: Config, mut modes: Modes) -> Result<()> {
     use rustyline::error::ReadlineError;
 
-    let mut db = database::connect(&config).await?;
+    let mut db = match database::connect(&config).await {
+        Ok(db) => db,
+        Err(err) => match err {
+            Error::OldDatabase { old } if matches!(modes.mode(), Mode::Interactive) => {
+                maybe_upgrade_db(old).await?
+            }
+            e => return Err(e),
+        },
+    };
+
     let mut editable = Editable::default();
     let mut stdout = io::stdout();
     let mut stderr = io::stderr();
@@ -219,7 +228,6 @@ async fn command_stage(config: Config, mut modes: Modes) -> Result<()> {
                 rl.add_history_entry(&line)?;
 
                 let (cmd, args) = tools::split_first(&line);
-                // if modes.upgrade() && cmd == UPGRADE_COMMAND {}
 
                 match commands(&mut modes, &mut db, &mut editable, cmd, args).await {
                     Ok(_) => (),
@@ -274,7 +282,7 @@ async fn command_stage(config: Config, mut modes: Modes) -> Result<()> {
 
 async fn commands(
     modes: &mut Modes,
-    db: &mut PgConnection,
+    db: &mut DBase,
     editable: &mut Editable,
     cmd: &str,
     args: &str,
@@ -783,4 +791,26 @@ fn assert_field_num(field_num: usize, editable: &Editable) -> Result<()> {
     }
 
     Ok(())
+}
+
+async fn maybe_upgrade_db(old: OldDb) -> Result<DBase> {
+    let mut stdout = io::stdout();
+    let stdin = io::stdin();
+
+    write!(
+        stdout,
+        "Arvosanatietokanta on vanhentunut. Päivitetäänkö? (vastaa ”kyllä”): "
+    )?;
+    stdout.flush()?;
+
+    let mut line = String::with_capacity(6);
+    stdin.read_line(&mut line)?;
+
+    if line == "kyllä\n" {
+        let db = old.upgrade().await?;
+        writeln!(stdout, "Tietokanta päivitetty.")?;
+        Ok(db)
+    } else {
+        Err(Error::OldDatabase { old })
+    }
 }

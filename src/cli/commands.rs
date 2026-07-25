@@ -6,7 +6,7 @@ use koas::*;
 use std::io::{self, Write as _};
 
 pub(super) async fn edit_students(
-    db: &mut PgConnection,
+    db: &mut DBase,
     students: impl IntoIterator<Item = &Student>,
     fields: impl IntoIterator<Item = &str>,
 ) -> Result<()> {
@@ -90,7 +90,7 @@ fn parse_add_remove_groups(
 }
 
 pub(super) async fn edit_groups(
-    db: &mut PgConnection,
+    db: &mut DBase,
     groups: impl IntoIterator<Item = &Group>,
     fields: impl IntoIterator<Item = &str>,
 ) -> Result<()> {
@@ -132,7 +132,7 @@ pub(super) async fn edit_groups(
 }
 
 pub(super) async fn edit_assignments(
-    db: &mut PgConnection,
+    db: &mut DBase,
     assignments: impl IntoIterator<Item = &Assignment>,
     fields: impl IntoIterator<Item = &str>,
 ) -> Result<()> {
@@ -184,7 +184,7 @@ pub(super) async fn edit_assignments(
 }
 
 pub(super) async fn edit_grades(
-    db: &mut PgConnection,
+    db: &mut DBase,
     grades: impl IntoIterator<Item = &Grade>,
     fields: impl IntoIterator<Item = &str>,
 ) -> Result<()> {
@@ -298,7 +298,7 @@ fn number_width(mut number: usize) -> usize {
 }
 
 pub(super) async fn edit_student_series(
-    db: &mut PgConnection,
+    db: &mut DBase,
     students: impl IntoIterator<Item = &Student>,
     field_num: usize,
     values: impl IntoIterator<Item = &str>,
@@ -360,7 +360,7 @@ pub(super) async fn edit_student_series(
 }
 
 pub(super) async fn edit_group_series(
-    db: &mut PgConnection,
+    db: &mut DBase,
     groups: impl IntoIterator<Item = &Group>,
     field_num: usize,
     values: impl IntoIterator<Item = &str>,
@@ -398,7 +398,7 @@ pub(super) async fn edit_group_series(
 }
 
 pub(super) async fn edit_assignment_series(
-    db: &mut PgConnection,
+    db: &mut DBase,
     assignments: impl IntoIterator<Item = &Assignment>,
     field_num: usize,
     values: impl IntoIterator<Item = &str>,
@@ -450,7 +450,7 @@ pub(super) async fn edit_assignment_series(
 }
 
 pub(super) async fn edit_grade_series(
-    db: &mut PgConnection,
+    db: &mut DBase,
     grades: impl IntoIterator<Item = &Grade>,
     field_num: usize,
     values: impl IntoIterator<Item = &str>,
