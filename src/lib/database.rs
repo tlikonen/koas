@@ -196,7 +196,7 @@ impl Stats {
 #[allow(async_fn_in_trait)]
 pub trait Commit {
     /// Commit the database update.
-    async fn commit(&mut self, db: &mut DBase) -> Result<()>;
+    async fn commit(self, db: &mut DBase) -> Result<()>;
 }
 
 /// A queue for updates.
@@ -212,7 +212,7 @@ pub trait Commit {
 /// let student2 = /* ... */
 /// student1.set_description(/* ... */)?.queue(&mut updates);
 /// student2.set_description(/* ... */)?.queue(&mut updates);
-/// updates.commit(/* &mut PgConnection */).await?;
+/// updates.commit(/* &mut DBase */).await?;
 #[derive(Default)]
 pub struct Queue<'a> {
     queue: VecDeque<QueueItem<'a>>,
@@ -228,7 +228,7 @@ pub enum QueueItem<'a> {
 }
 
 impl Commit for QueueItem<'_> {
-    async fn commit(&mut self, db: &mut DBase) -> Result<()> {
+    async fn commit(self, db: &mut DBase) -> Result<()> {
         match self {
             Self::UpdateStudent(s) => s.commit(db).await,
             Self::UpdateGroup(g) => g.commit(db).await,
@@ -253,14 +253,9 @@ impl<'a> Queue<'a> {
 
 impl Commit for Queue<'_> {
     /// Commit a queue of updates.
-    ///
-    /// The whole queue is committed as a single database transaction.
-    /// It is faster than several separate commits. If anything fails in
-    /// the transaction then the whole queue of changes is rolled back
-    /// (canceled).
-    async fn commit(&mut self, db: &mut DBase) -> Result<()> {
+    async fn commit(mut self, db: &mut DBase) -> Result<()> {
         let mut ta = db.begin().await?;
-        while let Some(mut item) = self.pop_front() {
+        while let Some(item) = self.pop_front() {
             item.commit(&mut ta).await?;
         }
         ta.commit().await?;

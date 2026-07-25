@@ -130,7 +130,7 @@ impl<'a> ToQueue<'a> for UpdateAssignment<'a> {
 }
 
 impl Commit for UpdateAssignment<'_> {
-    async fn commit(&mut self, db: &mut DBase) -> Result<()> {
+    async fn commit(self, db: &mut DBase) -> Result<()> {
         let mut ta = db.begin().await?;
         let assignment = self.item;
 
@@ -171,7 +171,7 @@ impl<'a> ToQueue<'a> for InsertAssignment {
 }
 
 impl Commit for InsertAssignment {
-    async fn commit(&mut self, db: &mut DBase) -> Result<()> {
+    async fn commit(self, db: &mut DBase) -> Result<()> {
         let mut ta = db.begin().await?;
 
         let mut group_assignment = Assignment {

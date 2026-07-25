@@ -52,7 +52,7 @@ impl<'a> ToQueue<'a> for UpdateGrade<'a> {
 }
 
 impl Commit for UpdateGrade<'_> {
-    async fn commit(&mut self, db: &mut DBase) -> Result<()> {
+    async fn commit(self, db: &mut DBase) -> Result<()> {
         let mut ta = db.begin().await?;
         let student_grade = self.item;
 

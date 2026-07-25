@@ -39,7 +39,7 @@ impl<'a> ToQueue<'a> for UpdateGroup<'a> {
 }
 
 impl Commit for UpdateGroup<'_> {
-    async fn commit(&mut self, db: &mut DBase) -> Result<()> {
+    async fn commit(self, db: &mut DBase) -> Result<()> {
         let mut ta = db.begin().await?;
         let group = self.item;
 

@@ -115,7 +115,7 @@ impl<'a> ToQueue<'a> for UpdateStudent<'a> {
 }
 
 impl Commit for UpdateStudent<'_> {
-    async fn commit(&mut self, db: &mut DBase) -> Result<()> {
+    async fn commit(self, db: &mut DBase) -> Result<()> {
         let mut ta = db.begin().await?;
         let student = self.item;
 
@@ -195,7 +195,7 @@ impl<'a> ToQueue<'a> for InsertStudent {
 }
 
 impl Commit for InsertStudent {
-    async fn commit(&mut self, db: &mut DBase) -> Result<()> {
+    async fn commit(self, db: &mut DBase) -> Result<()> {
         let mut ta = db.begin().await?;
 
         let mut student = Student {
