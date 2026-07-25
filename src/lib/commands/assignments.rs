@@ -145,12 +145,12 @@ impl Assignment {
 
 impl<'a> ToQueue<'a> for UpdateAssignment<'a> {
     fn queue(self, q: &mut Queue<'a>) {
-        q.push(QueueItem::UpdateAssignment(self));
+        q.push_back(QueueItem::UpdateAssignment(self));
     }
 }
 
 impl Commit for UpdateAssignment<'_> {
-    async fn commit(&self, db: &mut DBase) -> Result<()> {
+    async fn commit(&mut self, db: &mut DBase) -> Result<()> {
         let mut ta = db.begin().await?;
         let assignment = self.item;
 
@@ -186,12 +186,12 @@ impl Commit for UpdateAssignment<'_> {
 
 impl<'a> ToQueue<'a> for InsertAssignment {
     fn queue(self, q: &mut Queue<'a>) {
-        q.push(QueueItem::InsertAssignment(self))
+        q.push_back(QueueItem::InsertAssignment(self))
     }
 }
 
 impl Commit for InsertAssignment {
-    async fn commit(&self, db: &mut DBase) -> Result<()> {
+    async fn commit(&mut self, db: &mut DBase) -> Result<()> {
         let mut ta = db.begin().await?;
 
         let mut group_assignment = Assignment {

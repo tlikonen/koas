@@ -54,6 +54,7 @@ use crate::config::Config;
 use crate::prelude::*;
 use crate::tools;
 use futures::TryStreamExt;
+use std::collections::VecDeque;
 use std::io;
 use std::io::Write as _;
 
@@ -195,7 +196,7 @@ impl Stats {
 #[allow(async_fn_in_trait)]
 pub trait Commit {
     /// Commit the database update.
-    async fn commit(&self, db: &mut DBase) -> Result<()>;
+    async fn commit(&mut self, db: &mut DBase) -> Result<()>;
 }
 
 /// A queue for updates.
@@ -213,7 +214,9 @@ pub trait Commit {
 /// student2.set_description(/* ... */)?.queue(&mut updates);
 /// updates.commit(/* &mut PgConnection */).await?;
 #[derive(Default)]
-pub struct Queue<'a>(Vec<QueueItem<'a>>);
+pub struct Queue<'a> {
+    queue: VecDeque<QueueItem<'a>>,
+}
 
 pub enum QueueItem<'a> {
     UpdateStudent(UpdateStudent<'a>),
@@ -225,7 +228,7 @@ pub enum QueueItem<'a> {
 }
 
 impl Commit for QueueItem<'_> {
-    async fn commit(&self, db: &mut DBase) -> Result<()> {
+    async fn commit(&mut self, db: &mut DBase) -> Result<()> {
         match self {
             Self::UpdateStudent(s) => s.commit(db).await,
             Self::UpdateGroup(g) => g.commit(db).await,
@@ -238,12 +241,13 @@ impl Commit for QueueItem<'_> {
 }
 
 impl<'a> Queue<'a> {
-    fn iter(&self) -> impl Iterator<Item = &QueueItem<'_>> {
-        self.0.iter()
+    pub(crate) fn push_back(&mut self, item: QueueItem<'a>) {
+        self.queue.push_back(item);
     }
 
-    pub(crate) fn push(&mut self, item: QueueItem<'a>) {
-        self.0.push(item);
+    /// Pop the first item from the queue.
+    pub fn pop_front(&mut self) -> Option<QueueItem<'_>> {
+        self.queue.pop_front()
     }
 }
 
@@ -254,9 +258,9 @@ impl Commit for Queue<'_> {
     /// It is faster than several separate commits. If anything fails in
     /// the transaction then the whole queue of changes is rolled back
     /// (canceled).
-    async fn commit(&self, db: &mut DBase) -> Result<()> {
+    async fn commit(&mut self, db: &mut DBase) -> Result<()> {
         let mut ta = db.begin().await?;
-        for item in self.iter() {
+        while let Some(mut item) = self.pop_front() {
             item.commit(&mut ta).await?;
         }
         ta.commit().await?;

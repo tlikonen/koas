@@ -131,12 +131,12 @@ impl Student {
 
 impl<'a> ToQueue<'a> for UpdateStudent<'a> {
     fn queue(self, q: &mut Queue<'a>) {
-        q.push(QueueItem::UpdateStudent(self));
+        q.push_back(QueueItem::UpdateStudent(self));
     }
 }
 
 impl Commit for UpdateStudent<'_> {
-    async fn commit(&self, db: &mut DBase) -> Result<()> {
+    async fn commit(&mut self, db: &mut DBase) -> Result<()> {
         let mut ta = db.begin().await?;
         let student = self.item;
 
@@ -211,12 +211,12 @@ impl Commit for UpdateStudent<'_> {
 
 impl<'a> ToQueue<'a> for InsertStudent {
     fn queue(self, q: &mut Queue<'a>) {
-        q.push(QueueItem::InsertStudent(self))
+        q.push_back(QueueItem::InsertStudent(self))
     }
 }
 
 impl Commit for InsertStudent {
-    async fn commit(&self, db: &mut DBase) -> Result<()> {
+    async fn commit(&mut self, db: &mut DBase) -> Result<()> {
         let mut ta = db.begin().await?;
 
         let mut student = Student {
