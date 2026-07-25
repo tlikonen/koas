@@ -15,7 +15,7 @@ fn output_buffer() -> OutBuf {
 const GROUPS_WIDTH: usize = 42;
 
 #[non_exhaustive]
-#[derive(Default, Clone)]
+#[derive(Default)]
 pub enum Output {
     #[default]
     Unicode,
