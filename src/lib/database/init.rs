@@ -174,6 +174,7 @@ async fn get_db_version(db: &mut DBase) -> Result<i32> {
     Ok(version)
 }
 
+/// Old database version that needs upgrading.
 #[derive(Debug)]
 pub struct OldDb {
     db: DBase,
