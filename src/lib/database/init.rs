@@ -25,7 +25,7 @@ pub(super) async fn initialize(mut db: DBase) -> Result<DBase> {
         match db_version.cmp(&PROGRAM_DB_VERSION) {
             Ordering::Equal => (),
             Ordering::Greater => return Err(Error::OldProgram),
-            Ordering::Less => return Err(Error::OldDatabase { old: OldDb { db } }),
+            Ordering::Less => return Err(Error::OldDatabase(OldDb { db })),
         }
     } else {
         // Database objects don't exist. Create all.

@@ -23,7 +23,7 @@ async fn main() -> ExitCode {
                 ..
             } => ExitCode::FAILURE,
 
-            Error::OldDatabase { .. } => {
+            Error::OldDatabase(_) => {
                 let _ = writeln!(
                     io::stderr(),
                     "{err} Sen voi päivittää vuorovaikutteisessa tilassa."
@@ -186,7 +186,7 @@ async fn command_stage(config: Config, mut modes: Modes) -> Result<()> {
     let mut db = match database::connect(&config).await {
         Ok(db) => db,
         Err(err) => match err {
-            Error::OldDatabase { old } if matches!(modes.mode(), Mode::Interactive) => {
+            Error::OldDatabase(old) if matches!(modes.mode(), Mode::Interactive) => {
                 maybe_upgrade_db(old).await?
             }
             e => return Err(e),
@@ -818,6 +818,6 @@ async fn maybe_upgrade_db(old: OldDb) -> Result<DBase> {
         writeln!(stdout, "Tietokanta päivitetty.")?;
         Ok(db)
     } else {
-        Err(Error::OldDatabase { old })
+        Err(Error::OldDatabase(old))
     }
 }
