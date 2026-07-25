@@ -395,7 +395,7 @@ mod tests {
         assert!(" abc ".is_valid_group_name().is_err());
         assert!("abc ".is_valid_group_name().is_err());
         assert!("abc 123".is_valid_group_name().is_err());
-        assert!("\t".is_valid_group_name().is_err());
+        assert!("x\t".is_valid_group_name().is_err());
         assert!(" ".is_valid_group_name().is_err());
     }
 
