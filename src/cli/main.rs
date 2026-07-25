@@ -105,7 +105,7 @@ fn cli() -> Result<Args> {
     }
 
     if error {
-        Err("Valitsin ”-h” tulostaa apua.")?;
+        return Err(Error::from("Valitsin ”-h” tulostaa apua."));
     }
 
     if args.option_exists("help") {
@@ -114,13 +114,13 @@ fn cli() -> Result<Args> {
             include_str!("help/usage.txt"),
             ohjelma = koas::PROGRAM_NAME,
         )?;
-        Err(Error::Exit)?;
+        return Err(Error::Exit);
     }
 
     if args.option_exists("ohje") {
         let topic = args.options_value_last("ohje").map_or("", |v| v);
         commands::help(topic)?;
-        Err(Error::Exit)?;
+        return Err(Error::Exit);
     }
 
     if args.option_exists("version") {
@@ -134,7 +134,7 @@ fn cli() -> Result<Args> {
             author = koas::PROGRAM_AUTHORS,
             license = koas::PROGRAM_LICENSE
         )?;
-        Err(Error::Exit)?;
+        return Err(Error::Exit);
     }
 
     Ok(args)
@@ -146,12 +146,12 @@ fn config(args: Args) -> Result<(Config, Modes)> {
 
     if !config_file.exists() {
         Config::default().write(&config_file)?;
-        Err(format!(
+        return Err(Error::from(format!(
             "Luotiin asetustiedosto ”{}”.\n\
              Muokkaa tiedostoa tekstieditorilla ja aseta tietokannan yhteysasetukset.\n\
              Seuraavilla valitsimilla saa apua: ”--ohje=tietokanta” ja ”--ohje=asetukset”.",
             config_file.display()
-        ))?;
+        )));
     }
 
     let config = Config::read(&config_file)?;
@@ -218,7 +218,7 @@ async fn command_stage(config: Config, mut modes: Modes) -> Result<()> {
                     Ok(l) => l,
                     Err(err) => match err {
                         ReadlineError::Interrupted | ReadlineError::Eof => Err(Error::Exit)?,
-                        e => return Err(e.into()),
+                        e => return Err(Error::from(e)),
                     },
                 };
 
@@ -306,9 +306,7 @@ async fn commands(
             let firstname = fields.next().unwrap_or(""); // etunimi
             let group = fields.next().unwrap_or(""); // ryhma
             let desc = fields.next().unwrap_or(""); // lisätiedot
-            if fields.next().is_some() {
-                Err("Liikaa kenttiä. Vain neljä hyväksytään.")?;
-            }
+            is_too_much_fields(fields, 4)?;
 
             let query = Student::query(
                 db,
@@ -335,9 +333,7 @@ async fn commands(
             let mut fields = tools::split_sep(args);
             let name = fields.next().unwrap_or(""); // ryhmä
             let desc = fields.next().unwrap_or(""); // lisätiedot
-            if fields.next().is_some() {
-                Err("Liikaa kenttiä. Vain kaksi hyväksytään.")?;
-            }
+            is_too_much_fields(fields, 2)?;
 
             let query = Group::query(
                 db,
@@ -386,9 +382,7 @@ async fn commands(
             let group = fields.next().unwrap_or(""); // ryhmä
             let assign = fields.next().unwrap_or(""); // suoritus
             let assign_short = fields.next().unwrap_or(""); // lyhenne
-            if fields.next().is_some() {
-                Err("Liikaa kenttiä. Vain kolme hyväksytään.")?;
-            }
+            is_too_much_fields(fields, 3)?;
 
             let query = GradesForAssignment::query(
                 db,
@@ -417,9 +411,7 @@ async fn commands(
             let firstname = fields.next().unwrap_or(""); // etunimi
             let group = fields.next().unwrap_or(""); // ryhmä
             let desc = fields.next().unwrap_or(""); // lisätiedot
-            if fields.next().is_some() {
-                Err("Liikaa kenttiä. Vain neljä hyväksytään.")?;
-            }
+            is_too_much_fields(fields, 4)?;
 
             let query = GradesForStudent::query(
                 db,
@@ -497,9 +489,7 @@ async fn commands(
             let firstname = fields.next().unwrap_or(""); // etunimi
             let groups = fields.next().unwrap_or("").split_whitespace(); // ryhmät
             let desc = fields.next().unwrap_or(""); // lisätiedot
-            if fields.next().is_some() {
-                Err("Liikaa kenttiä. Vain neljä hyväksytään.")?;
-            }
+            is_too_much_fields(fields, 4)?;
 
             Student::insert(lastname, firstname, groups, desc)?
                 .commit(db)
@@ -515,12 +505,12 @@ async fn commands(
             let assignment_short = fields.next().unwrap_or(""); // lyhenne
             let weight = fields.next(); // painokerroin
             let position = fields.next(); // sija
-            if fields.next().is_some() {
-                Err("Liikaa kenttiä. Vain viisi hyväksytään.")?;
-            }
+            is_too_much_fields(fields, 5)?;
 
             if !groups.has_content() {
-                Err("Pitää antaa vähintään ryhmä, suorituksen nimi ja lyhenne.")?;
+                return Err(Error::from(
+                    "Pitää antaa vähintään ryhmä, suorituksen nimi ja lyhenne.",
+                ));
             }
 
             let mut updates = Queue::default();
@@ -533,11 +523,15 @@ async fn commands(
 
         "m" if matches!(mode, Mode::Interactive) => {
             if editable.is_none() {
-                Err("Edellinen komento ei sisällä muokattavia tietueita.")?;
+                return Err(Error::from(
+                    "Edellinen komento ei sisällä muokattavia tietueita.",
+                ));
             }
 
             if args.is_empty() {
-                Err("Argumentiksi pitää antaa tietueiden numerot ja muokattavat kentät.")?;
+                return Err(Error::from(
+                    "Argumentiksi pitää antaa tietueiden numerot ja muokattavat kentät.",
+                ));
             }
 
             let list_max = editable.count();
@@ -567,11 +561,15 @@ async fn commands(
 
         "ms" if matches!(mode, Mode::Interactive) => {
             if editable.is_none() {
-                Err("Edellinen komento ei sisällä muokattavia tietueita.")?;
+                return Err(Error::from(
+                    "Edellinen komento ei sisällä muokattavia tietueita.",
+                ));
             }
 
             if args.is_empty() {
-                Err("Argumentiksi pitää antaa tietueiden numerot ja kentän numero.")?;
+                return Err(Error::from(
+                    "Argumentiksi pitää antaa tietueiden numerot ja kentän numero.",
+                ));
             }
 
             let list_max = editable.count();
@@ -583,7 +581,7 @@ async fn commands(
             commands::print_read_values_intro(field_num, &indices)?;
             let values = commands::read_values(&indices)?;
             if values.lines().all(|x| x.is_empty()) {
-                Err("Ei muutoksia.")?;
+                return Err(Error::from("Ei muutoksia."));
             }
 
             match editable {
@@ -633,15 +631,17 @@ async fn commands(
 
         "ma" if matches!(mode, Mode::Interactive) => {
             if editable.is_none() {
-                Err("Edellinen komento ei sisällä muokattavia tietueita.")?;
+                return Err(Error::from(
+                    "Edellinen komento ei sisällä muokattavia tietueita.",
+                ));
             }
 
             if !editable.is_grade() {
-                Err("Vain arvosanoja voi muokata tällä komennolla.")?;
+                return Err(Error::from("Vain arvosanoja voi muokata tällä komennolla."));
             }
 
             if args.is_empty() {
-                Err("Puuttuu tietueiden numerot.")?;
+                return Err(Error::from("Puuttuu tietueiden numerot."));
             }
 
             let list_max = editable.count();
@@ -664,15 +664,17 @@ async fn commands(
 
         "md" if matches!(mode, Mode::Interactive) => {
             if editable.is_none() {
-                Err("Edellinen komento ei sisällä muokattavia tietueita.")?;
+                return Err(Error::from(
+                    "Edellinen komento ei sisällä muokattavia tietueita.",
+                ));
             }
 
             if !editable.is_grade() {
-                Err("Vain arvosanoja voi muokata tällä komennolla.")?;
+                return Err(Error::from("Vain arvosanoja voi muokata tällä komennolla."));
             }
 
             if args.is_empty() {
-                Err("Puuttuu tietueiden numerot.")?;
+                return Err(Error::from("Puuttuu tietueiden numerot."));
             }
 
             let list_max = editable.count();
@@ -695,11 +697,13 @@ async fn commands(
 
         "poista" if matches!(mode, Mode::Interactive) => {
             if editable.is_none() {
-                Err("Edellinen komento ei sisällä poistettavia tietueita.")?;
+                return Err(Error::from(
+                    "Edellinen komento ei sisällä poistettavia tietueita.",
+                ));
             }
 
             if args.is_empty() {
-                Err("Puuttuu tietueiden numerot.")?;
+                return Err(Error::from("Puuttuu tietueiden numerot."));
             }
 
             let list_max = editable.count();
@@ -718,8 +722,10 @@ async fn commands(
                 }
 
                 Editable::Groups(_) => {
-                    Err("Ryhmiä ei voi poistaa näin. Ryhmä poistuu itsestään,\n\
-                         kun siltä poistaa kaikki oppilaat ja suoritukset.")?;
+                    return Err(Error::from(
+                        "Ryhmiä ei voi poistaa näin. Ryhmä poistuu itsestään,\n\
+                         kun siltä poistaa kaikki oppilaat ja suoritukset.",
+                    ));
                 }
 
                 Editable::Assignments(assignments) => {
@@ -757,6 +763,16 @@ async fn commands(
     Ok(())
 }
 
+fn is_too_much_fields(mut fields: impl Iterator, max: usize) -> Result<()> {
+    if fields.next().is_some() {
+        Err(Error::from(format!(
+            "Liikaa kenttiä. Vain {max} hyväksytään."
+        )))
+    } else {
+        Ok(())
+    }
+}
+
 fn parse_next_number_list(s: &str, m: usize) -> Result<(Vec<usize>, &str)> {
     let (nl, rest) = tools::split_first(s);
     let list = tools::parse_number_list(nl)?;
@@ -786,7 +802,7 @@ fn no_more_arguments(s: &str) -> Result<()> {
 
 fn assert_field_num(field_num: usize, editable: &Editable) -> Result<()> {
     let field_num_max: usize = match editable {
-        Editable::None => Err("Ei muokattavia tietueita.")?,
+        Editable::None => return Err(Error::from("Ei muokattavia tietueita.")),
         Editable::Students(_) => 4,
         Editable::Groups(_) => 2,
         Editable::Assignments(_) => 4,
@@ -794,7 +810,9 @@ fn assert_field_num(field_num: usize, editable: &Editable) -> Result<()> {
     };
 
     if !(1..=field_num_max).contains(&field_num) {
-        Err(format!("Kentän numeron täytyy olla 1–{field_num_max}."))?;
+        return Err(Error::from(format!(
+            "Kentän numeron täytyy olla 1–{field_num_max}."
+        )));
     }
 
     Ok(())
