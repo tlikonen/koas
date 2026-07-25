@@ -36,6 +36,7 @@ impl std::error::Error for Error {}
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::Exit => Ok(()),
             Self::Generic(v) => write!(f, "{v}"),
             Self::Io { error, .. } => write!(f, "Tiedonsiirtovirhe: {error}"),
             Self::Db(v) => write!(f, "Tietokantavirhe: {v}"),
@@ -47,7 +48,6 @@ impl fmt::Display for Error {
                 f,
                 "Ohjelman versio on vanhentunut, ja tietokanta vaatii uudemman."
             ),
-            _ => Ok(()),
         }
     }
 }
