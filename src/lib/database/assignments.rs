@@ -2,8 +2,8 @@ use super::*;
 
 #[derive(Clone, Default)]
 pub struct Assignment {
-    pub(crate) rid: i32,
-    pub(crate) sid: i32,
+    pub(super) rid: i32,
+    pub(super) sid: i32,
     pub assignment: String,
     pub assignment_short: String,
     pub weight: Option<i32>,
@@ -27,15 +27,15 @@ pub enum UpdateAssignmentOp {
 }
 
 pub struct InsertAssignment {
-    pub(crate) group: String,
-    pub(crate) assignment: String,
-    pub(crate) assignment_short: String,
-    pub(crate) weight: Option<i32>,
-    pub(crate) position: Option<i32>,
+    pub(super) group: String,
+    pub(super) assignment: String,
+    pub(super) assignment_short: String,
+    pub(super) weight: Option<i32>,
+    pub(super) position: Option<i32>,
 }
 
 impl Assignment {
-    pub(crate) async fn update_name(&self, db: &mut DBase, name: &str) -> Result<()> {
+    pub(super) async fn update_name(&self, db: &mut DBase, name: &str) -> Result<()> {
         sqlx::query("UPDATE suoritukset SET nimi = $1 WHERE sid = $2")
             .bind(name)
             .bind(self.sid)

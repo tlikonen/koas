@@ -2,10 +2,10 @@ use super::*;
 
 #[derive(Clone)]
 pub struct Grade {
-    pub(crate) oid: i32,
+    pub(super) oid: i32,
     pub lastname: String,
     pub firstname: String,
-    pub(crate) sid: i32,
+    pub(super) sid: i32,
     pub assignment: String,
     pub weight: Option<i32>,
     pub grade: Option<String>,

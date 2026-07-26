@@ -2,7 +2,7 @@ use super::*;
 
 #[derive(Default, Clone)]
 pub struct Student {
-    pub(crate) oid: i32,
+    pub(super) oid: i32,
     pub lastname: String,
     pub firstname: String,
     pub groups: String,
@@ -22,10 +22,10 @@ pub enum UpdateStudentOp {
 }
 
 pub struct InsertStudent {
-    pub(crate) lastname: String,
-    pub(crate) firstname: String,
-    pub(crate) groups: Vec<String>,
-    pub(crate) description: String,
+    pub(super) lastname: String,
+    pub(super) firstname: String,
+    pub(super) groups: Vec<String>,
+    pub(super) description: String,
 }
 
 impl Student {

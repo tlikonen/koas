@@ -2,7 +2,7 @@ use super::*;
 
 #[derive(Clone)]
 pub struct Group {
-    pub(crate) rid: i32,
+    pub(super) rid: i32,
     pub name: String,
     pub description: String,
 }
@@ -73,7 +73,7 @@ impl Group {
         Update::new(self, UpdateGroupOp::DescriptionClear)
     }
 
-    pub(crate) async fn get_or_insert(db: &mut DBase, name: &str) -> Result<i32> {
+    pub(super) async fn get_or_insert(db: &mut DBase, name: &str) -> Result<i32> {
         match Self::get_id(db, name).await? {
             Some(rid) => Ok(rid),
             None => {
@@ -87,7 +87,7 @@ impl Group {
         }
     }
 
-    pub(crate) async fn get_id(db: &mut DBase, name: &str) -> Result<Option<i32>> {
+    pub(super) async fn get_id(db: &mut DBase, name: &str) -> Result<Option<i32>> {
         match sqlx::query("SELECT rid FROM ryhmat WHERE nimi = $1")
             .bind(name)
             .fetch_optional(db)
@@ -119,7 +119,7 @@ impl Group {
         Ok(())
     }
 
-    pub(crate) async fn delete_empty(db: &mut DBase) -> Result<()> {
+    pub(super) async fn delete_empty(db: &mut DBase) -> Result<()> {
         sqlx::query(
             "DELETE FROM ryhmat WHERE rid IN \
              (SELECT r.rid FROM ryhmat AS r \
