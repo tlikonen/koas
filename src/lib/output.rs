@@ -2,6 +2,7 @@ use crate::database::*;
 use crate::prelude::*;
 use crate::tools;
 use std::cmp::Ordering;
+use std::collections::VecDeque;
 use std::io;
 use std::io::BufWriter;
 use std::io::Write as _;
@@ -113,9 +114,9 @@ impl Table {
         let mut n = 1;
         for row in self.rows_mut() {
             match row {
-                Row::Head(v) | Row::Foot(v) => v.insert(0, Cell::Empty),
+                Row::Head(v) | Row::Foot(v) => v.push_front(Cell::Empty),
                 Row::Data(v) => {
-                    v.insert(0, Cell::Right(n.to_string()));
+                    v.push_front(Cell::Right(n.to_string()));
                     n += 1;
                 }
                 _ => (),
@@ -153,9 +154,9 @@ pub enum Row {
     Toprule,
     Midrule,
     Bottomrule,
-    Head(Vec<Cell>),
-    Data(Vec<Cell>),
-    Foot(Vec<Cell>),
+    Head(VecDeque<Cell>),
+    Data(VecDeque<Cell>),
+    Foot(VecDeque<Cell>),
 }
 
 impl Row {
@@ -205,22 +206,22 @@ impl MakeTable for Stats {
     fn table(&self) -> Table {
         let rows = vec![
             Row::Toprule,
-            Row::Data(vec![
+            Row::Data(VecDeque::from([
                 Cell::Left("Oppilaita:".to_string()),
                 Cell::Right(self.students.to_string()),
-            ]),
-            Row::Data(vec![
+            ])),
+            Row::Data(VecDeque::from([
                 Cell::Left("Ryhmiä:".to_string()),
                 Cell::Right(self.groups.to_string()),
-            ]),
-            Row::Data(vec![
+            ])),
+            Row::Data(VecDeque::from([
                 Cell::Left("Suorituksia:".to_string()),
                 Cell::Right(self.assignments.to_string()),
-            ]),
-            Row::Data(vec![
+            ])),
+            Row::Data(VecDeque::from([
                 Cell::Left("Arvosanoja:".to_string()),
                 Cell::Right(self.grades.to_string()),
-            ]),
+            ])),
             Row::Bottomrule,
         ];
 
@@ -234,17 +235,17 @@ impl MakeTable for QueryList<Student> {
 
         let mut rows = vec![
             Row::Toprule,
-            Row::Head(vec![
+            Row::Head(VecDeque::from([
                 Cell::Left("Sukunimi".to_string()),
                 Cell::Left("Etunimi".to_string()),
                 Cell::Left("Ryhmät".to_string()),
                 Cell::Left("Lisätiedot".to_string()),
-            ]),
+            ])),
             Row::Midrule,
         ];
 
         for student in self.iter() {
-            rows.push(Row::Data(vec![
+            rows.push(Row::Data(VecDeque::from([
                 Cell::Left(student.lastname().to_string()),
                 Cell::Left(student.firstname().to_string()),
                 Cell::Multi(column_lines(student.groups(), GROUPS_WIDTH)),
@@ -252,7 +253,7 @@ impl MakeTable for QueryList<Student> {
                     student.description().split_whitespace(),
                     DESC_WIDTH,
                 )),
-            ]));
+            ])));
         }
 
         rows.push(Row::Bottomrule);
@@ -266,21 +267,21 @@ impl MakeTable for QueryList<Group> {
 
         let mut rows = vec![
             Row::Toprule,
-            Row::Head(vec![
+            Row::Head(VecDeque::from([
                 Cell::Left("Ryhmä".to_string()),
                 Cell::Left("Lisätiedot".to_string()),
-            ]),
+            ])),
             Row::Midrule,
         ];
 
         for group in self.iter() {
-            rows.push(Row::Data(vec![
+            rows.push(Row::Data(VecDeque::from([
                 Cell::Left(group.name.to_string()),
                 Cell::Multi(column_lines(
                     group.description.split_whitespace(),
                     DESCRIPTION_WIDTH,
                 )),
-            ]));
+            ])));
         }
 
         rows.push(Row::Bottomrule);
@@ -293,23 +294,23 @@ impl MakeTable for AssignmentsForGroup {
         let mut rows = vec![
             Row::Title(self.group.clone()),
             Row::Toprule,
-            Row::Head(vec![
+            Row::Head(VecDeque::from([
                 Cell::Left("Suoritus".to_string()),
                 Cell::Left("Lyh".to_string()),
                 Cell::Right("K".to_string()),
-            ]),
+            ])),
             Row::Midrule,
         ];
 
         for assign in &self.assignments {
-            rows.push(Row::Data(vec![
+            rows.push(Row::Data(VecDeque::from([
                 Cell::Left(assign.assignment.clone()),
                 Cell::Left(assign.assignment_short.clone()),
                 match &assign.weight {
                     Some(w) => Cell::Right(w.to_string()),
                     None => Cell::Empty,
                 },
-            ]));
+            ])));
         }
 
         rows.push(Row::Bottomrule);
@@ -335,11 +336,11 @@ impl MakeTable for GradesForAssignment {
         let mut rows = vec![
             Row::Title(format!("{s} ({r})", r = self.group, s = self.assignment,)),
             Row::Toprule,
-            Row::Head(vec![
+            Row::Head(VecDeque::from([
                 Cell::Left("Oppilas".to_string()),
                 Cell::Left("As".to_string()),
                 Cell::Left("Lisätiedot".to_string()),
-            ]),
+            ])),
             Row::Midrule,
         ];
 
@@ -347,7 +348,7 @@ impl MakeTable for GradesForAssignment {
         let mut count = 0;
 
         for grade in &self.grades {
-            rows.push(Row::Data(vec![
+            rows.push(Row::Data(VecDeque::from([
                 Cell::Left(format!("{}, {}", grade.lastname, grade.firstname)),
                 match &grade.grade {
                     Some(s) => {
@@ -363,7 +364,7 @@ impl MakeTable for GradesForAssignment {
                     Some(s) => Cell::Multi(column_lines(s.split_whitespace(), DESC_WIDTH)),
                     None => Cell::Empty,
                 },
-            ]));
+            ])));
         }
 
         let average = if count > 0 {
@@ -373,11 +374,11 @@ impl MakeTable for GradesForAssignment {
         };
 
         rows.push(Row::Midrule);
-        rows.push(Row::Foot(vec![
+        rows.push(Row::Foot(VecDeque::from([
             Cell::Left("Keskiarvo".to_string()),
             average,
             Cell::Empty,
-        ]));
+        ])));
         rows.push(Row::Bottomrule);
         Table(rows)
     }
@@ -406,12 +407,12 @@ impl MakeTable for GradesForStudent {
                 e = self.firstname,
             )),
             Row::Toprule,
-            Row::Head(vec![
+            Row::Head(VecDeque::from([
                 Cell::Left("Suoritus".to_string()),
                 Cell::Left("As".to_string()),
                 Cell::Left("K".to_string()),
                 Cell::Left("Lisätiedot".to_string()),
-            ]),
+            ])),
             Row::Midrule,
         ];
 
@@ -419,7 +420,7 @@ impl MakeTable for GradesForStudent {
         let mut count = 0;
 
         for grade in &self.grades {
-            rows.push(Row::Data(vec![
+            rows.push(Row::Data(VecDeque::from([
                 Cell::Left(grade.assignment.clone()),
                 match &grade.grade {
                     Some(s) => {
@@ -441,7 +442,7 @@ impl MakeTable for GradesForStudent {
                     Some(s) => Cell::Multi(column_lines(s.split_whitespace(), DESC_WIDTH)),
                     None => Cell::Empty,
                 },
-            ]));
+            ])));
         }
 
         let average = if count > 0 {
@@ -451,12 +452,12 @@ impl MakeTable for GradesForStudent {
         };
 
         rows.push(Row::Midrule);
-        rows.push(Row::Foot(vec![
+        rows.push(Row::Foot(VecDeque::from([
             Cell::Left("Keskiarvo".to_string()),
             average,
             Cell::Empty,
             Cell::Empty,
-        ]));
+        ])));
         rows.push(Row::Bottomrule);
         Table(rows)
     }
@@ -488,9 +489,9 @@ impl MakeTable for GradesForGroup {
         }
 
         assigns.push(Cell::Left("ka".to_string()));
-        rows.push(Row::Head(assigns));
+        rows.push(Row::Head(VecDeque::from(assigns)));
         weigths.push(Cell::Empty);
-        rows.push(Row::Head(weigths));
+        rows.push(Row::Head(VecDeque::from(weigths)));
 
         rows.push(Row::Midrule);
 
@@ -539,7 +540,7 @@ impl MakeTable for GradesForGroup {
             };
 
             line.push(average);
-            rows.push(Row::Data(line));
+            rows.push(Row::Data(VecDeque::from(line)));
         }
 
         rows.push(Row::Midrule);
@@ -562,7 +563,7 @@ impl MakeTable for GradesForGroup {
             Cell::Empty
         });
 
-        rows.push(Row::Foot(totals));
+        rows.push(Row::Foot(VecDeque::from(totals)));
         rows.push(Row::Bottomrule);
         Table(rows)
     }
@@ -579,24 +580,24 @@ impl PrintQuery for QueryList<GradesForGroup> {
             // Table of assignments
             let mut rows = vec![
                 Row::Toprule,
-                Row::Head(vec![
+                Row::Head(VecDeque::from([
                     Cell::Left("Lyh".to_string()),
                     Cell::Left("Suoritus".to_string()),
-                ]),
+                ])),
                 Row::Midrule,
             ];
 
             for assign in &tbl.assignments {
-                rows.push(Row::Data(vec![
+                rows.push(Row::Data(VecDeque::from([
                     Cell::Left(assign.assignment_short.clone()),
                     Cell::Left(assign.assignment.clone()),
-                ]));
+                ])));
             }
 
-            rows.push(Row::Data(vec![
+            rows.push(Row::Data(VecDeque::from([
                 Cell::Left("ka".to_string()),
                 Cell::Left("Keskiarvo".to_string()),
-            ]));
+            ])));
 
             rows.push(Row::Bottomrule);
             Table(rows).print_tbl(out, &mut stream)?;
@@ -609,15 +610,15 @@ impl PrintQuery for QueryList<GradesForGroup> {
 
 impl MakeTable for StudentRanking {
     fn table(&self) -> Table {
-        let mut rows = vec![
+        let mut rows: Vec<Row> = vec![
             Row::Toprule,
-            Row::Head(vec![
+            Row::Head(VecDeque::from([
                 Cell::Empty,
                 Cell::Left("Oppilas".to_string()),
                 Cell::Left("Ryhmät".to_string()),
                 Cell::Left("Ka".to_string()),
                 Cell::Left("Lkm".to_string()),
-            ]),
+            ])),
             Row::Midrule,
         ];
 
@@ -646,7 +647,7 @@ impl MakeTable for StudentRanking {
 
         let mut average_last = 0.0;
         for (n, student) in (1..).zip(list) {
-            rows.push(Row::Data(vec![
+            rows.push(Row::Data(VecDeque::from([
                 if student.2 == average_last {
                     Cell::Empty
                 } else {
@@ -656,12 +657,12 @@ impl MakeTable for StudentRanking {
                 Cell::Multi(column_lines(student.1.split_whitespace(), GROUPS_WIDTH)),
                 Cell::Right(tools::format_decimal(student.2)),
                 Cell::Right(student.3.to_string()),
-            ]));
+            ])));
             average_last = student.2;
         }
 
         rows.push(Row::Midrule);
-        rows.push(Row::Foot(vec![
+        rows.push(Row::Foot(VecDeque::from([
             Cell::Empty,
             Cell::Left("Keskiarvo".to_string()),
             Cell::Empty,
@@ -671,7 +672,7 @@ impl MakeTable for StudentRanking {
                 Cell::Empty
             },
             Cell::Empty,
-        ]));
+        ])));
         rows.push(Row::Bottomrule);
 
         Table(rows)
@@ -690,11 +691,11 @@ impl MakeTable for GradeDistribution {
 
         let mut rows = vec![
             Row::Toprule,
-            Row::Head(vec![
+            Row::Head(VecDeque::from([
                 Cell::Left("As".to_string()),
                 Cell::Left("Lkm".to_string()),
                 Cell::Empty,
-            ]),
+            ])),
             Row::Midrule,
         ];
 
@@ -725,17 +726,17 @@ impl MakeTable for GradeDistribution {
                     * f64::from(BAR_WIDTH))
                 .round() as usize;
 
-                rows.push(Row::Data(vec![
+                rows.push(Row::Data(VecDeque::from([
                     Cell::Left(grade.to_string()),
                     Cell::Right(count.to_string()),
                     Cell::RepeatBox(char_count),
-                ]));
+                ])));
             } else {
-                rows.push(Row::Data(vec![
+                rows.push(Row::Data(VecDeque::from([
                     Cell::Left(grade.to_string()),
                     Cell::Right("0".to_string()),
                     Cell::Empty,
-                ]));
+                ])));
             }
         }
 
@@ -1066,33 +1067,33 @@ mod tests {
     fn row_widths() {
         assert_eq!(
             vec![5, 4, 3],
-            Row::Data(vec![
+            Row::Data(VecDeque::from([
                 Cell::Left("12345".to_string()),
                 Cell::Left("1234".to_string()),
                 Cell::Right("123".to_string())
-            ])
+            ]))
             .widths()
             .unwrap()
         );
 
         assert_eq!(
             vec![5, 4, 3],
-            Row::Data(vec![
+            Row::Data(VecDeque::from([
                 Cell::Left("€€€€€".to_string()),
                 Cell::Left("€€€€".to_string()),
                 Cell::Right("€€€".to_string())
-            ])
+            ]))
             .widths()
             .unwrap()
         );
 
         assert_eq!(
             vec![4],
-            Row::Data(vec![Cell::Multi(vec![
+            Row::Data(VecDeque::from([Cell::Multi(vec![
                 "1".to_string(),
                 "1234".to_string(),
                 "12".to_string(),
-            ]),])
+            ]),]))
             .widths()
             .unwrap()
         );
@@ -1102,21 +1103,21 @@ mod tests {
     fn table_widths() {
         let table = Table(vec![
             Row::Toprule,
-            Row::Head(vec![
+            Row::Head(VecDeque::from([
                 Cell::Left("12".to_string()),
                 Cell::Left("1".to_string()),
                 Cell::Right("1234".to_string()),
-            ]),
-            Row::Data(vec![
+            ])),
+            Row::Data(VecDeque::from([
                 Cell::Left("€".to_string()),
                 Cell::Left("€€".to_string()),
                 Cell::Right("€€€".to_string()),
-            ]),
-            Row::Data(vec![
+            ])),
+            Row::Data(VecDeque::from([
                 Cell::Left("€".to_string()),
                 Cell::Left("€€€".to_string()),
                 Cell::Right("€€€€".to_string()),
-            ]),
+            ])),
         ]);
 
         assert_eq!(vec![2, 3, 4], table.widths());
