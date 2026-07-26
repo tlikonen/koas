@@ -245,7 +245,7 @@ impl MakeTable for QueryList<Student> {
 
         for student in self.iter() {
             rows.push(Row::Data(vec![
-                Cell::Left(student.lastname.clone()),
+                Cell::Left(student.lastname.to_string()),
                 Cell::Left(student.firstname.clone()),
                 Cell::Multi(line_split(&student.groups, GROUPS_WIDTH)),
                 Cell::Multi(line_split(&student.description, DESC_WIDTH)),

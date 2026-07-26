@@ -1,9 +1,9 @@
 use super::*;
 
-#[derive(Default, Clone)]
+#[derive(Default)]
 pub struct Student {
     pub(super) oid: i32,
-    pub lastname: String,
+    pub lastname: Lastname,
     pub firstname: String,
     pub groups: String,
     pub description: String,
@@ -12,7 +12,7 @@ pub struct Student {
 pub type UpdateStudent<'a> = Update<'a, Student, UpdateStudentOp>;
 
 pub enum UpdateStudentOp {
-    Lastname(String),
+    Lastname(Lastname),
     Firstname(String),
     GroupAdd(String),
     GroupRemove(String),
@@ -22,11 +22,14 @@ pub enum UpdateStudentOp {
 }
 
 pub struct InsertStudent {
-    pub(super) lastname: String,
+    pub(super) lastname: Lastname,
     pub(super) firstname: String,
     pub(super) groups: Vec<String>,
     pub(super) description: String,
 }
+
+#[derive(Default)]
+pub struct Lastname(String);
 
 impl Student {
     /// Query for students.
@@ -56,7 +59,7 @@ impl Student {
         while let Some(row) = rows.try_next().await? {
             list.push(Self {
                 oid: row.try_get("oid")?,
-                lastname: row.try_get("sukunimi")?,
+                lastname: Lastname::from_unchecked(row.try_get("sukunimi")?),
                 firstname: row.try_get("etunimi")?,
                 groups: row.try_get("ryhmat")?,
                 description: row.try_get("olt")?,
@@ -70,17 +73,16 @@ impl Student {
     ///
     /// See [`Commit`] trait for more information.
     pub fn insert<'a>(
-        lastname: &str,
+        lastname: Lastname,
         firstname: &str,
         groups: impl IntoIterator<Item = &'a str>,
         description: &str,
     ) -> Result<InsertStudent> {
-        let lastname = lastname.normalize(); // sukunimi
         let firstname = firstname.normalize(); // etunimi
         let groups: Vec<String> = groups.into_iter().filter_map(|x| x.normalize()).collect(); // ryhmät
         let description = description.normalize(); // lisätiedot
 
-        if lastname.is_none() || firstname.is_none() || groups.is_empty() {
+        if firstname.is_none() || groups.is_empty() {
             return Err(Error::from(
                 "Pitää antaa vähintään sukunimi, etunimi ja ryhmä.",
             ));
@@ -88,11 +90,9 @@ impl Student {
 
         tools::assert_group_names(&groups)?;
 
-        if let Some(last) = lastname
-            && let Some(first) = firstname
-        {
+        if let Some(first) = firstname {
             Ok(InsertStudent {
-                lastname: last,
+                lastname,
                 firstname: first,
                 groups,
                 description: description.unwrap_or_default(),
@@ -105,11 +105,8 @@ impl Student {
     /// Prepare update for student's lastname.
     ///
     /// See [`Commit`] trait for more information.
-    pub fn set_lastname<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
-        match name.normalize() {
-            None => Err(Error::from(format!("Sopimaton sukunimi: ”{name}”."))),
-            Some(n) => Ok(Update::new(self, UpdateStudentOp::Lastname(n))),
-        }
+    pub fn set_lastname<'a>(&'a self, name: Lastname) -> UpdateStudent<'a> {
+        Update::new(self, UpdateStudentOp::Lastname(name))
     }
 
     /// Prepare update for student's firstname.
@@ -172,6 +169,10 @@ impl Student {
         Update::new(self, UpdateStudentOp::Delete)
     }
 
+    fn fullname(&self) -> String {
+        format!("{}, {}", self.lastname.as_str(), self.firstname)
+    }
+
     async fn in_group(&self, db: &mut DBase, rid: i32) -> Result<bool> {
         let result = sqlx::query("SELECT 1 FROM oppilaat_ryhmat WHERE oid = $1 AND rid = $2")
             .bind(self.oid)
@@ -209,9 +210,9 @@ impl Student {
         Ok(count <= 1)
     }
 
-    async fn update_lastname(&self, db: &mut DBase, lastname: &str) -> Result<()> {
+    async fn update_lastname(&self, db: &mut DBase, lastname: &Lastname) -> Result<()> {
         sqlx::query("UPDATE oppilaat SET sukunimi = $1 WHERE oid = $2")
-            .bind(lastname)
+            .bind(lastname.as_str())
             .bind(self.oid)
             .execute(db)
             .await?;
@@ -264,7 +265,7 @@ impl Student {
             "INSERT INTO oppilaat (sukunimi, etunimi, lisatiedot) \
              VALUES ($1, $2, $3) RETURNING oid",
         )
-        .bind(&self.lastname)
+        .bind(self.lastname.as_str())
         .bind(&self.firstname)
         .bind(&self.description)
         .fetch_one(db)
@@ -286,6 +287,32 @@ impl Student {
 impl HasData for QueryList<Student> {
     fn is_empty(&self) -> bool {
         self.list_is_empty()
+    }
+}
+
+impl Lastname {
+    fn from_unchecked(s: &str) -> Self {
+        Self(s.to_string())
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl TryFrom<&str> for Lastname {
+    type Error = Error;
+    fn try_from(value: &str) -> Result<Self> {
+        match value.normalize() {
+            Some(v) => Ok(Self(v)),
+            None => Err(Error::InvalidLastname(value.to_string())),
+        }
+    }
+}
+
+impl fmt::Display for Lastname {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_str())
     }
 }
 
@@ -358,9 +385,8 @@ impl Commit for UpdateStudent<'_> {
                 let count = student.count_grades(&mut ta).await?;
                 if count > 0 {
                     return Err(Error::from(format!(
-                        "Oppilaalle ”{l}, {f}” on kirjattu {c} arvosana(a). Poista ne ensin.",
-                        l = student.lastname,
-                        f = student.firstname,
+                        "Oppilaalle ”{o}” on kirjattu {c} arvosana(a). Poista ne ensin.",
+                        o = student.fullname(),
                         c = count
                     )));
                 }
@@ -380,7 +406,7 @@ impl Commit for InsertStudent {
         let mut ta = db.begin().await?;
 
         let mut student = Student {
-            lastname: self.lastname.clone(),
+            lastname: self.lastname,
             firstname: self.firstname.clone(),
             description: self.description.clone(),
             ..Student::default()

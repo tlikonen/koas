@@ -35,7 +35,7 @@ pub(super) async fn edit_students(
 
     for student in &students {
         if let Some(name) = lastname {
-            student.set_lastname(name)?.queue(&mut updates);
+            student.set_lastname(name.try_into()?).queue(&mut updates);
         }
 
         if let Some(name) = firstname {
@@ -309,7 +309,7 @@ pub(super) async fn edit_student_series(
             1 => {
                 // sukunimi
                 if value.has_content() {
-                    student.set_lastname(value)?.queue(&mut updates);
+                    student.set_lastname(value.try_into()?).queue(&mut updates);
                 }
             }
 

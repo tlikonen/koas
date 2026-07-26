@@ -490,7 +490,7 @@ async fn commands(
             editable.clear();
 
             let mut fields = tools::split_sep(args);
-            let lastname = fields.next().unwrap_or(""); // sukunimi
+            let lastname: Lastname = fields.next().unwrap_or("").try_into()?; // sukunimi
             let firstname = fields.next().unwrap_or(""); // etunimi
             let groups = fields.next().unwrap_or("").split_whitespace(); // ryhmät
             let desc = fields.next().unwrap_or(""); // lisätiedot

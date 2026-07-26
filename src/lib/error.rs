@@ -19,6 +19,7 @@ pub enum Error {
     GroupName(String),
     OldDatabase(OldDb),
     OldProgram,
+    InvalidLastname(String),
 }
 
 impl Error {
@@ -48,6 +49,7 @@ impl fmt::Display for Error {
                 f,
                 "Ohjelman versio on vanhentunut, ja tietokanta vaatii uudemman."
             ),
+            Self::InvalidLastname(s) => write!(f, "Sopimaton sukunimi ”{s}”."),
         }
     }
 }

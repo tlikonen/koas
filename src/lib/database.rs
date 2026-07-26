@@ -59,6 +59,7 @@ use crate::tools::StrExt;
 use futures::TryStreamExt;
 use sqlx::Row as _;
 use std::collections::VecDeque;
+use std::fmt;
 use std::io;
 use std::io::Write as _;
 
