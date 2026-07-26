@@ -2,14 +2,12 @@ use super::*;
 
 pub struct Group {
     pub(super) rid: i32,
-    pub name: GroupName,
+    pub name: String,
     pub description: String,
 }
 
-#[derive(Default)]
 pub struct GroupNames(Vec<GroupName>);
 
-#[allow(unused)]
 pub struct GroupName(String);
 
 pub type UpdateGroup<'a> = Update<'a, Group, UpdateGroupOp>;
@@ -40,10 +38,7 @@ impl Group {
         while let Some(row) = rows.try_next().await? {
             list.push(Self {
                 rid: row.try_get("rid")?,
-                name: {
-                    let n: &str = row.try_get("nimi")?;
-                    GroupName::from_unchecked(n)
-                },
+                name: row.try_get("nimi")?,
                 description: row.try_get("lisatiedot")?,
             });
         }
@@ -142,16 +137,12 @@ impl HasData for QueryList<Group> {
 }
 
 impl GroupName {
-    pub(super) fn as_str(&self) -> &str {
+    pub fn as_str(&self) -> &str {
         &self.0
     }
 
     fn is_valid(name: &str) -> bool {
         !name.has_whitespace() && name.has_content()
-    }
-
-    fn from_unchecked(name: &str) -> Self {
-        Self(name.to_string())
     }
 }
 
@@ -175,15 +166,7 @@ impl fmt::Display for GroupName {
 }
 
 impl GroupNames {
-    pub(super) fn from_unchecked<'a, I>(its: I) -> Self
-    where
-        I: IntoIterator<Item = &'a str>,
-    {
-        let groups: Vec<GroupName> = its.into_iter().map(GroupName::from_unchecked).collect();
-        Self(groups)
-    }
-
-    pub(super) fn iter(&self) -> impl Iterator<Item = &GroupName> {
+    pub fn iter(&self) -> impl Iterator<Item = &GroupName> {
         self.0.iter()
     }
 }
@@ -217,18 +200,6 @@ impl TryFrom<&Vec<String>> for GroupNames {
         } else {
             Ok(Self(v))
         }
-    }
-}
-
-impl fmt::Display for GroupNames {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for (n, group) in self.iter().enumerate() {
-            if n > 0 {
-                write!(f, " ")?
-            }
-            write!(f, "{group}")?
-        }
-        Ok(())
     }
 }
 

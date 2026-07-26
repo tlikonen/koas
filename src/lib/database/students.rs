@@ -3,9 +3,9 @@ use super::*;
 #[derive(Default)]
 pub struct Student {
     pub(super) oid: i32,
-    pub lastname: Lastname,
-    pub firstname: Firstname,
-    pub groups: GroupNames,
+    pub lastname: String,
+    pub firstname: String,
+    pub groups: Vec<String>,
     pub description: String,
 }
 
@@ -62,11 +62,11 @@ impl Student {
         while let Some(row) = rows.try_next().await? {
             list.push(Self {
                 oid: row.try_get("oid")?,
-                lastname: Lastname::from_unchecked(row.try_get("sukunimi")?),
-                firstname: Firstname::from_unchecked(row.try_get("etunimi")?),
+                lastname: row.try_get("sukunimi")?,
+                firstname: row.try_get("etunimi")?,
                 groups: {
                     let s: &str = row.try_get("ryhmat")?;
-                    GroupNames::from_unchecked(s.split_whitespace())
+                    s.split_whitespace().map(|x| x.to_string()).collect()
                 },
                 description: row.try_get("olt")?,
             });
@@ -237,18 +237,33 @@ impl Student {
         Ok(count)
     }
 
-    async fn insert_db(&mut self, db: &mut DBase) -> Result<()> {
+    async fn insert_db(
+        db: &mut DBase,
+        lastname: Lastname,
+        firstname: Firstname,
+        groups: GroupNames,
+        description: String,
+    ) -> Result<()> {
         let row = sqlx::query(
             "INSERT INTO oppilaat (sukunimi, etunimi, lisatiedot) \
              VALUES ($1, $2, $3) RETURNING oid",
         )
-        .bind(self.lastname.as_str())
-        .bind(self.firstname.as_str())
-        .bind(&self.description)
-        .fetch_one(db)
+        .bind(lastname.as_str())
+        .bind(firstname.as_str())
+        .bind(&description)
+        .fetch_one(&mut *db)
         .await?;
 
-        self.oid = row.try_get("oid")?;
+        let student = Student {
+            oid: row.try_get("oid")?,
+            ..Student::default()
+        };
+
+        for group in groups.iter() {
+            let rid = Group::get_or_insert(&mut *db, group.as_str()).await?;
+            student.add_to_group(&mut *db, rid).await?;
+        }
+
         Ok(())
     }
 
@@ -268,10 +283,6 @@ impl HasData for QueryList<Student> {
 }
 
 impl Lastname {
-    fn from_unchecked(s: &str) -> Self {
-        Self(s.to_string())
-    }
-
     pub fn as_str(&self) -> &str {
         &self.0
     }
@@ -294,10 +305,6 @@ impl fmt::Display for Lastname {
 }
 
 impl Firstname {
-    fn from_unchecked(s: &str) -> Self {
-        Self(s.to_string())
-    }
-
     pub fn as_str(&self) -> &str {
         &self.0
     }
@@ -411,19 +418,14 @@ impl Commit for InsertStudent {
     async fn commit(self, db: &mut DBase) -> Result<()> {
         let mut ta = db.begin().await?;
 
-        let mut student = Student {
-            lastname: self.lastname,
-            firstname: self.firstname,
-            description: self.description.clone(),
-            ..Student::default()
-        };
-
-        student.insert_db(&mut ta).await?;
-
-        for group in self.groups.iter() {
-            let rid = Group::get_or_insert(&mut ta, group.as_str()).await?;
-            student.add_to_group(&mut ta, rid).await?;
-        }
+        Student::insert_db(
+            &mut ta,
+            self.lastname,
+            self.firstname,
+            self.groups,
+            self.description,
+        )
+        .await?;
 
         ta.commit().await?;
         Ok(())

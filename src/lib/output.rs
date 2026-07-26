@@ -247,7 +247,7 @@ impl MakeTable for QueryList<Student> {
             rows.push(Row::Data(vec![
                 Cell::Left(student.lastname.to_string()),
                 Cell::Left(student.firstname.to_string()),
-                Cell::Multi(line_split(&student.groups.to_string(), GROUPS_WIDTH)),
+                Cell::Multi(line_split(&student.groups.join(" "), GROUPS_WIDTH)),
                 Cell::Multi(line_split(&student.description, DESC_WIDTH)),
             ]));
         }
