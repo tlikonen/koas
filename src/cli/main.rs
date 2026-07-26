@@ -505,29 +505,17 @@ async fn commands(
             editable.clear();
 
             let mut fields = tools::split_sep(args);
-            let groups = fields.next().unwrap_or(""); // ryhmät
+            let groups: GroupNames = fields.next().unwrap_or("").try_into()?; // ryhmät
             let assignment = fields.next().unwrap_or(""); // suoritus
             let assignment_short = fields.next().unwrap_or(""); // lyhenne
             let weight = fields.next(); // painokerroin
             let position = fields.next(); // sija
             is_too_much_fields(fields, 5)?;
 
-            if !groups.has_content() {
-                return Err(Error::from(
-                    "Pitää antaa vähintään ryhmä, suorituksen nimi ja lyhenne.",
-                ));
-            }
-
             let mut updates = Queue::default();
-            for group in groups.split_whitespace() {
-                Assignment::insert(
-                    group.try_into()?,
-                    assignment,
-                    assignment_short,
-                    weight,
-                    position,
-                )?
-                .queue(&mut updates);
+            for group in groups {
+                Assignment::insert(group, assignment, assignment_short, weight, position)?
+                    .queue(&mut updates);
             }
             updates.commit(db).await?;
         }

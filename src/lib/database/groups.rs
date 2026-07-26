@@ -171,6 +171,22 @@ impl GroupNames {
     }
 }
 
+impl<'a> IntoIterator for &'a GroupNames {
+    type Item = &'a GroupName;
+    type IntoIter = std::slice::Iter<'a, GroupName>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.iter()
+    }
+}
+
+impl IntoIterator for GroupNames {
+    type Item = GroupName;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
 impl TryFrom<&str> for GroupNames {
     type Error = Error;
     fn try_from(value: &str) -> Result<Self> {

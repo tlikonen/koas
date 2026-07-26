@@ -259,7 +259,7 @@ impl Student {
             ..Student::default()
         };
 
-        for group in groups.iter() {
+        for group in &groups {
             let rid = Group::get_or_insert(&mut *db, group).await?;
             student.add_to_group(&mut *db, rid).await?;
         }
@@ -349,7 +349,7 @@ impl Commit for UpdateStudent<'_> {
             UpdateStudentOp::Firstname(first) => student.update_firstname(&mut ta, first).await?,
 
             UpdateStudentOp::GroupsAdd(groups) => {
-                for name in groups.iter() {
+                for name in groups {
                     let rid = Group::get_or_insert(&mut ta, name).await?;
                     if !student.in_group(&mut ta, rid).await? {
                         student.add_to_group(&mut ta, rid).await?;
@@ -358,7 +358,7 @@ impl Commit for UpdateStudent<'_> {
             }
 
             UpdateStudentOp::GroupsRemove(groups) => {
-                for name in groups.iter() {
+                for name in groups {
                     let Some(rid) = Group::get_id(&mut ta, name).await? else {
                         continue; // No such group.
                     };
