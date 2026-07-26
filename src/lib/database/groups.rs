@@ -1,9 +1,8 @@
 use super::*;
 
-#[derive(Clone)]
 pub struct Group {
     pub(super) rid: i32,
-    pub name: String,
+    pub name: GroupName,
     pub description: String,
 }
 
@@ -16,7 +15,7 @@ pub struct GroupName(String);
 pub type UpdateGroup<'a> = Update<'a, Group, UpdateGroupOp>;
 
 pub enum UpdateGroupOp {
-    Name(String),
+    Name(GroupName),
     Description(String),
     DescriptionClear,
 }
@@ -41,7 +40,10 @@ impl Group {
         while let Some(row) = rows.try_next().await? {
             list.push(Self {
                 rid: row.try_get("rid")?,
-                name: row.try_get("nimi")?,
+                name: {
+                    let n: &str = row.try_get("nimi")?;
+                    GroupName::from_unchecked(n)
+                },
                 description: row.try_get("lisatiedot")?,
             });
         }
@@ -52,14 +54,8 @@ impl Group {
     /// Prepare update for group's name.
     ///
     /// See [`Commit`] trait for more information.
-    pub fn set_name<'a>(&'a self, name: &str) -> Result<UpdateGroup<'a>> {
-        match name.normalize() {
-            None => Err(Error::from(format!("Sopimaton ryhmän nimi: ”{name}”."))),
-            Some(n) => {
-                n.is_valid_group_name()?;
-                Ok(Update::new(self, UpdateGroupOp::Name(n)))
-            }
-        }
+    pub fn set_name<'a>(&'a self, name: GroupName) -> UpdateGroup<'a> {
+        Update::new(self, UpdateGroupOp::Name(name))
     }
 
     /// Prepare update for group's description.
@@ -107,9 +103,9 @@ impl Group {
         }
     }
 
-    async fn update_name(&self, db: &mut DBase, name: &str) -> Result<()> {
+    async fn update_name(&self, db: &mut DBase, name: &GroupName) -> Result<()> {
         sqlx::query("UPDATE ryhmat SET nimi = $1 WHERE rid = $2")
-            .bind(name)
+            .bind(name.as_str())
             .bind(self.rid)
             .execute(db)
             .await?;
@@ -153,6 +149,10 @@ impl GroupName {
     fn is_valid(name: &str) -> bool {
         !name.has_whitespace() && name.has_content()
     }
+
+    fn from_unchecked(name: &str) -> Self {
+        Self(name.to_string())
+    }
 }
 
 impl TryFrom<&str> for GroupName {
@@ -168,13 +168,18 @@ impl TryFrom<&str> for GroupName {
     }
 }
 
+impl fmt::Display for GroupName {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
+}
+
 impl GroupNames {
-    pub(super) fn from_unchecked<I>(its: I) -> Self
+    pub(super) fn from_unchecked<'a, I>(its: I) -> Self
     where
-        I: IntoIterator,
-        I::Item: ToString,
+        I: IntoIterator<Item = &'a str>,
     {
-        let groups: Vec<GroupName> = its.into_iter().map(|x| GroupName(x.to_string())).collect();
+        let groups: Vec<GroupName> = its.into_iter().map(GroupName::from_unchecked).collect();
         Self(groups)
     }
 

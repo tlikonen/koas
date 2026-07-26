@@ -112,7 +112,7 @@ pub(super) async fn edit_groups(
 
     for group in &groups {
         if let Some(n) = name {
-            group.set_name(n)?.queue(&mut updates);
+            group.set_name(n.try_into()?).queue(&mut updates);
         }
 
         if let Some(desc) = description {
@@ -379,7 +379,7 @@ pub(super) async fn edit_group_series(
             1 => {
                 // ryhmä
                 if value.has_content() {
-                    group.set_name(value)?.queue(&mut updates);
+                    group.set_name(value.try_into()?).queue(&mut updates);
                 }
             }
 

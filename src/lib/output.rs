@@ -272,7 +272,7 @@ impl MakeTable for QueryList<Group> {
 
         for group in self.iter() {
             rows.push(Row::Data(vec![
-                Cell::Left(group.name.clone()),
+                Cell::Left(group.name.to_string()),
                 Cell::Multi(line_split(&group.description, DESCRIPTION_WIDTH)),
             ]));
         }
