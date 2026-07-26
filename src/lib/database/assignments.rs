@@ -27,7 +27,7 @@ pub enum UpdateAssignmentOp {
 }
 
 pub struct InsertAssignment {
-    pub(super) group: String,
+    pub(super) group: GroupName,
     pub(super) assignment: String,
     pub(super) assignment_short: String,
     pub(super) weight: Option<i32>,
@@ -48,19 +48,18 @@ impl Assignment {
     ///
     /// See [`Commit`] trait for more information.
     pub fn insert(
-        group: &str,
+        group: GroupName,
         assignment: &str,
         assignment_short: &str,
         weight: Option<&str>,
         position: Option<&str>,
     ) -> Result<InsertAssignment> {
-        let group = group.normalize(); // ryhmä
         let assignment = assignment.normalize(); // suoritus
         let assignment_short = assignment_short.normalize(); // lyhenne
         let weight = weight.filter(|x| x.has_content()); // painokerroin
         let position = position.filter(|x| x.has_content()); // sija
 
-        if group.is_none() || assignment.is_none() || assignment_short.is_none() {
+        if assignment.is_none() || assignment_short.is_none() {
             return Err(Error::from(
                 "Pitää antaa vähintään ryhmä, suorituksen nimi ja lyhenne.",
             ));
@@ -88,13 +87,11 @@ impl Assignment {
             None => None,
         };
 
-        if let Some(gr) = group
-            && let Some(long) = assignment
+        if let Some(long) = assignment
             && let Some(short) = assignment_short
         {
-            gr.is_valid_group_name()?;
             Ok(InsertAssignment {
-                group: gr,
+                group,
                 assignment: long,
                 assignment_short: short,
                 weight,

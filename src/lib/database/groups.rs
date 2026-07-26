@@ -70,12 +70,12 @@ impl Group {
         Update::new(self, UpdateGroupOp::DescriptionClear)
     }
 
-    pub(super) async fn get_or_insert(db: &mut DBase, name: &str) -> Result<i32> {
+    pub(super) async fn get_or_insert(db: &mut DBase, name: &GroupName) -> Result<i32> {
         match Self::get_id(db, name).await? {
             Some(rid) => Ok(rid),
             None => {
                 let row = sqlx::query("INSERT INTO ryhmat (nimi) VALUES ($1) RETURNING rid")
-                    .bind(name)
+                    .bind(name.as_str())
                     .fetch_one(db)
                     .await?;
                 let rid: i32 = row.try_get("rid")?;
@@ -84,9 +84,9 @@ impl Group {
         }
     }
 
-    pub(super) async fn get_id(db: &mut DBase, name: &str) -> Result<Option<i32>> {
+    pub(super) async fn get_id(db: &mut DBase, name: &GroupName) -> Result<Option<i32>> {
         match sqlx::query("SELECT rid FROM ryhmat WHERE nimi = $1")
-            .bind(name)
+            .bind(name.as_str())
             .fetch_optional(db)
             .await?
         {

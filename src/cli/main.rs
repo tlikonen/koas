@@ -520,8 +520,14 @@ async fn commands(
 
             let mut updates = Queue::default();
             for group in groups.split_whitespace() {
-                Assignment::insert(group, assignment, assignment_short, weight, position)?
-                    .queue(&mut updates);
+                Assignment::insert(
+                    group.try_into()?,
+                    assignment,
+                    assignment_short,
+                    weight,
+                    position,
+                )?
+                .queue(&mut updates);
             }
             updates.commit(db).await?;
         }
