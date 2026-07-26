@@ -245,10 +245,13 @@ impl MakeTable for QueryList<Student> {
 
         for student in self.iter() {
             rows.push(Row::Data(vec![
-                Cell::Left(student.lastname.to_string()),
-                Cell::Left(student.firstname.to_string()),
-                Cell::Multi(line_split(&student.groups.join(" "), GROUPS_WIDTH)),
-                Cell::Multi(line_split(&student.description, DESC_WIDTH)),
+                Cell::Left(student.lastname().to_string()),
+                Cell::Left(student.firstname().to_string()),
+                Cell::Multi(column_lines(student.groups(), GROUPS_WIDTH)),
+                Cell::Multi(column_lines(
+                    student.description().split_whitespace(),
+                    DESC_WIDTH,
+                )),
             ]));
         }
 
@@ -273,7 +276,10 @@ impl MakeTable for QueryList<Group> {
         for group in self.iter() {
             rows.push(Row::Data(vec![
                 Cell::Left(group.name.to_string()),
-                Cell::Multi(line_split(&group.description, DESCRIPTION_WIDTH)),
+                Cell::Multi(column_lines(
+                    group.description.split_whitespace(),
+                    DESCRIPTION_WIDTH,
+                )),
             ]));
         }
 
@@ -354,7 +360,7 @@ impl MakeTable for GradesForAssignment {
                     None => Cell::Empty,
                 },
                 match &grade.grade_description {
-                    Some(s) => Cell::Multi(line_split(s, DESC_WIDTH)),
+                    Some(s) => Cell::Multi(column_lines(s.split_whitespace(), DESC_WIDTH)),
                     None => Cell::Empty,
                 },
             ]));
@@ -432,7 +438,7 @@ impl MakeTable for GradesForStudent {
                     None => Cell::Empty,
                 },
                 match &grade.grade_description {
-                    Some(s) => Cell::Multi(line_split(s, DESC_WIDTH)),
+                    Some(s) => Cell::Multi(column_lines(s.split_whitespace(), DESC_WIDTH)),
                     None => Cell::Empty,
                 },
             ]));
@@ -647,7 +653,7 @@ impl MakeTable for StudentRanking {
                     Cell::Right(format!("{}.", n))
                 },
                 Cell::Left(student.0.clone()),
-                Cell::Multi(line_split(&student.1, GROUPS_WIDTH)),
+                Cell::Multi(column_lines(student.1.split_whitespace(), GROUPS_WIDTH)),
                 Cell::Right(tools::format_decimal(student.2)),
                 Cell::Right(student.3.to_string()),
             ]));
@@ -1027,11 +1033,14 @@ fn print_table_latex(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
     Ok(())
 }
 
-fn line_split(s: &str, max: usize) -> Vec<String> {
+fn column_lines<'a, I>(its: I, max: usize) -> Vec<String>
+where
+    I: IntoIterator<Item = &'a str>,
+{
     let mut lines = Vec::with_capacity(20);
     let mut line = String::with_capacity(60);
 
-    for word in s.split_whitespace() {
+    for word in its.into_iter() {
         if line.is_empty() {
             line.push_str(word);
         } else if line.chars().count() + word.chars().count() < max {
@@ -1125,18 +1134,20 @@ mod tests {
     }
 
     #[test]
-    fn line_split_fn() {
+    fn column_lines_fn() {
+        fn test(s: &str, max: usize) -> Vec<String> {
+            column_lines(s.split_whitespace(), max)
+        }
+
         for i in 0..8 {
-            assert_eq!(
-                vec!["€ka", "tøka", "kølmas"],
-                line_split("€ka tøka kølmas", i)
-            );
+            assert_eq!(vec!["€ka", "tøka", "kølmas"], test("€ka tøka kølmas", i));
         }
 
         for i in 8..15 {
-            assert_eq!(vec!["€ka tøka", "kølmas"], line_split("€ka tøka kølmas", i));
+            assert_eq!(vec!["€ka tøka", "kølmas"], test("€ka tøka kølmas", i));
         }
-        assert_eq!(vec!["€ka tøka kølmas"], line_split("€ka tøka kølmas", 15));
-        assert_eq!(vec![""], line_split("", 15));
+
+        assert_eq!(vec!["€ka tøka kølmas"], test("€ka tøka kølmas", 15));
+        assert_eq!(vec![""], test("", 15));
     }
 }

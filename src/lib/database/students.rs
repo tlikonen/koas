@@ -3,10 +3,10 @@ use super::*;
 #[derive(Default)]
 pub struct Student {
     pub(super) oid: i32,
-    pub lastname: String,
-    pub firstname: String,
-    pub groups: Vec<String>,
-    pub description: String,
+    lastname: String,
+    firstname: String,
+    groups: Vec<String>,
+    description: String,
 }
 
 pub type UpdateStudent<'a> = Update<'a, Student, UpdateStudentOp>;
@@ -92,6 +92,26 @@ impl Student {
             groups,
             description: description.unwrap_or_default(),
         })
+    }
+
+    /// Return student's lastname.
+    pub fn lastname(&self) -> &str {
+        &self.lastname
+    }
+
+    /// Return student's firstname.
+    pub fn firstname(&self) -> &str {
+        &self.firstname
+    }
+
+    /// Return iterator over student's group names.
+    pub fn groups(&self) -> impl Iterator<Item = &str> {
+        self.groups.iter().map(|s| s.as_str())
+    }
+
+    /// Return student's description.
+    pub fn description(&self) -> &str {
+        &self.description
     }
 
     /// Prepare update for student's lastname.
