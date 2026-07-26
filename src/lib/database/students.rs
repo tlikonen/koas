@@ -34,9 +34,6 @@ pub struct Lastname(String);
 #[derive(Default)]
 pub struct Firstname(String);
 
-#[derive(Default)]
-pub struct GroupNames(Vec<String>);
-
 impl Student {
     /// Query for students.
     pub async fn query(
@@ -319,80 +316,6 @@ impl TryFrom<&str> for Firstname {
 impl fmt::Display for Firstname {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.as_str())
-    }
-}
-
-impl GroupNames {
-    fn from_unchecked<I>(its: I) -> Self
-    where
-        I: IntoIterator,
-        I::Item: ToString,
-    {
-        let groups: Vec<String> = its.into_iter().map(|x| x.to_string()).collect();
-        Self(groups)
-    }
-
-    fn iter(&self) -> impl Iterator<Item = &String> {
-        self.0.iter()
-    }
-
-    fn is_valid_name(name: &str) -> bool {
-        !name.has_whitespace() && name.has_content()
-    }
-
-    fn push_if_valid(v: &mut Vec<String>, group: &str) -> Result<()> {
-        if let Some(g) = group.normalize()
-            && Self::is_valid_name(&g)
-        {
-            v.push(g);
-        } else {
-            return Err(Error::InvalidGroupname(group.to_string()));
-        }
-        Ok(())
-    }
-}
-
-impl TryFrom<&str> for GroupNames {
-    type Error = Error;
-    fn try_from(value: &str) -> Result<Self> {
-        let mut v = Vec::new();
-        for group in value.split_whitespace() {
-            GroupNames::push_if_valid(&mut v, group)?;
-        }
-
-        if v.is_empty() {
-            Err(Error::InvalidGroupname(value.to_string()))
-        } else {
-            Ok(Self(v))
-        }
-    }
-}
-
-impl TryFrom<&Vec<String>> for GroupNames {
-    type Error = Error;
-    fn try_from(groups: &Vec<String>) -> Result<Self> {
-        let mut v = Vec::new();
-        for group in groups {
-            GroupNames::push_if_valid(&mut v, group)?;
-        }
-
-        if v.is_empty() {
-            Err(Error::InvalidGroupname("".to_string()))
-        } else {
-            Ok(Self(v))
-        }
-    }
-}
-
-impl fmt::Display for GroupNames {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for (n, group) in self.iter().enumerate() {
-            if n > 0 {
-                write!(f, " ")?
-            }
-            write!(f, "{group}")?
-        }
-        Ok(())
     }
 }
 

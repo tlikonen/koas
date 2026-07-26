@@ -7,6 +7,12 @@ pub struct Group {
     pub description: String,
 }
 
+#[derive(Default)]
+pub struct GroupNames(Vec<GroupName>);
+
+#[allow(unused)]
+pub struct GroupName(String);
+
 pub type UpdateGroup<'a> = Update<'a, Group, UpdateGroupOp>;
 
 pub enum UpdateGroupOp {
@@ -136,6 +142,88 @@ impl Group {
 impl HasData for QueryList<Group> {
     fn is_empty(&self) -> bool {
         self.list_is_empty()
+    }
+}
+
+impl GroupName {
+    fn as_str(&self) -> &str {
+        &self.0
+    }
+
+    fn is_valid(name: &str) -> bool {
+        !name.has_whitespace() && name.has_content()
+    }
+}
+
+impl TryFrom<&str> for GroupName {
+    type Error = Error;
+    fn try_from(group: &str) -> Result<Self> {
+        if let Some(g) = group.normalize()
+            && GroupName::is_valid(&g)
+        {
+            Ok(Self(g))
+        } else {
+            Err(Error::InvalidGroupname(group.to_string()))
+        }
+    }
+}
+
+impl GroupNames {
+    pub(super) fn from_unchecked<I>(its: I) -> Self
+    where
+        I: IntoIterator,
+        I::Item: ToString,
+    {
+        let groups: Vec<GroupName> = its.into_iter().map(|x| GroupName(x.to_string())).collect();
+        Self(groups)
+    }
+
+    pub(super) fn iter(&self) -> impl Iterator<Item = &str> {
+        self.0.iter().map(|g| g.as_str())
+    }
+}
+
+impl TryFrom<&str> for GroupNames {
+    type Error = Error;
+    fn try_from(value: &str) -> Result<Self> {
+        let mut v: Vec<GroupName> = Vec::new();
+        for group in value.split_whitespace() {
+            v.push(group.try_into()?);
+        }
+
+        if v.is_empty() {
+            Err(Error::InvalidGroupname(value.to_string()))
+        } else {
+            Ok(Self(v))
+        }
+    }
+}
+
+impl TryFrom<&Vec<String>> for GroupNames {
+    type Error = Error;
+    fn try_from(groups: &Vec<String>) -> Result<Self> {
+        let mut v = Vec::new();
+        for group in groups {
+            v.push(group.as_str().try_into()?);
+        }
+
+        if v.is_empty() {
+            Err(Error::InvalidGroupname("".to_string()))
+        } else {
+            Ok(Self(v))
+        }
+    }
+}
+
+impl fmt::Display for GroupNames {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for (n, group) in self.iter().enumerate() {
+            if n > 0 {
+                write!(f, " ")?
+            }
+            write!(f, "{group}")?
+        }
+        Ok(())
     }
 }
 
