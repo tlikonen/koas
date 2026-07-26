@@ -57,6 +57,7 @@ use crate::tools;
 use crate::tools::Normalize;
 use crate::tools::StrExt;
 use futures::TryStreamExt;
+use sqlx::Row as _;
 use std::collections::VecDeque;
 use std::io;
 use std::io::Write as _;
@@ -66,7 +67,6 @@ pub(crate) use self::grades::*;
 pub(crate) use self::groups::*;
 pub(crate) use self::stats::*;
 pub(crate) use self::students::*;
-pub(crate) use sqlx::Row as _;
 
 pub use self::init::OldDb;
 pub use self::init::connect;
