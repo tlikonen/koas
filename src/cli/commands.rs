@@ -39,7 +39,7 @@ pub(super) async fn edit_students(
         }
 
         if let Some(name) = firstname {
-            student.set_firstname(name)?.queue(&mut updates);
+            student.set_firstname(name.try_into()?).queue(&mut updates);
         }
 
         for name in &groups_add {
@@ -316,7 +316,7 @@ pub(super) async fn edit_student_series(
             2 => {
                 // etunimi
                 if value.has_content() {
-                    student.set_firstname(value)?.queue(&mut updates);
+                    student.set_firstname(value.try_into()?).queue(&mut updates);
                 }
             }
 

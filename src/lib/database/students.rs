@@ -4,7 +4,7 @@ use super::*;
 pub struct Student {
     pub(super) oid: i32,
     pub lastname: Lastname,
-    pub firstname: String,
+    pub firstname: Firstname,
     pub groups: String,
     pub description: String,
 }
@@ -13,7 +13,7 @@ pub type UpdateStudent<'a> = Update<'a, Student, UpdateStudentOp>;
 
 pub enum UpdateStudentOp {
     Lastname(Lastname),
-    Firstname(String),
+    Firstname(Firstname),
     GroupAdd(String),
     GroupRemove(String),
     Description(String),
@@ -23,13 +23,16 @@ pub enum UpdateStudentOp {
 
 pub struct InsertStudent {
     pub(super) lastname: Lastname,
-    pub(super) firstname: String,
+    pub(super) firstname: Firstname,
     pub(super) groups: Vec<String>,
     pub(super) description: String,
 }
 
 #[derive(Default)]
 pub struct Lastname(String);
+
+#[derive(Default)]
+pub struct Firstname(String);
 
 impl Student {
     /// Query for students.
@@ -60,7 +63,7 @@ impl Student {
             list.push(Self {
                 oid: row.try_get("oid")?,
                 lastname: Lastname::from_unchecked(row.try_get("sukunimi")?),
-                firstname: row.try_get("etunimi")?,
+                firstname: Firstname::from_unchecked(row.try_get("etunimi")?),
                 groups: row.try_get("ryhmat")?,
                 description: row.try_get("olt")?,
             });
@@ -74,15 +77,14 @@ impl Student {
     /// See [`Commit`] trait for more information.
     pub fn insert<'a>(
         lastname: Lastname,
-        firstname: &str,
+        firstname: Firstname,
         groups: impl IntoIterator<Item = &'a str>,
         description: &str,
     ) -> Result<InsertStudent> {
-        let firstname = firstname.normalize(); // etunimi
         let groups: Vec<String> = groups.into_iter().filter_map(|x| x.normalize()).collect(); // ryhmät
         let description = description.normalize(); // lisätiedot
 
-        if firstname.is_none() || groups.is_empty() {
+        if groups.is_empty() {
             return Err(Error::from(
                 "Pitää antaa vähintään sukunimi, etunimi ja ryhmä.",
             ));
@@ -90,16 +92,12 @@ impl Student {
 
         tools::assert_group_names(&groups)?;
 
-        if let Some(first) = firstname {
-            Ok(InsertStudent {
-                lastname,
-                firstname: first,
-                groups,
-                description: description.unwrap_or_default(),
-            })
-        } else {
-            Err(Error::from("Oppilaan lisääminen epäonnistui."))
-        }
+        Ok(InsertStudent {
+            lastname,
+            firstname,
+            groups,
+            description: description.unwrap_or_default(),
+        })
     }
 
     /// Prepare update for student's lastname.
@@ -112,11 +110,8 @@ impl Student {
     /// Prepare update for student's firstname.
     ///
     /// See [`Commit`] trait for more information.
-    pub fn set_firstname<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
-        match name.normalize() {
-            None => Err(Error::from(format!("Sopimaton etunimi: ”{name}”."))),
-            Some(n) => Ok(Update::new(self, UpdateStudentOp::Firstname(n))),
-        }
+    pub fn set_firstname<'a>(&'a self, name: Firstname) -> UpdateStudent<'a> {
+        Update::new(self, UpdateStudentOp::Firstname(name))
     }
 
     /// Prepare addition for student's groups.
@@ -170,7 +165,7 @@ impl Student {
     }
 
     fn fullname(&self) -> String {
-        format!("{}, {}", self.lastname.as_str(), self.firstname)
+        format!("{}, {}", self.lastname.as_str(), self.firstname.as_str())
     }
 
     async fn in_group(&self, db: &mut DBase, rid: i32) -> Result<bool> {
@@ -219,9 +214,9 @@ impl Student {
         Ok(())
     }
 
-    async fn update_firstname(&self, db: &mut DBase, firstname: &str) -> Result<()> {
+    async fn update_firstname(&self, db: &mut DBase, firstname: &Firstname) -> Result<()> {
         sqlx::query("UPDATE oppilaat SET etunimi = $1 WHERE oid = $2")
-            .bind(firstname)
+            .bind(firstname.as_str())
             .bind(self.oid)
             .execute(db)
             .await?;
@@ -266,7 +261,7 @@ impl Student {
              VALUES ($1, $2, $3) RETURNING oid",
         )
         .bind(self.lastname.as_str())
-        .bind(&self.firstname)
+        .bind(self.firstname.as_str())
         .bind(&self.description)
         .fetch_one(db)
         .await?;
@@ -311,6 +306,32 @@ impl TryFrom<&str> for Lastname {
 }
 
 impl fmt::Display for Lastname {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
+}
+
+impl Firstname {
+    fn from_unchecked(s: &str) -> Self {
+        Self(s.to_string())
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl TryFrom<&str> for Firstname {
+    type Error = Error;
+    fn try_from(value: &str) -> Result<Self> {
+        match value.normalize() {
+            Some(v) => Ok(Self(v)),
+            None => Err(Error::InvalidFirstname(value.to_string())),
+        }
+    }
+}
+
+impl fmt::Display for Firstname {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.as_str())
     }
@@ -407,7 +428,7 @@ impl Commit for InsertStudent {
 
         let mut student = Student {
             lastname: self.lastname,
-            firstname: self.firstname.clone(),
+            firstname: self.firstname,
             description: self.description.clone(),
             ..Student::default()
         };
