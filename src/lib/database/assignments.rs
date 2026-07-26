@@ -208,7 +208,7 @@ impl Assignment {
             pos = 1;
         }
 
-        let other_max: i32 = other_sids.len().try_into().unwrap();
+        let other_max: i32 = other_sids.len().try_into().unwrap_or(i32::MAX);
         if pos > other_max + 1 {
             pos = other_max + 1
         }
