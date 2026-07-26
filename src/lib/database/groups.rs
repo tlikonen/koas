@@ -142,7 +142,7 @@ impl HasData for QueryList<Group> {
 }
 
 impl GroupName {
-    fn as_str(&self) -> &str {
+    pub(super) fn as_str(&self) -> &str {
         &self.0
     }
 
@@ -183,8 +183,8 @@ impl GroupNames {
         Self(groups)
     }
 
-    pub(super) fn iter(&self) -> impl Iterator<Item = &str> {
-        self.0.iter().map(|g| g.as_str())
+    pub(super) fn iter(&self) -> impl Iterator<Item = &GroupName> {
+        self.0.iter()
     }
 }
 

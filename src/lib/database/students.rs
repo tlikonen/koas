@@ -343,7 +343,7 @@ impl Commit for UpdateStudent<'_> {
 
             UpdateStudentOp::GroupsAdd(groups) => {
                 for name in groups.iter() {
-                    let rid = Group::get_or_insert(&mut ta, name).await?;
+                    let rid = Group::get_or_insert(&mut ta, name.as_str()).await?;
                     if !student.in_group(&mut ta, rid).await? {
                         student.add_to_group(&mut ta, rid).await?;
                     }
@@ -352,7 +352,7 @@ impl Commit for UpdateStudent<'_> {
 
             UpdateStudentOp::GroupsRemove(groups) => {
                 for name in groups.iter() {
-                    let Some(rid) = Group::get_id(&mut ta, name).await? else {
+                    let Some(rid) = Group::get_id(&mut ta, name.as_str()).await? else {
                         continue; // No such group.
                     };
 
@@ -421,7 +421,7 @@ impl Commit for InsertStudent {
         student.insert_db(&mut ta).await?;
 
         for group in self.groups.iter() {
-            let rid = Group::get_or_insert(&mut ta, group).await?;
+            let rid = Group::get_or_insert(&mut ta, group.as_str()).await?;
             student.add_to_group(&mut ta, rid).await?;
         }
 
