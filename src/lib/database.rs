@@ -48,6 +48,7 @@ pub mod assignments;
 pub mod grades;
 pub mod groups;
 mod init;
+pub mod stats;
 pub mod students;
 
 use crate::config::Config;
@@ -63,6 +64,7 @@ use std::io::Write as _;
 pub(crate) use self::assignments::*;
 pub(crate) use self::grades::*;
 pub(crate) use self::groups::*;
+pub(crate) use self::stats::*;
 pub(crate) use self::students::*;
 pub(crate) use sqlx::Row as _;
 
@@ -149,35 +151,6 @@ impl<T> QueryList<T> {
 
     pub(crate) fn list_is_empty(&self) -> bool {
         self.0.is_empty()
-    }
-}
-
-pub struct Stats {
-    pub students: i64,
-    pub groups: i64,
-    pub assignments: i64,
-    pub grades: i64,
-}
-
-impl Stats {
-    /// Return statistics about the database.
-    pub async fn query(db: &mut DBase) -> Result<Self> {
-        let row = sqlx::query(
-            "SELECT \
-             (SELECT count(*) FROM oppilaat) oppilaat, \
-             (SELECT count(*) FROM ryhmat) ryhmat, \
-             (SELECT count(*) FROM suoritukset) suoritukset, \
-             (SELECT count(*) FROM arvosanat WHERE arvosana LIKE '_%' ESCAPE '\\') arvosanat",
-        )
-        .fetch_one(db)
-        .await?;
-
-        Ok(Self {
-            students: row.try_get("oppilaat")?,
-            groups: row.try_get("ryhmat")?,
-            assignments: row.try_get("suoritukset")?,
-            grades: row.try_get("arvosanat")?,
-        })
     }
 }
 

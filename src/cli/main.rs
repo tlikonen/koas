@@ -7,6 +7,7 @@ use koas::database;
 use koas::database::assignments::*;
 use koas::database::grades::*;
 use koas::database::groups::*;
+use koas::database::stats::*;
 use koas::database::students::*;
 use koas::database::*;
 use koas::output::*;
