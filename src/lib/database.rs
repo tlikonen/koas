@@ -46,7 +46,7 @@
 
 mod assignments;
 mod grades;
-mod groups;
+pub mod groups;
 mod init;
 pub mod students;
 
@@ -62,7 +62,7 @@ use std::io::Write as _;
 
 pub(crate) use self::assignments::UpdateAssignmentOp;
 pub(crate) use self::grades::UpdateGradeOp;
-pub(crate) use self::groups::UpdateGroupOp;
+pub(crate) use self::groups::{Group, UpdateGroup};
 pub(crate) use self::students::{InsertStudent, Student, UpdateStudent};
 pub(crate) use sqlx::Row as _;
 
@@ -71,7 +71,6 @@ pub use self::grades::{
     Grade, GradeDistribution, GradesForAssignment, GradesForGroup, GradesForStudent, SimpleGrade,
     SimpleStudent, StudentRanking, UpdateGrade,
 };
-pub use self::groups::{Group, UpdateGroup};
 pub use self::init::OldDb;
 pub use self::init::connect;
 pub use sqlx::Connection as _;

@@ -1,6 +1,5 @@
 mod assignments;
 mod grades;
-mod groups;
 
 use crate::database::*;
 use crate::prelude::*;
