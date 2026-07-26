@@ -62,8 +62,8 @@ use std::io::Write as _;
 
 pub(crate) use self::assignments::*;
 pub(crate) use self::grades::UpdateGradeOp;
-pub(crate) use self::groups::{Group, UpdateGroup};
-pub(crate) use self::students::{InsertStudent, Student, UpdateStudent};
+pub(crate) use self::groups::*;
+pub(crate) use self::students::*;
 pub(crate) use sqlx::Row as _;
 
 pub use self::grades::{
