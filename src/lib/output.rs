@@ -608,6 +608,13 @@ impl PrintQuery for QueryList<GradesForGroup> {
     }
 }
 
+struct Rankline {
+    name: String,
+    groups: Vec<String>,
+    average: f64,
+    count: usize,
+}
+
 impl MakeTable for StudentRanking {
     fn table(&self) -> Table {
         let mut rows: Vec<Row> = vec![
@@ -625,40 +632,40 @@ impl MakeTable for StudentRanking {
         let mut total_sum = 0.0;
         let mut total_count = 0;
 
-        let mut list: Vec<(String, String, f64, usize)> = Vec::with_capacity(30);
+        let mut list: Vec<Rankline> = Vec::with_capacity(30);
         for student in self.data.values() {
             let avg = student.sum / f64::from(student.count);
 
-            list.push((
-                student.name.clone(),
-                student.groups.join(" "),
-                avg,
-                student.grade_count,
-            ));
+            list.push(Rankline {
+                name: student.name.clone(),
+                groups: student.groups.clone(),
+                average: avg,
+                count: student.grade_count,
+            });
 
             total_sum += avg;
             total_count += 1;
         }
 
-        list.sort_by(|left, right| match right.2.total_cmp(&left.2) {
-            Ordering::Equal => left.0.cmp(&right.0),
+        list.sort_by(|left, right| match right.average.total_cmp(&left.average) {
+            Ordering::Equal => left.name.cmp(&right.name),
             ord => ord,
         });
 
         let mut average_last = 0.0;
         for (n, student) in (1..).zip(list) {
             rows.push(Row::Data(VecDeque::from([
-                if student.2 == average_last {
+                if student.average == average_last {
                     Cell::Empty
                 } else {
                     Cell::Right(format!("{}.", n))
                 },
-                Cell::Left(student.0.clone()),
-                Cell::Multi(column_lines(student.1.split_whitespace(), GROUPS_WIDTH)),
-                Cell::Right(tools::format_decimal(student.2)),
-                Cell::Right(student.3.to_string()),
+                Cell::Left(student.name.clone()),
+                Cell::Multi(column_lines(student.groups, GROUPS_WIDTH)),
+                Cell::Right(tools::format_decimal(student.average)),
+                Cell::Right(student.count.to_string()),
             ])));
-            average_last = student.2;
+            average_last = student.average;
         }
 
         rows.push(Row::Midrule);
@@ -1034,24 +1041,25 @@ fn print_table_latex(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
     Ok(())
 }
 
-fn column_lines<'a, I>(its: I, max: usize) -> Vec<String>
+fn column_lines<I>(its: I, max: usize) -> Vec<String>
 where
-    I: IntoIterator<Item = &'a str>,
+    I: IntoIterator,
+    I::Item: ToString,
 {
     let mut lines = Vec::with_capacity(20);
     let mut line = String::with_capacity(60);
 
-    for word in its.into_iter() {
+    for word in its.into_iter().map(|x| x.to_string()) {
         if line.is_empty() {
-            line.push_str(word);
+            line.push_str(&word);
         } else if line.chars().count() + word.chars().count() < max {
             line.push(' ');
-            line.push_str(word);
+            line.push_str(&word);
         } else {
             let l = line.len();
             lines.push(line);
             line = String::with_capacity(l);
-            line.push_str(word);
+            line.push_str(&word);
         }
     }
 
