@@ -1,4 +1,3 @@
-mod commands;
 mod config;
 pub mod database;
 mod error;

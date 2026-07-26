@@ -64,7 +64,60 @@ pub struct GradeDistribution {
     pub(crate) data: HashMap<String, i32>,
 }
 
+pub type UpdateGrade<'a> = Update<'a, Grade, UpdateGradeOp>;
+
+pub enum UpdateGradeOp {
+    Grade(String),
+    GradeClear,
+    Description(String),
+    DescriptionClear,
+    Delete,
+}
+
 impl Grade {
+    /// Prepare update for grade.
+    ///
+    /// See [`Commit`] trait for more information.
+    pub fn set_grade<'a>(&'a self, grade: &str) -> Result<UpdateGrade<'a>> {
+        match grade.normalize() {
+            None => Err(Error::from(format!("Sopimaton arvosana: ”{grade}”."))),
+            Some(g) => Ok(Update::new(self, UpdateGradeOp::Grade(g))),
+        }
+    }
+
+    /// Prepare to clear grade's description.
+    ///
+    /// See [`Commit`] trait for more information.
+    pub fn clear_grade<'a>(&'a self) -> UpdateGrade<'a> {
+        Update::new(self, UpdateGradeOp::GradeClear)
+    }
+
+    /// Prepare update for grade's description.
+    ///
+    /// See [`Commit`] trait for more information.
+    pub fn set_description<'a>(&'a self, desc: &str) -> Result<UpdateGrade<'a>> {
+        match desc.normalize() {
+            None => Err(Error::from(format!(
+                "Sopimaton arvosanan kuvaus: ”{desc}”."
+            ))),
+            Some(d) => Ok(Update::new(self, UpdateGradeOp::Description(d))),
+        }
+    }
+
+    /// Prepare to clear grade's description.
+    ///
+    /// See [`Commit`] trait for more information.
+    pub fn clear_description<'a>(&'a self) -> UpdateGrade<'a> {
+        Update::new(self, UpdateGradeOp::DescriptionClear)
+    }
+
+    /// Prepare deletion of grade.
+    ///
+    /// See [`Commit`] trait for more information.
+    pub fn mark_deleted<'a>(&'a self) -> UpdateGrade<'a> {
+        Update::new(self, UpdateGradeOp::Delete)
+    }
+
     async fn exists(&self, db: &mut DBase) -> Result<bool> {
         let result = sqlx::query("SELECT 1 FROM arvosanat WHERE sid = $1 AND oid = $2")
             .bind(self.sid)
@@ -75,7 +128,7 @@ impl Grade {
         Ok(result)
     }
 
-    pub(crate) async fn update_grade(&self, db: &mut DBase, mut grade: Option<&str>) -> Result<()> {
+    async fn update_grade(&self, db: &mut DBase, mut grade: Option<&str>) -> Result<()> {
         if let Some(s) = grade
             && s.is_empty()
         {
@@ -100,11 +153,7 @@ impl Grade {
         Ok(())
     }
 
-    pub(crate) async fn update_description(
-        &self,
-        db: &mut DBase,
-        mut desc: Option<&str>,
-    ) -> Result<()> {
+    async fn update_description(&self, db: &mut DBase, mut desc: Option<&str>) -> Result<()> {
         if let Some(s) = desc
             && s.is_empty()
         {
@@ -129,7 +178,7 @@ impl Grade {
         Ok(())
     }
 
-    pub(crate) async fn delete(&self, db: &mut DBase) -> Result<()> {
+    async fn delete(&self, db: &mut DBase) -> Result<()> {
         sqlx::query("DELETE FROM arvosanat WHERE sid = $1 AND oid = $2")
             .bind(self.sid)
             .bind(self.oid)
@@ -138,7 +187,7 @@ impl Grade {
         Ok(())
     }
 
-    pub(crate) async fn delete_if_empty(&self, db: &mut DBase) -> Result<()> {
+    async fn delete_if_empty(&self, db: &mut DBase) -> Result<()> {
         sqlx::query(
             "DELETE FROM arvosanat \
              WHERE sid = $1 AND oid = $2 \
@@ -225,12 +274,6 @@ impl GradesForAssignment {
     }
 }
 
-impl HasData for QueryList<GradesForAssignment> {
-    fn is_empty(&self) -> bool {
-        self.list_is_empty()
-    }
-}
-
 impl GradesForStudent {
     /// Query for grades associated to students.
     pub async fn query(
@@ -308,12 +351,6 @@ impl GradesForStudent {
         }
 
         Ok(QueryList::new(list))
-    }
-}
-
-impl HasData for QueryList<GradesForStudent> {
-    fn is_empty(&self) -> bool {
-        self.list_is_empty()
     }
 }
 
@@ -433,18 +470,6 @@ impl GradesForGroup {
     }
 }
 
-impl HasData for QueryList<GradesForGroup> {
-    fn is_empty(&self) -> bool {
-        self.list_is_empty()
-    }
-}
-
-impl HasData for GradesForGroup {
-    fn is_empty(&self) -> bool {
-        self.assignments.is_empty()
-    }
-}
-
 impl StudentRanking {
     /// Query for student ranking.
     ///
@@ -514,12 +539,6 @@ impl StudentRanking {
     }
 }
 
-impl HasData for StudentRanking {
-    fn is_empty(&self) -> bool {
-        self.data.is_empty()
-    }
-}
-
 impl GradeDistribution {
     /// Build grade distribution graph.
     ///
@@ -568,18 +587,71 @@ impl GradeDistribution {
     }
 }
 
+impl HasData for QueryList<GradesForAssignment> {
+    fn is_empty(&self) -> bool {
+        self.list_is_empty()
+    }
+}
+
+impl HasData for QueryList<GradesForStudent> {
+    fn is_empty(&self) -> bool {
+        self.list_is_empty()
+    }
+}
+
+impl HasData for QueryList<GradesForGroup> {
+    fn is_empty(&self) -> bool {
+        self.list_is_empty()
+    }
+}
+
+impl HasData for GradesForGroup {
+    fn is_empty(&self) -> bool {
+        self.assignments.is_empty()
+    }
+}
+
+impl HasData for StudentRanking {
+    fn is_empty(&self) -> bool {
+        self.data.is_empty()
+    }
+}
+
 impl HasData for GradeDistribution {
     fn is_empty(&self) -> bool {
         self.data.is_empty()
     }
 }
 
-pub enum UpdateGradeOp {
-    Grade(String),
-    GradeClear,
-    Description(String),
-    DescriptionClear,
-    Delete,
+impl<'a> ToQueue<'a> for UpdateGrade<'a> {
+    fn queue(self, q: &mut Queue<'a>) {
+        q.push_back(QueueItem::UpdateGrade(self));
+    }
 }
 
-pub type UpdateGrade<'a> = Update<'a, Grade, UpdateGradeOp>;
+impl Commit for UpdateGrade<'_> {
+    async fn commit(self, db: &mut DBase) -> Result<()> {
+        let mut ta = db.begin().await?;
+        let student_grade = self.item;
+
+        match &self.operation {
+            UpdateGradeOp::Grade(g) => student_grade.update_grade(&mut ta, Some(g)).await?,
+
+            UpdateGradeOp::GradeClear => student_grade.update_grade(&mut ta, None).await?,
+
+            UpdateGradeOp::Description(d) => {
+                student_grade.update_description(&mut ta, Some(d)).await?
+            }
+
+            UpdateGradeOp::DescriptionClear => {
+                student_grade.update_description(&mut ta, None).await?
+            }
+
+            UpdateGradeOp::Delete => student_grade.delete(&mut ta).await?,
+        }
+
+        student_grade.delete_if_empty(&mut ta).await?;
+        ta.commit().await?;
+        Ok(())
+    }
+}

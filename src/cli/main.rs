@@ -5,6 +5,7 @@ use crate::editable::{Editable, MoveToEditable};
 use just_getopt::{Args, OptFlags, OptSpecs, OptValue};
 use koas::database;
 use koas::database::assignments::*;
+use koas::database::grades::*;
 use koas::database::groups::*;
 use koas::database::students::*;
 use koas::database::*;
