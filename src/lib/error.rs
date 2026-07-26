@@ -21,6 +21,7 @@ pub enum Error {
     OldProgram,
     InvalidLastname(String),
     InvalidFirstname(String),
+    InvalidGroupname(String),
 }
 
 impl Error {
@@ -52,6 +53,7 @@ impl fmt::Display for Error {
             ),
             Self::InvalidLastname(s) => write!(f, "Sopimaton sukunimi ”{s}”."),
             Self::InvalidFirstname(s) => write!(f, "Sopimaton etunimi ”{s}”."),
+            Self::InvalidGroupname(s) => write!(f, "Sopimaton ryhmätunnus ”{s}”."),
         }
     }
 }

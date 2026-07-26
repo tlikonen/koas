@@ -5,7 +5,7 @@ pub struct Student {
     pub(super) oid: i32,
     pub lastname: Lastname,
     pub firstname: Firstname,
-    pub groups: String,
+    pub groups: GroupNames,
     pub description: String,
 }
 
@@ -14,8 +14,8 @@ pub type UpdateStudent<'a> = Update<'a, Student, UpdateStudentOp>;
 pub enum UpdateStudentOp {
     Lastname(Lastname),
     Firstname(Firstname),
-    GroupAdd(String),
-    GroupRemove(String),
+    GroupsAdd(GroupNames),
+    GroupsRemove(GroupNames),
     Description(String),
     DescriptionClear,
     Delete,
@@ -24,7 +24,7 @@ pub enum UpdateStudentOp {
 pub struct InsertStudent {
     pub(super) lastname: Lastname,
     pub(super) firstname: Firstname,
-    pub(super) groups: Vec<String>,
+    pub(super) groups: GroupNames,
     pub(super) description: String,
 }
 
@@ -33,6 +33,9 @@ pub struct Lastname(String);
 
 #[derive(Default)]
 pub struct Firstname(String);
+
+#[derive(Default)]
+pub struct GroupNames(Vec<String>);
 
 impl Student {
     /// Query for students.
@@ -64,7 +67,10 @@ impl Student {
                 oid: row.try_get("oid")?,
                 lastname: Lastname::from_unchecked(row.try_get("sukunimi")?),
                 firstname: Firstname::from_unchecked(row.try_get("etunimi")?),
-                groups: row.try_get("ryhmat")?,
+                groups: {
+                    let s: &str = row.try_get("ryhmat")?;
+                    GroupNames::from_unchecked(s.split_whitespace())
+                },
                 description: row.try_get("olt")?,
             });
         }
@@ -75,22 +81,13 @@ impl Student {
     /// Prepare to insert new student.
     ///
     /// See [`Commit`] trait for more information.
-    pub fn insert<'a>(
+    pub fn insert(
         lastname: Lastname,
         firstname: Firstname,
-        groups: impl IntoIterator<Item = &'a str>,
+        groups: GroupNames,
         description: &str,
     ) -> Result<InsertStudent> {
-        let groups: Vec<String> = groups.into_iter().filter_map(|x| x.normalize()).collect(); // ryhmät
         let description = description.normalize(); // lisätiedot
-
-        if groups.is_empty() {
-            return Err(Error::from(
-                "Pitää antaa vähintään sukunimi, etunimi ja ryhmä.",
-            ));
-        }
-
-        tools::assert_group_names(&groups)?;
 
         Ok(InsertStudent {
             lastname,
@@ -117,27 +114,15 @@ impl Student {
     /// Prepare addition for student's groups.
     ///
     /// See [`Commit`] trait for more information.
-    pub fn add_group<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
-        match name.normalize() {
-            None => Err(Error::from(format!("Sopimaton ryhmätunnus: ”{name}”."))),
-            Some(n) => {
-                n.is_valid_group_name()?;
-                Ok(Update::new(self, UpdateStudentOp::GroupAdd(n)))
-            }
-        }
+    pub fn add_groups<'a>(&'a self, groups: GroupNames) -> UpdateStudent<'a> {
+        Update::new(self, UpdateStudentOp::GroupsAdd(groups))
     }
 
     /// Prepare removal for student's groups.
     ///
     /// See [`Commit`] trait for more information.
-    pub fn remove_group<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
-        match name.normalize() {
-            None => Err(Error::from(format!("Sopimaton ryhmätunnus: ”{name}”."))),
-            Some(n) => {
-                n.is_valid_group_name()?;
-                Ok(Update::new(self, UpdateStudentOp::GroupRemove(n)))
-            }
-        }
+    pub fn remove_groups<'a>(&'a self, groups: GroupNames) -> UpdateStudent<'a> {
+        Update::new(self, UpdateStudentOp::GroupsRemove(groups))
     }
 
     /// Prepare update for student's description.
@@ -337,6 +322,80 @@ impl fmt::Display for Firstname {
     }
 }
 
+impl GroupNames {
+    fn from_unchecked<I>(its: I) -> Self
+    where
+        I: IntoIterator,
+        I::Item: ToString,
+    {
+        let groups: Vec<String> = its.into_iter().map(|x| x.to_string()).collect();
+        Self(groups)
+    }
+
+    fn iter(&self) -> impl Iterator<Item = &String> {
+        self.0.iter()
+    }
+
+    fn is_valid_name(name: &str) -> bool {
+        !name.has_whitespace() && name.has_content()
+    }
+
+    fn push_if_valid(v: &mut Vec<String>, group: &str) -> Result<()> {
+        if let Some(g) = group.normalize()
+            && Self::is_valid_name(&g)
+        {
+            v.push(g);
+        } else {
+            return Err(Error::InvalidGroupname(group.to_string()));
+        }
+        Ok(())
+    }
+}
+
+impl TryFrom<&str> for GroupNames {
+    type Error = Error;
+    fn try_from(value: &str) -> Result<Self> {
+        let mut v = Vec::new();
+        for group in value.split_whitespace() {
+            GroupNames::push_if_valid(&mut v, group)?;
+        }
+
+        if v.is_empty() {
+            Err(Error::InvalidGroupname(value.to_string()))
+        } else {
+            Ok(Self(v))
+        }
+    }
+}
+
+impl TryFrom<&Vec<String>> for GroupNames {
+    type Error = Error;
+    fn try_from(groups: &Vec<String>) -> Result<Self> {
+        let mut v = Vec::new();
+        for group in groups {
+            GroupNames::push_if_valid(&mut v, group)?;
+        }
+
+        if v.is_empty() {
+            Err(Error::InvalidGroupname("".to_string()))
+        } else {
+            Ok(Self(v))
+        }
+    }
+}
+
+impl fmt::Display for GroupNames {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for (n, group) in self.iter().enumerate() {
+            if n > 0 {
+                write!(f, " ")?
+            }
+            write!(f, "{group}")?
+        }
+        Ok(())
+    }
+}
+
 impl<'a> ToQueue<'a> for UpdateStudent<'a> {
     fn queue(self, q: &mut Queue<'a>) {
         q.push_back(QueueItem::UpdateStudent(self));
@@ -359,40 +418,43 @@ impl Commit for UpdateStudent<'_> {
 
             UpdateStudentOp::Firstname(first) => student.update_firstname(&mut ta, first).await?,
 
-            UpdateStudentOp::GroupAdd(name) => {
-                let rid = Group::get_or_insert(&mut ta, name).await?;
-                if !student.in_group(&mut ta, rid).await? {
-                    student.add_to_group(&mut ta, rid).await?;
+            UpdateStudentOp::GroupsAdd(groups) => {
+                for name in groups.iter() {
+                    let rid = Group::get_or_insert(&mut ta, name).await?;
+                    if !student.in_group(&mut ta, rid).await? {
+                        student.add_to_group(&mut ta, rid).await?;
+                    }
                 }
             }
 
-            UpdateStudentOp::GroupRemove(name) => {
-                let Some(rid) = Group::get_id(&mut ta, name).await? else {
-                    return Ok(()); // No such group.
-                };
+            UpdateStudentOp::GroupsRemove(groups) => {
+                for name in groups.iter() {
+                    let Some(rid) = Group::get_id(&mut ta, name).await? else {
+                        continue; // No such group.
+                    };
 
-                if !student.in_group(&mut ta, rid).await? {
-                    return Ok(());
-                }
+                    if !student.in_group(&mut ta, rid).await? {
+                        continue;
+                    }
 
-                let count = student.count_grades_group(&mut ta, rid).await?;
-                if count > 0 {
-                    return Err(Error::from(format!(
-                        "Oppilaalle ”{l}, {f}” on ryhmässä ”{g}” kirjattu {c} arvosana(a).\n\
-                         Säilytetään ryhmät ja perutaan toiminto.",
-                        l = student.lastname,
-                        f = student.firstname,
-                        c = count,
-                        g = name,
-                    )));
-                }
+                    let count = student.count_grades_group(&mut ta, rid).await?;
+                    if count > 0 {
+                        return Err(Error::from(format!(
+                            "Oppilaalle ”{o}” on ryhmässä ”{g}” kirjattu {c} arvosana(a).\n\
+                             Säilytetään ryhmät ja perutaan toiminto.",
+                            o = student.fullname(),
+                            c = count,
+                            g = name,
+                        )));
+                    }
 
-                if student.only_one_group(&mut ta).await? {
-                    return Err(Error::from(
-                        "Oppilaan pitää kuulua vähintään yhteen ryhmään.",
-                    ));
-                } else {
-                    student.remove_from_group(&mut ta, rid).await?;
+                    if student.only_one_group(&mut ta).await? {
+                        return Err(Error::from(
+                            "Oppilaan pitää kuulua vähintään yhteen ryhmään.",
+                        ));
+                    } else {
+                        student.remove_from_group(&mut ta, rid).await?;
+                    }
                 }
 
                 Group::delete_empty(&mut ta).await?;
@@ -435,7 +497,7 @@ impl Commit for InsertStudent {
 
         student.insert_db(&mut ta).await?;
 
-        for group in &self.groups {
+        for group in self.groups.iter() {
             let rid = Group::get_or_insert(&mut ta, group).await?;
             student.add_to_group(&mut ta, rid).await?;
         }

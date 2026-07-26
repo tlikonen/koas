@@ -492,7 +492,7 @@ async fn commands(
             let mut fields = tools::split_sep(args);
             let lastname: Lastname = fields.next().unwrap_or("").try_into()?; // sukunimi
             let firstname: Firstname = fields.next().unwrap_or("").try_into()?; // etunimi
-            let groups = fields.next().unwrap_or("").split_whitespace(); // ryhmät
+            let groups: GroupNames = fields.next().unwrap_or("").try_into()?; // ryhmät
             let desc = fields.next().unwrap_or(""); // lisätiedot
             is_too_much_fields(fields, 4)?;
 

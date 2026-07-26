@@ -196,16 +196,6 @@ impl StrExt for str {
     }
 }
 
-pub(crate) fn assert_group_names<'a, I>(names: I) -> Result<()>
-where
-    I: IntoIterator<Item = &'a String>,
-{
-    for group in names.into_iter() {
-        group.is_valid_group_name()?;
-    }
-    Ok(())
-}
-
 pub(crate) trait Normalize {
     type Target;
     fn normalize(&self) -> Self::Target;

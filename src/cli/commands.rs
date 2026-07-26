@@ -42,12 +42,16 @@ pub(super) async fn edit_students(
             student.set_firstname(name.try_into()?).queue(&mut updates);
         }
 
-        for name in &groups_add {
-            student.add_group(name)?.queue(&mut updates);
+        if !groups_add.is_empty() {
+            student
+                .add_groups((&groups_add).try_into()?)
+                .queue(&mut updates);
         }
 
-        for name in &groups_remove {
-            student.remove_group(name)?.queue(&mut updates);
+        if !groups_remove.is_empty() {
+            student
+                .remove_groups((&groups_remove).try_into()?)
+                .queue(&mut updates);
         }
 
         if let Some(desc) = description {
@@ -327,12 +331,16 @@ pub(super) async fn edit_student_series(
                     let mut groups_remove = Vec::with_capacity(1);
                     parse_add_remove_groups(value, &mut groups_add, &mut groups_remove)?;
 
-                    for name in &groups_add {
-                        student.add_group(name)?.queue(&mut updates);
+                    if !groups_add.is_empty() {
+                        student
+                            .add_groups((&groups_add).try_into()?)
+                            .queue(&mut updates);
                     }
 
-                    for name in &groups_remove {
-                        student.remove_group(name)?.queue(&mut updates);
+                    if !groups_remove.is_empty() {
+                        student
+                            .remove_groups((&groups_remove).try_into()?)
+                            .queue(&mut updates);
                     }
                 }
             }
