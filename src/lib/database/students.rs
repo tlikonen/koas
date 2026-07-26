@@ -9,6 +9,25 @@ pub struct Student {
     pub description: String,
 }
 
+pub type UpdateStudent<'a> = Update<'a, Student, UpdateStudentOp>;
+
+pub enum UpdateStudentOp {
+    Lastname(String),
+    Firstname(String),
+    GroupAdd(String),
+    GroupRemove(String),
+    Description(String),
+    DescriptionClear,
+    Delete,
+}
+
+pub struct InsertStudent {
+    pub(crate) lastname: String,
+    pub(crate) firstname: String,
+    pub(crate) groups: Vec<String>,
+    pub(crate) description: String,
+}
+
 impl Student {
     /// Query for students.
     pub async fn query(
@@ -47,7 +66,113 @@ impl Student {
         Ok(QueryList::new(list))
     }
 
-    pub(crate) async fn in_group(&self, db: &mut DBase, rid: i32) -> Result<bool> {
+    /// Prepare to insert new student.
+    ///
+    /// See [`Commit`] trait for more information.
+    pub fn insert<'a>(
+        lastname: &str,
+        firstname: &str,
+        groups: impl IntoIterator<Item = &'a str>,
+        description: &str,
+    ) -> Result<InsertStudent> {
+        let lastname = lastname.normalize(); // sukunimi
+        let firstname = firstname.normalize(); // etunimi
+        let groups: Vec<String> = groups.into_iter().filter_map(|x| x.normalize()).collect(); // ryhmät
+        let description = description.normalize(); // lisätiedot
+
+        if lastname.is_none() || firstname.is_none() || groups.is_empty() {
+            return Err(Error::from(
+                "Pitää antaa vähintään sukunimi, etunimi ja ryhmä.",
+            ));
+        }
+
+        tools::assert_group_names(&groups)?;
+
+        if let Some(last) = lastname
+            && let Some(first) = firstname
+        {
+            Ok(InsertStudent {
+                lastname: last,
+                firstname: first,
+                groups,
+                description: description.unwrap_or_default(),
+            })
+        } else {
+            Err(Error::from("Oppilaan lisääminen epäonnistui."))
+        }
+    }
+
+    /// Prepare update for student's lastname.
+    ///
+    /// See [`Commit`] trait for more information.
+    pub fn set_lastname<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
+        match name.normalize() {
+            None => Err(Error::from(format!("Sopimaton sukunimi: ”{name}”."))),
+            Some(n) => Ok(Update::new(self, UpdateStudentOp::Lastname(n))),
+        }
+    }
+
+    /// Prepare update for student's firstname.
+    ///
+    /// See [`Commit`] trait for more information.
+    pub fn set_firstname<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
+        match name.normalize() {
+            None => Err(Error::from(format!("Sopimaton etunimi: ”{name}”."))),
+            Some(n) => Ok(Update::new(self, UpdateStudentOp::Firstname(n))),
+        }
+    }
+
+    /// Prepare addition for student's groups.
+    ///
+    /// See [`Commit`] trait for more information.
+    pub fn add_group<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
+        match name.normalize() {
+            None => Err(Error::from(format!("Sopimaton ryhmätunnus: ”{name}”."))),
+            Some(n) => {
+                n.is_valid_group_name()?;
+                Ok(Update::new(self, UpdateStudentOp::GroupAdd(n)))
+            }
+        }
+    }
+
+    /// Prepare removal for student's groups.
+    ///
+    /// See [`Commit`] trait for more information.
+    pub fn remove_group<'a>(&'a self, name: &str) -> Result<UpdateStudent<'a>> {
+        match name.normalize() {
+            None => Err(Error::from(format!("Sopimaton ryhmätunnus: ”{name}”."))),
+            Some(n) => {
+                n.is_valid_group_name()?;
+                Ok(Update::new(self, UpdateStudentOp::GroupRemove(n)))
+            }
+        }
+    }
+
+    /// Prepare update for student's description.
+    ///
+    /// See [`Commit`] trait for more information.
+    pub fn set_description<'a>(&'a self, desc: &str) -> Result<UpdateStudent<'a>> {
+        match desc.normalize() {
+            None => Err(Error::from(format!("Sopimaton oppilaan kuvaus: ”{desc}”."))),
+            Some(d) => Ok(Update::new(self, UpdateStudentOp::Description(d))),
+        }
+    }
+
+    /// Prepare to clear student's description.
+    ///
+    /// See [`Commit`] trait for more information.
+    pub fn clear_description<'a>(&'a self) -> UpdateStudent<'a> {
+        Update::new(self, UpdateStudentOp::DescriptionClear)
+    }
+
+    /// Prepare deletion of student.
+    ///
+    /// See [`Commit`] trait for more information.
+    pub fn mark_deleted<'a>(&'a self) -> UpdateStudent<'a> {
+        Update::new(self, UpdateStudentOp::Delete)
+    }
+
+    async fn in_group(&self, db: &mut DBase, rid: i32) -> Result<bool> {
         let result = sqlx::query("SELECT 1 FROM oppilaat_ryhmat WHERE oid = $1 AND rid = $2")
             .bind(self.oid)
             .bind(rid)
@@ -57,7 +182,7 @@ impl Student {
         Ok(result)
     }
 
-    pub(crate) async fn add_to_group(&self, db: &mut DBase, rid: i32) -> Result<()> {
+    async fn add_to_group(&self, db: &mut DBase, rid: i32) -> Result<()> {
         sqlx::query("INSERT INTO oppilaat_ryhmat (oid, rid) VALUES ($1, $2)")
             .bind(self.oid)
             .bind(rid)
@@ -66,7 +191,7 @@ impl Student {
         Ok(())
     }
 
-    pub(crate) async fn remove_from_group(&self, db: &mut DBase, rid: i32) -> Result<()> {
+    async fn remove_from_group(&self, db: &mut DBase, rid: i32) -> Result<()> {
         sqlx::query("DELETE FROM oppilaat_ryhmat WHERE oid = $1 AND rid = $2")
             .bind(self.oid)
             .bind(rid)
@@ -75,7 +200,7 @@ impl Student {
         Ok(())
     }
 
-    pub(crate) async fn only_one_group(&self, db: &mut DBase) -> Result<bool> {
+    async fn only_one_group(&self, db: &mut DBase) -> Result<bool> {
         let row = sqlx::query("SELECT count(*) count FROM oppilaat_ryhmat WHERE oid = $1")
             .bind(self.oid)
             .fetch_one(db)
@@ -84,7 +209,7 @@ impl Student {
         Ok(count <= 1)
     }
 
-    pub(crate) async fn update_lastname(&self, db: &mut DBase, lastname: &str) -> Result<()> {
+    async fn update_lastname(&self, db: &mut DBase, lastname: &str) -> Result<()> {
         sqlx::query("UPDATE oppilaat SET sukunimi = $1 WHERE oid = $2")
             .bind(lastname)
             .bind(self.oid)
@@ -93,7 +218,7 @@ impl Student {
         Ok(())
     }
 
-    pub(crate) async fn update_firstname(&self, db: &mut DBase, firstname: &str) -> Result<()> {
+    async fn update_firstname(&self, db: &mut DBase, firstname: &str) -> Result<()> {
         sqlx::query("UPDATE oppilaat SET etunimi = $1 WHERE oid = $2")
             .bind(firstname)
             .bind(self.oid)
@@ -102,7 +227,7 @@ impl Student {
         Ok(())
     }
 
-    pub(crate) async fn update_description(&self, db: &mut DBase, desc: &str) -> Result<()> {
+    async fn update_description(&self, db: &mut DBase, desc: &str) -> Result<()> {
         sqlx::query("UPDATE oppilaat SET lisatiedot = $1 WHERE oid = $2")
             .bind(desc)
             .bind(self.oid)
@@ -111,7 +236,7 @@ impl Student {
         Ok(())
     }
 
-    pub(crate) async fn count_grades(&self, db: &mut DBase) -> Result<i64> {
+    async fn count_grades(&self, db: &mut DBase) -> Result<i64> {
         let count: i64 = sqlx::query("SELECT count(*) AS count FROM arvosanat WHERE oid = $1")
             .bind(self.oid)
             .fetch_one(db)
@@ -120,7 +245,7 @@ impl Student {
         Ok(count)
     }
 
-    pub(crate) async fn count_grades_group(&self, db: &mut DBase, rid: i32) -> Result<i64> {
+    async fn count_grades_group(&self, db: &mut DBase, rid: i32) -> Result<i64> {
         let count: i64 = sqlx::query(
             "SELECT count(*) AS count FROM arvosanat AS a \
              JOIN suoritukset AS s ON a.sid = s.sid \
@@ -134,7 +259,7 @@ impl Student {
         Ok(count)
     }
 
-    pub(crate) async fn insert_db(&mut self, db: &mut DBase) -> Result<()> {
+    async fn insert_db(&mut self, db: &mut DBase) -> Result<()> {
         let row = sqlx::query(
             "INSERT INTO oppilaat (sukunimi, etunimi, lisatiedot) \
              VALUES ($1, $2, $3) RETURNING oid",
@@ -149,7 +274,7 @@ impl Student {
         Ok(())
     }
 
-    pub(crate) async fn delete(&self, db: &mut DBase) -> Result<()> {
+    async fn delete(&self, db: &mut DBase) -> Result<()> {
         sqlx::query("DELETE FROM oppilaat WHERE oid = $1")
             .bind(self.oid)
             .execute(db)
@@ -164,21 +289,111 @@ impl HasData for QueryList<Student> {
     }
 }
 
-pub enum UpdateStudentOp {
-    Lastname(String),
-    Firstname(String),
-    GroupAdd(String),
-    GroupRemove(String),
-    Description(String),
-    DescriptionClear,
-    Delete,
+impl<'a> ToQueue<'a> for UpdateStudent<'a> {
+    fn queue(self, q: &mut Queue<'a>) {
+        q.push_back(QueueItem::UpdateStudent(self));
+    }
 }
 
-pub type UpdateStudent<'a> = Update<'a, Student, UpdateStudentOp>;
+impl<'a> ToQueue<'a> for InsertStudent {
+    fn queue(self, q: &mut Queue<'a>) {
+        q.push_back(QueueItem::InsertStudent(self))
+    }
+}
 
-pub struct InsertStudent {
-    pub(crate) lastname: String,
-    pub(crate) firstname: String,
-    pub(crate) groups: Vec<String>,
-    pub(crate) description: String,
+impl Commit for UpdateStudent<'_> {
+    async fn commit(self, db: &mut DBase) -> Result<()> {
+        let mut ta = db.begin().await?;
+        let student = self.item;
+
+        match &self.operation {
+            UpdateStudentOp::Lastname(last) => student.update_lastname(&mut ta, last).await?,
+
+            UpdateStudentOp::Firstname(first) => student.update_firstname(&mut ta, first).await?,
+
+            UpdateStudentOp::GroupAdd(name) => {
+                let rid = Group::get_or_insert(&mut ta, name).await?;
+                if !student.in_group(&mut ta, rid).await? {
+                    student.add_to_group(&mut ta, rid).await?;
+                }
+            }
+
+            UpdateStudentOp::GroupRemove(name) => {
+                let Some(rid) = Group::get_id(&mut ta, name).await? else {
+                    return Ok(()); // No such group.
+                };
+
+                if !student.in_group(&mut ta, rid).await? {
+                    return Ok(());
+                }
+
+                let count = student.count_grades_group(&mut ta, rid).await?;
+                if count > 0 {
+                    return Err(Error::from(format!(
+                        "Oppilaalle ”{l}, {f}” on ryhmässä ”{g}” kirjattu {c} arvosana(a).\n\
+                         Säilytetään ryhmät ja perutaan toiminto.",
+                        l = student.lastname,
+                        f = student.firstname,
+                        c = count,
+                        g = name,
+                    )));
+                }
+
+                if student.only_one_group(&mut ta).await? {
+                    return Err(Error::from(
+                        "Oppilaan pitää kuulua vähintään yhteen ryhmään.",
+                    ));
+                } else {
+                    student.remove_from_group(&mut ta, rid).await?;
+                }
+
+                Group::delete_empty(&mut ta).await?;
+            }
+
+            UpdateStudentOp::Description(desc) => student.update_description(&mut ta, desc).await?,
+
+            UpdateStudentOp::DescriptionClear => student.update_description(&mut ta, "").await?,
+
+            UpdateStudentOp::Delete => {
+                let count = student.count_grades(&mut ta).await?;
+                if count > 0 {
+                    return Err(Error::from(format!(
+                        "Oppilaalle ”{l}, {f}” on kirjattu {c} arvosana(a). Poista ne ensin.",
+                        l = student.lastname,
+                        f = student.firstname,
+                        c = count
+                    )));
+                }
+
+                student.delete(&mut ta).await?;
+                Group::delete_empty(&mut ta).await?;
+            }
+        }
+
+        ta.commit().await?;
+        Ok(())
+    }
+}
+
+impl Commit for InsertStudent {
+    async fn commit(self, db: &mut DBase) -> Result<()> {
+        let mut ta = db.begin().await?;
+
+        let mut student = Student {
+            lastname: self.lastname.clone(),
+            firstname: self.firstname.clone(),
+            description: self.description.clone(),
+            ..Student::default()
+        };
+
+        student.insert_db(&mut ta).await?;
+
+        for group in &self.groups {
+            let rid = Group::get_or_insert(&mut ta, group).await?;
+            student.add_to_group(&mut ta, rid).await?;
+        }
+
+        ta.commit().await?;
+        Ok(())
+    }
 }

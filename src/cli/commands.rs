@@ -1,10 +1,4 @@
-use crate::Modes;
-use crate::Output;
-use crate::is_too_much_fields;
-use koas::database::*;
-use koas::tools::StrExt;
-use koas::*;
-use std::io::{self, Write as _};
+use super::*;
 
 pub(super) async fn edit_students(
     db: &mut DBase,

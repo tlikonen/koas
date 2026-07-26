@@ -4,6 +4,7 @@ mod editable;
 use crate::editable::{Editable, MoveToEditable};
 use just_getopt::{Args, OptFlags, OptSpecs, OptValue};
 use koas::database;
+use koas::database::students::*;
 use koas::database::*;
 use koas::output::*;
 use koas::tools;

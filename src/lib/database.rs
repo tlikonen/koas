@@ -48,11 +48,13 @@ mod assignments;
 mod grades;
 mod groups;
 mod init;
-mod students;
+pub mod students;
 
 use crate::config::Config;
 use crate::prelude::*;
 use crate::tools;
+use crate::tools::Normalize;
+use crate::tools::StrExt;
 use futures::TryStreamExt;
 use std::collections::VecDeque;
 use std::io;
@@ -61,7 +63,7 @@ use std::io::Write as _;
 pub(crate) use self::assignments::UpdateAssignmentOp;
 pub(crate) use self::grades::UpdateGradeOp;
 pub(crate) use self::groups::UpdateGroupOp;
-pub(crate) use self::students::UpdateStudentOp;
+pub(crate) use self::students::{InsertStudent, Student, UpdateStudent};
 pub(crate) use sqlx::Row as _;
 
 pub use self::assignments::{Assignment, AssignmentsForGroup, InsertAssignment, UpdateAssignment};
@@ -72,7 +74,6 @@ pub use self::grades::{
 pub use self::groups::{Group, UpdateGroup};
 pub use self::init::OldDb;
 pub use self::init::connect;
-pub use self::students::{InsertStudent, Student, UpdateStudent};
 pub use sqlx::Connection as _;
 
 pub type DBase = sqlx::PgConnection;
