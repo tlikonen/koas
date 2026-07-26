@@ -44,7 +44,7 @@
 //! Methods of those types are used to update or delete the database
 //! data.
 
-mod assignments;
+pub mod assignments;
 mod grades;
 pub mod groups;
 mod init;
@@ -60,13 +60,12 @@ use std::collections::VecDeque;
 use std::io;
 use std::io::Write as _;
 
-pub(crate) use self::assignments::UpdateAssignmentOp;
+pub(crate) use self::assignments::*;
 pub(crate) use self::grades::UpdateGradeOp;
 pub(crate) use self::groups::{Group, UpdateGroup};
 pub(crate) use self::students::{InsertStudent, Student, UpdateStudent};
 pub(crate) use sqlx::Row as _;
 
-pub use self::assignments::{Assignment, AssignmentsForGroup, InsertAssignment, UpdateAssignment};
 pub use self::grades::{
     Grade, GradeDistribution, GradesForAssignment, GradesForGroup, GradesForStudent, SimpleGrade,
     SimpleStudent, StudentRanking, UpdateGrade,
