@@ -36,6 +36,8 @@ pub struct InsertAssignment {
 
 #[derive(Clone)]
 pub struct AssignmentName(String);
+#[derive(Clone)]
+pub struct AssignmentShort(String);
 
 impl Assignment {
     /// Prepare to insert a new assignment.
@@ -422,6 +424,12 @@ impl TextField for AssignmentName {
     }
 }
 
+impl TextField for AssignmentShort {
+    fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
 impl TryFrom<&str> for AssignmentName {
     type Error = Error;
     fn try_from(name: &str) -> Result<Self> {
@@ -432,7 +440,26 @@ impl TryFrom<&str> for AssignmentName {
     }
 }
 
+impl TryFrom<&str> for AssignmentShort {
+    type Error = Error;
+    fn try_from(name: &str) -> Result<Self> {
+        if let Some(n) = name.normalize()
+            && (1..=5).contains(&n.chars().count())
+        {
+            Ok(Self(n))
+        } else {
+            Err(Error::InvalidAssignmentShort(name.to_string()))
+        }
+    }
+}
+
 impl fmt::Display for AssignmentName {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
+}
+
+impl fmt::Display for AssignmentShort {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.as_str())
     }

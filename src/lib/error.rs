@@ -23,6 +23,7 @@ pub enum Error {
     InvalidGroupname(String),
     InvalidDescription(String),
     InvalidAssignmentName(String),
+    InvalidAssignmentShort(String),
 }
 
 impl Error {
@@ -56,6 +57,9 @@ impl fmt::Display for Error {
             Self::InvalidGroupname(s) => write!(f, "Sopimaton ryhmätunnus ”{s}”."),
             Self::InvalidDescription(s) => write!(f, "Sopimaton kuvaus ”{s}”."),
             Self::InvalidAssignmentName(s) => write!(f, "Sopimaton suorituksen nimi ”{s}”."),
+            Self::InvalidAssignmentShort(s) => {
+                write!(f, "Sopimaton suorituksen lyhenne (1–5 merkkiä) ”{s}”.")
+            }
         }
     }
 }
