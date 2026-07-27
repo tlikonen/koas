@@ -35,15 +35,6 @@ pub struct InsertAssignment {
 }
 
 impl Assignment {
-    pub(super) async fn update_name(&self, db: &mut DBase, name: &str) -> Result<()> {
-        sqlx::query("UPDATE suoritukset SET nimi = $1 WHERE sid = $2")
-            .bind(name)
-            .bind(self.sid)
-            .execute(db)
-            .await?;
-        Ok(())
-    }
-
     /// Prepare to insert a new assignment.
     ///
     /// See [`Commit`] trait for more information.
@@ -160,6 +151,15 @@ impl Assignment {
     /// See [`Commit`] trait for more information.
     pub fn mark_deleted<'a>(&'a self) -> UpdateAssignment<'a> {
         Update::new(self, UpdateAssignmentOp::Delete)
+    }
+
+    async fn update_name(&self, db: &mut DBase, name: &str) -> Result<()> {
+        sqlx::query("UPDATE suoritukset SET nimi = $1 WHERE sid = $2")
+            .bind(name)
+            .bind(self.sid)
+            .execute(db)
+            .await?;
+        Ok(())
     }
 
     async fn update_short(&self, db: &mut DBase, short: &str) -> Result<()> {
