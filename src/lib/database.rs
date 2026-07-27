@@ -94,6 +94,10 @@ pub struct QueryList<T>(Vec<T>);
 #[derive(Default)]
 pub struct Description(String);
 
+pub trait TextField {
+    fn as_str(&self) -> &str;
+}
+
 pub struct Update<'a, I, O> {
     pub(crate) item: &'a I,
     pub(crate) operation: O,
@@ -217,8 +221,8 @@ impl<T> QueryList<T> {
     }
 }
 
-impl Description {
-    pub fn as_str(&self) -> &str {
+impl TextField for Description {
+    fn as_str(&self) -> &str {
         &self.0
     }
 }

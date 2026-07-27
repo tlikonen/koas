@@ -153,12 +153,14 @@ impl HasData for QueryList<Group> {
 }
 
 impl GroupName {
-    pub fn as_str(&self) -> &str {
-        &self.0
-    }
-
     fn is_valid(name: &str) -> bool {
         !name.has_whitespace() && name.has_content()
+    }
+}
+
+impl TextField for GroupName {
+    fn as_str(&self) -> &str {
+        &self.0
     }
 }
 

@@ -309,8 +309,8 @@ impl HasData for QueryList<Student> {
     }
 }
 
-impl Lastname {
-    pub fn as_str(&self) -> &str {
+impl TextField for Lastname {
+    fn as_str(&self) -> &str {
         &self.0
     }
 }
@@ -331,8 +331,8 @@ impl fmt::Display for Lastname {
     }
 }
 
-impl Firstname {
-    pub fn as_str(&self) -> &str {
+impl TextField for Firstname {
+    fn as_str(&self) -> &str {
         &self.0
     }
 }

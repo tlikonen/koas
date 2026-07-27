@@ -416,8 +416,8 @@ impl HasData for QueryList<AssignmentsForGroup> {
     }
 }
 
-impl AssignmentName {
-    pub fn as_str(&self) -> &str {
+impl TextField for AssignmentName {
+    fn as_str(&self) -> &str {
         &self.0
     }
 }
