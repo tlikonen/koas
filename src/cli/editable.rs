@@ -72,7 +72,9 @@ impl MoveToEditable for QueryList<Group> {
 
 impl MoveToEditable for AssignmentsForGroup {
     fn move_to(self, ed: &mut Editable) {
-        ed.set(Editable::Assignments(QueryList::new(self.assignments)));
+        ed.set(Editable::Assignments(QueryList::new(
+            self.into_iter().collect(),
+        )));
     }
 }
 

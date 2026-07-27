@@ -11,8 +11,8 @@ pub struct Assignment {
 
 #[derive(Default)]
 pub struct AssignmentsForGroup {
-    pub group: String,
-    pub assignments: Vec<Assignment>,
+    group: String,
+    assignments: Vec<Assignment>,
 }
 
 pub type UpdateAssignment<'a> = Update<'a, Assignment, UpdateAssignmentOp>;
@@ -373,6 +373,32 @@ impl AssignmentsForGroup {
         }
 
         Ok(QueryList::new(list))
+    }
+
+    /// Return group's name.
+    pub fn group(&self) -> &str {
+        &self.group
+    }
+
+    /// Return iterator over assignments.
+    pub fn iter(&self) -> impl Iterator<Item = &Assignment> {
+        self.assignments.iter()
+    }
+}
+
+impl<'a> IntoIterator for &'a AssignmentsForGroup {
+    type Item = &'a Assignment;
+    type IntoIter = std::slice::Iter<'a, Assignment>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.assignments.iter()
+    }
+}
+
+impl IntoIterator for AssignmentsForGroup {
+    type Item = Assignment;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.assignments.into_iter()
     }
 }
 

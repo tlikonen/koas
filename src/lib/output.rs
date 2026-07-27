@@ -292,7 +292,7 @@ impl MakeTable for QueryList<Group> {
 impl MakeTable for AssignmentsForGroup {
     fn table(&self) -> Table {
         let mut rows = vec![
-            Row::Title(self.group.clone()),
+            Row::Title(self.group().to_string()),
             Row::Toprule,
             Row::Head(VecDeque::from([
                 Cell::Left("Suoritus".to_string()),
@@ -302,7 +302,7 @@ impl MakeTable for AssignmentsForGroup {
             Row::Midrule,
         ];
 
-        for assign in &self.assignments {
+        for assign in self {
             rows.push(Row::Data(VecDeque::from([
                 Cell::Left(assign.name().to_string()),
                 Cell::Left(assign.short().to_string()),
