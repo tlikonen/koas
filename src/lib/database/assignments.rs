@@ -28,12 +28,13 @@ pub enum UpdateAssignmentOp {
 
 pub struct InsertAssignment {
     group: GroupName,
-    assignment: String,
+    assignment: AssignmentName,
     assignment_short: String,
     weight: Option<i32>,
     position: Option<i32>,
 }
 
+#[derive(Clone)]
 pub struct AssignmentName(String);
 
 impl Assignment {
@@ -42,17 +43,16 @@ impl Assignment {
     /// See [`Commit`] trait for more information.
     pub fn insert(
         group: GroupName,
-        assignment: &str,
+        assignment: AssignmentName,
         assignment_short: &str,
         weight: Option<&str>,
         position: Option<&str>,
     ) -> Result<InsertAssignment> {
-        let assignment = assignment.normalize(); // suoritus
         let assignment_short = assignment_short.normalize(); // lyhenne
         let weight = weight.filter(|x| x.has_content()); // painokerroin
         let position = position.filter(|x| x.has_content()); // sija
 
-        if assignment.is_none() || assignment_short.is_none() {
+        if assignment_short.is_none() {
             return Err(Error::from(
                 "Pitää antaa vähintään ryhmä, suorituksen nimi ja lyhenne.",
             ));
@@ -80,12 +80,10 @@ impl Assignment {
             None => None,
         };
 
-        if let Some(long) = assignment
-            && let Some(short) = assignment_short
-        {
+        if let Some(short) = assignment_short {
             Ok(InsertAssignment {
                 group,
-                assignment: long,
+                assignment,
                 assignment_short: short,
                 weight,
                 position,
@@ -265,7 +263,7 @@ impl Assignment {
     async fn insert_db(
         db: &mut DBase,
         group: GroupName,
-        assignment: &str,
+        assignment: AssignmentName,
         assignment_short: &str,
         weight: Option<i32>,
         pos: i32,
@@ -277,7 +275,7 @@ impl Assignment {
              VALUES ($1, $2, $3, $4, $5) RETURNING sid",
         )
         .bind(rid)
-        .bind(assignment)
+        .bind(assignment.as_str())
         .bind(assignment_short)
         .bind(weight)
         .bind(pos)
@@ -500,7 +498,7 @@ impl Commit for InsertAssignment {
         Assignment::insert_db(
             &mut ta,
             self.group,
-            &self.assignment,
+            self.assignment,
             &self.assignment_short,
             self.weight,
             pos,

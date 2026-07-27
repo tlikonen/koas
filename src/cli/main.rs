@@ -509,7 +509,7 @@ async fn commands(
 
             let mut fields = tools::split_sep(args);
             let groups: GroupNames = fields.next().unwrap_or("").try_into()?; // ryhmät
-            let assignment = fields.next().unwrap_or(""); // suoritus
+            let assignment: AssignmentName = fields.next().unwrap_or("").try_into()?; // suoritus
             let assignment_short = fields.next().unwrap_or(""); // lyhenne
             let weight = fields.next(); // painokerroin
             let position = fields.next(); // sija
@@ -517,8 +517,14 @@ async fn commands(
 
             let mut updates = Queue::default();
             for group in groups {
-                Assignment::insert(group, assignment, assignment_short, weight, position)?
-                    .queue(&mut updates);
+                Assignment::insert(
+                    group,
+                    assignment.clone(),
+                    assignment_short,
+                    weight,
+                    position,
+                )?
+                .queue(&mut updates);
             }
             updates.commit(db).await?;
         }
