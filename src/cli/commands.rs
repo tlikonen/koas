@@ -140,7 +140,7 @@ pub(super) async fn edit_assignments(
     fields: impl IntoIterator<Item = &str>,
 ) -> Result<()> {
     let mut fields = fields.into_iter();
-    let name = fields.next().filter(|x| x.has_content()); // suoritus
+    let name = fields.next().filter(|x| !x.is_empty()); // suoritus
     let short = fields.next().filter(|x| x.has_content()); // suoritus
     let weight = fields.next().filter(|x| !x.is_empty()); // painokerroin
     let position = fields.next().filter(|x| x.has_content()); // sija
@@ -161,8 +161,8 @@ pub(super) async fn edit_assignments(
     let mut updates = Queue::default();
 
     for assignment in &assignments {
-        if let Some(n) = name {
-            assignment.set_name(n)?.queue(&mut updates);
+        if let Some(name) = name {
+            assignment.set_name(name.try_into()?).queue(&mut updates);
         }
 
         if let Some(n) = short {
@@ -428,8 +428,8 @@ pub(super) async fn edit_assignment_series(
         match field_num {
             1 => {
                 // suoritus
-                if value.has_content() {
-                    assignment.set_name(value)?.queue(&mut updates);
+                if !value.is_empty() {
+                    assignment.set_name(value.try_into()?).queue(&mut updates);
                 }
             }
 

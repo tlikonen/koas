@@ -18,7 +18,7 @@ pub struct AssignmentsForGroup {
 pub type UpdateAssignment<'a> = Update<'a, Assignment, UpdateAssignmentOp>;
 
 pub enum UpdateAssignmentOp {
-    Name(String),
+    Name(AssignmentName),
     Short(String),
     Weight(i32),
     WeightClear,
@@ -111,13 +111,8 @@ impl Assignment {
     /// Prepare update for assignment's name.
     ///
     /// See [`Commit`] trait for more information.
-    pub fn set_name<'a>(&'a self, name: &str) -> Result<UpdateAssignment<'a>> {
-        match name.normalize() {
-            None => Err(Error::from(format!(
-                "Sopimaton suorituksen nimi: ”{name}”."
-            ))),
-            Some(n) => Ok(Update::new(self, UpdateAssignmentOp::Name(n))),
-        }
+    pub fn set_name<'a>(&'a self, name: AssignmentName) -> UpdateAssignment<'a> {
+        Update::new(self, UpdateAssignmentOp::Name(name))
     }
 
     /// Prepare update for assignment's short name.
@@ -168,9 +163,9 @@ impl Assignment {
         Update::new(self, UpdateAssignmentOp::Delete)
     }
 
-    async fn update_name(&self, db: &mut DBase, name: &str) -> Result<()> {
+    async fn update_name(&self, db: &mut DBase, name: &AssignmentName) -> Result<()> {
         sqlx::query("UPDATE suoritukset SET nimi = $1 WHERE sid = $2")
-            .bind(name)
+            .bind(name.as_str())
             .bind(self.sid)
             .execute(db)
             .await?;
