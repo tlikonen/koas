@@ -91,6 +91,9 @@ pub enum QueryMatch<'a> {
 #[derive(Default, Clone)]
 pub struct QueryList<T>(Vec<T>);
 
+#[derive(Default)]
+pub struct Description(String);
+
 pub struct Update<'a, I, O> {
     pub(crate) item: &'a I,
     pub(crate) operation: O,
@@ -211,6 +214,28 @@ impl<T> QueryList<T> {
 
     pub(crate) fn list_is_empty(&self) -> bool {
         self.0.is_empty()
+    }
+}
+
+impl Description {
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl fmt::Display for Description {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
+}
+
+impl TryFrom<&str> for Description {
+    type Error = Error;
+    fn try_from(desc: &str) -> Result<Self> {
+        match desc.normalize() {
+            Some(d) => Ok(Self(d)),
+            None => Err(Error::InvalidDescription(desc.to_string())),
+        }
     }
 }
 

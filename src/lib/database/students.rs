@@ -16,7 +16,7 @@ pub enum UpdateStudentOp {
     Firstname(Firstname),
     GroupsAdd(GroupNames),
     GroupsRemove(GroupNames),
-    Description(StudentDescription),
+    Description(Description),
     DescriptionClear,
     Delete,
 }
@@ -25,7 +25,7 @@ pub struct InsertStudent {
     pub(super) lastname: Lastname,
     pub(super) firstname: Firstname,
     pub(super) groups: GroupNames,
-    pub(super) description: Option<StudentDescription>,
+    pub(super) description: Option<Description>,
 }
 
 #[derive(Default)]
@@ -33,9 +33,6 @@ pub struct Lastname(String);
 
 #[derive(Default)]
 pub struct Firstname(String);
-
-#[derive(Default)]
-pub struct StudentDescription(String);
 
 impl Student {
     /// Query for students.
@@ -85,7 +82,7 @@ impl Student {
         lastname: Lastname,
         firstname: Firstname,
         groups: GroupNames,
-        description: Option<StudentDescription>,
+        description: Option<Description>,
     ) -> InsertStudent {
         InsertStudent {
             lastname,
@@ -151,7 +148,7 @@ impl Student {
     /// Prepare update for student's description.
     ///
     /// See [`Commit`] trait for more information.
-    pub fn set_description<'a>(&'a self, desc: StudentDescription) -> UpdateStudent<'a> {
+    pub fn set_description<'a>(&'a self, desc: Description) -> UpdateStudent<'a> {
         Update::new(self, UpdateStudentOp::Description(desc))
     }
 
@@ -227,7 +224,7 @@ impl Student {
     async fn update_description(
         &self,
         db: &mut DBase,
-        description: Option<&StudentDescription>,
+        description: Option<&Description>,
     ) -> Result<()> {
         let desc = match description {
             Some(d) => d.to_string(),
@@ -270,7 +267,7 @@ impl Student {
         lastname: Lastname,
         firstname: Firstname,
         groups: GroupNames,
-        description: Option<StudentDescription>,
+        description: Option<Description>,
     ) -> Result<()> {
         let desc = match description {
             Some(d) => d.to_string(),
@@ -356,28 +353,6 @@ impl TryFrom<&str> for Firstname {
 impl fmt::Display for Firstname {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.as_str())
-    }
-}
-
-impl StudentDescription {
-    pub fn as_str(&self) -> &str {
-        &self.0
-    }
-}
-
-impl fmt::Display for StudentDescription {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_str())
-    }
-}
-
-impl TryFrom<&str> for StudentDescription {
-    type Error = Error;
-    fn try_from(desc: &str) -> Result<Self> {
-        match desc.normalize() {
-            Some(d) => Ok(Self(d)),
-            None => Err(Error::InvalidDescription(desc.to_string())),
-        }
     }
 }
 

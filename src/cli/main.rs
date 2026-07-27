@@ -493,7 +493,7 @@ async fn commands(
             let lastname: Lastname = fields.next().unwrap_or("").try_into()?; // sukunimi
             let firstname: Firstname = fields.next().unwrap_or("").try_into()?; // etunimi
             let groups: GroupNames = fields.next().unwrap_or("").try_into()?; // ryhmät
-            let description: Option<StudentDescription> = match fields.next() {
+            let description: Option<Description> = match fields.next() {
                 None | Some("") => None,
                 Some(desc) => Some(desc.try_into()?),
             }; // lisätiedot
