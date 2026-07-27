@@ -88,20 +88,21 @@ pub enum QueryMatch<'a> {
     WildAround(&'a str),
 }
 
-impl QueryMatch<'_> {
-    fn sql_like(&self) -> String {
-        match self {
-            Self::Exact(s) => like_esc(s),
-            Self::Wild(s) => like_esc_wild(s),
-            Self::WildAround(s) => like_esc_wild_around(s),
-        }
-    }
+#[derive(Default, Clone)]
+pub struct QueryList<T>(Vec<T>);
 
-    pub(crate) fn is_empty(&self) -> bool {
-        match self {
-            Self::Exact(s) | Self::Wild(s) | Self::WildAround(s) => s.is_empty(),
-        }
-    }
+pub struct Update<'a, I, O> {
+    pub(crate) item: &'a I,
+    pub(crate) operation: O,
+}
+
+pub struct FullQuery<'a> {
+    pub group: QueryMatch<'a>,
+    pub assignment: QueryMatch<'a>,
+    pub assignment_short: QueryMatch<'a>,
+    pub lastname: QueryMatch<'a>,
+    pub firstname: QueryMatch<'a>,
+    pub description: QueryMatch<'a>,
 }
 
 pub trait HasData {
@@ -116,43 +117,6 @@ pub trait HasData {
     }
 
     fn is_empty(&self) -> bool;
-}
-
-#[derive(Default, Clone)]
-pub struct QueryList<T>(Vec<T>);
-
-impl<T> QueryList<T> {
-    pub fn new(v: Vec<T>) -> Self {
-        Self(v)
-    }
-
-    pub fn iter(&self) -> impl Iterator<Item = &T> {
-        self.0.iter()
-    }
-
-    /// Return iterator over items by 1-based indices.
-    pub fn iter_index1<I>(&self, indices: I) -> impl Iterator<Item = &T>
-    where
-        I: IntoIterator<Item = usize>,
-    {
-        indices.into_iter().filter_map(|i| self.0.get(i - 1))
-    }
-
-    pub fn count(&self) -> usize {
-        self.0.len()
-    }
-
-    pub fn get(&self, n: usize) -> Option<&T> {
-        self.0.get(n)
-    }
-
-    pub fn take(self, n: usize) -> Option<T> {
-        self.0.into_iter().nth(n)
-    }
-
-    pub(crate) fn list_is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
 }
 
 /// Commit prepared updates to the database.
@@ -196,6 +160,60 @@ pub enum QueueItem<'a> {
     InsertAssignment(InsertAssignment),
 }
 
+pub trait ToQueue<'a> {
+    fn queue(self, q: &mut Queue<'a>);
+}
+
+impl QueryMatch<'_> {
+    fn sql_like(&self) -> String {
+        match self {
+            Self::Exact(s) => like_esc(s),
+            Self::Wild(s) => like_esc_wild(s),
+            Self::WildAround(s) => like_esc_wild_around(s),
+        }
+    }
+
+    pub(crate) fn is_empty(&self) -> bool {
+        match self {
+            Self::Exact(s) | Self::Wild(s) | Self::WildAround(s) => s.is_empty(),
+        }
+    }
+}
+
+impl<T> QueryList<T> {
+    pub fn new(v: Vec<T>) -> Self {
+        Self(v)
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = &T> {
+        self.0.iter()
+    }
+
+    /// Return iterator over items by 1-based indices.
+    pub fn iter_index1<I>(&self, indices: I) -> impl Iterator<Item = &T>
+    where
+        I: IntoIterator<Item = usize>,
+    {
+        indices.into_iter().filter_map(|i| self.0.get(i - 1))
+    }
+
+    pub fn count(&self) -> usize {
+        self.0.len()
+    }
+
+    pub fn get(&self, n: usize) -> Option<&T> {
+        self.0.get(n)
+    }
+
+    pub fn take(self, n: usize) -> Option<T> {
+        self.0.into_iter().nth(n)
+    }
+
+    pub(crate) fn list_is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+}
+
 impl Commit for QueueItem<'_> {
     async fn commit(self, db: &mut DBase) -> Result<()> {
         match self {
@@ -232,28 +250,10 @@ impl Commit for Queue<'_> {
     }
 }
 
-pub struct Update<'a, I, O> {
-    pub(crate) item: &'a I,
-    pub(crate) operation: O,
-}
-
 impl<'a, I, O> Update<'a, I, O> {
     pub(crate) fn new(item: &'a I, operation: O) -> Self {
         Self { item, operation }
     }
-}
-
-pub trait ToQueue<'a> {
-    fn queue(self, q: &mut Queue<'a>);
-}
-
-pub struct FullQuery<'a> {
-    pub group: QueryMatch<'a>,
-    pub assignment: QueryMatch<'a>,
-    pub assignment_short: QueryMatch<'a>,
-    pub lastname: QueryMatch<'a>,
-    pub firstname: QueryMatch<'a>,
-    pub description: QueryMatch<'a>,
 }
 
 fn like_esc_wild_around(string: &str) -> String {
