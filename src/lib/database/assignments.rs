@@ -27,11 +27,11 @@ pub enum UpdateAssignmentOp {
 }
 
 pub struct InsertAssignment {
-    pub(super) group: GroupName,
-    pub(super) assignment: String,
-    pub(super) assignment_short: String,
-    pub(super) weight: Option<i32>,
-    pub(super) position: Option<i32>,
+    group: GroupName,
+    assignment: String,
+    assignment_short: String,
+    weight: Option<i32>,
+    position: Option<i32>,
 }
 
 impl Assignment {
