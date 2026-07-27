@@ -28,10 +28,7 @@ pub struct InsertStudent {
     description: Option<Description>,
 }
 
-#[derive(Default)]
 pub struct Lastname(String);
-
-#[derive(Default)]
 pub struct Firstname(String);
 
 impl Student {
