@@ -315,6 +315,12 @@ impl TextField for Lastname {
     }
 }
 
+impl TextField for Firstname {
+    fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
 impl TryFrom<&str> for Lastname {
     type Error = Error;
     fn try_from(name: &str) -> Result<Self> {
@@ -325,18 +331,6 @@ impl TryFrom<&str> for Lastname {
     }
 }
 
-impl fmt::Display for Lastname {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_str())
-    }
-}
-
-impl TextField for Firstname {
-    fn as_str(&self) -> &str {
-        &self.0
-    }
-}
-
 impl TryFrom<&str> for Firstname {
     type Error = Error;
     fn try_from(name: &str) -> Result<Self> {
@@ -344,6 +338,12 @@ impl TryFrom<&str> for Firstname {
             Some(n) => Ok(Self(n)),
             None => Err(Error::InvalidFirstname(name.to_string())),
         }
+    }
+}
+
+impl fmt::Display for Lastname {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_str())
     }
 }
 
