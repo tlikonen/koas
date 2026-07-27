@@ -276,9 +276,9 @@ impl MakeTable for QueryList<Group> {
 
         for group in self.iter() {
             rows.push(Row::Data(VecDeque::from([
-                Cell::Left(group.name.to_string()),
+                Cell::Left(group.name().to_string()),
                 Cell::Multi(column_lines(
-                    group.description.split_whitespace(),
+                    group.description().split_whitespace(),
                     DESCRIPTION_WIDTH,
                 )),
             ])));

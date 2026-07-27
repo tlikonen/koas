@@ -1,9 +1,9 @@
 use super::*;
 
 pub struct Group {
-    pub(super) rid: i32,
-    pub name: String,
-    pub description: String,
+    rid: i32,
+    name: String,
+    description: String,
 }
 
 pub struct GroupNames(Vec<GroupName>);
@@ -44,6 +44,16 @@ impl Group {
         }
 
         Ok(QueryList::new(list))
+    }
+
+    /// Return group's name,
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    /// Return group's description,
+    pub fn description(&self) -> &str {
+        &self.description
     }
 
     /// Prepare update for group's name.
