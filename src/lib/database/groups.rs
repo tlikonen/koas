@@ -148,13 +148,13 @@ impl GroupName {
 
 impl TryFrom<&str> for GroupName {
     type Error = Error;
-    fn try_from(group: &str) -> Result<Self> {
-        if let Some(g) = group.normalize()
+    fn try_from(name: &str) -> Result<Self> {
+        if let Some(g) = name.normalize()
             && GroupName::is_valid(&g)
         {
             Ok(Self(g))
         } else {
-            Err(Error::InvalidGroupname(group.to_string()))
+            Err(Error::InvalidGroupname(name.to_string()))
         }
     }
 }
@@ -189,14 +189,14 @@ impl IntoIterator for GroupNames {
 
 impl TryFrom<&str> for GroupNames {
     type Error = Error;
-    fn try_from(value: &str) -> Result<Self> {
+    fn try_from(names: &str) -> Result<Self> {
         let mut v: Vec<GroupName> = Vec::new();
-        for group in value.split_whitespace() {
+        for group in names.split_whitespace() {
             v.push(group.try_into()?);
         }
 
         if v.is_empty() {
-            Err(Error::InvalidGroupname(value.to_string()))
+            Err(Error::InvalidGroupname(names.to_string()))
         } else {
             Ok(Self(v))
         }
@@ -205,9 +205,9 @@ impl TryFrom<&str> for GroupNames {
 
 impl TryFrom<&Vec<String>> for GroupNames {
     type Error = Error;
-    fn try_from(groups: &Vec<String>) -> Result<Self> {
+    fn try_from(names: &Vec<String>) -> Result<Self> {
         let mut v = Vec::new();
-        for group in groups {
+        for group in names {
             v.push(group.as_str().try_into()?);
         }
 

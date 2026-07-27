@@ -323,10 +323,10 @@ impl Lastname {
 
 impl TryFrom<&str> for Lastname {
     type Error = Error;
-    fn try_from(value: &str) -> Result<Self> {
-        match value.normalize() {
-            Some(v) => Ok(Self(v)),
-            None => Err(Error::InvalidLastname(value.to_string())),
+    fn try_from(name: &str) -> Result<Self> {
+        match name.normalize() {
+            Some(n) => Ok(Self(n)),
+            None => Err(Error::InvalidLastname(name.to_string())),
         }
     }
 }
@@ -345,10 +345,10 @@ impl Firstname {
 
 impl TryFrom<&str> for Firstname {
     type Error = Error;
-    fn try_from(value: &str) -> Result<Self> {
-        match value.normalize() {
-            Some(v) => Ok(Self(v)),
-            None => Err(Error::InvalidFirstname(value.to_string())),
+    fn try_from(name: &str) -> Result<Self> {
+        match name.normalize() {
+            Some(n) => Ok(Self(n)),
+            None => Err(Error::InvalidFirstname(name.to_string())),
         }
     }
 }
@@ -373,10 +373,10 @@ impl fmt::Display for StudentDescription {
 
 impl TryFrom<&str> for StudentDescription {
     type Error = Error;
-    fn try_from(value: &str) -> Result<Self> {
-        match value.normalize() {
-            Some(v) => Ok(Self(v)),
-            None => Err(Error::InvalidDescription(value.to_string())),
+    fn try_from(desc: &str) -> Result<Self> {
+        match desc.normalize() {
+            Some(d) => Ok(Self(d)),
+            None => Err(Error::InvalidDescription(desc.to_string())),
         }
     }
 }
