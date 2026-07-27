@@ -56,7 +56,9 @@ pub(super) async fn edit_students(
 
         if let Some(desc) = description {
             if desc.has_content() {
-                student.set_description(desc)?.queue(&mut updates);
+                student
+                    .set_description(desc.try_into()?)
+                    .queue(&mut updates);
             } else {
                 student.clear_description().queue(&mut updates);
             }
@@ -348,7 +350,9 @@ pub(super) async fn edit_student_series(
             4 => {
                 // lisätiedot
                 if value.has_content() {
-                    student.set_description(value)?.queue(&mut updates);
+                    student
+                        .set_description(value.try_into()?)
+                        .queue(&mut updates);
                 } else {
                     student.clear_description().queue(&mut updates);
                 }

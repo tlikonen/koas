@@ -16,7 +16,7 @@ pub enum UpdateStudentOp {
     Firstname(Firstname),
     GroupsAdd(GroupNames),
     GroupsRemove(GroupNames),
-    Description(String),
+    Description(StudentDescription),
     DescriptionClear,
     Delete,
 }
@@ -25,7 +25,7 @@ pub struct InsertStudent {
     pub(super) lastname: Lastname,
     pub(super) firstname: Firstname,
     pub(super) groups: GroupNames,
-    pub(super) description: String,
+    pub(super) description: Option<StudentDescription>,
 }
 
 #[derive(Default)]
@@ -33,6 +33,9 @@ pub struct Lastname(String);
 
 #[derive(Default)]
 pub struct Firstname(String);
+
+#[derive(Default)]
+pub struct StudentDescription(String);
 
 impl Student {
     /// Query for students.
@@ -82,16 +85,14 @@ impl Student {
         lastname: Lastname,
         firstname: Firstname,
         groups: GroupNames,
-        description: &str,
-    ) -> Result<InsertStudent> {
-        let description = description.normalize(); // lisätiedot
-
-        Ok(InsertStudent {
+        description: Option<StudentDescription>,
+    ) -> InsertStudent {
+        InsertStudent {
             lastname,
             firstname,
             groups,
-            description: description.unwrap_or_default(),
-        })
+            description,
+        }
     }
 
     /// Return student's lastname.
@@ -145,11 +146,8 @@ impl Student {
     /// Prepare update for student's description.
     ///
     /// See [`Commit`] trait for more information.
-    pub fn set_description<'a>(&'a self, desc: &str) -> Result<UpdateStudent<'a>> {
-        match desc.normalize() {
-            None => Err(Error::from(format!("Sopimaton oppilaan kuvaus: ”{desc}”."))),
-            Some(d) => Ok(Update::new(self, UpdateStudentOp::Description(d))),
-        }
+    pub fn set_description<'a>(&'a self, desc: StudentDescription) -> UpdateStudent<'a> {
+        Update::new(self, UpdateStudentOp::Description(desc))
     }
 
     /// Prepare to clear student's description.
@@ -166,7 +164,8 @@ impl Student {
         Update::new(self, UpdateStudentOp::Delete)
     }
 
-    fn fullname(&self) -> String {
+    /// Return student's full name.
+    pub fn fullname(&self) -> String {
         format!("{}, {}", self.lastname.as_str(), self.firstname.as_str())
     }
 
@@ -225,7 +224,16 @@ impl Student {
         Ok(())
     }
 
-    async fn update_description(&self, db: &mut DBase, desc: &str) -> Result<()> {
+    async fn update_description(
+        &self,
+        db: &mut DBase,
+        description: Option<&StudentDescription>,
+    ) -> Result<()> {
+        let desc = match description {
+            Some(d) => d.to_string(),
+            None => "".to_string(),
+        };
+
         sqlx::query("UPDATE oppilaat SET lisatiedot = $1 WHERE oid = $2")
             .bind(desc)
             .bind(self.oid)
@@ -262,15 +270,20 @@ impl Student {
         lastname: Lastname,
         firstname: Firstname,
         groups: GroupNames,
-        description: String,
+        description: Option<StudentDescription>,
     ) -> Result<()> {
+        let desc = match description {
+            Some(d) => d.to_string(),
+            None => "".to_string(),
+        };
+
         let row = sqlx::query(
             "INSERT INTO oppilaat (sukunimi, etunimi, lisatiedot) \
              VALUES ($1, $2, $3) RETURNING oid",
         )
         .bind(lastname.as_str())
         .bind(firstname.as_str())
-        .bind(&description)
+        .bind(desc)
         .fetch_one(&mut *db)
         .await?;
 
@@ -346,6 +359,28 @@ impl fmt::Display for Firstname {
     }
 }
 
+impl StudentDescription {
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl fmt::Display for StudentDescription {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
+}
+
+impl TryFrom<&str> for StudentDescription {
+    type Error = Error;
+    fn try_from(value: &str) -> Result<Self> {
+        match value.normalize() {
+            Some(v) => Ok(Self(v)),
+            None => Err(Error::InvalidDescription(value.to_string())),
+        }
+    }
+}
+
 impl<'a> ToQueue<'a> for UpdateStudent<'a> {
     fn queue(self, q: &mut Queue<'a>) {
         q.push_back(QueueItem::UpdateStudent(self));
@@ -410,9 +445,13 @@ impl Commit for UpdateStudent<'_> {
                 Group::delete_empty(&mut ta).await?;
             }
 
-            UpdateStudentOp::Description(desc) => student.update_description(&mut ta, desc).await?,
+            UpdateStudentOp::Description(desc) => {
+                student.update_description(&mut ta, Some(desc)).await?;
+            }
 
-            UpdateStudentOp::DescriptionClear => student.update_description(&mut ta, "").await?,
+            UpdateStudentOp::DescriptionClear => {
+                student.update_description(&mut ta, None).await?;
+            }
 
             UpdateStudentOp::Delete => {
                 let count = student.count_grades(&mut ta).await?;
