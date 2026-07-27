@@ -262,21 +262,34 @@ impl Assignment {
         Ok(count)
     }
 
-    async fn insert_db(&mut self, db: &mut DBase, pos: i32) -> Result<()> {
+    async fn insert_db(
+        db: &mut DBase,
+        group: GroupName,
+        assignment: &str,
+        assignment_short: &str,
+        weight: Option<i32>,
+        pos: i32,
+    ) -> Result<()> {
+        let rid = Group::get_or_insert(&mut *db, &group).await?;
+
         let row = sqlx::query(
             "INSERT INTO suoritukset (rid, nimi, lyhenne, painokerroin, sija) \
              VALUES ($1, $2, $3, $4, $5) RETURNING sid",
         )
-        .bind(self.rid)
-        .bind(&self.assignment)
-        .bind(&self.assignment_short)
-        .bind(self.weight)
+        .bind(rid)
+        .bind(assignment)
+        .bind(assignment_short)
+        .bind(weight)
         .bind(pos)
         .fetch_one(&mut *db)
         .await?;
 
-        self.sid = row.try_get("sid")?;
-        self.update_position(db, pos).await?;
+        let new = Assignment {
+            sid: row.try_get("sid")?,
+            ..Assignment::default()
+        };
+
+        new.update_position(db, pos).await?;
         Ok(())
     }
 
@@ -482,18 +495,17 @@ impl Commit for UpdateAssignment<'_> {
 impl Commit for InsertAssignment {
     async fn commit(self, db: &mut DBase) -> Result<()> {
         let mut ta = db.begin().await?;
-
-        let mut group_assignment = Assignment {
-            rid: Group::get_or_insert(&mut ta, &self.group).await?,
-            assignment: self.assignment.clone(),
-            assignment_short: self.assignment_short.clone(),
-            weight: self.weight,
-            ..Assignment::default()
-        };
-
         let pos = self.position.unwrap_or(i32::MAX);
 
-        group_assignment.insert_db(&mut ta, pos).await?;
+        Assignment::insert_db(
+            &mut ta,
+            self.group,
+            &self.assignment,
+            &self.assignment_short,
+            self.weight,
+            pos,
+        )
+        .await?;
 
         ta.commit().await?;
         Ok(())
