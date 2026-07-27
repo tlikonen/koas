@@ -4,9 +4,9 @@ use super::*;
 pub struct Assignment {
     pub(super) rid: i32,
     pub(super) sid: i32,
-    pub assignment: String,
-    pub assignment_short: String,
-    pub weight: Option<i32>,
+    pub(super) assignment: String,
+    pub(super) assignment_short: String,
+    pub(super) weight: Option<i32>,
 }
 
 #[derive(Default)]
@@ -91,6 +91,21 @@ impl Assignment {
         } else {
             Err(Error::from("Suorituksen lisääminen epäonnistui."))
         }
+    }
+
+    /// Return assignment's name.
+    pub fn name(&self) -> &str {
+        &self.assignment
+    }
+
+    /// Return assignment's short name.
+    pub fn short(&self) -> &str {
+        &self.assignment_short
+    }
+
+    /// Return assignment's weight (if any).
+    pub fn weight(&self) -> Option<i32> {
+        self.weight
     }
 
     /// Prepare update for assignment's name.

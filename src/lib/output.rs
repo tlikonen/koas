@@ -304,9 +304,9 @@ impl MakeTable for AssignmentsForGroup {
 
         for assign in &self.assignments {
             rows.push(Row::Data(VecDeque::from([
-                Cell::Left(assign.assignment.clone()),
-                Cell::Left(assign.assignment_short.clone()),
-                match &assign.weight {
+                Cell::Left(assign.name().to_string()),
+                Cell::Left(assign.short().to_string()),
+                match assign.weight() {
                     Some(w) => Cell::Right(w.to_string()),
                     None => Cell::Empty,
                 },
@@ -481,8 +481,8 @@ impl MakeTable for GradesForGroup {
         let mut assigns = vec![Cell::Left("Suoritus".to_string())];
         let mut weigths = vec![Cell::Left("Painokerroin".to_string())];
         for assign in &self.assignments {
-            assigns.push(Cell::Left(assign.assignment_short.clone()));
-            weigths.push(match assign.weight {
+            assigns.push(Cell::Left(assign.short().to_string()));
+            weigths.push(match assign.weight() {
                 Some(w) => Cell::Left(w.to_string()),
                 None => Cell::Empty,
             });
@@ -589,8 +589,8 @@ impl PrintQuery for QueryList<GradesForGroup> {
 
             for assign in &tbl.assignments {
                 rows.push(Row::Data(VecDeque::from([
-                    Cell::Left(assign.assignment_short.clone()),
-                    Cell::Left(assign.assignment.clone()),
+                    Cell::Left(assign.short().to_string()),
+                    Cell::Left(assign.name().to_string()),
                 ])));
             }
 
