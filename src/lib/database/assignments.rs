@@ -34,6 +34,8 @@ pub struct InsertAssignment {
     position: Option<i32>,
 }
 
+pub struct AssignmentName(String);
+
 impl Assignment {
     /// Prepare to insert a new assignment.
     ///
@@ -405,6 +407,28 @@ impl IntoIterator for AssignmentsForGroup {
 impl HasData for QueryList<AssignmentsForGroup> {
     fn is_empty(&self) -> bool {
         self.list_is_empty()
+    }
+}
+
+impl AssignmentName {
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl TryFrom<&str> for AssignmentName {
+    type Error = Error;
+    fn try_from(name: &str) -> Result<Self> {
+        match name.normalize() {
+            Some(n) => Ok(Self(n)),
+            None => Err(Error::InvalidAssignmentName(name.to_string())),
+        }
+    }
+}
+
+impl fmt::Display for AssignmentName {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_str())
     }
 }
 

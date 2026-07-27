@@ -23,6 +23,7 @@ pub enum Error {
     InvalidFirstname(String),
     InvalidGroupname(String),
     InvalidDescription(String),
+    InvalidAssignmentName(String),
 }
 
 impl Error {
@@ -56,6 +57,7 @@ impl fmt::Display for Error {
             Self::InvalidFirstname(s) => write!(f, "Sopimaton etunimi ”{s}”."),
             Self::InvalidGroupname(s) => write!(f, "Sopimaton ryhmätunnus ”{s}”."),
             Self::InvalidDescription(s) => write!(f, "Sopimaton kuvaus ”{s}”."),
+            Self::InvalidAssignmentName(s) => write!(f, "Sopimaton suorituksen nimi ”{s}”."),
         }
     }
 }
