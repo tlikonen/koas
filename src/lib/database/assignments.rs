@@ -19,7 +19,7 @@ pub type UpdateAssignment<'a> = Update<'a, Assignment, UpdateAssignmentOp>;
 
 pub enum UpdateAssignmentOp {
     Name(AssignmentName),
-    Short(String),
+    Short(AssignmentShort),
     Weight(i32),
     WeightClear,
     Position(i32),
@@ -29,7 +29,7 @@ pub enum UpdateAssignmentOp {
 pub struct InsertAssignment {
     group: GroupName,
     assignment: AssignmentName,
-    assignment_short: String,
+    assignment_short: AssignmentShort,
     weight: Option<i32>,
     position: Option<i32>,
 }
@@ -46,19 +46,12 @@ impl Assignment {
     pub fn insert(
         group: GroupName,
         assignment: AssignmentName,
-        assignment_short: &str,
+        assignment_short: AssignmentShort,
         weight: Option<&str>,
         position: Option<&str>,
     ) -> Result<InsertAssignment> {
-        let assignment_short = assignment_short.normalize(); // lyhenne
         let weight = weight.filter(|x| x.has_content()); // painokerroin
         let position = position.filter(|x| x.has_content()); // sija
-
-        if assignment_short.is_none() {
-            return Err(Error::from(
-                "Pitää antaa vähintään ryhmä, suorituksen nimi ja lyhenne.",
-            ));
-        }
 
         // Convert from Option<&str> to Option<i32>.
         let weight = match weight {
@@ -82,17 +75,13 @@ impl Assignment {
             None => None,
         };
 
-        if let Some(short) = assignment_short {
-            Ok(InsertAssignment {
-                group,
-                assignment,
-                assignment_short: short,
-                weight,
-                position,
-            })
-        } else {
-            Err(Error::from("Suorituksen lisääminen epäonnistui."))
-        }
+        Ok(InsertAssignment {
+            group,
+            assignment,
+            assignment_short,
+            weight,
+            position,
+        })
     }
 
     /// Return assignment's name.
@@ -120,13 +109,8 @@ impl Assignment {
     /// Prepare update for assignment's short name.
     ///
     /// See [`Commit`] trait for more information.
-    pub fn set_short<'a>(&'a self, name: &str) -> Result<UpdateAssignment<'a>> {
-        match name.normalize() {
-            None => Err(Error::from(format!(
-                "Sopimaton suorituksen lyhenne: ”{name}”."
-            ))),
-            Some(n) => Ok(Update::new(self, UpdateAssignmentOp::Short(n))),
-        }
+    pub fn set_short<'a>(&'a self, name: AssignmentShort) -> UpdateAssignment<'a> {
+        Update::new(self, UpdateAssignmentOp::Short(name))
     }
 
     /// Prepare update for assignment's weight.
@@ -174,9 +158,9 @@ impl Assignment {
         Ok(())
     }
 
-    async fn update_short(&self, db: &mut DBase, short: &str) -> Result<()> {
+    async fn update_short(&self, db: &mut DBase, short: &AssignmentShort) -> Result<()> {
         sqlx::query("UPDATE suoritukset SET lyhenne = $1 WHERE sid = $2")
-            .bind(short)
+            .bind(short.as_str())
             .bind(self.sid)
             .execute(db)
             .await?;
@@ -261,7 +245,7 @@ impl Assignment {
         db: &mut DBase,
         group: GroupName,
         assignment: AssignmentName,
-        assignment_short: &str,
+        assignment_short: AssignmentShort,
         weight: Option<i32>,
         pos: i32,
     ) -> Result<()> {
@@ -273,7 +257,7 @@ impl Assignment {
         )
         .bind(rid)
         .bind(assignment.as_str())
-        .bind(assignment_short)
+        .bind(assignment_short.as_str())
         .bind(weight)
         .bind(pos)
         .fetch_one(&mut *db)
@@ -521,7 +505,7 @@ impl Commit for InsertAssignment {
             &mut ta,
             self.group,
             self.assignment,
-            &self.assignment_short,
+            self.assignment_short,
             self.weight,
             pos,
         )

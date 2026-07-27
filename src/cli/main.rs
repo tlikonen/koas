@@ -510,7 +510,7 @@ async fn commands(
             let mut fields = tools::split_sep(args);
             let groups: GroupNames = fields.next().unwrap_or("").try_into()?; // ryhmät
             let assignment: AssignmentName = fields.next().unwrap_or("").try_into()?; // suoritus
-            let assignment_short = fields.next().unwrap_or(""); // lyhenne
+            let assignment_short: AssignmentShort = fields.next().unwrap_or("").try_into()?; // lyhenne
             let weight = fields.next(); // painokerroin
             let position = fields.next(); // sija
             is_too_much_fields(fields, 5)?;
@@ -520,7 +520,7 @@ async fn commands(
                 Assignment::insert(
                     group,
                     assignment.clone(),
-                    assignment_short,
+                    assignment_short.clone(),
                     weight,
                     position,
                 )?

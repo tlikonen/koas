@@ -141,7 +141,7 @@ pub(super) async fn edit_assignments(
 ) -> Result<()> {
     let mut fields = fields.into_iter();
     let name = fields.next().filter(|x| !x.is_empty()); // suoritus
-    let short = fields.next().filter(|x| x.has_content()); // suoritus
+    let short = fields.next().filter(|x| !x.is_empty()); // suoritus
     let weight = fields.next().filter(|x| !x.is_empty()); // painokerroin
     let position = fields.next().filter(|x| x.has_content()); // sija
     is_too_much_fields(fields, 4)?;
@@ -165,8 +165,8 @@ pub(super) async fn edit_assignments(
             assignment.set_name(name.try_into()?).queue(&mut updates);
         }
 
-        if let Some(n) = short {
-            assignment.set_short(n)?.queue(&mut updates);
+        if let Some(short) = short {
+            assignment.set_short(short.try_into()?).queue(&mut updates);
         }
 
         if let Some(w) = weight {
@@ -435,8 +435,8 @@ pub(super) async fn edit_assignment_series(
 
             2 => {
                 // lyhenne
-                if value.has_content() {
-                    assignment.set_short(value)?.queue(&mut updates);
+                if !value.is_empty() {
+                    assignment.set_short(value.try_into()?).queue(&mut updates);
                 }
             }
 
