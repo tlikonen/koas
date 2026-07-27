@@ -105,6 +105,11 @@ impl Student {
         &self.firstname
     }
 
+    /// Return student's full name: constructed from lastname and firstname.
+    pub fn fullname(&self) -> String {
+        format!("{}, {}", self.lastname.as_str(), self.firstname.as_str())
+    }
+
     /// Return iterator over student's group names.
     pub fn groups(&self) -> impl Iterator<Item = &str> {
         self.groups.iter().map(|s| s.as_str())
@@ -162,11 +167,6 @@ impl Student {
     /// See [`Commit`] trait for more information.
     pub fn mark_deleted<'a>(&'a self) -> UpdateStudent<'a> {
         Update::new(self, UpdateStudentOp::Delete)
-    }
-
-    /// Return student's full name.
-    pub fn fullname(&self) -> String {
-        format!("{}, {}", self.lastname.as_str(), self.firstname.as_str())
     }
 
     async fn in_group(&self, db: &mut DBase, rid: i32) -> Result<bool> {
