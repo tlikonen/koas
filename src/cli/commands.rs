@@ -6,9 +6,9 @@ pub(super) async fn edit_students(
     fields: impl IntoIterator<Item = &str>,
 ) -> Result<()> {
     let mut fields = fields.into_iter();
-    let lastname = fields.next().filter(|x| x.has_content()); // sukunimi
-    let firstname = fields.next().filter(|x| x.has_content()); // etunimi
-    let groups = fields.next().filter(|x| x.has_content()); // ryhmät
+    let lastname = fields.next().filter(|x| !x.is_empty()); // sukunimi
+    let firstname = fields.next().filter(|x| !x.is_empty()); // etunimi
+    let groups = fields.next().filter(|x| !x.is_empty()); // ryhmät
     let description = fields.next().filter(|x| !x.is_empty()); // lisätiedot
     is_too_much_fields(fields, 4)?;
 
@@ -28,7 +28,11 @@ pub(super) async fn edit_students(
     let mut groups_add: Vec<String> = Vec::with_capacity(3);
     let mut groups_remove: Vec<String> = Vec::with_capacity(1);
     if let Some(groups) = groups {
-        parse_add_remove_groups(groups, &mut groups_add, &mut groups_remove)?;
+        if groups.has_content() {
+            parse_add_remove_groups(groups, &mut groups_add, &mut groups_remove)?;
+        } else {
+            return Err(Error::InvalidGroupname(groups.to_string()));
+        }
     }
 
     let mut updates = Queue::default();
@@ -96,7 +100,7 @@ pub(super) async fn edit_groups(
     fields: impl IntoIterator<Item = &str>,
 ) -> Result<()> {
     let mut fields = fields.into_iter();
-    let name = fields.next().filter(|x| x.has_content()); // ryhmä
+    let name = fields.next().filter(|x| !x.is_empty()); // ryhmä
     let description = fields.next().filter(|x| !x.is_empty()); // lisätiedot
     is_too_much_fields(fields, 2)?;
 
@@ -314,21 +318,25 @@ pub(super) async fn edit_student_series(
         match field_num {
             1 => {
                 // sukunimi
-                if value.has_content() {
+                if !value.is_empty() {
                     student.set_lastname(value.try_into()?).queue(&mut updates);
                 }
             }
 
             2 => {
                 // etunimi
-                if value.has_content() {
+                if !value.is_empty() {
                     student.set_firstname(value.try_into()?).queue(&mut updates);
                 }
             }
 
             3 => {
                 // ryhmät
-                if value.has_content() {
+                if !value.is_empty() {
+                    if !value.has_content() {
+                        return Err(Error::InvalidGroupname(value.to_string()));
+                    }
+
                     let mut groups_add = Vec::with_capacity(3);
                     let mut groups_remove = Vec::with_capacity(1);
                     parse_add_remove_groups(value, &mut groups_add, &mut groups_remove)?;
@@ -382,7 +390,7 @@ pub(super) async fn edit_group_series(
         match field_num {
             1 => {
                 // ryhmä
-                if value.has_content() {
+                if !value.is_empty() {
                     group.set_name(value.try_into()?).queue(&mut updates);
                 }
             }
