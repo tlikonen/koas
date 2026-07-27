@@ -123,7 +123,7 @@ pub(super) async fn edit_groups(
 
         if let Some(desc) = description {
             if desc.has_content() {
-                group.set_description(desc)?.queue(&mut updates);
+                group.set_description(desc.try_into()?).queue(&mut updates);
             } else {
                 group.clear_description().queue(&mut updates);
             }
@@ -398,7 +398,7 @@ pub(super) async fn edit_group_series(
             2 => {
                 // lisätiedot
                 if value.has_content() {
-                    group.set_description(value)?.queue(&mut updates);
+                    group.set_description(value.try_into()?).queue(&mut updates);
                 } else {
                     group.clear_description().queue(&mut updates);
                 }

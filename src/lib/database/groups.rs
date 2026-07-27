@@ -14,7 +14,7 @@ pub type UpdateGroup<'a> = Update<'a, Group, UpdateGroupOp>;
 
 pub enum UpdateGroupOp {
     Name(GroupName),
-    Description(String),
+    Description(Description),
     DescriptionClear,
 }
 
@@ -66,11 +66,8 @@ impl Group {
     /// Prepare update for group's description.
     ///
     /// See [`Commit`] trait for more information.
-    pub fn set_description<'a>(&'a self, desc: &str) -> Result<UpdateGroup<'a>> {
-        match desc.normalize() {
-            None => Err(Error::from(format!("Sopimaton ryhmän kuvaus: ”{desc}”."))),
-            Some(d) => Ok(Update::new(self, UpdateGroupOp::Description(d))),
-        }
+    pub fn set_description<'a>(&'a self, desc: Description) -> UpdateGroup<'a> {
+        Update::new(self, UpdateGroupOp::Description(desc))
     }
 
     /// Prepare to clear group's description.
@@ -117,7 +114,16 @@ impl Group {
         Ok(())
     }
 
-    async fn update_description(&self, db: &mut DBase, desc: &str) -> Result<()> {
+    async fn update_description(
+        &self,
+        db: &mut DBase,
+        description: Option<&Description>,
+    ) -> Result<()> {
+        let desc = match description {
+            Some(d) => d.to_string(),
+            None => "".to_string(),
+        };
+
         sqlx::query("UPDATE ryhmat SET lisatiedot = $1 WHERE rid = $2")
             .bind(desc)
             .bind(self.rid)
@@ -242,8 +248,10 @@ impl Commit for UpdateGroup<'_> {
 
         match &self.operation {
             UpdateGroupOp::Name(name) => group.update_name(&mut ta, name).await?,
-            UpdateGroupOp::Description(desc) => group.update_description(&mut ta, desc).await?,
-            UpdateGroupOp::DescriptionClear => group.update_description(&mut ta, "").await?,
+            UpdateGroupOp::Description(desc) => {
+                group.update_description(&mut ta, Some(desc)).await?
+            }
+            UpdateGroupOp::DescriptionClear => group.update_description(&mut ta, None).await?,
         }
 
         ta.commit().await?;
