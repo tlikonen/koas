@@ -60,6 +60,7 @@ use futures::TryStreamExt;
 use sqlx::Row as _;
 use std::collections::VecDeque;
 use std::fmt;
+use std::fmt::Display;
 use std::io;
 use std::io::Write as _;
 
@@ -91,11 +92,16 @@ pub enum QueryMatch<'a> {
 #[derive(Default, Clone)]
 pub struct QueryList<T>(Vec<T>);
 
-#[derive(Default)]
-pub struct Description(String);
+pub type Description = Field<ContextDescription, String>;
 
-pub trait TextField {
-    fn as_str(&self) -> &str;
+#[derive(Default)]
+pub struct ContextDescription;
+
+#[derive(Clone)]
+pub struct Field<C, T> {
+    field: T,
+    #[allow(unused)]
+    context: C,
 }
 
 pub struct Update<'a, I, O> {
@@ -171,6 +177,33 @@ pub trait ToQueue<'a> {
     fn queue(self, q: &mut Queue<'a>);
 }
 
+impl<C, T> Field<C, T>
+where
+    C: Default,
+{
+    fn new(field: T) -> Self {
+        Self {
+            field,
+            context: Default::default(),
+        }
+    }
+}
+
+impl<C> Field<C, String> {
+    pub fn as_str(&self) -> &str {
+        &self.field
+    }
+}
+
+impl<C, T> Display for Field<C, T>
+where
+    T: Display,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.field)
+    }
+}
+
 impl QueryMatch<'_> {
     fn sql_like(&self) -> String {
         match self {
@@ -180,7 +213,7 @@ impl QueryMatch<'_> {
         }
     }
 
-    pub(crate) fn is_empty(&self) -> bool {
+    fn is_empty(&self) -> bool {
         match self {
             Self::Exact(s) | Self::Wild(s) | Self::WildAround(s) => s.is_empty(),
         }
@@ -221,23 +254,11 @@ impl<T> QueryList<T> {
     }
 }
 
-impl TextField for Description {
-    fn as_str(&self) -> &str {
-        &self.0
-    }
-}
-
-impl fmt::Display for Description {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_str())
-    }
-}
-
 impl TryFrom<&str> for Description {
     type Error = Error;
     fn try_from(desc: &str) -> Result<Self> {
         match desc.normalize() {
-            Some(d) => Ok(Self(d)),
+            Some(d) => Ok(Self::new(d)),
             None => Err(Error::InvalidDescription(desc.to_string())),
         }
     }

@@ -6,11 +6,12 @@ pub struct Group {
     description: String,
 }
 
-pub struct GroupNames(Vec<GroupName>);
-
-pub struct GroupName(String);
-
+pub type GroupName = Field<ContextGroupName, String>;
+pub type GroupNames = Field<ContextGroupName, Vec<GroupName>>;
 pub type UpdateGroup<'a> = Update<'a, Group, UpdateGroupOp>;
+
+#[derive(Default)]
+pub struct ContextGroupName;
 
 pub enum UpdateGroupOp {
     Name(GroupName),
@@ -158,34 +159,22 @@ impl GroupName {
     }
 }
 
-impl TextField for GroupName {
-    fn as_str(&self) -> &str {
-        &self.0
-    }
-}
-
 impl TryFrom<&str> for GroupName {
     type Error = Error;
     fn try_from(name: &str) -> Result<Self> {
         if let Some(g) = name.normalize()
             && GroupName::is_valid(&g)
         {
-            Ok(Self(g))
+            Ok(Self::new(g))
         } else {
             Err(Error::InvalidGroupname(name.to_string()))
         }
     }
 }
 
-impl fmt::Display for GroupName {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_str())
-    }
-}
-
 impl GroupNames {
     pub fn iter(&self) -> impl Iterator<Item = &GroupName> {
-        self.0.iter()
+        self.field.iter()
     }
 }
 
@@ -193,7 +182,7 @@ impl<'a> IntoIterator for &'a GroupNames {
     type Item = &'a GroupName;
     type IntoIter = std::slice::Iter<'a, GroupName>;
     fn into_iter(self) -> Self::IntoIter {
-        self.0.iter()
+        self.field.iter()
     }
 }
 
@@ -201,7 +190,7 @@ impl IntoIterator for GroupNames {
     type Item = GroupName;
     type IntoIter = std::vec::IntoIter<Self::Item>;
     fn into_iter(self) -> Self::IntoIter {
-        self.0.into_iter()
+        self.field.into_iter()
     }
 }
 
@@ -216,7 +205,7 @@ impl TryFrom<&str> for GroupNames {
         if v.is_empty() {
             Err(Error::InvalidGroupname(names.to_string()))
         } else {
-            Ok(Self(v))
+            Ok(Self::new(v))
         }
     }
 }
@@ -232,7 +221,7 @@ impl TryFrom<&Vec<String>> for GroupNames {
         if v.is_empty() {
             Err(Error::InvalidGroupname("".to_string()))
         } else {
-            Ok(Self(v))
+            Ok(Self::new(v))
         }
     }
 }

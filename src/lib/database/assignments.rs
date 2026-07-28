@@ -15,7 +15,14 @@ pub struct AssignmentsForGroup {
     assignments: Vec<Assignment>,
 }
 
+pub type AssignmentName = Field<ContextAssignmentName, String>;
+pub type AssignmentShort = Field<ContextAssignmentShort, String>;
 pub type UpdateAssignment<'a> = Update<'a, Assignment, UpdateAssignmentOp>;
+
+#[derive(Clone, Default)]
+pub struct ContextAssignmentName;
+#[derive(Clone, Default)]
+pub struct ContextAssignmentShort;
 
 pub enum UpdateAssignmentOp {
     Name(AssignmentName),
@@ -33,11 +40,6 @@ pub struct InsertAssignment {
     weight: Option<i32>,
     position: Option<i32>,
 }
-
-#[derive(Clone)]
-pub struct AssignmentName(String);
-#[derive(Clone)]
-pub struct AssignmentShort(String);
 
 impl Assignment {
     /// Prepare to insert a new assignment.
@@ -402,23 +404,11 @@ impl HasData for QueryList<AssignmentsForGroup> {
     }
 }
 
-impl TextField for AssignmentName {
-    fn as_str(&self) -> &str {
-        &self.0
-    }
-}
-
-impl TextField for AssignmentShort {
-    fn as_str(&self) -> &str {
-        &self.0
-    }
-}
-
 impl TryFrom<&str> for AssignmentName {
     type Error = Error;
     fn try_from(name: &str) -> Result<Self> {
         match name.normalize() {
-            Some(n) => Ok(Self(n)),
+            Some(n) => Ok(Self::new(n)),
             None => Err(Error::InvalidAssignmentName(name.to_string())),
         }
     }
@@ -430,22 +420,10 @@ impl TryFrom<&str> for AssignmentShort {
         if let Some(n) = name.normalize()
             && (1..=5).contains(&n.chars().count())
         {
-            Ok(Self(n))
+            Ok(Self::new(n))
         } else {
             Err(Error::InvalidAssignmentShort(name.to_string()))
         }
-    }
-}
-
-impl fmt::Display for AssignmentName {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_str())
-    }
-}
-
-impl fmt::Display for AssignmentShort {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_str())
     }
 }
 

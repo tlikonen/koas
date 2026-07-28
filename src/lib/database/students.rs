@@ -9,7 +9,14 @@ pub struct Student {
     description: String,
 }
 
+pub type Lastname = Field<ContextLastname, String>;
+pub type Firstname = Field<ContextFirstname, String>;
 pub type UpdateStudent<'a> = Update<'a, Student, UpdateStudentOp>;
+
+#[derive(Default)]
+pub struct ContextLastname;
+#[derive(Default)]
+pub struct ContextFirstname;
 
 pub enum UpdateStudentOp {
     Lastname(Lastname),
@@ -27,9 +34,6 @@ pub struct InsertStudent {
     groups: GroupNames,
     description: Option<Description>,
 }
-
-pub struct Lastname(String);
-pub struct Firstname(String);
 
 impl Student {
     /// Query for students.
@@ -309,23 +313,11 @@ impl HasData for QueryList<Student> {
     }
 }
 
-impl TextField for Lastname {
-    fn as_str(&self) -> &str {
-        &self.0
-    }
-}
-
-impl TextField for Firstname {
-    fn as_str(&self) -> &str {
-        &self.0
-    }
-}
-
 impl TryFrom<&str> for Lastname {
     type Error = Error;
     fn try_from(name: &str) -> Result<Self> {
         match name.normalize() {
-            Some(n) => Ok(Self(n)),
+            Some(n) => Ok(Self::new(n)),
             None => Err(Error::InvalidLastname(name.to_string())),
         }
     }
@@ -335,21 +327,9 @@ impl TryFrom<&str> for Firstname {
     type Error = Error;
     fn try_from(name: &str) -> Result<Self> {
         match name.normalize() {
-            Some(n) => Ok(Self(n)),
+            Some(n) => Ok(Self::new(n)),
             None => Err(Error::InvalidFirstname(name.to_string())),
         }
-    }
-}
-
-impl fmt::Display for Lastname {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_str())
-    }
-}
-
-impl fmt::Display for Firstname {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_str())
     }
 }
 
