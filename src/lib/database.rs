@@ -227,10 +227,12 @@ impl QueryMatch<'_> {
 }
 
 impl<T> QueryList<T> {
+    /// Construct a new list.
     pub fn new(v: Vec<T>) -> Self {
         Self(v)
     }
 
+    /// Return iterator over items.
     pub fn iter(&self) -> impl Iterator<Item = &T> {
         self.0.iter()
     }
@@ -243,14 +245,17 @@ impl<T> QueryList<T> {
         indices.into_iter().filter_map(|i| self.0.get(i - 1))
     }
 
+    /// Return the count of elements in the list.
     pub fn count(&self) -> usize {
         self.0.len()
     }
 
+    /// Return the `n`th element.
     pub fn get(&self, n: usize) -> Option<&T> {
         self.0.get(n)
     }
 
+    /// Take and return the `n`th element and consume the list.
     pub fn take(self, n: usize) -> Option<T> {
         self.0.into_iter().nth(n)
     }
