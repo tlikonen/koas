@@ -24,6 +24,8 @@ pub enum Error {
     InvalidDescription(String),
     InvalidAssignmentName(String),
     InvalidAssignmentShort(String),
+    InvalidAssignmentWeight(String),
+    InvalidAssignmentPosition(String),
 }
 
 impl Error {
@@ -59,6 +61,10 @@ impl fmt::Display for Error {
             Self::InvalidAssignmentName(s) => write!(f, "Sopimaton suorituksen nimi ”{s}”."),
             Self::InvalidAssignmentShort(s) => {
                 write!(f, "Sopimaton suorituksen lyhenne (1–5 merkkiä) ”{s}”.")
+            }
+            Self::InvalidAssignmentWeight(s) => write!(f, "Sopimaton painokerroin ”{s}”."),
+            Self::InvalidAssignmentPosition(s) => {
+                write!(f, "Sopimaton suorituksen järjestysluku ”{s}”.")
             }
         }
     }

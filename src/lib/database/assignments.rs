@@ -17,12 +17,18 @@ pub struct AssignmentsForGroup {
 
 pub type AssignmentName = Field<ContextAssignmentName, String>;
 pub type AssignmentShort = Field<ContextAssignmentShort, String>;
+pub type AssignmentWeight = Field<ContextAssignmentWeight, i32>;
+pub type AssignmentPosition = Field<ContextAssignmentPosition, i32>;
 pub type UpdateAssignment<'a> = Update<'a, Assignment, UpdateAssignmentOp>;
 
 #[derive(Clone, Default)]
 pub struct ContextAssignmentName;
 #[derive(Clone, Default)]
 pub struct ContextAssignmentShort;
+#[derive(Clone, Default)]
+pub struct ContextAssignmentWeight;
+#[derive(Clone, Default)]
+pub struct ContextAssignmentPosition;
 
 pub enum UpdateAssignmentOp {
     Name(AssignmentName),
@@ -423,6 +429,48 @@ impl TryFrom<&str> for AssignmentShort {
             Ok(Self::new(n))
         } else {
             Err(Error::InvalidAssignmentShort(name.to_string()))
+        }
+    }
+}
+
+impl TryFrom<&str> for AssignmentWeight {
+    type Error = Error;
+    fn try_from(s: &str) -> Result<Self> {
+        match s.trim().parse::<i32>() {
+            Ok(n) if n >= 1 => Ok(Self::new(n)),
+            _ => Err(Error::InvalidAssignmentWeight(s.to_string())),
+        }
+    }
+}
+
+impl TryFrom<i32> for AssignmentWeight {
+    type Error = Error;
+    fn try_from(v: i32) -> Result<Self> {
+        if v >= 1 {
+            Ok(Self::new(v))
+        } else {
+            Err(Error::InvalidAssignmentWeight(v.to_string()))
+        }
+    }
+}
+
+impl TryFrom<&str> for AssignmentPosition {
+    type Error = Error;
+    fn try_from(s: &str) -> Result<Self> {
+        match s.trim().parse::<i32>() {
+            Ok(n) if n >= 1 => Ok(Self::new(n)),
+            _ => Err(Error::InvalidAssignmentPosition(s.to_string())),
+        }
+    }
+}
+
+impl TryFrom<i32> for AssignmentPosition {
+    type Error = Error;
+    fn try_from(v: i32) -> Result<Self> {
+        if v >= 1 {
+            Ok(Self::new(v))
+        } else {
+            Err(Error::InvalidAssignmentPosition(v.to_string()))
         }
     }
 }

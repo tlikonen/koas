@@ -195,6 +195,12 @@ impl<C> Field<C, String> {
     }
 }
 
+impl<C> Field<C, i32> {
+    pub fn value(&self) -> i32 {
+        self.field
+    }
+}
+
 impl<C, T> Display for Field<C, T>
 where
     T: Display,
