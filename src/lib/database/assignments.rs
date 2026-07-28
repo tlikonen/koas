@@ -35,7 +35,7 @@ pub enum UpdateAssignmentOp {
     Short(AssignmentShort),
     Weight(AssignmentWeight),
     WeightClear,
-    Position(i32),
+    Position(AssignmentPosition),
     Delete,
 }
 
@@ -44,7 +44,7 @@ pub struct InsertAssignment {
     assignment: AssignmentName,
     assignment_short: AssignmentShort,
     weight: Option<AssignmentWeight>,
-    position: Option<i32>,
+    position: Option<AssignmentPosition>,
 }
 
 impl Assignment {
@@ -56,26 +56,15 @@ impl Assignment {
         assignment: AssignmentName,
         assignment_short: AssignmentShort,
         weight: Option<AssignmentWeight>,
-        position: Option<&str>,
-    ) -> Result<InsertAssignment> {
-        let position = position.filter(|x| x.has_content()); // sija
-
-        // Convert from Option<&str> to Option<i32>.
-        let position = match position {
-            Some(s) => match s.trim().parse::<i32>() {
-                Ok(n) => Some(n),
-                _ => return Err(Error::from("Järjestysnumeron täytyy olla kokonaisluku.")),
-            },
-            None => None,
-        };
-
-        Ok(InsertAssignment {
+        position: Option<AssignmentPosition>,
+    ) -> InsertAssignment {
+        InsertAssignment {
             group,
             assignment,
             assignment_short,
             weight,
             position,
-        })
+        }
     }
 
     /// Return assignment's name.
@@ -124,11 +113,8 @@ impl Assignment {
     /// Prepare update for assignment's position.
     ///
     /// See [`Commit`] trait for more information.
-    pub fn set_position<'a>(&'a self, number: &str) -> Result<UpdateAssignment<'a>> {
-        match number.trim().parse::<i32>() {
-            Ok(n) => Ok(Update::new(self, UpdateAssignmentOp::Position(n))),
-            _ => Err(Error::from("Järjestysnumeron täytyy olla kokonaisluku.")),
-        }
+    pub fn set_position<'a>(&'a self, number: AssignmentPosition) -> UpdateAssignment<'a> {
+        Update::new(self, UpdateAssignmentOp::Position(number))
     }
 
     /// Prepare deletion of assignment.
@@ -165,7 +151,8 @@ impl Assignment {
         Ok(())
     }
 
-    async fn update_position(&self, db: &mut DBase, mut pos: i32) -> Result<()> {
+    async fn update_position(&self, db: &mut DBase, position: &AssignmentPosition) -> Result<()> {
+        let mut pos = position.value();
         let mut other_sids = Vec::with_capacity(10);
 
         {
@@ -230,8 +217,9 @@ impl Assignment {
         assignment: AssignmentName,
         assignment_short: AssignmentShort,
         weight: Option<AssignmentWeight>,
-        pos: i32,
+        position: Option<AssignmentPosition>,
     ) -> Result<()> {
+        let pos = position.unwrap_or_default();
         let rid = Group::get_or_insert(&mut *db, &group).await?;
 
         let row = sqlx::query(
@@ -242,7 +230,7 @@ impl Assignment {
         .bind(assignment.as_str())
         .bind(assignment_short.as_str())
         .bind(weight.map(|w| w.value()))
-        .bind(pos)
+        .bind(pos.value())
         .fetch_one(&mut *db)
         .await?;
 
@@ -251,7 +239,7 @@ impl Assignment {
             ..Assignment::default()
         };
 
-        new.update_position(db, pos).await?;
+        new.update_position(db, &pos).await?;
         Ok(())
     }
 
@@ -363,6 +351,12 @@ impl AssignmentsForGroup {
     }
 }
 
+impl Default for AssignmentPosition {
+    fn default() -> Self {
+        Self::new(i32::MAX)
+    }
+}
+
 impl<'a> IntoIterator for &'a AssignmentsForGroup {
     type Item = &'a Assignment;
     type IntoIter = std::slice::Iter<'a, Assignment>;
@@ -471,7 +465,7 @@ impl Commit for UpdateAssignment<'_> {
                 assignment.update_weight(&mut ta, Some(weight)).await?
             }
             UpdateAssignmentOp::WeightClear => assignment.update_weight(&mut ta, None).await?,
-            UpdateAssignmentOp::Position(pos) => assignment.update_position(&mut ta, *pos).await?,
+            UpdateAssignmentOp::Position(pos) => assignment.update_position(&mut ta, pos).await?,
 
             UpdateAssignmentOp::Delete => {
                 let count = assignment.count_grades(&mut ta).await?;
@@ -497,7 +491,6 @@ impl Commit for UpdateAssignment<'_> {
 impl Commit for InsertAssignment {
     async fn commit(self, db: &mut DBase) -> Result<()> {
         let mut ta = db.begin().await?;
-        let pos = self.position.unwrap_or(i32::MAX);
 
         Assignment::insert_db(
             &mut ta,
@@ -505,7 +498,7 @@ impl Commit for InsertAssignment {
             self.assignment,
             self.assignment_short,
             self.weight,
-            pos,
+            self.position,
         )
         .await?;
 

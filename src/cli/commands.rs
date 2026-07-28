@@ -143,7 +143,7 @@ pub(super) async fn edit_assignments(
     let name = fields.next().filter(|x| !x.is_empty()); // suoritus
     let short = fields.next().filter(|x| !x.is_empty()); // suoritus
     let weight = fields.next().filter(|x| !x.is_empty()); // painokerroin
-    let position = fields.next().filter(|x| x.has_content()); // sija
+    let position = fields.next().filter(|x| !x.is_empty()); // sija
     is_too_much_fields(fields, 4)?;
 
     if name.is_none() && short.is_none() && weight.is_none() && position.is_none() {
@@ -178,7 +178,7 @@ pub(super) async fn edit_assignments(
         }
 
         if let Some(p) = position {
-            assignment.set_position(p)?.queue(&mut updates);
+            assignment.set_position(p.try_into()?).queue(&mut updates);
         }
     }
 
@@ -451,8 +451,10 @@ pub(super) async fn edit_assignment_series(
 
             4 => {
                 // sija
-                if value.has_content() {
-                    assignment.set_position(value)?.queue(&mut updates);
+                if !value.is_empty() {
+                    assignment
+                        .set_position(value.try_into()?)
+                        .queue(&mut updates);
                 }
             }
 

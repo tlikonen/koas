@@ -515,7 +515,10 @@ async fn commands(
                 None | Some("") => None,
                 Some(w) => Some(w.try_into()?),
             }; // painokerroin
-            let position = fields.next(); // sija
+            let position: Option<AssignmentPosition> = match fields.next() {
+                None | Some("") => None,
+                Some(p) => Some(p.try_into()?),
+            }; // sija
             is_too_much_fields(fields, 5)?;
 
             let mut updates = Queue::default();
@@ -525,8 +528,8 @@ async fn commands(
                     assignment.clone(),
                     assignment_short.clone(),
                     weight.clone(),
-                    position,
-                )?
+                    position.clone(),
+                )
                 .queue(&mut updates);
             }
             updates.commit(db).await?;
