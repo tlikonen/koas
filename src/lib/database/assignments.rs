@@ -154,6 +154,7 @@ impl Assignment {
     async fn update_position(&self, db: &mut DBase, position: &AssignmentPosition) -> Result<()> {
         let mut pos = position.value();
         let mut other_sids = Vec::with_capacity(10);
+        let mut pos_max: i32 = 1;
 
         {
             let mut rows = sqlx::query(
@@ -167,6 +168,7 @@ impl Assignment {
             while let Some(row) = rows.try_next().await? {
                 let sid: i32 = row.try_get("sid")?;
                 other_sids.push(sid);
+                pos_max += 1;
             }
         }
 
@@ -174,9 +176,8 @@ impl Assignment {
             pos = 1;
         }
 
-        let other_max: i32 = other_sids.len().try_into().unwrap_or(i32::MAX);
-        if pos > other_max + 1 {
-            pos = other_max + 1
+        if pos > pos_max {
+            pos = pos_max
         }
 
         sqlx::query("UPDATE suoritukset SET sija = $1 WHERE sid = $2")
@@ -234,7 +235,9 @@ impl Assignment {
         .fetch_one(&mut *db)
         .await?;
 
+        // Both rid and sid MUST be set here!
         let new = Assignment {
+            rid,
             sid: row.try_get("sid")?,
             ..Assignment::default()
         };
