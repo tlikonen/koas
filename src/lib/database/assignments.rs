@@ -423,12 +423,9 @@ impl TryFrom<&str> for AssignmentName {
 impl TryFrom<&str> for AssignmentShort {
     type Error = Error;
     fn try_from(name: &str) -> Result<Self> {
-        if let Some(n) = name.normalize()
-            && (1..=5).contains(&n.chars().count())
-        {
-            Ok(Self::new(n))
-        } else {
-            Err(Error::InvalidAssignmentShort(name.to_string()))
+        match name.normalize() {
+            Some(n) if (1..=5).contains(&n.chars().count()) => Ok(Self::new(n)),
+            _ => Err(Error::InvalidAssignmentShort(name.to_string())),
         }
     }
 }
