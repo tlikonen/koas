@@ -33,7 +33,7 @@ pub struct ContextAssignmentPosition;
 pub enum UpdateAssignmentOp {
     Name(AssignmentName),
     Short(AssignmentShort),
-    Weight(i32),
+    Weight(AssignmentWeight),
     WeightClear,
     Position(i32),
     Delete,
@@ -43,7 +43,7 @@ pub struct InsertAssignment {
     group: GroupName,
     assignment: AssignmentName,
     assignment_short: AssignmentShort,
-    weight: Option<i32>,
+    weight: Option<AssignmentWeight>,
     position: Option<i32>,
 }
 
@@ -55,24 +55,10 @@ impl Assignment {
         group: GroupName,
         assignment: AssignmentName,
         assignment_short: AssignmentShort,
-        weight: Option<&str>,
+        weight: Option<AssignmentWeight>,
         position: Option<&str>,
     ) -> Result<InsertAssignment> {
-        let weight = weight.filter(|x| x.has_content()); // painokerroin
         let position = position.filter(|x| x.has_content()); // sija
-
-        // Convert from Option<&str> to Option<i32>.
-        let weight = match weight {
-            Some(s) => match s.trim().parse::<i32>() {
-                Ok(n) if n >= 1 => Some(n),
-                _ => {
-                    return Err(Error::from(
-                        "Painokertoimen täytyy olla positiivinen kokonaisluku (tai tyhjä).",
-                    ));
-                }
-            },
-            None => None,
-        };
 
         // Convert from Option<&str> to Option<i32>.
         let position = match position {
@@ -124,13 +110,8 @@ impl Assignment {
     /// Prepare update for assignment's weight.
     ///
     /// See [`Commit`] trait for more information.
-    pub fn set_weight<'a>(&'a self, number: &str) -> Result<UpdateAssignment<'a>> {
-        match number.trim().parse::<i32>() {
-            Ok(n) if n >= 1 => Ok(Update::new(self, UpdateAssignmentOp::Weight(n))),
-            _ => Err(Error::from(
-                "Painokertoimen täytyy olla positiivinen kokonaisluku (tai tyhjä).",
-            )),
-        }
+    pub fn set_weight<'a>(&'a self, number: AssignmentWeight) -> UpdateAssignment<'a> {
+        Update::new(self, UpdateAssignmentOp::Weight(number))
     }
 
     /// Prepare to clear assignment's weight.
@@ -175,15 +156,9 @@ impl Assignment {
         Ok(())
     }
 
-    async fn update_weight(&self, db: &mut DBase, mut weight: Option<i32>) -> Result<()> {
-        if let Some(n) = weight
-            && n < 1
-        {
-            weight = None;
-        }
-
+    async fn update_weight(&self, db: &mut DBase, weight: Option<&AssignmentWeight>) -> Result<()> {
         sqlx::query("UPDATE suoritukset SET painokerroin = $1 WHERE sid = $2")
-            .bind(weight)
+            .bind(weight.map(|w| w.value()))
             .bind(self.sid)
             .execute(db)
             .await?;
@@ -254,7 +229,7 @@ impl Assignment {
         group: GroupName,
         assignment: AssignmentName,
         assignment_short: AssignmentShort,
-        weight: Option<i32>,
+        weight: Option<AssignmentWeight>,
         pos: i32,
     ) -> Result<()> {
         let rid = Group::get_or_insert(&mut *db, &group).await?;
@@ -266,7 +241,7 @@ impl Assignment {
         .bind(rid)
         .bind(assignment.as_str())
         .bind(assignment_short.as_str())
-        .bind(weight)
+        .bind(weight.map(|w| w.value()))
         .bind(pos)
         .fetch_one(&mut *db)
         .await?;
@@ -493,7 +468,7 @@ impl Commit for UpdateAssignment<'_> {
             UpdateAssignmentOp::Name(name) => assignment.update_name(&mut ta, name).await?,
             UpdateAssignmentOp::Short(short) => assignment.update_short(&mut ta, short).await?,
             UpdateAssignmentOp::Weight(weight) => {
-                assignment.update_weight(&mut ta, Some(*weight)).await?
+                assignment.update_weight(&mut ta, Some(weight)).await?
             }
             UpdateAssignmentOp::WeightClear => assignment.update_weight(&mut ta, None).await?,
             UpdateAssignmentOp::Position(pos) => assignment.update_position(&mut ta, *pos).await?,

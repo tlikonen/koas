@@ -154,7 +154,7 @@ pub(super) async fn edit_assignments(
 
     if assignments.len() > 1 && position.is_some() {
         return Err(Error::from(
-            "Usealle suoritukselle ei voi asettaa samaa järjestysnumeroa.",
+            "Usealle suoritukselle ei voi asettaa samaa järjestyslukua.",
         ));
     }
 
@@ -171,7 +171,7 @@ pub(super) async fn edit_assignments(
 
         if let Some(w) = weight {
             if w.has_content() {
-                assignment.set_weight(w)?.queue(&mut updates);
+                assignment.set_weight(w.try_into()?).queue(&mut updates);
             } else {
                 assignment.clear_weight().queue(&mut updates);
             }
@@ -443,7 +443,7 @@ pub(super) async fn edit_assignment_series(
             3 => {
                 // painokerroin
                 if value.has_content() {
-                    assignment.set_weight(value)?.queue(&mut updates);
+                    assignment.set_weight(value.try_into()?).queue(&mut updates);
                 } else {
                     assignment.clear_weight().queue(&mut updates);
                 }

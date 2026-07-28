@@ -511,7 +511,10 @@ async fn commands(
             let groups: GroupNames = fields.next().unwrap_or("").try_into()?; // ryhmät
             let assignment: AssignmentName = fields.next().unwrap_or("").try_into()?; // suoritus
             let assignment_short: AssignmentShort = fields.next().unwrap_or("").try_into()?; // lyhenne
-            let weight = fields.next(); // painokerroin
+            let weight: Option<AssignmentWeight> = match fields.next() {
+                None | Some("") => None,
+                Some(w) => Some(w.try_into()?),
+            }; // painokerroin
             let position = fields.next(); // sija
             is_too_much_fields(fields, 5)?;
 
@@ -521,7 +524,7 @@ async fn commands(
                     group,
                     assignment.clone(),
                     assignment_short.clone(),
-                    weight,
+                    weight.clone(),
                     position,
                 )?
                 .queue(&mut updates);
