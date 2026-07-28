@@ -325,8 +325,8 @@ async fn commands(
 
             if modes.is_interactive() {
                 query.print_num(out)?;
-                editable.print_fields(&["Sukunimi", "Etunimi", "Ryhmät", "Lisätiedot"])?;
                 query.move_to(editable);
+                editable.print_fields(&["Sukunimi", "Etunimi", "Ryhmät", "Lisätiedot"])?;
             } else {
                 query.print(out)?;
             }
@@ -350,8 +350,8 @@ async fn commands(
 
             if modes.is_interactive() {
                 query.print_num(out)?;
-                editable.print_fields(&["Ryhmä", "Lisätiedot"])?;
                 query.move_to(editable);
+                editable.print_fields(&["Ryhmä", "Lisätiedot"])?;
             } else {
                 query.print(out)?;
             }
@@ -368,13 +368,13 @@ async fn commands(
             if modes.is_interactive() && query.count() == 1 {
                 let assign = query.take(0).expect("there should be 0th element");
                 assign.print_num(out)?;
+                assign.move_to(editable);
                 editable.print_fields(&[
                     "Suoritus",
                     "Lyhenne(Lyh)",
                     "Painokerroin(K)",
                     "Järjestys",
                 ])?;
-                assign.move_to(editable);
             } else {
                 query.print(out)?;
             }
@@ -401,8 +401,8 @@ async fn commands(
             if modes.is_interactive() && query.count() == 1 {
                 let grades = query.take(0).expect("there should be 0th element");
                 grades.print_num(out)?;
-                editable.print_fields(&["Arvosana(As)", "Lisätiedot"])?;
                 grades.move_to(editable);
+                editable.print_fields(&["Arvosana(As)", "Lisätiedot"])?;
             } else {
                 query.print(out)?;
             }
@@ -431,8 +431,8 @@ async fn commands(
             if modes.is_interactive() && query.count() == 1 {
                 let grades = query.take(0).expect("there should be 0th element");
                 grades.print_num(out)?;
-                editable.print_fields(&["Arvosana(As)", "Lisätiedot"])?;
                 grades.move_to(editable);
+                editable.print_fields(&["Arvosana(As)", "Lisätiedot"])?;
             } else {
                 query.print(out)?;
             }
