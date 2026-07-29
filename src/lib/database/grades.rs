@@ -76,12 +76,12 @@ impl Grade {
         self.weight
     }
 
-    pub fn grade(&self) -> &Option<String> {
-        &self.grade
+    pub fn grade(&self) -> Option<&String> {
+        self.grade.as_ref()
     }
 
-    pub fn description(&self) -> &Option<String> {
-        &self.grade_description
+    pub fn description(&self) -> Option<&String> {
+        self.grade_description.as_ref()
     }
 
     /// Prepare update for grade.
@@ -580,8 +580,8 @@ impl SimpleGrade {
         self.weight
     }
 
-    pub fn grade(&self) -> &Option<String> {
-        &self.grade
+    pub fn grade(&self) -> Option<&String> {
+        self.grade.as_ref()
     }
 }
 
