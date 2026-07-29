@@ -45,7 +45,11 @@ pub struct SimpleGrade {
     grade: Option<String>,
 }
 
+pub type GradeValue = Field<ContextGrade, String>;
 pub type UpdateGrade<'a> = Update<'a, Grade, UpdateGradeOp>;
+
+#[derive(Default)]
+pub struct ContextGrade;
 
 pub enum UpdateGradeOp {
     Grade(String),
@@ -622,6 +626,16 @@ impl HasData for QueryList<GradesForGroup> {
 impl HasData for GradesForGroup {
     fn is_empty(&self) -> bool {
         self.assignments.is_empty()
+    }
+}
+
+impl TryFrom<&str> for GradeValue {
+    type Error = Error;
+    fn try_from(grade: &str) -> Result<Self> {
+        match grade.normalize() {
+            Some(n) => Ok(Self::new(n)),
+            None => Err(Error::InvalidGrade(grade.to_string())),
+        }
     }
 }
 

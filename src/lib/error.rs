@@ -26,6 +26,7 @@ pub enum Error {
     InvalidAssignmentShort(String),
     InvalidAssignmentWeight(String),
     InvalidAssignmentPosition(String),
+    InvalidGrade(String),
 }
 
 impl Error {
