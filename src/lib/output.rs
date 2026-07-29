@@ -76,19 +76,41 @@ impl<T: MakeTable> PrintQueryNum for T {
     }
 }
 
-pub struct Table(Vec<Row>);
+#[derive(Default)]
+pub struct Table {
+    title: Option<String>,
+    rows: Vec<Row>,
+}
 
 impl Table {
-    pub fn rows(&self) -> &Vec<Row> {
-        &self.0
+    pub fn title(&self) -> Option<&String> {
+        self.title.as_ref()
     }
 
-    pub fn rows_mut(&mut self) -> &mut Vec<Row> {
-        &mut self.0
+    pub fn rows(&self) -> impl Iterator<Item = &Row> {
+        self.rows.iter()
+    }
+
+    pub fn rows_mut(&mut self) -> impl Iterator<Item = &mut Row> {
+        self.rows.iter_mut()
     }
 
     pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
+        self.rows.is_empty()
+    }
+
+    fn from(title: impl ToString, rows: Vec<Row>) -> Self {
+        Self {
+            title: Some(title.to_string()),
+            rows,
+        }
+    }
+
+    fn from_rows(rows: Vec<Row>) -> Self {
+        Self {
+            rows,
+            ..Self::default()
+        }
     }
 
     pub fn widths(&self) -> Vec<usize> {
@@ -150,7 +172,6 @@ impl Table {
 }
 
 pub enum Row {
-    Title(String),
     Toprule,
     Midrule,
     Bottomrule,
@@ -229,7 +250,7 @@ impl MakeTable for Stats {
             Row::Bottomrule,
         ];
 
-        Table(rows)
+        Table::from_rows(rows)
     }
 }
 
@@ -261,7 +282,7 @@ impl MakeTable for QueryList<Student> {
         }
 
         rows.push(Row::Bottomrule);
-        Table(rows)
+        Table::from_rows(rows)
     }
 }
 
@@ -289,14 +310,13 @@ impl MakeTable for QueryList<Group> {
         }
 
         rows.push(Row::Bottomrule);
-        Table(rows)
+        Table::from_rows(rows)
     }
 }
 
 impl MakeTable for AssignmentsForGroup {
     fn table(&self) -> Table {
         let mut rows = vec![
-            Row::Title(self.group().to_string()),
             Row::Toprule,
             Row::Head(VecDeque::from([
                 Cell::Left("Suoritus".to_string()),
@@ -318,7 +338,7 @@ impl MakeTable for AssignmentsForGroup {
         }
 
         rows.push(Row::Bottomrule);
-        Table(rows)
+        Table::from(self.group(), rows)
     }
 }
 
@@ -338,11 +358,6 @@ impl MakeTable for GradesForAssignment {
         const DESC_WIDTH: usize = 50;
 
         let mut rows = vec![
-            Row::Title(format!(
-                "{s} ({r})",
-                r = self.group(),
-                s = self.assignment()
-            )),
             Row::Toprule,
             Row::Head(VecDeque::from([
                 Cell::Left("Oppilas".to_string()),
@@ -388,7 +403,11 @@ impl MakeTable for GradesForAssignment {
             Cell::Empty,
         ])));
         rows.push(Row::Bottomrule);
-        Table(rows)
+
+        Table::from(
+            format!("{s} ({r})", r = self.group(), s = self.assignment()),
+            rows,
+        )
     }
 }
 
@@ -408,7 +427,6 @@ impl MakeTable for GradesForStudent {
         const DESC_WIDTH: usize = 50;
 
         let mut rows = vec![
-            Row::Title(format!("{} ({})", self.fullname(), self.group(),)),
             Row::Toprule,
             Row::Head(VecDeque::from([
                 Cell::Left("Suoritus".to_string()),
@@ -462,7 +480,7 @@ impl MakeTable for GradesForStudent {
             Cell::Empty,
         ])));
         rows.push(Row::Bottomrule);
-        Table(rows)
+        Table::from(format!("{} ({})", self.fullname(), self.group()), rows)
     }
 }
 
@@ -479,7 +497,7 @@ impl PrintQuery for QueryList<GradesForStudent> {
 
 impl MakeTable for GradesForGroup {
     fn table(&self) -> Table {
-        let mut rows = vec![Row::Title(self.group().to_string()), Row::Toprule];
+        let mut rows = vec![Row::Toprule];
 
         let mut assigns = vec![Cell::Left("Suoritus".to_string())];
         let mut weigths = vec![Cell::Left("Painokerroin".to_string())];
@@ -568,7 +586,7 @@ impl MakeTable for GradesForGroup {
 
         rows.push(Row::Foot(VecDeque::from(totals)));
         rows.push(Row::Bottomrule);
-        Table(rows)
+        Table::from(self.group(), rows)
     }
 }
 
@@ -603,7 +621,7 @@ impl PrintQuery for QueryList<GradesForGroup> {
             ])));
 
             rows.push(Row::Bottomrule);
-            Table(rows).print_tbl(out, &mut stream)?;
+            Table::from_rows(rows).print_tbl(out, &mut stream)?;
         }
 
         stream.flush()?;
@@ -685,7 +703,7 @@ impl MakeTable for StudentRanking {
         ])));
         rows.push(Row::Bottomrule);
 
-        Table(rows)
+        Table::from_rows(rows)
     }
 }
 
@@ -750,7 +768,7 @@ impl MakeTable for GradeDistribution {
         }
 
         rows.push(Row::Bottomrule);
-        Table(rows)
+        Table::from_rows(rows)
     }
 }
 
@@ -837,12 +855,13 @@ fn print_table(
     let empty_cell = |stream: &mut OutBuf, w: usize| -> Result<()> { series(stream, " ", w) };
 
     let widths = tbl.widths();
+
+    if let Some(title) = tbl.title() {
+        writeln!(stream, "\n{title}\n")?;
+    }
+
     for row in tbl.rows() {
         match row {
-            Row::Title(s) => {
-                writeln!(stream, "\n{s}\n")?;
-            }
-
             Row::Toprule => {
                 write!(stream, "{top_left}")?;
                 for i in 0..widths.len() {
@@ -948,11 +967,12 @@ fn print_table(
 }
 
 fn print_table_tab(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
+    if let Some(title) = tbl.title() {
+        writeln!(stream, "\n{title}\n")?;
+    }
+
     for row in tbl.rows() {
         match row {
-            Row::Title(s) => {
-                writeln!(stream, "\n{s}\n")?;
-            }
             Row::Head(v) | Row::Data(v) | Row::Foot(v) => {
                 for (col, cell) in v.iter().enumerate() {
                     if col > 0 {
@@ -978,11 +998,12 @@ fn print_table_tab(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
 }
 
 fn print_table_csv(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
+    if let Some(title) = &tbl.title {
+        writeln!(stream, "\n{title}\n")?;
+    }
+
     for row in tbl.rows() {
         match row {
-            Row::Title(s) => {
-                writeln!(stream, "\n{s}\n")?;
-            }
             Row::Head(v) | Row::Data(v) | Row::Foot(v) => {
                 for (col, cell) in v.iter().enumerate() {
                     if col > 0 {
@@ -1022,11 +1043,12 @@ fn print_table_csv(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
 }
 
 fn print_table_latex(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
+    if let Some(title) = tbl.title() {
+        writeln!(stream, "\n{title}\n")?;
+    }
+
     for row in tbl.rows() {
         match row {
-            Row::Title(s) => {
-                writeln!(stream, "\n{s}\n")?;
-            }
             Row::Head(v) | Row::Data(v) | Row::Foot(v) => {
                 write!(stream, "\\rivi")?;
                 for cell in v {
@@ -1115,7 +1137,7 @@ mod tests {
 
     #[test]
     fn table_widths() {
-        let table = Table(vec![
+        let table = Table::from_rows(vec![
             Row::Toprule,
             Row::Head(VecDeque::from([
                 Cell::Left("12".to_string()),
