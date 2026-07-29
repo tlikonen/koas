@@ -669,7 +669,7 @@ async fn commands(
                         && let Some(old) = tools::parse_number(ss)
                         && let Some(new) = tools::float_to_grade(old)
                     {
-                        student_grade.set_grade(&new)?.queue(&mut updates);
+                        student_grade.set_grade(new.try_into()?).queue(&mut updates);
                     }
                 }
                 updates.commit(db).await?;
@@ -702,7 +702,7 @@ async fn commands(
                         && let Some(old) = tools::parse_number(ss)
                     {
                         let new = tools::format_decimal(old);
-                        student_grade.set_grade(&new)?.queue(&mut updates);
+                        student_grade.set_grade(new.try_into()?).queue(&mut updates);
                     }
                 }
                 updates.commit(db).await?;

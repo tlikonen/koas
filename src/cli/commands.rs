@@ -205,7 +205,7 @@ pub(super) async fn edit_grades(
     for student_grade in grades.into_iter() {
         if let Some(g) = grade {
             if g.has_content() {
-                student_grade.set_grade(g)?.queue(&mut updates);
+                student_grade.set_grade(g.try_into()?).queue(&mut updates);
             } else {
                 student_grade.clear_grade().queue(&mut updates);
             }
@@ -213,7 +213,9 @@ pub(super) async fn edit_grades(
 
         if let Some(d) = description {
             if d.has_content() {
-                student_grade.set_description(d)?.queue(&mut updates);
+                student_grade
+                    .set_description(d.try_into()?)
+                    .queue(&mut updates);
             } else {
                 student_grade.clear_description().queue(&mut updates);
             }
@@ -483,7 +485,7 @@ pub(super) async fn edit_grade_series(
             1 => {
                 // arvosana
                 if value.has_content() {
-                    grade.set_grade(value)?.queue(&mut updates);
+                    grade.set_grade(value.try_into()?).queue(&mut updates);
                 } else {
                     grade.clear_grade().queue(&mut updates);
                 }
@@ -492,7 +494,7 @@ pub(super) async fn edit_grade_series(
             2 => {
                 // lisätiedot
                 if value.has_content() {
-                    grade.set_description(value)?.queue(&mut updates);
+                    grade.set_description(value.try_into()?).queue(&mut updates);
                 } else {
                     grade.clear_description().queue(&mut updates);
                 }

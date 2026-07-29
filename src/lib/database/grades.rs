@@ -52,9 +52,9 @@ pub type UpdateGrade<'a> = Update<'a, Grade, UpdateGradeOp>;
 pub struct ContextGrade;
 
 pub enum UpdateGradeOp {
-    Grade(String),
+    Grade(GradeValue),
     GradeClear,
-    Description(String),
+    Description(Description),
     DescriptionClear,
     Delete,
 }
@@ -91,11 +91,8 @@ impl Grade {
     /// Prepare update for grade.
     ///
     /// See [`Commit`] trait for more information.
-    pub fn set_grade<'a>(&'a self, grade: &str) -> Result<UpdateGrade<'a>> {
-        match grade.normalize() {
-            None => Err(Error::from(format!("Sopimaton arvosana: ”{grade}”."))),
-            Some(g) => Ok(Update::new(self, UpdateGradeOp::Grade(g))),
-        }
+    pub fn set_grade<'a>(&'a self, grade: GradeValue) -> UpdateGrade<'a> {
+        Update::new(self, UpdateGradeOp::Grade(grade))
     }
 
     /// Prepare to clear grade's description.
@@ -108,13 +105,8 @@ impl Grade {
     /// Prepare update for grade's description.
     ///
     /// See [`Commit`] trait for more information.
-    pub fn set_description<'a>(&'a self, desc: &str) -> Result<UpdateGrade<'a>> {
-        match desc.normalize() {
-            None => Err(Error::from(format!(
-                "Sopimaton arvosanan kuvaus: ”{desc}”."
-            ))),
-            Some(d) => Ok(Update::new(self, UpdateGradeOp::Description(d))),
-        }
+    pub fn set_description<'a>(&'a self, desc: Description) -> UpdateGrade<'a> {
+        Update::new(self, UpdateGradeOp::Description(desc))
     }
 
     /// Prepare to clear grade's description.
@@ -141,12 +133,8 @@ impl Grade {
         Ok(result)
     }
 
-    async fn update_grade(&self, db: &mut DBase, mut grade: Option<&str>) -> Result<()> {
-        if let Some(s) = grade
-            && s.is_empty()
-        {
-            grade = None;
-        }
+    async fn update_grade(&self, db: &mut DBase, grade: Option<GradeValue>) -> Result<()> {
+        let grade = grade.map(|g| g.to_string());
 
         if self.exists(db).await? {
             sqlx::query("UPDATE arvosanat SET arvosana = $1 WHERE sid = $2 AND oid = $3")
@@ -166,12 +154,12 @@ impl Grade {
         Ok(())
     }
 
-    async fn update_description(&self, db: &mut DBase, mut desc: Option<&str>) -> Result<()> {
-        if let Some(s) = desc
-            && s.is_empty()
-        {
-            desc = None;
-        }
+    async fn update_description(
+        &self,
+        db: &mut DBase,
+        description: Option<Description>,
+    ) -> Result<()> {
+        let desc = description.map(|g| g.to_string());
 
         if self.exists(db).await? {
             sqlx::query("UPDATE arvosanat SET lisatiedot = $1 WHERE sid = $2 AND oid = $3")
@@ -639,6 +627,16 @@ impl TryFrom<&str> for GradeValue {
     }
 }
 
+impl TryFrom<String> for GradeValue {
+    type Error = Error;
+    fn try_from(grade: String) -> Result<Self> {
+        match grade.normalize() {
+            Some(n) => Ok(Self::new(n)),
+            None => Err(Error::InvalidGrade(grade.to_string())),
+        }
+    }
+}
+
 impl<'a> ToQueue<'a> for UpdateGrade<'a> {
     fn queue(self, q: &mut Queue<'a>) {
         q.push_back(QueueItem::UpdateGrade(self));
@@ -650,7 +648,7 @@ impl Commit for UpdateGrade<'_> {
         let mut ta = db.begin().await?;
         let student_grade = self.item;
 
-        match &self.operation {
+        match self.operation {
             UpdateGradeOp::Grade(g) => student_grade.update_grade(&mut ta, Some(g)).await?,
 
             UpdateGradeOp::GradeClear => student_grade.update_grade(&mut ta, None).await?,

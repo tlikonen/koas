@@ -67,6 +67,7 @@ impl fmt::Display for Error {
             Self::InvalidAssignmentPosition(s) => {
                 write!(f, "Sopimaton suorituksen järjestysluku ”{s}”.")
             }
+            Self::InvalidGrade(s) => write!(f, "Sopimaton arvosana ”{s}”."),
         }
     }
 }
