@@ -1080,28 +1080,30 @@ fn print_table_html(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
     }
 
     writeln!(stream, "<table style=\"text-align:left;\">")?;
-
     for row in tbl.rows() {
         match row {
             Row::Head(v) | Row::Foot(v) => {
                 writeln!(stream, "  <tr>")?;
                 for cell in v {
+                    write!(stream, "    <th>")?;
                     match cell {
-                        Cell::Empty => writeln!(stream, "    <th></th>")?,
-                        Cell::Left(s) | Cell::Right(s) => {
-                            write!(stream, "    <th>")?;
+                        Cell::Empty => (),
+                        Cell::Left(s) => {
                             write_html_esc(stream, s)?;
-                            writeln!(stream, "</th>")?;
+                        }
+                        Cell::Right(s) => {
+                            write!(stream, "<div style=\"text-align:right;\">")?;
+                            write_html_esc(stream, s)?;
+                            write!(stream, "</div>")?;
                         }
                         Cell::Multi(v) => {
-                            write!(stream, "    <th>")?;
                             write_html_esc(stream, &v.join(" "))?;
-                            writeln!(stream, "</th>")?;
                         }
-                        Cell::Proportion { proportion, width } => {
-                            write_html_proportion(stream, proportion, width)?;
+                        Cell::Proportion { proportion, .. } => {
+                            write_html_proportion(stream, proportion)?;
                         }
                     }
+                    writeln!(stream, "</th>")?;
                 }
                 writeln!(stream, "  </tr>")?;
             }
@@ -1109,27 +1111,25 @@ fn print_table_html(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
             Row::Data(v) => {
                 writeln!(stream, "  <tr>")?;
                 for cell in v {
+                    write!(stream, "    <td>")?;
                     match cell {
-                        Cell::Empty => writeln!(stream, "    <td></td>")?,
+                        Cell::Empty => (),
                         Cell::Left(s) => {
-                            write!(stream, "    <td>")?;
                             write_html_esc(stream, s)?;
-                            writeln!(stream, "</td>")?;
                         }
                         Cell::Right(s) => {
-                            write!(stream, "    <td style=\"text-align:right;\">")?;
+                            write!(stream, "<div style=\"text-align:right;\">")?;
                             write_html_esc(stream, s)?;
-                            writeln!(stream, "</td>")?;
+                            write!(stream, "</div>")?;
                         }
                         Cell::Multi(v) => {
-                            write!(stream, "    <td>")?;
                             write_html_esc(stream, &v.join(" "))?;
-                            writeln!(stream, "</td>")?;
                         }
-                        Cell::Proportion { proportion, width } => {
-                            write_html_proportion(stream, proportion, width)?;
+                        Cell::Proportion { proportion, .. } => {
+                            write_html_proportion(stream, proportion)?;
                         }
                     }
+                    writeln!(stream, "</td>")?;
                 }
                 writeln!(stream, "  </tr>")?;
             }
@@ -1142,18 +1142,17 @@ fn print_table_html(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
     Ok(())
 }
 
-fn write_html_proportion(stream: &mut OutBuf, prop: &f64, width: &usize) -> Result<()> {
-    write!(stream, "    <td style=\"width:{}em;\">", width)?;
+fn write_html_proportion(stream: &mut OutBuf, prop: &f64) -> Result<()> {
     write!(
         stream,
-        "<div style=\"\
+        "<div style=\"width:40em;\">\
+         <div style=\"\
          width:{:.2}%;\
          height:1em;\
          background-color:#444;\
-         \"></div>",
+         \"></div></div>",
         prop * 100.0
     )?;
-    writeln!(stream, "</td>")?;
     Ok(())
 }
 
