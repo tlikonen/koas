@@ -204,7 +204,7 @@ impl Student {
         Ok(count <= 1)
     }
 
-    async fn update_lastname(&self, db: &mut DBase, lastname: &Lastname) -> Result<()> {
+    async fn update_lastname(&self, db: &mut DBase, lastname: Lastname) -> Result<()> {
         sqlx::query("UPDATE oppilaat SET sukunimi = $1 WHERE oid = $2")
             .bind(lastname.as_str())
             .bind(self.oid)
@@ -213,7 +213,7 @@ impl Student {
         Ok(())
     }
 
-    async fn update_firstname(&self, db: &mut DBase, firstname: &Firstname) -> Result<()> {
+    async fn update_firstname(&self, db: &mut DBase, firstname: Firstname) -> Result<()> {
         sqlx::query("UPDATE oppilaat SET etunimi = $1 WHERE oid = $2")
             .bind(firstname.as_str())
             .bind(self.oid)
@@ -225,15 +225,10 @@ impl Student {
     async fn update_description(
         &self,
         db: &mut DBase,
-        description: Option<&Description>,
+        description: Option<Description>,
     ) -> Result<()> {
-        let desc = match description {
-            Some(d) => d.to_string(),
-            None => "".to_string(),
-        };
-
         sqlx::query("UPDATE oppilaat SET lisatiedot = $1 WHERE oid = $2")
-            .bind(desc)
+            .bind(unwrap_or_empty(description))
             .bind(self.oid)
             .execute(db)
             .await?;
@@ -270,18 +265,13 @@ impl Student {
         groups: GroupNames,
         description: Option<Description>,
     ) -> Result<()> {
-        let desc = match description {
-            Some(d) => d.to_string(),
-            None => "".to_string(),
-        };
-
         let row = sqlx::query(
             "INSERT INTO oppilaat (sukunimi, etunimi, lisatiedot) \
              VALUES ($1, $2, $3) RETURNING oid",
         )
         .bind(lastname.as_str())
         .bind(firstname.as_str())
-        .bind(desc)
+        .bind(unwrap_or_empty(description))
         .fetch_one(&mut *db)
         .await?;
 
@@ -290,7 +280,7 @@ impl Student {
             ..Student::default()
         };
 
-        for group in &groups {
+        for group in groups {
             let rid = Group::get_or_insert(&mut *db, group).await?;
             student.add_to_group(&mut *db, rid).await?;
         }
@@ -350,7 +340,7 @@ impl Commit for UpdateStudent<'_> {
         let mut ta = db.begin().await?;
         let student = self.item;
 
-        match &self.operation {
+        match self.operation {
             UpdateStudentOp::Lastname(last) => student.update_lastname(&mut ta, last).await?,
 
             UpdateStudentOp::Firstname(first) => student.update_firstname(&mut ta, first).await?,
@@ -366,7 +356,7 @@ impl Commit for UpdateStudent<'_> {
 
             UpdateStudentOp::GroupsRemove(groups) => {
                 for name in groups {
-                    let Some(rid) = Group::get_id(&mut ta, name).await? else {
+                    let Some(rid) = Group::get_id(&mut ta, &name).await? else {
                         continue; // No such group.
                     };
 

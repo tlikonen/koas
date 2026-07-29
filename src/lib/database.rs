@@ -201,6 +201,13 @@ impl<C> Field<C, i32> {
     }
 }
 
+fn unwrap_or_empty<C>(desc: Option<Field<C, String>>) -> String {
+    match desc {
+        Some(d) => d.to_string(),
+        None => "".to_string(),
+    }
+}
+
 impl<C, T> Display for Field<C, T>
 where
     T: Display,
@@ -400,5 +407,23 @@ mod tests {
         assert_eq!("\\_\\%\\\\", like_esc("_%\\"));
         assert_eq!("ab*cd", like_esc("ab*cd"));
         assert_eq!("*ab*cd*", like_esc("*ab*cd*"));
+    }
+
+    #[test]
+    fn unwrap_or_empty_fn() {
+        let empty: Option<Description> = None;
+        assert_eq!("", unwrap_or_empty(empty));
+        assert_eq!(
+            "foo bar",
+            unwrap_or_empty(Some(Description::try_from("  foo  bar  ").unwrap()))
+        );
+
+        // Lastname won't be empty but test this generic function anyway.
+        let empty: Option<Lastname> = None;
+        assert_eq!("", unwrap_or_empty(empty));
+        assert_eq!(
+            "foo bar",
+            unwrap_or_empty(Some(Lastname::try_from("  foo  bar  ").unwrap()))
+        );
     }
 }

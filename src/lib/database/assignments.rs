@@ -124,7 +124,7 @@ impl Assignment {
         Update::new(self, UpdateAssignmentOp::Delete)
     }
 
-    async fn update_name(&self, db: &mut DBase, name: &AssignmentName) -> Result<()> {
+    async fn update_name(&self, db: &mut DBase, name: AssignmentName) -> Result<()> {
         sqlx::query("UPDATE suoritukset SET nimi = $1 WHERE sid = $2")
             .bind(name.as_str())
             .bind(self.sid)
@@ -133,7 +133,7 @@ impl Assignment {
         Ok(())
     }
 
-    async fn update_short(&self, db: &mut DBase, short: &AssignmentShort) -> Result<()> {
+    async fn update_short(&self, db: &mut DBase, short: AssignmentShort) -> Result<()> {
         sqlx::query("UPDATE suoritukset SET lyhenne = $1 WHERE sid = $2")
             .bind(short.as_str())
             .bind(self.sid)
@@ -142,7 +142,7 @@ impl Assignment {
         Ok(())
     }
 
-    async fn update_weight(&self, db: &mut DBase, weight: Option<&AssignmentWeight>) -> Result<()> {
+    async fn update_weight(&self, db: &mut DBase, weight: Option<AssignmentWeight>) -> Result<()> {
         sqlx::query("UPDATE suoritukset SET painokerroin = $1 WHERE sid = $2")
             .bind(weight.map(|w| w.value()))
             .bind(self.sid)
@@ -151,7 +151,7 @@ impl Assignment {
         Ok(())
     }
 
-    async fn update_position(&self, db: &mut DBase, position: &AssignmentPosition) -> Result<()> {
+    async fn update_position(&self, db: &mut DBase, position: AssignmentPosition) -> Result<()> {
         let mut pos = position.value();
         let mut other_sids = Vec::with_capacity(10);
         let mut pos_max: i32 = 1;
@@ -221,7 +221,7 @@ impl Assignment {
         position: Option<AssignmentPosition>,
     ) -> Result<()> {
         let pos = position.unwrap_or_default();
-        let rid = Group::get_or_insert(&mut *db, &group).await?;
+        let rid = Group::get_or_insert(&mut *db, group).await?;
 
         let row = sqlx::query(
             "INSERT INTO suoritukset (rid, nimi, lyhenne, painokerroin, sija) \
@@ -242,7 +242,7 @@ impl Assignment {
             ..Assignment::default()
         };
 
-        new.update_position(db, &pos).await?;
+        new.update_position(db, pos).await?;
         Ok(())
     }
 
@@ -461,7 +461,7 @@ impl Commit for UpdateAssignment<'_> {
         let mut ta = db.begin().await?;
         let assignment = self.item;
 
-        match &self.operation {
+        match self.operation {
             UpdateAssignmentOp::Name(name) => assignment.update_name(&mut ta, name).await?,
             UpdateAssignmentOp::Short(short) => assignment.update_short(&mut ta, short).await?,
             UpdateAssignmentOp::Weight(weight) => {

@@ -78,8 +78,8 @@ impl Group {
         Update::new(self, UpdateGroupOp::DescriptionClear)
     }
 
-    pub(super) async fn get_or_insert(db: &mut DBase, name: &GroupName) -> Result<i32> {
-        match Self::get_id(db, name).await? {
+    pub(super) async fn get_or_insert(db: &mut DBase, name: GroupName) -> Result<i32> {
+        match Self::get_id(db, &name).await? {
             Some(rid) => Ok(rid),
             None => {
                 let row = sqlx::query("INSERT INTO ryhmat (nimi) VALUES ($1) RETURNING rid")
@@ -106,7 +106,7 @@ impl Group {
         }
     }
 
-    async fn update_name(&self, db: &mut DBase, name: &GroupName) -> Result<()> {
+    async fn update_name(&self, db: &mut DBase, name: GroupName) -> Result<()> {
         sqlx::query("UPDATE ryhmat SET nimi = $1 WHERE rid = $2")
             .bind(name.as_str())
             .bind(self.rid)
@@ -118,15 +118,10 @@ impl Group {
     async fn update_description(
         &self,
         db: &mut DBase,
-        description: Option<&Description>,
+        description: Option<Description>,
     ) -> Result<()> {
-        let desc = match description {
-            Some(d) => d.to_string(),
-            None => "".to_string(),
-        };
-
         sqlx::query("UPDATE ryhmat SET lisatiedot = $1 WHERE rid = $2")
-            .bind(desc)
+            .bind(unwrap_or_empty(description))
             .bind(self.rid)
             .execute(db)
             .await?;
@@ -237,7 +232,7 @@ impl Commit for UpdateGroup<'_> {
         let mut ta = db.begin().await?;
         let group = self.item;
 
-        match &self.operation {
+        match self.operation {
             UpdateGroupOp::Name(name) => group.update_name(&mut ta, name).await?,
             UpdateGroupOp::Description(desc) => {
                 group.update_description(&mut ta, Some(desc)).await?
