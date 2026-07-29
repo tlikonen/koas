@@ -513,10 +513,10 @@ impl MakeTable for GradesForGroup {
                     vert_counts.push(0);
                 }
 
-                match &simple_grade.grade {
+                match simple_grade.grade() {
                     Some(s) => {
                         if let Some(f) = tools::parse_number(s) {
-                            if let Some(w) = simple_grade.weight {
+                            if let Some(w) = simple_grade.weight() {
                                 horiz_sum += f * f64::from(w);
                                 horiz_count += w;
                             }

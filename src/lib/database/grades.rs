@@ -41,8 +41,8 @@ pub struct SimpleStudent {
 }
 
 pub struct SimpleGrade {
-    pub weight: Option<i32>,
-    pub grade: Option<String>,
+    weight: Option<i32>,
+    grade: Option<String>,
 }
 
 pub type UpdateGrade<'a> = Update<'a, Grade, UpdateGradeOp>;
@@ -572,6 +572,16 @@ impl SimpleStudent {
 
     pub fn grades(&self) -> impl Iterator<Item = &SimpleGrade> {
         self.grades.iter()
+    }
+}
+
+impl SimpleGrade {
+    pub fn weight(&self) -> Option<i32> {
+        self.weight
+    }
+
+    pub fn grade(&self) -> &Option<String> {
+        &self.grade
     }
 }
 
