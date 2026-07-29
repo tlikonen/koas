@@ -475,11 +475,11 @@ impl PrintQuery for QueryList<GradesForStudent> {
 
 impl MakeTable for GradesForGroup {
     fn table(&self) -> Table {
-        let mut rows = vec![Row::Title(self.group.clone()), Row::Toprule];
+        let mut rows = vec![Row::Title(self.group().to_string()), Row::Toprule];
 
         let mut assigns = vec![Cell::Left("Suoritus".to_string())];
         let mut weigths = vec![Cell::Left("Painokerroin".to_string())];
-        for assign in &self.assignments {
+        for assign in self.assignments() {
             assigns.push(Cell::Left(assign.short().to_string()));
             weigths.push(match assign.weight() {
                 Some(w) => Cell::Left(w.to_string()),
@@ -500,7 +500,7 @@ impl MakeTable for GradesForGroup {
         let mut vert_sums = Vec::with_capacity(10);
         let mut vert_counts = Vec::with_capacity(10);
 
-        for student in &self.students {
+        for student in self.students() {
             let mut line = Vec::with_capacity(10);
             line.push(Cell::Left(student.name.clone()));
 
@@ -586,7 +586,7 @@ impl PrintQuery for QueryList<GradesForGroup> {
                 Row::Midrule,
             ];
 
-            for assign in &tbl.assignments {
+            for assign in tbl.assignments() {
                 rows.push(Row::Data(VecDeque::from([
                     Cell::Left(assign.short().to_string()),
                     Cell::Left(assign.name().to_string()),

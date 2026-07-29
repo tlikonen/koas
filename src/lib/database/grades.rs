@@ -29,9 +29,9 @@ pub struct GradesForStudent {
 
 #[derive(Default)]
 pub struct GradesForGroup {
-    pub group: String,
-    pub students: Vec<SimpleStudent>,
-    pub assignments: Vec<Assignment>,
+    group: String,
+    students: Vec<SimpleStudent>,
+    assignments: Vec<Assignment>,
 }
 
 pub struct SimpleStudent {
@@ -539,6 +539,18 @@ impl GradesForGroup {
             students,
             assignments,
         })
+    }
+
+    pub fn group(&self) -> &str {
+        &self.group
+    }
+
+    pub fn students(&self) -> impl Iterator<Item = &SimpleStudent> {
+        self.students.iter()
+    }
+
+    pub fn assignments(&self) -> impl Iterator<Item = &Assignment> {
+        self.assignments.iter()
     }
 }
 
