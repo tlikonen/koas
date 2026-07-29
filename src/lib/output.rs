@@ -404,12 +404,7 @@ impl MakeTable for GradesForStudent {
         const DESC_WIDTH: usize = 50;
 
         let mut rows = vec![
-            Row::Title(format!(
-                "{s}, {e} ({r})",
-                r = self.group,
-                s = self.lastname,
-                e = self.firstname,
-            )),
+            Row::Title(format!("{} ({})", self.fullname(), self.group(),)),
             Row::Toprule,
             Row::Head(VecDeque::from([
                 Cell::Left("Suoritus".to_string()),
@@ -423,7 +418,7 @@ impl MakeTable for GradesForStudent {
         let mut sum = 0.0;
         let mut count = 0;
 
-        for grade in &self.grades {
+        for grade in self {
             rows.push(Row::Data(VecDeque::from([
                 Cell::Left(grade.assignment().to_string()),
                 match grade.grade() {

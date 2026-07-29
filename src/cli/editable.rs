@@ -86,6 +86,6 @@ impl MoveToEditable for GradesForAssignment {
 
 impl MoveToEditable for GradesForStudent {
     fn move_to(self, ed: &mut Editable) {
-        ed.set(Editable::Grades(QueryList::new(self.grades)));
+        ed.set(Editable::Grades(QueryList::new(self.into_iter().collect())));
     }
 }
