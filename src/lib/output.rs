@@ -349,8 +349,8 @@ impl MakeTable for GradesForAssignment {
 
         for grade in &self.grades {
             rows.push(Row::Data(VecDeque::from([
-                Cell::Left(format!("{}, {}", grade.lastname, grade.firstname)),
-                match &grade.grade {
+                Cell::Left(grade.fullname()),
+                match grade.grade() {
                     Some(s) => {
                         if let Some(f) = tools::parse_number(s) {
                             sum += f;
@@ -360,7 +360,7 @@ impl MakeTable for GradesForAssignment {
                     }
                     None => Cell::Empty,
                 },
-                match &grade.grade_description {
+                match grade.description() {
                     Some(s) => Cell::Multi(column_lines(s.split_whitespace(), DESC_WIDTH)),
                     None => Cell::Empty,
                 },
@@ -421,11 +421,11 @@ impl MakeTable for GradesForStudent {
 
         for grade in &self.grades {
             rows.push(Row::Data(VecDeque::from([
-                Cell::Left(grade.assignment.clone()),
-                match &grade.grade {
+                Cell::Left(grade.assignment().to_string()),
+                match grade.grade() {
                     Some(s) => {
                         if let Some(f) = tools::parse_number(s)
-                            && let Some(w) = grade.weight
+                            && let Some(w) = grade.weight()
                         {
                             sum += f * f64::from(w);
                             count += w;
@@ -434,11 +434,11 @@ impl MakeTable for GradesForStudent {
                     }
                     None => Cell::Empty,
                 },
-                match &grade.weight {
+                match grade.weight() {
                     Some(w) => Cell::Left(w.to_string()),
                     None => Cell::Empty,
                 },
-                match &grade.grade_description {
+                match grade.description() {
                     Some(s) => Cell::Multi(column_lines(s.split_whitespace(), DESC_WIDTH)),
                     None => Cell::Empty,
                 },

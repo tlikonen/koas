@@ -2,14 +2,14 @@ use super::*;
 
 #[derive(Clone)]
 pub struct Grade {
-    pub(super) oid: i32,
-    pub lastname: String,
-    pub firstname: String,
-    pub(super) sid: i32,
-    pub assignment: String,
-    pub weight: Option<i32>,
-    pub grade: Option<String>,
-    pub grade_description: Option<String>,
+    oid: i32,
+    lastname: String,
+    firstname: String,
+    sid: i32,
+    assignment: String,
+    weight: Option<i32>,
+    grade: Option<String>,
+    grade_description: Option<String>,
 }
 
 #[derive(Default)]
@@ -55,6 +55,34 @@ pub enum UpdateGradeOp {
 }
 
 impl Grade {
+    pub fn lastname(&self) -> &str {
+        &self.lastname
+    }
+
+    pub fn firstname(&self) -> &str {
+        &self.firstname
+    }
+
+    pub fn fullname(&self) -> String {
+        format!("{}, {}", self.lastname, self.firstname)
+    }
+
+    pub fn assignment(&self) -> &str {
+        &self.assignment
+    }
+
+    pub fn weight(&self) -> Option<i32> {
+        self.weight
+    }
+
+    pub fn grade(&self) -> &Option<String> {
+        &self.grade
+    }
+
+    pub fn description(&self) -> &Option<String> {
+        &self.grade_description
+    }
+
     /// Prepare update for grade.
     ///
     /// See [`Commit`] trait for more information.

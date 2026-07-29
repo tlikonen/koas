@@ -665,7 +665,7 @@ async fn commands(
             if let Editable::Grades(student_grades) = editable {
                 let mut updates = Queue::default();
                 for student_grade in student_grades.iter_index1(indices) {
-                    if let Some(ss) = &student_grade.grade
+                    if let Some(ss) = student_grade.grade()
                         && let Some(old) = tools::parse_number(ss)
                         && let Some(new) = tools::float_to_grade(old)
                     {
@@ -698,7 +698,7 @@ async fn commands(
             if let Editable::Grades(student_grades) = editable {
                 let mut updates = Queue::default();
                 for student_grade in student_grades.iter_index1(indices) {
-                    if let Some(ss) = &student_grade.grade
+                    if let Some(ss) = student_grade.grade()
                         && let Some(old) = tools::parse_number(ss)
                     {
                         let new = tools::format_decimal(old);
