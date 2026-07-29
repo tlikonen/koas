@@ -502,12 +502,12 @@ impl MakeTable for GradesForGroup {
 
         for student in self.students() {
             let mut line = Vec::with_capacity(10);
-            line.push(Cell::Left(student.name.clone()));
+            line.push(Cell::Left(student.fullname()));
 
             let mut horiz_sum = 0.0;
             let mut horiz_count = 0;
 
-            for (c, simple_grade) in student.grades.iter().enumerate() {
+            for (c, simple_grade) in student.grades().enumerate() {
                 if vert_sums.get(c).is_none() {
                     vert_sums.push(0.0);
                     vert_counts.push(0);

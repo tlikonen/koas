@@ -35,8 +35,9 @@ pub struct GradesForGroup {
 }
 
 pub struct SimpleStudent {
-    pub name: String,
-    pub grades: Vec<SimpleGrade>,
+    lastname: String,
+    firstname: String,
+    grades: Vec<SimpleGrade>,
 }
 
 pub struct SimpleGrade {
@@ -514,7 +515,8 @@ impl GradesForGroup {
                         let firstname: String = row.try_get("etunimi")?;
 
                         students.push(SimpleStudent {
-                            name: format!("{lastname}, {firstname}"),
+                            lastname,
+                            firstname,
                             grades,
                         });
                         grades = Vec::with_capacity(l);
@@ -526,7 +528,8 @@ impl GradesForGroup {
                     let lastname: String = row.try_get("sukunimi")?;
                     let firstname: String = row.try_get("etunimi")?;
                     students.push(SimpleStudent {
-                        name: format!("{lastname}, {firstname}"),
+                        lastname,
+                        firstname,
                         grades,
                     });
                     break;
@@ -551,6 +554,40 @@ impl GradesForGroup {
 
     pub fn assignments(&self) -> impl Iterator<Item = &Assignment> {
         self.assignments.iter()
+    }
+}
+
+impl SimpleStudent {
+    pub fn lastname(&self) -> &str {
+        &self.lastname
+    }
+
+    pub fn firstname(&self) -> &str {
+        &self.firstname
+    }
+
+    pub fn fullname(&self) -> String {
+        format!("{}, {}", self.lastname, self.firstname)
+    }
+
+    pub fn grades(&self) -> impl Iterator<Item = &SimpleGrade> {
+        self.grades.iter()
+    }
+}
+
+impl<'a> IntoIterator for &'a SimpleStudent {
+    type Item = &'a SimpleGrade;
+    type IntoIter = std::slice::Iter<'a, SimpleGrade>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.grades.iter()
+    }
+}
+
+impl IntoIterator for SimpleStudent {
+    type Item = SimpleGrade;
+    type IntoIter = std::vec::IntoIter<SimpleGrade>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.grades.into_iter()
     }
 }
 
