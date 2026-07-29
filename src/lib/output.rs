@@ -179,7 +179,7 @@ pub enum Cell {
     Left(String),
     Right(String),
     Multi(Vec<String>),
-    RepeatBox(usize),
+    Proportion { proportion: f64, width: usize },
 }
 
 impl Cell {
@@ -197,8 +197,12 @@ impl Cell {
                 }
                 width
             }
-            Self::RepeatBox(n) => *n,
+            Self::Proportion { width, .. } => *width,
         }
+    }
+
+    fn prop(proportion: f64, width: usize) -> Self {
+        Self::Proportion { proportion, width }
     }
 }
 
@@ -687,7 +691,7 @@ impl MakeTable for StudentRanking {
 
 impl MakeTable for GradeDistribution {
     fn table(&self) -> Table {
-        const BAR_WIDTH: i32 = 40;
+        const BAR_WIDTH: f64 = 40.0;
 
         static GRADE_SERIES_1: [&str; 7] = ["4", "5", "6", "7", "8", "9", "10"];
         static GRADE_SERIES_4: [&str; 25] = [
@@ -728,14 +732,13 @@ impl MakeTable for GradeDistribution {
             }
 
             if let Some(count) = self.data.get(grade) {
-                let char_count = (f64::from(*count) / f64::from(highest_count)
-                    * f64::from(BAR_WIDTH))
-                .round() as usize;
+                let prop = f64::from(*count) / f64::from(highest_count);
+                let char_count = (prop * BAR_WIDTH).round() as usize;
 
                 rows.push(Row::Data(VecDeque::from([
                     Cell::Left(grade.to_string()),
                     Cell::Right(count.to_string()),
-                    Cell::RepeatBox(char_count),
+                    Cell::prop(prop, char_count),
                 ])));
             } else {
                 rows.push(Row::Data(VecDeque::from([
@@ -909,7 +912,7 @@ fn print_table(
                                     }
                                 }
 
-                                Cell::RepeatBox(n) => {
+                                Cell::Proportion { width: n, .. } => {
                                     series(stream, box_char, *n)?;
                                     empty_cell(stream, width - n)?;
                                 }
@@ -963,7 +966,7 @@ fn print_table_tab(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
                         Cell::Multi(v) => {
                             write!(stream, "{}", v.join(" "))?;
                         }
-                        Cell::RepeatBox(n) => write!(stream, "{}", "#".repeat(*n))?,
+                        Cell::Proportion { width: n, .. } => write!(stream, "{}", "#".repeat(*n))?,
                     }
                 }
                 writeln!(stream)?;
@@ -1005,7 +1008,9 @@ fn print_table_csv(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
                             }
                         }
 
-                        Cell::RepeatBox(n) => write!(stream, "{:?}", "#".repeat(*n))?,
+                        Cell::Proportion { width: n, .. } => {
+                            write!(stream, "{:?}", "#".repeat(*n))?
+                        }
                     }
                 }
                 writeln!(stream)?;
@@ -1029,7 +1034,9 @@ fn print_table_latex(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
                         Cell::Empty => write!(stream, "{{}}")?,
                         Cell::Left(s) | Cell::Right(s) => write!(stream, "{{{s}}}")?,
                         Cell::Multi(v) => write!(stream, "{{{}}}", v.join(" "))?,
-                        Cell::RepeatBox(n) => write!(stream, "{{\\rule{{{n}ex}}{{1ex}}}}")?,
+                        Cell::Proportion { width: n, .. } => {
+                            write!(stream, "{{\\rule{{{n}ex}}{{1ex}}}}")?
+                        }
                     }
                 }
                 writeln!(stream)?;
