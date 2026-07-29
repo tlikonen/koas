@@ -27,6 +27,7 @@ pub enum Output {
     Tab,
     Csv,
     Latex,
+    Html,
 }
 
 impl Output {
@@ -40,6 +41,7 @@ impl Output {
             "tab" | "t" => Self::Tab,
             "csv" | "c" => Self::Csv,
             "latex" | "l" => Self::Latex,
+            "html" => Self::Html,
             _ => return Err(Error::unknown_tbl(value)),
         };
         Ok(out)
@@ -167,6 +169,7 @@ impl Table {
             Output::Tab => print_table_tab(self, stream),
             Output::Csv => print_table_csv(self, stream),
             Output::Latex => print_table_latex(self, stream),
+            Output::Html => print_table_html(self, stream),
         }
     }
 }
@@ -1057,13 +1060,110 @@ fn print_table_latex(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
                         Cell::Left(s) | Cell::Right(s) => write!(stream, "{{{s}}}")?,
                         Cell::Multi(v) => write!(stream, "{{{}}}", v.join(" "))?,
                         Cell::Proportion { proportion, .. } => {
-                            write!(stream, "{{{proportion:.2}\\mitta}}")?;
+                            write!(stream, "{{{proportion:.3}\\mitta}}")?;
                         }
                     }
                 }
                 writeln!(stream)?;
             }
             _ => (),
+        }
+    }
+    Ok(())
+}
+
+fn print_table_html(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
+    if let Some(title) = tbl.title() {
+        write!(stream, "\n<h2>")?;
+        write_html_esc(stream, title)?;
+        writeln!(stream, "</h2>\n")?;
+    }
+
+    writeln!(stream, "<table style=\"text-align:left;\">")?;
+
+    for row in tbl.rows() {
+        match row {
+            Row::Head(v) | Row::Foot(v) => {
+                writeln!(stream, "  <tr>")?;
+                for cell in v {
+                    match cell {
+                        Cell::Empty => writeln!(stream, "    <th></th>")?,
+                        Cell::Left(s) | Cell::Right(s) => {
+                            write!(stream, "    <th>")?;
+                            write_html_esc(stream, s)?;
+                            writeln!(stream, "</th>")?;
+                        }
+                        Cell::Multi(v) => {
+                            write!(stream, "    <th>")?;
+                            write_html_esc(stream, &v.join(" "))?;
+                            writeln!(stream, "</th>")?;
+                        }
+                        Cell::Proportion { proportion, width } => {
+                            write_html_proportion(stream, proportion, width)?;
+                        }
+                    }
+                }
+                writeln!(stream, "  </tr>")?;
+            }
+
+            Row::Data(v) => {
+                writeln!(stream, "  <tr>")?;
+                for cell in v {
+                    match cell {
+                        Cell::Empty => writeln!(stream, "    <td></td>")?,
+                        Cell::Left(s) => {
+                            write!(stream, "    <td>")?;
+                            write_html_esc(stream, s)?;
+                            writeln!(stream, "</td>")?;
+                        }
+                        Cell::Right(s) => {
+                            write!(stream, "    <td style=\"text-align:right;\">")?;
+                            write_html_esc(stream, s)?;
+                            writeln!(stream, "</td>")?;
+                        }
+                        Cell::Multi(v) => {
+                            write!(stream, "    <td>")?;
+                            write_html_esc(stream, &v.join(" "))?;
+                            writeln!(stream, "</td>")?;
+                        }
+                        Cell::Proportion { proportion, width } => {
+                            write_html_proportion(stream, proportion, width)?;
+                        }
+                    }
+                }
+                writeln!(stream, "  </tr>")?;
+            }
+
+            _ => (),
+        }
+    }
+
+    writeln!(stream, "</table>")?;
+    Ok(())
+}
+
+fn write_html_proportion(stream: &mut OutBuf, prop: &f64, width: &usize) -> Result<()> {
+    write!(stream, "    <td style=\"width:{}em;\">", width)?;
+    write!(
+        stream,
+        "<div style=\"\
+         width:{:.2}%;\
+         height:1em;\
+         background-color:#444;\
+         \"></div>",
+        prop * 100.0
+    )?;
+    writeln!(stream, "</td>")?;
+    Ok(())
+}
+
+fn write_html_esc(stream: &mut OutBuf, s: &str) -> Result<()> {
+    for character in s.chars() {
+        match character {
+            '<' => write!(stream, "&lt;")?,
+            '>' => write!(stream, "&gt;")?,
+            '&' => write!(stream, "&amp;")?,
+            c => write!(stream, "{c}")?,
         }
     }
     Ok(())
