@@ -1034,8 +1034,8 @@ fn print_table_latex(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
                         Cell::Empty => write!(stream, "{{}}")?,
                         Cell::Left(s) | Cell::Right(s) => write!(stream, "{{{s}}}")?,
                         Cell::Multi(v) => write!(stream, "{{{}}}", v.join(" "))?,
-                        Cell::Proportion { width: n, .. } => {
-                            write!(stream, "{{\\rule{{{n}ex}}{{1ex}}}}")?
+                        Cell::Proportion { proportion, .. } => {
+                            write!(stream, "{{{proportion:.2}\\mitta}}")?;
                         }
                     }
                 }
