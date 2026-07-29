@@ -14,9 +14,9 @@ pub struct Grade {
 
 #[derive(Default)]
 pub struct GradesForAssignment {
-    pub assignment: String,
-    pub group: String,
-    pub grades: Vec<Grade>,
+    assignment: String,
+    group: String,
+    grades: Vec<Grade>,
 }
 
 #[derive(Default)]
@@ -279,6 +279,34 @@ impl GradesForAssignment {
         }
 
         Ok(QueryList::new(list))
+    }
+
+    pub fn assignment(&self) -> &str {
+        &self.assignment
+    }
+
+    pub fn group(&self) -> &str {
+        &self.group
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = &Grade> {
+        self.grades.iter()
+    }
+}
+
+impl<'a> IntoIterator for &'a GradesForAssignment {
+    type Item = &'a Grade;
+    type IntoIter = std::slice::Iter<'a, Grade>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.grades.iter()
+    }
+}
+
+impl IntoIterator for GradesForAssignment {
+    type Item = Grade;
+    type IntoIter = std::vec::IntoIter<Grade>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.grades.into_iter()
     }
 }
 

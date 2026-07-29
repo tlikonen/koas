@@ -80,7 +80,7 @@ impl MoveToEditable for AssignmentsForGroup {
 
 impl MoveToEditable for GradesForAssignment {
     fn move_to(self, ed: &mut Editable) {
-        ed.set(Editable::Grades(QueryList::new(self.grades)));
+        ed.set(Editable::Grades(QueryList::new(self.into_iter().collect())));
     }
 }
 
