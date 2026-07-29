@@ -349,7 +349,7 @@ impl AssignmentsForGroup {
     }
 
     /// Return iterator over assignments.
-    pub fn iter(&self) -> impl Iterator<Item = &Assignment> {
+    pub fn assignments(&self) -> impl Iterator<Item = &Assignment> {
         self.assignments.iter()
     }
 }

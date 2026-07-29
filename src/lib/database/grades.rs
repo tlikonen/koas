@@ -290,7 +290,7 @@ impl GradesForAssignment {
         &self.group
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = &Grade> {
+    pub fn grades(&self) -> impl Iterator<Item = &Grade> {
         self.grades.iter()
     }
 }
@@ -406,7 +406,7 @@ impl GradesForStudent {
         &self.group
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = &Grade> {
+    pub fn grades(&self) -> impl Iterator<Item = &Grade> {
         self.grades.iter()
     }
 }
