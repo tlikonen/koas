@@ -630,10 +630,7 @@ impl TryFrom<&str> for GradeValue {
 impl TryFrom<String> for GradeValue {
     type Error = Error;
     fn try_from(grade: String) -> Result<Self> {
-        match grade.normalize() {
-            Some(n) => Ok(Self::new(n)),
-            None => Err(Error::InvalidGrade(grade.to_string())),
-        }
+        grade.as_str().try_into()
     }
 }
 
