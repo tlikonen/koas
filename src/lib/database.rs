@@ -202,10 +202,7 @@ impl<C> Field<C, i32> {
 }
 
 fn unwrap_or_empty<C>(desc: Option<Field<C, String>>) -> String {
-    match desc {
-        Some(d) => d.to_string(),
-        None => "".to_string(),
-    }
+    desc.map_or("".to_string(), |x| x.to_string())
 }
 
 impl<C, T> Display for Field<C, T>
