@@ -82,7 +82,6 @@ pub(super) async fn initialize(mut db: DBase) -> Result<DBase> {
 
         // Seuraavassa versiossa ehkä vaatimuksia: NOT NULL.
         // Painokertoimeen ehkä vaatimus x IS NULL OR x >= 1.
-        // Ehkä vaatimus UNIQUE(sid, rid, sija)
         sqlx::query(
             "CREATE TABLE suoritukset \
              (sid SERIAL PRIMARY KEY, \
