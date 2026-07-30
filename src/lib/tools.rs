@@ -143,7 +143,7 @@ pub fn float_to_grade(float: f64) -> Option<String> {
         0.5 => suffix.push('½'),
         0.75 => {
             integer += 1.0;
-            suffix.push('-');
+            suffix.push('−');
         }
         0.0 => (),
         _ => return None,
@@ -287,9 +287,13 @@ mod tests {
         assert_eq!(Some(4.3), parse_number("4,3"));
         assert_eq!(Some(4.0), parse_number("+4"));
         assert_eq!(Some(-4.0), parse_number("-4"));
+        assert_eq!(Some(-4.0), parse_number("–4"));
+        assert_eq!(Some(-4.0), parse_number("−4"));
         assert_eq!(Some(8.0), parse_number("8."));
         assert_eq!(Some(0.8), parse_number(".8"));
         assert_eq!(Some(7.75), parse_number("8-"));
+        assert_eq!(Some(7.75), parse_number("8–"));
+        assert_eq!(Some(7.75), parse_number("8−"));
         assert_eq!(Some(8.25), parse_number("8+"));
         assert_eq!(Some(8.5), parse_number("8½"));
         assert_eq!(Some(84.75), parse_number("85-"));
@@ -314,7 +318,7 @@ mod tests {
         assert_eq!(Some("8"), float_to_grade(8.0).as_deref());
         assert_eq!(Some("8+"), float_to_grade(8.25).as_deref());
         assert_eq!(Some("8½"), float_to_grade(8.5).as_deref());
-        assert_eq!(Some("9-"), float_to_grade(8.75).as_deref());
+        assert_eq!(Some("9−"), float_to_grade(8.75).as_deref());
     }
 
     #[test]

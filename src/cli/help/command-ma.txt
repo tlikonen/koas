@@ -8,11 +8,12 @@ ma tietueet
     tietueista, joita halutaan muokata, esimerkiksi ”2-4,6-9,15”.
 
     Arvosanakentässä desimaaliluku muutetaan vastaavaksi kouluarvosanaksi.
-    Esimerkiksi luvusta ”7,75” tulee arvosana ”8-”, luvusta ”8,00” arvosana
+    Esimerkiksi luvusta ”7,75” tulee arvosana ”8−”, luvusta ”8,00” arvosana
     ”8”, luvusta ”8,25” arvosana ”8+” ja luvusta ”8,50” arvosana ”8½”.
     Desimaalierottimena voi olla piste tai pilkku, molemmat hyväksytään.
-    Kenttään ei kosketa, jos se ei ole yksiselitteisesti muutettavissa
-    kouluarvosanaksi.
+    Ennestään arvosanassa oleva yhdysmerkki (-) tai lyhyt ajatusviiva (–)
+    muutetaan varsinaiseksi miinusmerkiksi (−). Kenttään ei kosketa, jos se ei
+    ole yksiselitteisesti muutettavissa kouluarvosanaksi.
 
     Jos komento antaa virheilmoituksen, kaikki saman komennon tarkoittamat
     muokkaukset perutaan.
