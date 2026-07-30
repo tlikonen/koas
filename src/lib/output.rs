@@ -115,6 +115,19 @@ impl Table {
         }
     }
 
+    fn count_columns(&self) -> usize {
+        let mut columns = 0;
+        for row in self.rows() {
+            match row {
+                Row::Head(cells) | Row::Data(cells) | Row::Foot(cells) if cells.len() > columns => {
+                    columns = cells.len();
+                }
+                _ => (),
+            }
+        }
+        columns
+    }
+
     pub fn widths(&self) -> Vec<usize> {
         let mut vec = Vec::with_capacity(10);
         for row in self.rows() {
@@ -1047,28 +1060,69 @@ fn print_table_csv(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
 
 fn print_table_latex(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
     if let Some(title) = tbl.title() {
-        writeln!(stream, "\n{title}\n")?;
+        write!(stream, "\n\\section{{")?;
+        write_latex_esc(stream, title)?;
+        writeln!(stream, "}}\n")?;
     }
+
+    writeln!(
+        stream,
+        "\\begin{{tabular}}{{*{{{cols}}}{{l}}}}",
+        cols = tbl.count_columns()
+    )?;
 
     for row in tbl.rows() {
         match row {
-            Row::Head(v) | Row::Data(v) | Row::Foot(v) => {
-                write!(stream, "\\rivi")?;
-                for cell in v {
-                    match cell {
-                        Cell::Empty => write!(stream, "{{}}")?,
-                        Cell::Left(s) | Cell::Right(s) => write!(stream, "{{{s}}}")?,
-                        Cell::Multi(v) => write!(stream, "{{{}}}", v.join(" "))?,
-                        Cell::Proportion { proportion, .. } => {
-                            write!(stream, "{{{proportion:.3}\\mitta}}")?;
-                        }
-                    }
+            Row::Toprule | Row::Midrule | Row::Bottomrule => writeln!(stream, "  \\hline")?,
+
+            Row::Head(cells) | Row::Foot(cells) => {
+                write_latex_cells(stream, cells, true)?;
+            }
+
+            Row::Data(cells) => {
+                write_latex_cells(stream, cells, false)?;
+            }
+        }
+    }
+
+    writeln!(stream, "\\end{{tabular}}\n\\clearpage")?;
+    Ok(())
+}
+
+fn write_latex_cells(stream: &mut OutBuf, cells: &VecDeque<Cell>, head: bool) -> Result<()> {
+    for (n, cell) in (0..).zip(cells) {
+        match n {
+            0 => write!(stream, "  ")?,
+            _ => write!(stream, " & ")?,
+        }
+
+        match cell {
+            Cell::Left(s) | Cell::Right(s) => {
+                if head {
+                    write!(stream, "\\textbf{{")?;
+                    write_latex_esc(stream, s)?;
+                    write!(stream, "}}")?;
+                } else {
+                    write_latex_esc(stream, s)?;
                 }
-                writeln!(stream)?;
+            }
+            Cell::Multi(v) => {
+                if head {
+                    write!(stream, "\\textbf{{")?;
+                    write_latex_esc(stream, &v.join(" "))?;
+                    write!(stream, "}}")?;
+                } else {
+                    write_latex_esc(stream, &v.join(" "))?;
+                }
+            }
+            Cell::Proportion { proportion, .. } => {
+                write!(stream, "\\rule{{{proportion:.3}\\mitta}}{{.9em}}")?;
             }
             _ => (),
         }
     }
+
+    writeln!(stream, " \\\\")?;
     Ok(())
 }
 
@@ -1153,6 +1207,19 @@ fn write_html_proportion(stream: &mut OutBuf, prop: &f64) -> Result<()> {
          \"></div></div>",
         prop * 100.0
     )?;
+    Ok(())
+}
+
+fn write_latex_esc(stream: &mut OutBuf, s: &str) -> Result<()> {
+    for character in s.chars() {
+        match character {
+            '^' => write!(stream, "\\textasciicircum{{}}")?,
+            '\\' => write!(stream, "\\textbackslash{{}}")?,
+            '~' => write!(stream, "\\textasciitilde{{}}")?,
+            c if "%$_#&{}".contains(c) => write!(stream, "\\{c}")?,
+            c => write!(stream, "{c}")?,
+        }
+    }
     Ok(())
 }
 
