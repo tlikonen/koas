@@ -171,7 +171,6 @@ pub trait StrExt {
     fn has_content(&self) -> bool;
     fn has_whitespace(&self) -> bool;
     fn is_all_digits(&self) -> bool;
-    fn is_valid_group_name(&self) -> Result<()>;
 }
 
 impl StrExt for str {
@@ -185,16 +184,6 @@ impl StrExt for str {
 
     fn is_all_digits(&self) -> bool {
         !self.is_empty() && self.chars().all(|c| c.is_ascii_digit())
-    }
-
-    fn is_valid_group_name(&self) -> Result<()> {
-        if self.has_whitespace() {
-            Err(Error::from("Ryhmätunnuksessa ei voi olla välilyöntejä."))
-        } else if !self.has_content() {
-            Err(Error::from("Sopimaton ryhmätunnus."))
-        } else {
-            Ok(())
-        }
     }
 }
 
@@ -383,17 +372,17 @@ mod tests {
         assert!(is_within_limits(11, &[3, 11, 10, 4]));
     }
 
-    #[test]
-    fn is_valid_group_name() {
-        assert!("abc".is_valid_group_name().is_ok());
-        assert!("abc€ø’".is_valid_group_name().is_ok());
-        assert!(" abc".is_valid_group_name().is_err());
-        assert!(" abc ".is_valid_group_name().is_err());
-        assert!("abc ".is_valid_group_name().is_err());
-        assert!("abc 123".is_valid_group_name().is_err());
-        assert!("x\t".is_valid_group_name().is_err());
-        assert!(" ".is_valid_group_name().is_err());
-    }
+    // #[test]
+    // fn is_valid_group_name() {
+    //     assert!("abc".is_valid_group_name().is_ok());
+    //     assert!("abc€ø’".is_valid_group_name().is_ok());
+    //     assert!(" abc".is_valid_group_name().is_err());
+    //     assert!(" abc ".is_valid_group_name().is_err());
+    //     assert!("abc ".is_valid_group_name().is_err());
+    //     assert!("abc 123".is_valid_group_name().is_err());
+    //     assert!("x\t".is_valid_group_name().is_err());
+    //     assert!(" ".is_valid_group_name().is_err());
+    // }
 
     #[test]
     fn normalize() {
