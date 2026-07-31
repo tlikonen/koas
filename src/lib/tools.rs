@@ -61,7 +61,6 @@ pub fn is_within_limits(limit: usize, list: &[usize]) -> bool {
 }
 
 pub fn parse_number(s: &str) -> Option<f64> {
-    use std::cmp::max;
     const MINUS_CHARS: &str = "-–−";
 
     if s.is_empty() {
@@ -93,15 +92,15 @@ pub fn parse_number(s: &str) -> Option<f64> {
         if last == '+' {
             suffix = 0.25;
             suffix_set = true;
-            end = max(start, end - 1);
+            end = start.max(end - 1);
         } else if MINUS_CHARS.contains(last) {
             suffix = -0.25;
             suffix_set = true;
-            end = max(start, end - 1);
+            end = start.max(end - 1);
         } else if last == '½' {
             suffix = 0.5;
             suffix_set = true;
-            end = max(start, end - 1);
+            end = start.max(end - 1);
         }
     }
 
