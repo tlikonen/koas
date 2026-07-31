@@ -1,6 +1,6 @@
 use crate::database::*;
 use crate::prelude::*;
-use crate::tools;
+use crate::tools::FloatExt;
 use crate::tools::StrExt;
 use std::cmp::Ordering;
 use std::collections::VecDeque;
@@ -408,7 +408,7 @@ impl MakeTable for GradesForAssignment {
         }
 
         let average = if count > 0 {
-            Cell::Left(tools::format_decimal(sum / f64::from(count)))
+            Cell::Left((sum / f64::from(count)).format_decimal())
         } else {
             Cell::Empty
         };
@@ -484,7 +484,7 @@ impl MakeTable for GradesForStudent {
         }
 
         let average = if count > 0 {
-            Cell::Left(tools::format_decimal(sum / f64::from(count)))
+            Cell::Left((sum / f64::from(count)).format_decimal())
         } else {
             Cell::Empty
         };
@@ -572,7 +572,7 @@ impl MakeTable for GradesForGroup {
                 let avg = horiz_sum / f64::from(horiz_count);
                 total_sum += avg;
                 total_count += 1;
-                Cell::Right(tools::format_decimal(avg))
+                Cell::Right(avg.format_decimal())
             } else {
                 Cell::Empty
             };
@@ -589,14 +589,14 @@ impl MakeTable for GradesForGroup {
         for (n, sum) in vert_sums.iter().enumerate() {
             let c = vert_counts[n];
             totals.push(if c > 0 {
-                Cell::Left(tools::format_decimal(sum / f64::from(c)))
+                Cell::Left((sum / f64::from(c)).format_decimal())
             } else {
                 Cell::Empty
             });
         }
 
         totals.push(if total_count > 0 {
-            Cell::Right(tools::format_decimal(total_sum / f64::from(total_count)))
+            Cell::Right((total_sum / f64::from(total_count)).format_decimal())
         } else {
             Cell::Empty
         });
@@ -700,7 +700,7 @@ impl MakeTable for StudentRanking {
                 },
                 Cell::Left(student.name.clone()),
                 Cell::Multi(column_lines(student.groups, GROUPS_WIDTH)),
-                Cell::Right(tools::format_decimal(student.average)),
+                Cell::Right(student.average.format_decimal()),
                 Cell::Right(student.count.to_string()),
             ])));
             average_last = student.average;
@@ -712,7 +712,7 @@ impl MakeTable for StudentRanking {
             Cell::Left("Keskiarvo".to_string()),
             Cell::Empty,
             if total_count > 0 {
-                Cell::Right(tools::format_decimal(total_sum / f64::from(total_count)))
+                Cell::Right((total_sum / f64::from(total_count)).format_decimal())
             } else {
                 Cell::Empty
             },

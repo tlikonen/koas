@@ -12,6 +12,7 @@ use koas::database::students::*;
 use koas::database::*;
 use koas::output::*;
 use koas::tools;
+use koas::tools::FloatExt;
 use koas::tools::StrExt;
 use koas::{Config, Error, Result};
 use std::io::{self, Write as _};
@@ -700,8 +701,9 @@ async fn commands(
                     if let Some(ss) = student_grade.grade()
                         && let Some(float) = ss.float()
                     {
-                        let new = tools::format_decimal(float);
-                        student_grade.set_grade(new.try_into()?).queue(&mut updates);
+                        student_grade
+                            .set_grade(float.format_decimal().try_into()?)
+                            .queue(&mut updates);
                     }
                 }
                 updates.commit(db).await?;

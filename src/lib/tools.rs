@@ -208,9 +208,24 @@ impl StrExt for str {
     }
 }
 
-pub fn format_decimal(num: f64) -> String {
-    const PRECISION: f64 = 100.0;
-    format!("{:.2}", (num * PRECISION).round() / PRECISION).replace(".", ",")
+pub trait FloatExt {
+    fn format_decimal(self) -> String;
+}
+
+impl FloatExt for f64 {
+    fn format_decimal(self) -> String {
+        const PRECISION: f64 = 100.0;
+        let string = format!("{:.2}", (self * PRECISION).round() / PRECISION);
+        let mut new = String::with_capacity(string.len());
+        for character in string.chars() {
+            new.push(match character {
+                '.' => ',',
+                '-' => MINUS_CHAR,
+                c => c,
+            });
+        }
+        new
+    }
 }
 
 pub fn umask() {
@@ -409,11 +424,12 @@ mod tests {
     }
 
     #[test]
-    fn format_decimal_fn() {
-        assert_eq!("5,00", format_decimal(5.0));
-        assert_eq!("5,25", format_decimal(5.254));
-        assert_eq!("5,26", format_decimal(5.255));
-        assert_eq!("0,01", format_decimal(0.01));
-        assert_eq!("0,00", format_decimal(0.0));
+    fn format_decimal() {
+        assert_eq!("5,00", 5.0.format_decimal());
+        assert_eq!("5,25", 5.254.format_decimal());
+        assert_eq!("−5,25", (-5.254).format_decimal());
+        assert_eq!("5,26", 5.255.format_decimal());
+        assert_eq!("−0,01", (-0.01).format_decimal());
+        assert_eq!("0,00", 0.0.format_decimal());
     }
 }
