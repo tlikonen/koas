@@ -156,8 +156,10 @@ impl GradeDistribution {
             let weight: Option<i32> = row.try_get("painokerroin")?;
             if (all || weight.is_some())
                 && let Some(grade) = row.try_get("arvosana")?
+                && let Some(float) = tools::parse_number(grade)
+                && let Some(normalized) = tools::float_to_grade(float)
             {
-                let count = self.data.entry(grade).or_default();
+                let count = self.data.entry(normalized).or_default();
                 *count += 1;
             }
         }
