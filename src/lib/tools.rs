@@ -60,9 +60,12 @@ pub fn is_within_limits(limit: usize, list: &[usize]) -> bool {
     list.iter().all(|n| *n <= limit)
 }
 
-pub fn parse_number(s: &str) -> Option<f64> {
-    const MINUS_CHARS: &str = "-–−";
+const MINUS_CHARS: &str = "-–−";
+const MINUS_CHAR: char = '−';
+const PLUS_CHAR: char = '+';
+const HALF_CHAR: char = '½';
 
+pub fn parse_number(s: &str) -> Option<f64> {
     if s.is_empty() {
         return None;
     }
@@ -80,7 +83,7 @@ pub fn parse_number(s: &str) -> Option<f64> {
             sign = -1.0;
             sign_set = true;
             start = 1;
-        } else if first == '+' {
+        } else if first == PLUS_CHAR {
             sign = 1.0;
             sign_set = true;
             start = 1;
@@ -89,7 +92,7 @@ pub fn parse_number(s: &str) -> Option<f64> {
 
     {
         let last = s.chars().next_back().unwrap();
-        if last == '+' {
+        if last == PLUS_CHAR {
             suffix = 0.25;
             suffix_set = true;
             end = start.max(end - 1);
@@ -97,7 +100,7 @@ pub fn parse_number(s: &str) -> Option<f64> {
             suffix = -0.25;
             suffix_set = true;
             end = start.max(end - 1);
-        } else if last == '½' {
+        } else if last == HALF_CHAR {
             suffix = 0.5;
             suffix_set = true;
             end = start.max(end - 1);
@@ -138,11 +141,11 @@ pub fn float_to_grade(float: f64) -> Option<String> {
 
     let mut suffix = String::with_capacity(1);
     match fractional {
-        0.25 => suffix.push('+'),
-        0.5 => suffix.push('½'),
+        0.25 => suffix.push(PLUS_CHAR),
+        0.5 => suffix.push(HALF_CHAR),
         0.75 => {
             integer += 1.0;
-            suffix.push('−');
+            suffix.push(MINUS_CHAR);
         }
         0.0 => (),
         _ => return None,
