@@ -150,6 +150,7 @@ pub trait StrExt {
     fn is_all_digits(&self) -> bool;
     fn float(&self) -> Option<f64>;
     fn grade_string(&self) -> Option<String>;
+    fn normalize(&self) -> Option<String>;
 }
 
 impl StrExt for str {
@@ -193,16 +194,8 @@ impl StrExt for str {
 
         Some(format!("{integer:.0}{suffix}"))
     }
-}
 
-pub(crate) trait Normalize {
-    type Target;
-    fn normalize(&self) -> Self::Target;
-}
-
-impl Normalize for str {
-    type Target = Option<String>;
-    fn normalize(&self) -> Self::Target {
+    fn normalize(&self) -> Option<String> {
         let mut new = String::with_capacity(self.len());
         for word in self.split_whitespace() {
             if !new.is_empty() {
@@ -380,25 +373,13 @@ mod tests {
         assert!(is_within_limits(11, &[3, 11, 10, 4]));
     }
 
-    // #[test]
-    // fn is_valid_group_name() {
-    //     assert!("abc".is_valid_group_name().is_ok());
-    //     assert!("abc€ø’".is_valid_group_name().is_ok());
-    //     assert!(" abc".is_valid_group_name().is_err());
-    //     assert!(" abc ".is_valid_group_name().is_err());
-    //     assert!("abc ".is_valid_group_name().is_err());
-    //     assert!("abc 123".is_valid_group_name().is_err());
-    //     assert!("x\t".is_valid_group_name().is_err());
-    //     assert!(" ".is_valid_group_name().is_err());
-    // }
-
     #[test]
     fn normalize() {
-        assert_eq!("abc 123", "  abc   123  ".normalize().unwrap());
+        assert_eq!(Some("abc 123"), "  abc   123  ".normalize().as_deref());
         assert_eq!(Some("abc 123".to_string()), "  abc   123  ".normalize());
-        assert_eq!("abc", "abc".normalize().unwrap());
-        assert_eq!("abc", " abc ".normalize().unwrap());
-        assert_eq!("€– –€ö", " €–   –€ö   ".normalize().unwrap());
+        assert_eq!(Some("abc"), "abc".normalize().as_deref());
+        assert_eq!(Some("abc"), " abc ".normalize().as_deref());
+        assert_eq!(Some("€– –€ö"), " €–   –€ö   ".normalize().as_deref());
         assert_eq!(None, "".normalize());
         assert_eq!(None, " \t  \t  ".normalize());
         assert_eq!("", "".normalize().unwrap_or_default());
