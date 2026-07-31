@@ -286,7 +286,7 @@ impl MakeTable for QueryList<Student> {
             Row::Midrule,
         ];
 
-        for student in self.iter() {
+        for student in self {
             rows.push(Row::Data(VecDeque::from([
                 Cell::Left(student.lastname().to_string()),
                 Cell::Left(student.firstname().to_string()),
@@ -316,7 +316,7 @@ impl MakeTable for QueryList<Group> {
             Row::Midrule,
         ];
 
-        for group in self.iter() {
+        for group in self {
             rows.push(Row::Data(VecDeque::from([
                 Cell::Left(group.name().to_string()),
                 Cell::Multi(column_lines(
@@ -362,7 +362,7 @@ impl MakeTable for AssignmentsForGroup {
 impl PrintQuery for QueryList<AssignmentsForGroup> {
     fn print(&self, out: &Output) -> Result<()> {
         let mut stream = output_buffer();
-        for t in self.iter() {
+        for t in self {
             t.table().print_tbl(out, &mut stream)?;
         }
         stream.flush()?;
@@ -431,7 +431,7 @@ impl MakeTable for GradesForAssignment {
 impl PrintQuery for QueryList<GradesForAssignment> {
     fn print(&self, out: &Output) -> Result<()> {
         let mut stream = output_buffer();
-        for t in self.iter() {
+        for t in self {
             t.table().print_tbl(out, &mut stream)?;
         }
         stream.flush()?;
@@ -504,7 +504,7 @@ impl MakeTable for GradesForStudent {
 impl PrintQuery for QueryList<GradesForStudent> {
     fn print(&self, out: &Output) -> Result<()> {
         let mut stream = output_buffer();
-        for t in self.iter() {
+        for t in self {
             t.table().print_tbl(out, &mut stream)?;
         }
         stream.flush()?;
@@ -611,7 +611,7 @@ impl PrintQuery for QueryList<GradesForGroup> {
     fn print(&self, out: &Output) -> Result<()> {
         let mut stream = output_buffer();
 
-        for tbl in self.iter() {
+        for tbl in self {
             tbl.table().print_tbl(out, &mut stream)?;
             writeln!(stream)?;
 

@@ -267,6 +267,22 @@ impl<T> QueryList<T> {
     }
 }
 
+impl<'a, T> IntoIterator for &'a QueryList<T> {
+    type Item = &'a T;
+    type IntoIter = std::slice::Iter<'a, T>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.iter()
+    }
+}
+
+impl<T> IntoIterator for QueryList<T> {
+    type Item = T;
+    type IntoIter = std::vec::IntoIter<T>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
 impl TryFrom<&str> for Description {
     type Error = Error;
     fn try_from(desc: &str) -> Result<Self> {
