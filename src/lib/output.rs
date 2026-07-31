@@ -1091,39 +1091,72 @@ fn print_table_latex(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
 }
 
 fn write_latex_cells(stream: &mut OutBuf, cells: &VecDeque<Cell>, head: bool) -> Result<()> {
-    for (n, cell) in (0..).zip(cells) {
-        match n {
-            0 => write!(stream, "  ")?,
-            _ => write!(stream, " & ")?,
+    let mut multi_max = 0;
+    let mut multi = 0;
+    loop {
+        for (n, cell) in (0..).zip(cells) {
+            match n {
+                0 => write!(stream, "  ")?,
+                _ => write!(stream, " & ")?,
+            }
+
+            match multi {
+                0 => match cell {
+                    Cell::Left(s) | Cell::Right(s) => {
+                        if head {
+                            write!(stream, "\\textbf{{")?;
+                            write_latex_esc(stream, s)?;
+                            write!(stream, "}}")?;
+                        } else {
+                            write_latex_esc(stream, s)?;
+                        }
+                    }
+
+                    Cell::Multi(v) => {
+                        if let Some(s) = v.get(multi) {
+                            if head {
+                                write!(stream, "\\textbf{{")?;
+                                write_latex_esc(stream, s)?;
+                                write!(stream, "}}")?;
+                            } else {
+                                write_latex_esc(stream, s)?;
+                            }
+                        }
+
+                        if v.len() > multi_max {
+                            multi_max = v.len();
+                        }
+                    }
+
+                    Cell::Proportion { proportion, .. } => {
+                        write!(stream, "\\rule{{{proportion:.3}\\mitta}}{{.9em}}")?;
+                    }
+                    _ => (),
+                },
+
+                _ => {
+                    // multi > 0
+                    if let Cell::Multi(v) = cell
+                        && let Some(s) = v.get(multi)
+                    {
+                        if head {
+                            write!(stream, "\\textbf{{")?;
+                            write_latex_esc(stream, s)?;
+                            write!(stream, "}}")?;
+                        } else {
+                            write_latex_esc(stream, s)?;
+                        }
+                    }
+                }
+            }
         }
 
-        match cell {
-            Cell::Left(s) | Cell::Right(s) => {
-                if head {
-                    write!(stream, "\\textbf{{")?;
-                    write_latex_esc(stream, s)?;
-                    write!(stream, "}}")?;
-                } else {
-                    write_latex_esc(stream, s)?;
-                }
-            }
-            Cell::Multi(v) => {
-                if head {
-                    write!(stream, "\\textbf{{")?;
-                    write_latex_esc(stream, &v.join(" "))?;
-                    write!(stream, "}}")?;
-                } else {
-                    write_latex_esc(stream, &v.join(" "))?;
-                }
-            }
-            Cell::Proportion { proportion, .. } => {
-                write!(stream, "\\rule{{{proportion:.3}\\mitta}}{{.9em}}")?;
-            }
-            _ => (),
+        writeln!(stream, " \\\\")?;
+        multi += 1;
+        if multi >= multi_max {
+            break;
         }
     }
-
-    writeln!(stream, " \\\\")?;
     Ok(())
 }
 
