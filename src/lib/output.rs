@@ -217,7 +217,11 @@ pub enum Cell {
     Left(String),
     Right(String),
     Multi(Vec<String>),
-    Proportion { proportion: f64, width: usize },
+    Proportion {
+        proportion: f64,
+        width: usize,
+        width_max: usize,
+    },
 }
 
 impl Cell {
@@ -237,10 +241,6 @@ impl Cell {
             }
             Self::Proportion { width, .. } => *width,
         }
-    }
-
-    fn prop(proportion: f64, width: usize) -> Self {
-        Self::Proportion { proportion, width }
     }
 }
 
@@ -773,7 +773,11 @@ impl MakeTable for GradeDistribution {
                 rows.push(Row::Data(VecDeque::from([
                     Cell::Left(grade.to_string()),
                     Cell::Right(count.to_string()),
-                    Cell::prop(prop, char_count),
+                    Cell::Proportion {
+                        proportion: prop,
+                        width: char_count,
+                        width_max: BAR_WIDTH as usize,
+                    },
                 ])));
             } else {
                 rows.push(Row::Data(VecDeque::from([
@@ -1187,8 +1191,12 @@ fn print_table_html(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
                         Cell::Multi(v) => {
                             write_html_esc(stream, &v.join(" "))?;
                         }
-                        Cell::Proportion { proportion, .. } => {
-                            write_html_proportion(stream, proportion)?;
+                        Cell::Proportion {
+                            proportion,
+                            width_max,
+                            ..
+                        } => {
+                            write_html_proportion(stream, *proportion, *width_max)?;
                         }
                     }
                     writeln!(stream, "</th>")?;
@@ -1213,8 +1221,12 @@ fn print_table_html(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
                         Cell::Multi(v) => {
                             write_html_esc(stream, &v.join(" "))?;
                         }
-                        Cell::Proportion { proportion, .. } => {
-                            write_html_proportion(stream, proportion)?;
+                        Cell::Proportion {
+                            proportion,
+                            width_max,
+                            ..
+                        } => {
+                            write_html_proportion(stream, *proportion, *width_max)?;
                         }
                     }
                     writeln!(stream, "</td>")?;
@@ -1230,16 +1242,17 @@ fn print_table_html(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
     Ok(())
 }
 
-fn write_html_proportion(stream: &mut OutBuf, prop: &f64) -> Result<()> {
+fn write_html_proportion(stream: &mut OutBuf, proportion: f64, width_max: usize) -> Result<()> {
     write!(
         stream,
-        "<div style=\"width:40em;\">\
+        "<div style=\"width:{max}em;\">\
          <div style=\"\
-         width:{:.2}%;\
+         width:{prop:.2}%;\
          height:1em;\
          background-color:#444;\
          \"></div></div>",
-        prop * 100.0
+        prop = proportion * 100.0,
+        max = width_max,
     )?;
     Ok(())
 }
