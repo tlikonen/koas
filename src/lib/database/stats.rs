@@ -84,8 +84,8 @@ impl StudentRanking {
         .fetch(db);
 
         while let Some(row) = rows.try_next().await? {
-            if let Some(gr) = row.try_get("arvosana")?
-                && let Some(grade) = tools::parse_number(gr)
+            if let Some(grade) = row.try_get::<Option<&str>, _>("arvosana")?
+                && let Some(grade_float) = grade.float()
             {
                 let weight: i32 = match row.try_get("painokerroin")? {
                     Some(w) => w,
@@ -108,7 +108,7 @@ impl StudentRanking {
                     rank.groups.sort();
                 }
 
-                rank.sum += grade * f64::from(weight);
+                rank.sum += grade_float * f64::from(weight);
                 rank.count += weight;
                 rank.grade_count += 1;
             }
@@ -155,9 +155,8 @@ impl GradeDistribution {
         while let Some(row) = rows.try_next().await? {
             let weight: Option<i32> = row.try_get("painokerroin")?;
             if (all || weight.is_some())
-                && let Some(grade) = row.try_get("arvosana")?
-                && let Some(float) = tools::parse_number(grade)
-                && let Some(normalized) = tools::float_to_grade(float)
+                && let Some(grade) = row.try_get::<Option<&str>, _>("arvosana")?
+                && let Some(normalized) = grade.grade_string()
             {
                 let count = self.data.entry(normalized).or_default();
                 *count += 1;

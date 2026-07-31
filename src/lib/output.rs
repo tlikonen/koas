@@ -1,6 +1,7 @@
 use crate::database::*;
 use crate::prelude::*;
 use crate::tools;
+use crate::tools::StrExt;
 use std::cmp::Ordering;
 use std::collections::VecDeque;
 use std::io;
@@ -391,7 +392,7 @@ impl MakeTable for GradesForAssignment {
                 Cell::Left(grade.fullname()),
                 match grade.grade() {
                     Some(s) => {
-                        if let Some(f) = tools::parse_number(s) {
+                        if let Some(f) = s.float() {
                             sum += f;
                             count += 1;
                         }
@@ -461,7 +462,7 @@ impl MakeTable for GradesForStudent {
                 Cell::Left(grade.assignment().to_string()),
                 match grade.grade() {
                     Some(s) => {
-                        if let Some(f) = tools::parse_number(s)
+                        if let Some(f) = s.float()
                             && let Some(w) = grade.weight()
                         {
                             sum += f * f64::from(w);
@@ -553,7 +554,7 @@ impl MakeTable for GradesForGroup {
 
                 match simple_grade.grade() {
                     Some(s) => {
-                        if let Some(f) = tools::parse_number(s) {
+                        if let Some(f) = s.float() {
                             if let Some(w) = simple_grade.weight() {
                                 horiz_sum += f * f64::from(w);
                                 horiz_count += w;

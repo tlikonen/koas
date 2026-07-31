@@ -1,71 +1,11 @@
 use crate::prelude::*;
 
-pub fn parse_number_list(s: &str) -> Result<Vec<usize>> {
-    if s.is_empty() {
-        return Err(Error::from("Puuttuu tietueen numero(t)."));
-    }
-
-    let errmsg = |v| Error::from(format!("Sopimaton tietueen numero: ”{v}”."));
-    let mut vec: Vec<usize> = Vec::with_capacity(25);
-
-    for part in s.split(',').filter(|e| !e.is_empty()) {
-        if part.is_all_digits() {
-            let num = part.parse::<usize>()?;
-            if num == 0 {
-                return Err(errmsg(part));
-            }
-            vec.push(num);
-            continue;
-        }
-
-        let (start, end) = match part.split_once('-') {
-            None => return Err(errmsg(part)),
-            Some((s, e)) => {
-                if !s.is_all_digits() || !e.is_all_digits() {
-                    return Err(Error::from(format!(
-                        "Sopimaton tietueiden sarja: ”{s}-{e}”."
-                    )));
-                }
-                (s.parse::<usize>()?, e.parse::<usize>()?)
-            }
-        };
-
-        if start == 0 || end == 0 {
-            return Err(errmsg("0"));
-        }
-
-        if start == end {
-            vec.push(start);
-            continue;
-        }
-
-        let inc = start < end;
-        let mut i = start;
-        loop {
-            vec.push(i);
-            if i == end {
-                break;
-            }
-            if inc {
-                i += 1;
-            } else {
-                i -= 1;
-            }
-        }
-    }
-    Ok(vec)
-}
-
-pub fn is_within_limits(limit: usize, list: &[usize]) -> bool {
-    list.iter().all(|n| *n <= limit)
-}
-
 const MINUS_CHARS: &str = "-–−";
 const MINUS_CHAR: char = '−';
 const PLUS_CHAR: char = '+';
 const HALF_CHAR: char = '½';
 
-pub fn parse_number(s: &str) -> Option<f64> {
+fn parse_number(s: &str) -> Option<f64> {
     if s.is_empty() {
         return None;
     }
@@ -131,27 +71,64 @@ pub fn parse_number(s: &str) -> Option<f64> {
     }
 }
 
-pub fn float_to_grade(float: f64) -> Option<String> {
-    if float < 0.0 {
-        return None;
+pub fn parse_number_list(s: &str) -> Result<Vec<usize>> {
+    if s.is_empty() {
+        return Err(Error::from("Puuttuu tietueen numero(t)."));
     }
 
-    let mut integer = float.trunc();
-    let fractional = float.fract();
+    let errmsg = |v| Error::from(format!("Sopimaton tietueen numero: ”{v}”."));
+    let mut vec: Vec<usize> = Vec::with_capacity(25);
 
-    let mut suffix = String::with_capacity(1);
-    match fractional {
-        0.25 => suffix.push(PLUS_CHAR),
-        0.5 => suffix.push(HALF_CHAR),
-        0.75 => {
-            integer += 1.0;
-            suffix.push(MINUS_CHAR);
+    for part in s.split(',').filter(|e| !e.is_empty()) {
+        if part.is_all_digits() {
+            let num = part.parse::<usize>()?;
+            if num == 0 {
+                return Err(errmsg(part));
+            }
+            vec.push(num);
+            continue;
         }
-        0.0 => (),
-        _ => return None,
-    }
 
-    Some(format!("{integer:.0}{suffix}"))
+        let (start, end) = match part.split_once('-') {
+            None => return Err(errmsg(part)),
+            Some((s, e)) => {
+                if !s.is_all_digits() || !e.is_all_digits() {
+                    return Err(Error::from(format!(
+                        "Sopimaton tietueiden sarja: ”{s}-{e}”."
+                    )));
+                }
+                (s.parse::<usize>()?, e.parse::<usize>()?)
+            }
+        };
+
+        if start == 0 || end == 0 {
+            return Err(errmsg("0"));
+        }
+
+        if start == end {
+            vec.push(start);
+            continue;
+        }
+
+        let inc = start < end;
+        let mut i = start;
+        loop {
+            vec.push(i);
+            if i == end {
+                break;
+            }
+            if inc {
+                i += 1;
+            } else {
+                i -= 1;
+            }
+        }
+    }
+    Ok(vec)
+}
+
+pub fn is_within_limits(limit: usize, list: &[usize]) -> bool {
+    list.iter().all(|n| *n <= limit)
 }
 
 pub fn split_sep(s: &str) -> impl Iterator<Item = &str> {
@@ -171,6 +148,8 @@ pub trait StrExt {
     fn has_content(&self) -> bool;
     fn has_whitespace(&self) -> bool;
     fn is_all_digits(&self) -> bool;
+    fn float(&self) -> Option<f64>;
+    fn grade_string(&self) -> Option<String>;
 }
 
 impl StrExt for str {
@@ -184,6 +163,35 @@ impl StrExt for str {
 
     fn is_all_digits(&self) -> bool {
         !self.is_empty() && self.chars().all(|c| c.is_ascii_digit())
+    }
+
+    fn float(&self) -> Option<f64> {
+        parse_number(self)
+    }
+
+    fn grade_string(&self) -> Option<String> {
+        let float = self.float()?;
+
+        if float < 0.0 {
+            return None;
+        }
+
+        let mut integer = float.trunc();
+        let fractional = float.fract();
+
+        let mut suffix = String::with_capacity(1);
+        match fractional {
+            0.25 => suffix.push(PLUS_CHAR),
+            0.5 => suffix.push(HALF_CHAR),
+            0.75 => {
+                integer += 1.0;
+                suffix.push(MINUS_CHAR);
+            }
+            0.0 => (),
+            _ => return None,
+        }
+
+        Some(format!("{integer:.0}{suffix}"))
     }
 }
 
@@ -265,51 +273,51 @@ mod tests {
     }
 
     #[test]
-    fn parse_number_fn() {
-        assert_eq!(None, parse_number(""));
-        assert_eq!(None, parse_number("+"));
-        assert_eq!(None, parse_number("-"));
-        assert_eq!(None, parse_number("."));
-        assert_eq!(None, parse_number("..3"));
-        assert_eq!(None, parse_number(".3."));
-        assert_eq!(None, parse_number("asdf"));
-        assert_eq!(Some(4.0), parse_number("4"));
-        assert_eq!(Some(4.3), parse_number("4.3"));
-        assert_eq!(Some(4.3), parse_number("4,3"));
-        assert_eq!(Some(4.0), parse_number("+4"));
-        assert_eq!(Some(-4.0), parse_number("-4"));
-        assert_eq!(Some(-4.0), parse_number("–4"));
-        assert_eq!(Some(-4.0), parse_number("−4"));
-        assert_eq!(Some(8.0), parse_number("8."));
-        assert_eq!(Some(0.8), parse_number(".8"));
-        assert_eq!(Some(7.75), parse_number("8-"));
-        assert_eq!(Some(7.75), parse_number("8–"));
-        assert_eq!(Some(7.75), parse_number("8−"));
-        assert_eq!(Some(8.25), parse_number("8+"));
-        assert_eq!(Some(8.5), parse_number("8½"));
-        assert_eq!(Some(84.75), parse_number("85-"));
-        assert_eq!(Some(85.25), parse_number("85+"));
-        assert_eq!(Some(85.5), parse_number("85½"));
-        assert_eq!(Some(0.5), parse_number("½"));
-        assert_eq!(None, parse_number("+85-"));
-        assert_eq!(None, parse_number("+85+"));
-        assert_eq!(None, parse_number("+85½"));
-        assert_eq!(None, parse_number("-85-"));
-        assert_eq!(None, parse_number("-85+"));
-        assert_eq!(None, parse_number("-85½"));
+    fn float() {
+        assert_eq!(None, "".float());
+        assert_eq!(None, "+".float());
+        assert_eq!(None, "-".float());
+        assert_eq!(None, ".".float());
+        assert_eq!(None, "..3".float());
+        assert_eq!(None, ".3.".float());
+        assert_eq!(None, "asdf".float());
+        assert_eq!(Some(4.0), "4".float());
+        assert_eq!(Some(4.3), "4.3".float());
+        assert_eq!(Some(4.3), "4,3".float());
+        assert_eq!(Some(4.0), "+4".float());
+        assert_eq!(Some(-4.0), "-4".float());
+        assert_eq!(Some(-4.0), "–4".float());
+        assert_eq!(Some(-4.0), "−4".float());
+        assert_eq!(Some(8.0), "8.".float());
+        assert_eq!(Some(0.8), ".8".float());
+        assert_eq!(Some(7.75), "8-".float());
+        assert_eq!(Some(7.75), "8–".float());
+        assert_eq!(Some(7.75), "8−".float());
+        assert_eq!(Some(8.25), "8+".float());
+        assert_eq!(Some(8.5), "8½".float());
+        assert_eq!(Some(84.75), "85-".float());
+        assert_eq!(Some(85.25), "85+".float());
+        assert_eq!(Some(85.5), "85½".float());
+        assert_eq!(Some(0.5), "½".float());
+        assert_eq!(None, "+85-".float());
+        assert_eq!(None, "+85+".float());
+        assert_eq!(None, "+85½".float());
+        assert_eq!(None, "-85-".float());
+        assert_eq!(None, "-85+".float());
+        assert_eq!(None, "-85½".float());
     }
 
     #[test]
-    fn float_to_grade_fn() {
-        assert_eq!(None, float_to_grade(-0.1));
-        assert_eq!(None, float_to_grade(-5.0));
-        assert_eq!(None, float_to_grade(5.13));
-        assert_eq!(None, float_to_grade(8.99));
-        assert_eq!(None, float_to_grade(8.26));
-        assert_eq!(Some("8"), float_to_grade(8.0).as_deref());
-        assert_eq!(Some("8+"), float_to_grade(8.25).as_deref());
-        assert_eq!(Some("8½"), float_to_grade(8.5).as_deref());
-        assert_eq!(Some("9−"), float_to_grade(8.75).as_deref());
+    fn grade_string() {
+        assert_eq!(None, "-0.1".grade_string());
+        assert_eq!(None, "-5.0".grade_string());
+        assert_eq!(None, "5.13".grade_string());
+        assert_eq!(None, "8.99".grade_string());
+        assert_eq!(None, "8.26".grade_string());
+        assert_eq!(Some("8"), "8.0".grade_string().as_deref());
+        assert_eq!(Some("8+"), "8.25".grade_string().as_deref());
+        assert_eq!(Some("8½"), "8.5".grade_string().as_deref());
+        assert_eq!(Some("9−"), "8.75".grade_string().as_deref());
     }
 
     #[test]

@@ -666,8 +666,7 @@ async fn commands(
                 let mut updates = Queue::default();
                 for student_grade in student_grades.iter_index1(indices) {
                     if let Some(ss) = student_grade.grade()
-                        && let Some(old) = tools::parse_number(ss)
-                        && let Some(new) = tools::float_to_grade(old)
+                        && let Some(new) = ss.grade_string()
                     {
                         student_grade.set_grade(new.try_into()?).queue(&mut updates);
                     }
@@ -699,9 +698,9 @@ async fn commands(
                 let mut updates = Queue::default();
                 for student_grade in student_grades.iter_index1(indices) {
                     if let Some(ss) = student_grade.grade()
-                        && let Some(old) = tools::parse_number(ss)
+                        && let Some(float) = ss.float()
                     {
-                        let new = tools::format_decimal(old);
+                        let new = tools::format_decimal(float);
                         student_grade.set_grade(new.try_into()?).queue(&mut updates);
                     }
                 }
