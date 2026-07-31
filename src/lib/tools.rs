@@ -240,35 +240,26 @@ mod tests {
 
     #[test]
     fn split_sep_fn() {
-        assert_eq!(
-            vec!["eka", "toka"],
-            split_sep("/eka/toka").collect::<Vec<&str>>()
-        );
-        assert_eq!(
-            vec!["äiti", "öljy", ""],
-            split_sep("/äiti/öljy/").collect::<Vec<&str>>()
-        );
-        assert_eq!(
-            vec!["äiti", "", "öljy"],
-            split_sep("/äiti//öljy").collect::<Vec<&str>>()
-        );
-        assert_eq!(
-            vec!["äiti", "", "öljy"],
-            split_sep("–äiti––öljy").collect::<Vec<&str>>()
-        );
+        fn test(s: &str) -> Vec<&str> {
+            split_sep(s).collect()
+        }
+
         assert_eq!(None, split_sep("").next());
-        assert_eq!(vec![""], split_sep("/").collect::<Vec<&str>>());
-        assert_eq!(vec![""], split_sep("–").collect::<Vec<&str>>());
-        assert_eq!(vec!["", "", ""], split_sep("///").collect::<Vec<&str>>());
-        assert_eq!(vec!["", "", ""], split_sep("–––").collect::<Vec<&str>>());
-        assert_eq!(
-            vec![" ", "  ", " "],
-            split_sep("/ /  / ").collect::<Vec<&str>>()
-        );
-        assert_eq!(
-            vec![" ", "  ", " "],
-            split_sep("– –  – ").collect::<Vec<&str>>()
-        );
+        let mut parts = split_sep("/eka/toka");
+        assert_eq!(Some("eka"), parts.next());
+        assert_eq!(Some("toka"), parts.next());
+        assert_eq!(None, parts.next());
+
+        assert_eq!(vec!["eka", "toka"], test("/eka/toka"));
+        assert_eq!(vec!["äiti", "öljy", ""], test("/äiti/öljy/"));
+        assert_eq!(vec!["äiti", "", "öljy"], test("/äiti//öljy"));
+        assert_eq!(vec!["äiti", "", "öljy"], test("–äiti––öljy"));
+        assert_eq!(vec![""], test("/"));
+        assert_eq!(vec![""], test("–"));
+        assert_eq!(vec!["", "", ""], test("///"));
+        assert_eq!(vec!["", "", ""], test("–––"));
+        assert_eq!(vec![" ", "  ", " "], test("/ /  / "));
+        assert_eq!(vec![" ", "  ", " "], test("– –  – "));
     }
 
     #[test]
