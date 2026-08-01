@@ -1061,25 +1061,22 @@ fn print_table_latex(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
     write!(stream, "\\begin{{tabular}}{{")?;
 
     // Which is more common, left- or right-aligned cell?
-    let mut aligns: HashMap<usize, i16> = HashMap::new();
-    for row in tbl.rows() {
-        match row {
-            Row::Head(cells) | Row::Data(cells) | Row::Foot(cells) => {
-                for (n, cell) in (0..).zip(cells) {
-                    let count = aligns.entry(n).or_default();
-                    if matches!(cell, Cell::Right(_)) {
-                        *count += 1;
-                    } else {
-                        *count -= 1;
-                    }
+    let mut aligns: HashMap<u8, i8> = HashMap::new();
+    for (row, _) in tbl.rows().zip(0..100) {
+        if let Row::Data(cells) = row {
+            for (col, cell) in (0..=u8::MAX).zip(cells) {
+                let count = aligns.entry(col).or_default();
+                if matches!(cell, Cell::Right(_)) {
+                    *count = count.saturating_add(1);
+                } else {
+                    *count = count.saturating_sub(1);
                 }
             }
-            _ => (),
         }
     }
 
     // Choose "l" or "r" columns.
-    for col in 0.. {
+    for col in 0..=u8::MAX {
         if let Some(count) = aligns.get(&col) {
             if *count <= 0 {
                 write!(stream, "l")?;
