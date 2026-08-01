@@ -3,6 +3,7 @@ use crate::prelude::*;
 use crate::tools::FloatExt;
 use crate::tools::StrExt;
 use std::cmp::Ordering;
+use std::collections::HashMap;
 use std::collections::VecDeque;
 use std::io;
 use std::io::BufWriter;
@@ -114,19 +115,6 @@ impl Table {
             rows,
             ..Self::default()
         }
-    }
-
-    fn count_columns(&self) -> usize {
-        let mut columns = 0;
-        for row in self.rows() {
-            match row {
-                Row::Head(cells) | Row::Data(cells) | Row::Foot(cells) if cells.len() > columns => {
-                    columns = cells.len();
-                }
-                _ => (),
-            }
-        }
-        columns
     }
 
     pub fn widths(&self) -> Vec<usize> {
@@ -1070,11 +1058,40 @@ fn print_table_latex(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
         writeln!(stream, "}}\n")?;
     }
 
-    writeln!(
-        stream,
-        "\\begin{{tabular}}{{*{{{cols}}}{{l}}}}",
-        cols = tbl.count_columns()
-    )?;
+    write!(stream, "\\begin{{tabular}}{{")?;
+
+    // Which is more common, left- or right-aligned cell?
+    let mut aligns: HashMap<usize, i16> = HashMap::new();
+    for row in tbl.rows() {
+        match row {
+            Row::Head(cells) | Row::Data(cells) | Row::Foot(cells) => {
+                for (n, cell) in (0..).zip(cells) {
+                    let count = aligns.entry(n).or_default();
+                    if matches!(cell, Cell::Right(_)) {
+                        *count += 1;
+                    } else {
+                        *count -= 1;
+                    }
+                }
+            }
+            _ => (),
+        }
+    }
+
+    // Choose "l" or "r" columns.
+    for col in 0.. {
+        if let Some(count) = aligns.get(&col) {
+            if *count <= 0 {
+                write!(stream, "l")?;
+            } else {
+                write!(stream, "r")?;
+            }
+        } else {
+            break;
+        }
+    }
+
+    writeln!(stream, "}}")?;
 
     for row in tbl.rows() {
         match row {
