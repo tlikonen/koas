@@ -1054,7 +1054,7 @@ fn print_table_csv(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
 fn print_table_latex(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
     if let Some(title) = tbl.title() {
         write!(stream, "\n\\section{{")?;
-        write_latex_esc(stream, title)?;
+        write_latex(stream, title)?;
         writeln!(stream, "}}\n")?;
     }
 
@@ -1126,10 +1126,10 @@ fn write_latex_cells(stream: &mut OutBuf, cells: &VecDeque<Cell>, head: bool) ->
                     Cell::Left(s) | Cell::Right(s) => {
                         if head {
                             write!(stream, "\\textbf{{")?;
-                            write_latex_esc(stream, s)?;
+                            write_latex(stream, s)?;
                             write!(stream, "}}")?;
                         } else {
-                            write_latex_esc(stream, s)?;
+                            write_latex(stream, s)?;
                         }
                     }
 
@@ -1137,10 +1137,10 @@ fn write_latex_cells(stream: &mut OutBuf, cells: &VecDeque<Cell>, head: bool) ->
                         if let Some(s) = v.get(multi) {
                             if head {
                                 write!(stream, "\\textbf{{")?;
-                                write_latex_esc(stream, s)?;
+                                write_latex(stream, s)?;
                                 write!(stream, "}}")?;
                             } else {
-                                write_latex_esc(stream, s)?;
+                                write_latex(stream, s)?;
                             }
                         }
 
@@ -1162,10 +1162,10 @@ fn write_latex_cells(stream: &mut OutBuf, cells: &VecDeque<Cell>, head: bool) ->
                     {
                         if head {
                             write!(stream, "\\textbf{{")?;
-                            write_latex_esc(stream, s)?;
+                            write_latex(stream, s)?;
                             write!(stream, "}}")?;
                         } else {
-                            write_latex_esc(stream, s)?;
+                            write_latex(stream, s)?;
                         }
                     }
                 }
@@ -1184,7 +1184,7 @@ fn write_latex_cells(stream: &mut OutBuf, cells: &VecDeque<Cell>, head: bool) ->
 fn print_table_html(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
     if let Some(title) = tbl.title() {
         write!(stream, "\n<h2>")?;
-        write_html_esc(stream, title)?;
+        write_html(stream, title)?;
         writeln!(stream, "</h2>\n")?;
     }
 
@@ -1198,15 +1198,15 @@ fn print_table_html(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
                     match cell {
                         Cell::Empty => (),
                         Cell::Left(s) => {
-                            write_html_esc(stream, s)?;
+                            write_html(stream, s)?;
                         }
                         Cell::Right(s) => {
                             write!(stream, "<div style=\"text-align:right;\">")?;
-                            write_html_esc(stream, s)?;
+                            write_html(stream, s)?;
                             write!(stream, "</div>")?;
                         }
                         Cell::Multi(v) => {
-                            write_html_esc(stream, &v.join(" "))?;
+                            write_html(stream, &v.join(" "))?;
                         }
                         Cell::Proportion {
                             proportion,
@@ -1228,15 +1228,15 @@ fn print_table_html(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
                     match cell {
                         Cell::Empty => (),
                         Cell::Left(s) => {
-                            write_html_esc(stream, s)?;
+                            write_html(stream, s)?;
                         }
                         Cell::Right(s) => {
                             write!(stream, "<div style=\"text-align:right;\">")?;
-                            write_html_esc(stream, s)?;
+                            write_html(stream, s)?;
                             write!(stream, "</div>")?;
                         }
                         Cell::Multi(v) => {
-                            write_html_esc(stream, &v.join(" "))?;
+                            write_html(stream, &v.join(" "))?;
                         }
                         Cell::Proportion {
                             proportion,
@@ -1274,7 +1274,7 @@ fn write_html_proportion(stream: &mut OutBuf, proportion: f64, width_max: usize)
     Ok(())
 }
 
-fn write_latex_esc(stream: &mut OutBuf, s: &str) -> Result<()> {
+fn write_latex(stream: &mut OutBuf, s: &str) -> Result<()> {
     for character in s.chars() {
         match character {
             '^' => write!(stream, "\\textasciicircum{{}}")?,
@@ -1287,7 +1287,7 @@ fn write_latex_esc(stream: &mut OutBuf, s: &str) -> Result<()> {
     Ok(())
 }
 
-fn write_html_esc(stream: &mut OutBuf, s: &str) -> Result<()> {
+fn write_html(stream: &mut OutBuf, s: &str) -> Result<()> {
     for character in s.chars() {
         match character {
             '<' => write!(stream, "&lt;")?,
