@@ -1058,6 +1058,7 @@ fn print_table_latex(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
         writeln!(stream, "}}\n")?;
     }
 
+    writeln!(stream, "% \\usepackage{{booktabs}}")?;
     write!(stream, "\\begin{{tabular}}{{")?;
 
     // Which is more common, left- or right-aligned cell?
@@ -1092,7 +1093,9 @@ fn print_table_latex(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
 
     for row in tbl.rows() {
         match row {
-            Row::Toprule | Row::Midrule | Row::Bottomrule => writeln!(stream, "  \\hline")?,
+            Row::Toprule => writeln!(stream, "  \\toprule")?,
+            Row::Midrule => writeln!(stream, "  \\midrule")?,
+            Row::Bottomrule => writeln!(stream, "  \\bottomrule")?,
 
             Row::Head(cells) | Row::Foot(cells) => {
                 write_latex_cells(stream, cells, true)?;
