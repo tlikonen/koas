@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use approx::relative_eq;
 
 const MINUS_CHARS: &str = "-–−";
 const MINUS_CHAR: char = '−';
@@ -177,19 +178,21 @@ impl StrExt for str {
             return None;
         }
 
-        let mut integer = float.trunc();
+        let mut integer = float.trunc() as i64;
         let fractional = float.fract();
 
-        let mut suffix = String::with_capacity(1);
-        match fractional {
-            0.25 => suffix.push(PLUS_CHAR),
-            0.5 => suffix.push(HALF_CHAR),
-            0.75 => {
-                integer += 1.0;
-                suffix.push(MINUS_CHAR);
-            }
-            0.0 => (),
-            _ => return None,
+        let mut suffix = String::with_capacity(2);
+        if relative_eq!(0.25, fractional) {
+            suffix.push(PLUS_CHAR);
+        } else if relative_eq!(0.5, fractional) {
+            suffix.push(HALF_CHAR);
+        } else if relative_eq!(0.75, fractional) {
+            integer += 1;
+            suffix.push(MINUS_CHAR);
+        } else if relative_eq!(0.0, fractional) {
+            // No suffix.
+        } else {
+            return None;
         }
 
         Some(format!("{integer:.0}{suffix}"))
@@ -311,8 +314,10 @@ mod tests {
         assert_eq!(None, "-0.1".grade_string());
         assert_eq!(None, "-5.0".grade_string());
         assert_eq!(None, "5.13".grade_string());
-        assert_eq!(None, "8.99".grade_string());
-        assert_eq!(None, "8.26".grade_string());
+        assert_eq!(None, "8.9999".grade_string());
+        assert_eq!(None, "8.0001".grade_string());
+        assert_eq!(None, "8.4999".grade_string());
+        assert_eq!(None, "8.2499".grade_string());
         assert_eq!(Some("8"), "8.0".grade_string().as_deref());
         assert_eq!(Some("8+"), "8.25".grade_string().as_deref());
         assert_eq!(Some("8½"), "8.5".grade_string().as_deref());
