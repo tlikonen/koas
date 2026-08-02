@@ -160,7 +160,6 @@ impl OldDb {
 async fn upgrade_to_version_11(db: &mut DBase) -> Result<()> {
     // Tarkempia vaatimuksia: NOT NULL ja CHECK. Viiteavaimiin lisäksi
     // ON UPDATE CASCADE.
-    const VERSION: i32 = 11;
     let commands = [
         // oppilaat
         "UPDATE oppilaat SET lisatiedot = '' WHERE lisatiedot IS NULL",
@@ -200,16 +199,13 @@ async fn upgrade_to_version_11(db: &mut DBase) -> Result<()> {
          ON DELETE CASCADE ON UPDATE CASCADE",
         "ALTER TABLE arvosanat ADD FOREIGN KEY (sid) REFERENCES suoritukset(sid) \
          ON DELETE CASCADE ON UPDATE CASCADE",
+        // versio
+        "UPDATE hallinto SET arvo = 11 WHERE avain = 'versio'",
     ];
 
     for command in commands {
         sqlx::query(command).execute(&mut *db).await?;
     }
-
-    sqlx::query("UPDATE hallinto SET arvo = $1 WHERE avain = 'versio'")
-        .bind(VERSION)
-        .execute(&mut *db)
-        .await?;
 
     Ok(())
 }
