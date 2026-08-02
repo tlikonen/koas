@@ -181,21 +181,20 @@ impl StrExt for str {
         let mut integer = float.trunc() as i64;
         let fractional = float.fract();
 
-        let mut suffix = String::with_capacity(2);
-        if relative_eq!(0.25, fractional) {
-            suffix.push(PLUS_CHAR);
+        let grade = if relative_eq!(0.25, fractional) {
+            format!("{integer}{PLUS_CHAR}")
         } else if relative_eq!(0.5, fractional) {
-            suffix.push(HALF_CHAR);
+            format!("{integer}{HALF_CHAR}")
         } else if relative_eq!(0.75, fractional) {
             integer += 1;
-            suffix.push(MINUS_CHAR);
+            format!("{integer}{MINUS_CHAR}")
         } else if relative_eq!(0.0, fractional) {
-            // No suffix.
+            format!("{integer}")
         } else {
             return None;
-        }
+        };
 
-        Some(format!("{integer:.0}{suffix}"))
+        Some(grade)
     }
 
     fn normalize(&self) -> Option<String> {
