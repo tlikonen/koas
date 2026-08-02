@@ -33,52 +33,28 @@ pub(super) async fn initialize(mut db: DBase) -> Result<DBase> {
 
         let mut ta = db.begin().await?;
 
-        sqlx::query("CREATE TABLE hallinto (avain TEXT PRIMARY KEY, arvo INTEGER, teksti TEXT)")
-            .execute(&mut *ta)
-            .await?;
-
-        sqlx::query("INSERT INTO hallinto (avain, arvo) VALUES ('versio', $1)")
-            .bind(PROGRAM_DB_VERSION)
-            .execute(&mut *ta)
-            .await?;
-
-        sqlx::query(
+        let commands = [
+            // hallinto
+            "CREATE TABLE hallinto (avain TEXT PRIMARY KEY, arvo INTEGER, teksti TEXT)",
+            // oppilaat
             "CREATE TABLE oppilaat \
              (oid SERIAL PRIMARY KEY, \
              sukunimi TEXT NOT NULL, \
              etunimi TEXT NOT NULL, \
              lisatiedot TEXT NOT NULL DEFAULT '')",
-        )
-        .execute(&mut *ta)
-        .await?;
-
-        sqlx::query("CREATE INDEX idx_oppilaat_sukunimi_etunimi ON oppilaat (sukunimi, etunimi)")
-            .execute(&mut *ta)
-            .await?;
-
-        sqlx::query(
+            "CREATE INDEX idx_oppilaat_sukunimi_etunimi ON oppilaat (sukunimi, etunimi)",
+            // ryhmat
             "CREATE TABLE ryhmat \
              (rid SERIAL PRIMARY KEY, \
              nimi TEXT UNIQUE NOT NULL, \
              lisatiedot TEXT NOT NULL DEFAULT '')",
-        )
-        .execute(&mut *ta)
-        .await?;
-
-        sqlx::query(
+            // oppilaat_ryhmat
             "CREATE TABLE oppilaat_ryhmat \
              (oid INTEGER NOT NULL REFERENCES oppilaat(oid) ON DELETE CASCADE ON UPDATE CASCADE, \
              rid INTEGER NOT NULL REFERENCES ryhmat(rid) ON DELETE CASCADE ON UPDATE CASCADE, \
              PRIMARY KEY (oid, rid))",
-        )
-        .execute(&mut *ta)
-        .await?;
-
-        sqlx::query("CREATE INDEX idx_oppilaat_ryhmat_rid ON oppilaat_ryhmat (rid)")
-            .execute(&mut *ta)
-            .await?;
-
-        sqlx::query(
+            "CREATE INDEX idx_oppilaat_ryhmat_rid ON oppilaat_ryhmat (rid)",
+            // suoritukset
             "CREATE TABLE suoritukset \
              (sid SERIAL PRIMARY KEY, \
              rid INTEGER NOT NULL REFERENCES ryhmat(rid) ON DELETE CASCADE ON UPDATE CASCADE, \
@@ -86,50 +62,26 @@ pub(super) async fn initialize(mut db: DBase) -> Result<DBase> {
              nimi TEXT NOT NULL, \
              lyhenne TEXT NOT NULL, \
              painokerroin INTEGER CHECK (painokerroin >= 1))",
-        )
-        .execute(&mut *ta)
-        .await?;
-
-        sqlx::query("CREATE INDEX idx_suoritukset_rid ON suoritukset (rid)")
-            .execute(&mut *ta)
-            .await?;
-
-        sqlx::query(
+            "CREATE INDEX idx_suoritukset_rid ON suoritukset (rid)",
+            // arvosanat
             "CREATE TABLE arvosanat \
              (sid INTEGER NOT NULL REFERENCES suoritukset(sid) ON DELETE CASCADE ON UPDATE CASCADE, \
              oid INTEGER NOT NULL REFERENCES oppilaat(oid) ON DELETE CASCADE ON UPDATE CASCADE, \
              arvosana TEXT, \
              lisatiedot TEXT, \
              PRIMARY KEY (sid, oid))",
-        )
-        .execute(&mut *ta)
-        .await?;
-
-        sqlx::query("CREATE INDEX idx_arvosanat_oid ON arvosanat (oid)")
-            .execute(&mut *ta)
-            .await?;
-
-        sqlx::query(
+            "CREATE INDEX idx_arvosanat_oid ON arvosanat (oid)",
+            // CREATE VIEW
             "CREATE VIEW view_oppilaat AS \
              SELECT o.oid, o.sukunimi, o.etunimi, r.rid, r.nimi AS ryhma, o.lisatiedot AS olt \
              FROM oppilaat AS o \
              LEFT JOIN oppilaat_ryhmat AS j ON j.oid = o.oid \
              LEFT JOIN ryhmat AS r ON r.rid = j.rid",
-        )
-        .execute(&mut *ta)
-        .await?;
-
-        sqlx::query(
             "CREATE VIEW view_suoritukset AS \
              SELECT r.rid, r.nimi AS ryhma, r.lisatiedot AS rlt, \
              s.sid, s.nimi AS suoritus, s.lyhenne, s.sija, s.painokerroin \
              FROM suoritukset AS s \
              JOIN ryhmat AS r ON r.rid = s.rid",
-        )
-        .execute(&mut *ta)
-        .await?;
-
-        sqlx::query(
             "CREATE VIEW view_arvosanat AS \
              SELECT o.oid, o.sukunimi, o.etunimi, o.lisatiedot AS olt, \
              r.rid, r.nimi AS ryhma, r.lisatiedot AS rlt, \
@@ -140,9 +92,16 @@ pub(super) async fn initialize(mut db: DBase) -> Result<DBase> {
              JOIN ryhmat AS r ON r.rid = j.rid \
              LEFT JOIN suoritukset AS s ON r.rid = s.rid \
              LEFT JOIN arvosanat AS a ON o.oid = a.oid AND s.sid = a.sid",
-        )
-        .execute(&mut *ta)
-        .await?;
+        ];
+
+        for command in commands {
+            sqlx::query(command).execute(&mut *ta).await?;
+        }
+
+        sqlx::query("INSERT INTO hallinto (avain, arvo) VALUES ('versio', $1)")
+            .bind(PROGRAM_DB_VERSION)
+            .execute(&mut *ta)
+            .await?;
 
         ta.commit().await?;
     }
