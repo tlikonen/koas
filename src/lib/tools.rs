@@ -1,4 +1,3 @@
-use crate::prelude::*;
 use approx::relative_eq;
 
 const MINUS_CHARS: &str = "-–−";
@@ -69,19 +68,6 @@ fn parse_number(s: &str) -> Option<f64> {
         Some(sign * obj.parse::<f64>().unwrap())
     } else {
         None
-    }
-}
-
-pub fn split_sep(s: &str) -> impl Iterator<Item = &str> {
-    let sep = s.chars().next().unwrap_or('/');
-    s.split(sep).skip(1)
-}
-
-pub fn split_first(s: &str) -> (&str, &str) {
-    let trimmed = s.trim_start();
-    match trimmed.split_once(|c: char| c.is_whitespace()) {
-        Some((first, rest)) => (first, rest.trim_start()),
-        None => (trimmed, ""),
     }
 }
 
@@ -179,39 +165,6 @@ pub fn umask() {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn split_sep_fn() {
-        fn test(s: &str) -> Vec<&str> {
-            split_sep(s).collect()
-        }
-
-        assert_eq!(None, split_sep("").next());
-        let mut parts = split_sep("/eka/toka");
-        assert_eq!(Some("eka"), parts.next());
-        assert_eq!(Some("toka"), parts.next());
-        assert_eq!(None, parts.next());
-
-        assert_eq!(vec!["eka", "toka"], test("/eka/toka"));
-        assert_eq!(vec!["äiti", "öljy", ""], test("/äiti/öljy/"));
-        assert_eq!(vec!["äiti", "", "öljy"], test("/äiti//öljy"));
-        assert_eq!(vec!["äiti", "", "öljy"], test("–äiti––öljy"));
-        assert_eq!(vec![""], test("/"));
-        assert_eq!(vec![""], test("–"));
-        assert_eq!(vec!["", "", ""], test("///"));
-        assert_eq!(vec!["", "", ""], test("–––"));
-        assert_eq!(vec![" ", "  ", " "], test("/ /  / "));
-        assert_eq!(vec![" ", "  ", " "], test("– –  – "));
-    }
-
-    #[test]
-    fn split_first_fn() {
-        assert_eq!(("ainoa", ""), split_first(" ainoa "));
-        assert_eq!(("eka", "toka kolmas"), split_first("eka toka kolmas"));
-        assert_eq!(("eka", "toka kolmas"), split_first(" eka  toka kolmas"));
-        assert_eq!(("eka", "toka  kolmas "), split_first("eka  toka  kolmas "));
-        assert_eq!(("€äö", "€äö  €äö "), split_first("€äö  €äö  €äö "));
-    }
 
     #[test]
     fn float() {

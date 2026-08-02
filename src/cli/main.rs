@@ -234,7 +234,7 @@ async fn command_stage(config: Config, mut modes: Modes) -> Result<()> {
 
                 rl.add_history_entry(&line)?;
 
-                let (cmd, args) = tools::split_first(&line);
+                let (cmd, args) = split_first(&line);
 
                 match commands(&mut modes, &mut db, &mut editable, cmd, args).await {
                     Ok(_) => (),
@@ -254,7 +254,7 @@ async fn command_stage(config: Config, mut modes: Modes) -> Result<()> {
         }
 
         Mode::Single(line) => {
-            let (cmd, args) = tools::split_first(&line);
+            let (cmd, args) = split_first(&line);
             match commands(&mut modes, &mut db, &mut editable, cmd, args).await {
                 Ok(_) => (),
                 Err(err) => match err {
@@ -273,7 +273,7 @@ async fn command_stage(config: Config, mut modes: Modes) -> Result<()> {
             for item in io::stdin().lines() {
                 let line = item?;
                 if !line.is_empty() {
-                    let (cmd, args) = tools::split_first(&line);
+                    let (cmd, args) = split_first(&line);
                     match commands(&mut modes, &mut ta, &mut editable, cmd, args).await {
                         Ok(_) => (),
                         Err(err) => match err {
@@ -307,7 +307,7 @@ async fn commands(
         "ho" => {
             editable.clear();
 
-            let mut fields = tools::split_sep(args);
+            let mut fields = split_sep(args);
             let lastname = fields.next().unwrap_or(""); // sukunimi
             let firstname = fields.next().unwrap_or(""); // etunimi
             let group = fields.next().unwrap_or(""); // ryhma
@@ -336,7 +336,7 @@ async fn commands(
         "hr" => {
             editable.clear();
 
-            let mut fields = tools::split_sep(args);
+            let mut fields = split_sep(args);
             let name = fields.next().unwrap_or(""); // ryhmä
             let desc = fields.next().unwrap_or(""); // lisätiedot
             is_too_much_fields(fields, 2)?;
@@ -361,7 +361,7 @@ async fn commands(
         "hs" => {
             editable.clear();
 
-            let (group, _) = tools::split_first(args);
+            let (group, _) = split_first(args);
             let query = AssignmentsForGroup::query(db, QueryMatch::Wild(group))
                 .await?
                 .has_data()?;
@@ -384,7 +384,7 @@ async fn commands(
         "has" => {
             editable.clear();
 
-            let mut fields = tools::split_sep(args);
+            let mut fields = split_sep(args);
             let group = fields.next().unwrap_or(""); // ryhmä
             let assign = fields.next().unwrap_or(""); // suoritus
             let assign_short = fields.next().unwrap_or(""); // lyhenne
@@ -412,7 +412,7 @@ async fn commands(
         "hao" => {
             editable.clear();
 
-            let mut fields = tools::split_sep(args);
+            let mut fields = split_sep(args);
             let lastname = fields.next().unwrap_or(""); // sukunimi
             let firstname = fields.next().unwrap_or(""); // etunimi
             let group = fields.next().unwrap_or(""); // ryhmä
@@ -441,7 +441,7 @@ async fn commands(
 
         "hak" => {
             editable.clear();
-            let (group, _) = tools::split_first(args);
+            let (group, _) = split_first(args);
             GradesForGroup::query(db, QueryMatch::Wild(group))
                 .await?
                 .has_data()?
@@ -452,9 +452,9 @@ async fn commands(
             editable.clear();
 
             let mut queries = Vec::with_capacity(3);
-            let field_groups = tools::split_sep(if args.is_empty() { "@" } else { args });
+            let field_groups = split_sep(if args.is_empty() { "@" } else { args });
             for field_string in field_groups {
-                let mut fields = tools::split_sep(field_string);
+                let mut fields = split_sep(field_string);
                 queries.push(FullQuery {
                     // Keep the order because of the next() method.
                     group: QueryMatch::WildAround(fields.next().unwrap_or("")),
@@ -490,7 +490,7 @@ async fn commands(
         "lo" => {
             editable.clear();
 
-            let mut fields = tools::split_sep(args);
+            let mut fields = split_sep(args);
             let lastname: Lastname = fields.next().unwrap_or("").try_into()?; // sukunimi
             let firstname: Firstname = fields.next().unwrap_or("").try_into()?; // etunimi
             let groups: GroupNames = fields.next().unwrap_or("").try_into()?; // ryhmät
@@ -508,7 +508,7 @@ async fn commands(
         "ls" => {
             editable.clear();
 
-            let mut fields = tools::split_sep(args);
+            let mut fields = split_sep(args);
             let groups: GroupNames = fields.next().unwrap_or("").try_into()?; // ryhmät
             let assignment: AssignmentName = fields.next().unwrap_or("").try_into()?; // suoritus
             let assignment_short: AssignmentShort = fields.next().unwrap_or("").try_into()?; // lyhenne
@@ -551,7 +551,7 @@ async fn commands(
 
             let list_max = editable.count();
             let (indices, rest) = parse_next_number_list(args, list_max)?;
-            let fields = tools::split_sep(rest);
+            let fields = split_sep(rest);
 
             match editable {
                 Editable::None => (),
@@ -788,8 +788,21 @@ fn is_too_much_fields(mut fields: impl Iterator, max: usize) -> Result<()> {
     }
 }
 
+fn split_sep(s: &str) -> impl Iterator<Item = &str> {
+    let sep = s.chars().next().unwrap_or('/');
+    s.split(sep).skip(1)
+}
+
+fn split_first(s: &str) -> (&str, &str) {
+    let trimmed = s.trim_start();
+    match trimmed.split_once(|c: char| c.is_whitespace()) {
+        Some((first, rest)) => (first, rest.trim_start()),
+        None => (trimmed, ""),
+    }
+}
+
 fn parse_next_number_list(s: &str, m: usize) -> Result<(Vec<usize>, &str)> {
-    let (nl, rest) = tools::split_first(s);
+    let (nl, rest) = split_first(s);
     let list = parse_number_list(nl)?;
     if !is_within_limits(m, &list) {
         return Err(Error::from(format!("Suurin muokattava tietue on {m}.")));
@@ -858,7 +871,7 @@ fn is_within_limits(limit: usize, list: &[usize]) -> bool {
 }
 
 fn parse_next_number(s: &str) -> Result<(usize, &str)> {
-    let (num, rest) = tools::split_first(s);
+    let (num, rest) = split_first(s);
     let num = match num.parse::<usize>() {
         Ok(n) => n,
         Err(_) => return Err(Error::from("Sopimaton kentän numero.")),
@@ -962,5 +975,38 @@ mod tests {
         assert!(is_within_limits(10, &[3, 10, 4]));
         assert!(!is_within_limits(10, &[3, 11, 10, 4]));
         assert!(is_within_limits(11, &[3, 11, 10, 4]));
+    }
+
+    #[test]
+    fn split_sep_fn() {
+        fn test(s: &str) -> Vec<&str> {
+            split_sep(s).collect()
+        }
+
+        assert_eq!(None, split_sep("").next());
+        let mut parts = split_sep("/eka/toka");
+        assert_eq!(Some("eka"), parts.next());
+        assert_eq!(Some("toka"), parts.next());
+        assert_eq!(None, parts.next());
+
+        assert_eq!(vec!["eka", "toka"], test("/eka/toka"));
+        assert_eq!(vec!["äiti", "öljy", ""], test("/äiti/öljy/"));
+        assert_eq!(vec!["äiti", "", "öljy"], test("/äiti//öljy"));
+        assert_eq!(vec!["äiti", "", "öljy"], test("–äiti––öljy"));
+        assert_eq!(vec![""], test("/"));
+        assert_eq!(vec![""], test("–"));
+        assert_eq!(vec!["", "", ""], test("///"));
+        assert_eq!(vec!["", "", ""], test("–––"));
+        assert_eq!(vec![" ", "  ", " "], test("/ /  / "));
+        assert_eq!(vec![" ", "  ", " "], test("– –  – "));
+    }
+
+    #[test]
+    fn split_first_fn() {
+        assert_eq!(("ainoa", ""), split_first(" ainoa "));
+        assert_eq!(("eka", "toka kolmas"), split_first("eka toka kolmas"));
+        assert_eq!(("eka", "toka kolmas"), split_first(" eka  toka kolmas"));
+        assert_eq!(("eka", "toka  kolmas "), split_first("eka  toka  kolmas "));
+        assert_eq!(("€äö", "€äö  €äö "), split_first("€äö  €äö  €äö "));
     }
 }

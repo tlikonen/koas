@@ -509,7 +509,7 @@ pub(super) async fn edit_grade_series(
 }
 
 pub(super) fn table_format(modes: &mut Modes, args: &str) -> Result<()> {
-    let (first, _) = tools::split_first(args);
+    let (first, _) = split_first(args);
     if first.is_empty() {
         return Err(Error::from(
             "Anna argumentiksi taulukkotyyli. Apua saa ?:llä.",
