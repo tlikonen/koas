@@ -123,7 +123,7 @@ pub trait HasData {
     {
         match self.is_empty() {
             false => Ok(self),
-            true => Err(Error::from("Ei löytynyt.")),
+            true => Err(Error::QueryEmpty),
         }
     }
 

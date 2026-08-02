@@ -18,6 +18,7 @@ pub enum Error {
     UnknownTbl(String),
     OldDatabase(OldDb),
     OldProgram,
+    QueryEmpty,
     InvalidLastname(String),
     InvalidFirstname(String),
     InvalidGroupname(String),
@@ -55,6 +56,7 @@ impl fmt::Display for Error {
                 f,
                 "Ohjelman versio on vanhentunut, ja tietokanta vaatii uudemman."
             ),
+            Self::QueryEmpty => write!(f, "Ei hakutuloksia."),
             Self::InvalidLastname(s) => write!(f, "Sopimaton sukunimi ”{s}”."),
             Self::InvalidFirstname(s) => write!(f, "Sopimaton etunimi ”{s}”."),
             Self::InvalidGroupname(s) => write!(f, "Sopimaton ryhmätunnus ”{s}”."),
