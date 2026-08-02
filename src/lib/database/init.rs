@@ -158,6 +158,8 @@ impl OldDb {
 }
 
 async fn upgrade_to_version_11(db: &mut DBase) -> Result<()> {
+    // Tarkempia vaatimuksia: NOT NULL ja CHECK. Viiteavaimiin lisäksi
+    // ON UPDATE CASCADE.
     const VERSION: i32 = 11;
     let commands = [
         // oppilaat
