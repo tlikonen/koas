@@ -156,6 +156,7 @@ impl FloatExt for f64 {
     }
 }
 
+/// Set `umask 0077`.
 pub fn umask() {
     unsafe {
         libc::umask(0o077);
