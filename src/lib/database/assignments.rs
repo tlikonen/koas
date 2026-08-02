@@ -168,7 +168,7 @@ impl Assignment {
             while let Some(row) = rows.try_next().await? {
                 let sid: i32 = row.try_get("sid")?;
                 other_sids.push(sid);
-                pos_max += 1;
+                pos_max = pos_max.saturating_add(1);
             }
         }
 
@@ -188,9 +188,9 @@ impl Assignment {
 
         let mut position: i32 = 0;
         for sid in other_sids {
-            position += 1;
+            position = position.saturating_add(1);
             if position == pos {
-                position += 1;
+                position = position.saturating_add(1);
             }
 
             sqlx::query("UPDATE suoritukset SET sija = $1 WHERE sid = $2")
