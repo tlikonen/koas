@@ -1,7 +1,7 @@
 use super::*;
 use std::cmp::Ordering;
 
-const PROGRAM_DB_VERSION: i32 = 10;
+const PROGRAM_DB_VERSION: i32 = 11;
 
 pub async fn connect(config: &Config) -> Result<DBase> {
     let connect_string = format!(
@@ -42,16 +42,12 @@ pub(super) async fn initialize(mut db: DBase) -> Result<DBase> {
             .execute(&mut *ta)
             .await?;
 
-        // UPDATE oppilaat SET lisatiedot = '' WHERE lisatiedot IS NULL
-        // ALTER TABLE oppilaat ALTER COLUMN sukunimi SET NOT NULL
-        // ALTER TABLE oppilaat ALTER COLUMN etunimi SET NOT NULL
-        // ALTER TABLE oppilaat ALTER COLUMN lisatiedot SET NOT NULL
         sqlx::query(
             "CREATE TABLE oppilaat \
              (oid SERIAL PRIMARY KEY, \
-             sukunimi TEXT, \
-             etunimi TEXT, \
-             lisatiedot TEXT DEFAULT '')",
+             sukunimi TEXT NOT NULL, \
+             etunimi TEXT NOT NULL, \
+             lisatiedot TEXT NOT NULL DEFAULT '')",
         )
         .execute(&mut *ta)
         .await?;
@@ -60,27 +56,19 @@ pub(super) async fn initialize(mut db: DBase) -> Result<DBase> {
             .execute(&mut *ta)
             .await?;
 
-        // UPDATE ryhmat SET lisatiedot = '' WHERE lisatiedot IS NULL
-        // ALTER TABLE ryhmat ALTER COLUMN lisatiedot SET NOT NULL
         sqlx::query(
             "CREATE TABLE ryhmat \
              (rid SERIAL PRIMARY KEY, \
              nimi TEXT UNIQUE NOT NULL, \
-             lisatiedot TEXT DEFAULT '')",
+             lisatiedot TEXT NOT NULL DEFAULT '')",
         )
         .execute(&mut *ta)
         .await?;
 
-        // ALTER TABLE oppilaat_ryhmat DROP CONSTRAINT oppilaat_ryhmat_oid_fkey
-        // ALTER TABLE oppilaat_ryhmat DROP CONSTRAINT oppilaat_ryhmat_rid_fkey
-        //
-        // ALTER TABLE oppilaat_ryhmat ADD FOREIGN KEY (oid) REFERENCES oppilaat(oid) ON DELETE CASCADE ON UPDATE CASCADE
-        //
-        // ALTER TABLE oppilaat_ryhmat ADD FOREIGN KEY (rid) REFERENCES ryhmat(rid) ON DELETE CASCADE ON UPDATE CASCADE
         sqlx::query(
             "CREATE TABLE oppilaat_ryhmat \
-             (oid INTEGER NOT NULL REFERENCES oppilaat(oid) ON DELETE CASCADE, \
-             rid INTEGER NOT NULL REFERENCES ryhmat(rid) ON DELETE CASCADE, \
+             (oid INTEGER NOT NULL REFERENCES oppilaat(oid) ON DELETE CASCADE ON UPDATE CASCADE, \
+             rid INTEGER NOT NULL REFERENCES ryhmat(rid) ON DELETE CASCADE ON UPDATE CASCADE, \
              PRIMARY KEY (oid, rid))",
         )
         .execute(&mut *ta)
@@ -90,27 +78,14 @@ pub(super) async fn initialize(mut db: DBase) -> Result<DBase> {
             .execute(&mut *ta)
             .await?;
 
-
-        // UPDATE suoritukset SET sija = i32::MAX WHERE sija IS NULL OR sija < 1
-        // UPDATE suoritukset SET painokerroin = NULL WHERE painokerroin < 1
-        // ALTER TABLE suoritukset ALTER COLUMN sija SET NOT NULL
-        // ALTER TABLE suoritukset ALTER COLUMN nimi SET NOT NULL
-        // ALTER TABLE suoritukset ALTER COLUMN lyhenne SET NOT NULL
-        // ALTER TABLE suoritukset ALTER COLUMN nimi DROP DEFAULT
-        // ALTER TABLE suoritukset ALTER COLUMN lyhenne DROP DEFAULT
-        // ALTER TABLE suoritukset ADD CHECK (sija >= 1)
-        // ALTER TABLE suoritukset ADD CHECK (painokerroin IS NULL or painokerroin >= 1)
-        //
-        // ALTER TABLE suoritukset DROP CONSTRAINT suoritukset_rid_fkey
-        // ALTER TABLE suoritukset ADD FOREIGN KEY (rid) REFERENCES ryhmat(rid) ON DELETE CASCADE ON UPDATE CASCADE
         sqlx::query(
             "CREATE TABLE suoritukset \
              (sid SERIAL PRIMARY KEY, \
-             rid INTEGER NOT NULL REFERENCES ryhmat(rid) ON DELETE CASCADE, \
-             sija INTEGER, \
-             nimi TEXT DEFAULT '', \
-             lyhenne TEXT DEFAULT '', \
-             painokerroin INTEGER)",
+             rid INTEGER NOT NULL REFERENCES ryhmat(rid) ON DELETE CASCADE ON UPDATE CASCADE, \
+             sija INTEGER NOT NULL CHECK (sija >= 1), \
+             nimi TEXT NOT NULL, \
+             lyhenne TEXT NOT NULL, \
+             painokerroin INTEGER CHECK (painokerroin >= 1))",
         )
         .execute(&mut *ta)
         .await?;
@@ -119,20 +94,10 @@ pub(super) async fn initialize(mut db: DBase) -> Result<DBase> {
             .execute(&mut *ta)
             .await?;
 
-        // UPDATE arvosanat SET arvosana = NULL WHERE arvosana = ''
-        // UPDATE arvosanat SET lisatiedot = NULL WHERE lisatiedot = ''
-        // DELETE FROM arvosanat WHERE arvosana IS NULL AND lisatiedot IS NULL
-        //
-        // ALTER TABLE arvosanat DROP CONSTRAINT arvosanat_oid_fkey
-        // ALTER TABLE arvosanat DROP CONSTRAINT arvosanat_sid_fkey
-        //
-        // ALTER TABLE arvosanat ADD FOREIGN KEY (oid) REFERENCES oppilaat(oid) ON DELETE CASCADE ON UPDATE CASCADE
-        //
-        // ALTER TABLE arvosanat ADD FOREIGN KEY (sid) REFERENCES suoritukset(sid) ON DELETE CASCADE ON UPDATE CASCADE
         sqlx::query(
             "CREATE TABLE arvosanat \
-             (sid INTEGER NOT NULL REFERENCES suoritukset(sid) ON DELETE CASCADE, \
-             oid INTEGER NOT NULL REFERENCES oppilaat(oid) ON DELETE CASCADE, \
+             (sid INTEGER NOT NULL REFERENCES suoritukset(sid) ON DELETE CASCADE ON UPDATE CASCADE, \
+             oid INTEGER NOT NULL REFERENCES oppilaat(oid) ON DELETE CASCADE ON UPDATE CASCADE, \
              arvosana TEXT, \
              lisatiedot TEXT, \
              PRIMARY KEY (sid, oid))",
@@ -233,6 +198,57 @@ impl OldDb {
     }
 }
 
-async fn upgrade_to_version_11(_db: &mut DBase) -> Result<()> {
+async fn upgrade_to_version_11(db: &mut DBase) -> Result<()> {
+    const VERSION: i32 = 11;
+    let commands = [
+        // oppilaat
+        "UPDATE oppilaat SET lisatiedot = '' WHERE lisatiedot IS NULL",
+        "ALTER TABLE oppilaat ALTER COLUMN sukunimi SET NOT NULL",
+        "ALTER TABLE oppilaat ALTER COLUMN etunimi SET NOT NULL",
+        "ALTER TABLE oppilaat ALTER COLUMN lisatiedot SET NOT NULL",
+        // ryhmat
+        "UPDATE ryhmat SET lisatiedot = '' WHERE lisatiedot IS NULL",
+        "ALTER TABLE ryhmat ALTER COLUMN lisatiedot SET NOT NULL",
+        // oppilaat_ryhmat
+        "ALTER TABLE oppilaat_ryhmat DROP CONSTRAINT oppilaat_ryhmat_oid_fkey",
+        "ALTER TABLE oppilaat_ryhmat DROP CONSTRAINT oppilaat_ryhmat_rid_fkey",
+        "ALTER TABLE oppilaat_ryhmat ADD FOREIGN KEY (oid) REFERENCES oppilaat(oid) \
+         ON DELETE CASCADE ON UPDATE CASCADE",
+        "ALTER TABLE oppilaat_ryhmat ADD FOREIGN KEY (rid) REFERENCES ryhmat(rid) \
+         ON DELETE CASCADE ON UPDATE CASCADE",
+        // suoritukset
+        "UPDATE suoritukset SET sija = 999999 WHERE sija IS NULL OR sija < 1",
+        "UPDATE suoritukset SET painokerroin = NULL WHERE painokerroin < 1",
+        "ALTER TABLE suoritukset ALTER COLUMN sija SET NOT NULL",
+        "ALTER TABLE suoritukset ALTER COLUMN nimi SET NOT NULL",
+        "ALTER TABLE suoritukset ALTER COLUMN lyhenne SET NOT NULL",
+        "ALTER TABLE suoritukset ALTER COLUMN nimi DROP DEFAULT",
+        "ALTER TABLE suoritukset ALTER COLUMN lyhenne DROP DEFAULT",
+        "ALTER TABLE suoritukset ADD CHECK (sija >= 1)",
+        "ALTER TABLE suoritukset ADD CHECK (painokerroin >= 1)",
+        "ALTER TABLE suoritukset DROP CONSTRAINT suoritukset_rid_fkey",
+        "ALTER TABLE suoritukset ADD FOREIGN KEY (rid) REFERENCES ryhmat(rid) \
+         ON DELETE CASCADE ON UPDATE CASCADE",
+        // arvosanat
+        "UPDATE arvosanat SET arvosana = NULL WHERE arvosana = ''",
+        "UPDATE arvosanat SET lisatiedot = NULL WHERE lisatiedot = ''",
+        "DELETE FROM arvosanat WHERE arvosana IS NULL AND lisatiedot IS NULL",
+        "ALTER TABLE arvosanat DROP CONSTRAINT arvosanat_oid_fkey",
+        "ALTER TABLE arvosanat DROP CONSTRAINT arvosanat_sid_fkey",
+        "ALTER TABLE arvosanat ADD FOREIGN KEY (oid) REFERENCES oppilaat(oid) \
+         ON DELETE CASCADE ON UPDATE CASCADE",
+        "ALTER TABLE arvosanat ADD FOREIGN KEY (sid) REFERENCES suoritukset(sid) \
+         ON DELETE CASCADE ON UPDATE CASCADE",
+    ];
+
+    for command in commands {
+        sqlx::query(command).execute(&mut *db).await?;
+    }
+
+    sqlx::query("UPDATE hallinto SET arvo = $1 WHERE avain = 'versio'")
+        .bind(VERSION)
+        .execute(&mut *db)
+        .await?;
+
     Ok(())
 }
