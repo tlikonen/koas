@@ -45,7 +45,7 @@ impl Config {
             tables: String::with_capacity(10),
         };
         let mut port = false;
-        let max = 10;
+        let max = 50;
 
         for (n, line) in (1..).zip(contents.lines()) {
             if n > max {
@@ -57,7 +57,7 @@ impl Config {
                 break;
             }
 
-            if line.chars().all(|c| c.is_whitespace()) {
+            if line.trim().is_empty() || line.starts_with("#") {
                 continue;
             }
 

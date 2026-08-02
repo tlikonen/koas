@@ -3,7 +3,8 @@ ASETUKSET
 Ohjelman asetustiedoston (~/.config/koas) avulla asetetaan tietokannan yhteys-
 ja muita asetuksia. Se on tekstitiedosto, joka voi sisältää alla luetellut
 asetukset eli kenttien nimet ja arvot. Kentän nimen jälkeen on merkki ”=”,
-jonka jälkeen kirjoitetaan kentän arvo.
+jonka jälkeen kirjoitetaan kentän arvo. Tyhjät rivit ja #-merkillä alkavat
+rivit jätetään huomioimatta.
 
 käyttäjä=
 salasana=
