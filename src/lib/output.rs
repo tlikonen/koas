@@ -1059,6 +1059,7 @@ fn print_table_latex(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
     }
 
     writeln!(stream, "% \\usepackage{{booktabs}}")?;
+    writeln!(stream, "% \\newcommand{{\\otsikko}}[1]{{\\textbf{{#1}}}}")?;
     write!(stream, "\\begin{{tabular}}{{")?;
 
     // Which is more common, left- or right-aligned cell?
@@ -1125,7 +1126,7 @@ fn write_latex_cells(stream: &mut OutBuf, cells: &VecDeque<Cell>, head: bool) ->
                 0 => match cell {
                     Cell::Left(s) | Cell::Right(s) => {
                         if head {
-                            write!(stream, "\\textbf{{")?;
+                            write!(stream, "\\otsikko{{")?;
                             write_latex(stream, s)?;
                             write!(stream, "}}")?;
                         } else {
@@ -1136,7 +1137,7 @@ fn write_latex_cells(stream: &mut OutBuf, cells: &VecDeque<Cell>, head: bool) ->
                     Cell::Multi(v) => {
                         if let Some(s) = v.get(multi) {
                             if head {
-                                write!(stream, "\\textbf{{")?;
+                                write!(stream, "\\otsikko{{")?;
                                 write_latex(stream, s)?;
                                 write!(stream, "}}")?;
                             } else {
