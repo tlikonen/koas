@@ -790,11 +790,67 @@ fn is_too_much_fields(mut fields: impl Iterator, max: usize) -> Result<()> {
 
 fn parse_next_number_list(s: &str, m: usize) -> Result<(Vec<usize>, &str)> {
     let (nl, rest) = tools::split_first(s);
-    let list = tools::parse_number_list(nl)?;
+    let list = parse_number_list(nl)?;
     if !tools::is_within_limits(m, &list) {
         return Err(Error::from(format!("Suurin muokattava tietue on {m}.")));
     }
     Ok((list, rest))
+}
+
+fn parse_number_list(s: &str) -> Result<Vec<usize>> {
+    if s.is_empty() {
+        return Err(Error::from("Puuttuu tietueen numero(t)."));
+    }
+
+    let errmsg = |v| Error::from(format!("Sopimaton tietueen numero: ”{v}”."));
+    let mut vec: Vec<usize> = Vec::with_capacity(25);
+
+    for part in s.split(',').filter(|e| !e.is_empty()) {
+        if part.is_all_digits() {
+            let num = part.parse::<usize>()?;
+            if num == 0 {
+                return Err(errmsg(part));
+            }
+            vec.push(num);
+            continue;
+        }
+
+        let (start, end) = match part.split_once('-') {
+            None => return Err(errmsg(part)),
+            Some((s, e)) => {
+                if !s.is_all_digits() || !e.is_all_digits() {
+                    return Err(Error::from(format!(
+                        "Sopimaton tietueiden sarja: ”{s}-{e}”."
+                    )));
+                }
+                (s.parse::<usize>()?, e.parse::<usize>()?)
+            }
+        };
+
+        if start == 0 || end == 0 {
+            return Err(errmsg("0"));
+        }
+
+        if start == end {
+            vec.push(start);
+            continue;
+        }
+
+        let inc = start < end;
+        let mut i = start;
+        loop {
+            vec.push(i);
+            if i == end {
+                break;
+            }
+            if inc {
+                i += 1;
+            } else {
+                i -= 1;
+            }
+        }
+    }
+    Ok(vec)
 }
 
 fn parse_next_number(s: &str) -> Result<(usize, &str)> {
@@ -852,5 +908,48 @@ async fn maybe_upgrade_db(old: OldDb) -> Result<DBase> {
         Ok(db)
     } else {
         Err(Error::OldDatabase(old))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_number_list_fn() {
+        assert!(parse_number_list("").is_err());
+        assert!(parse_number_list(" ").is_err());
+
+        assert!(parse_number_list("0").is_err());
+        assert!(parse_number_list(" 3").is_err());
+        assert!(parse_number_list("1,2,0").is_err());
+
+        assert_eq!(vec![1, 2, 3], parse_number_list("1,2,3").unwrap());
+        assert_eq!(vec![1, 2, 3], parse_number_list("1,2,3-3").unwrap());
+        assert_eq!(vec![1, 2, 3], parse_number_list(",1,,,2,3,").unwrap());
+
+        assert!(parse_number_list("1,+2,3").is_err());
+        assert!(parse_number_list("1,2,x").is_err());
+        assert!(parse_number_list("1,2,a-b").is_err());
+        assert!(parse_number_list("1,2,3-").is_err());
+        assert!(parse_number_list("1,2,-3").is_err());
+
+        assert_eq!(vec![1, 2, 3], parse_number_list("1-3").unwrap());
+        assert_eq!(vec![1, 2, 3], parse_number_list("01-003").unwrap());
+        assert_eq!(vec![3, 2, 1], parse_number_list("3-1").unwrap());
+        assert_eq!(
+            vec![1, 2, 3, 3, 2, 1],
+            parse_number_list("1-3,3-1").unwrap()
+        );
+
+        assert!(parse_number_list("0-5").is_err());
+        assert!(parse_number_list("000-5").is_err());
+        assert!(parse_number_list("5-0").is_err());
+        assert!(parse_number_list("2-5-6").is_err());
+
+        assert_eq!(
+            vec![3, 4, 5, 6, 7, 10, 15, 14, 13, 12],
+            parse_number_list("3-7,10,15-12").unwrap()
+        );
     }
 }
