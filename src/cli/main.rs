@@ -791,7 +791,7 @@ fn is_too_much_fields(mut fields: impl Iterator, max: usize) -> Result<()> {
 fn parse_next_number_list(s: &str, m: usize) -> Result<(Vec<usize>, &str)> {
     let (nl, rest) = tools::split_first(s);
     let list = parse_number_list(nl)?;
-    if !tools::is_within_limits(m, &list) {
+    if !is_within_limits(m, &list) {
         return Err(Error::from(format!("Suurin muokattava tietue on {m}.")));
     }
     Ok((list, rest))
@@ -851,6 +851,10 @@ fn parse_number_list(s: &str) -> Result<Vec<usize>> {
         }
     }
     Ok(vec)
+}
+
+fn is_within_limits(limit: usize, list: &[usize]) -> bool {
+    list.iter().all(|n| *n <= limit)
 }
 
 fn parse_next_number(s: &str) -> Result<(usize, &str)> {
@@ -951,5 +955,12 @@ mod tests {
             vec![3, 4, 5, 6, 7, 10, 15, 14, 13, 12],
             parse_number_list("3-7,10,15-12").unwrap()
         );
+    }
+
+    #[test]
+    fn is_within_limits_fn() {
+        assert!(is_within_limits(10, &[3, 10, 4]));
+        assert!(!is_within_limits(10, &[3, 11, 10, 4]));
+        assert!(is_within_limits(11, &[3, 11, 10, 4]));
     }
 }

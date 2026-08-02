@@ -72,10 +72,6 @@ fn parse_number(s: &str) -> Option<f64> {
     }
 }
 
-pub fn is_within_limits(limit: usize, list: &[usize]) -> bool {
-    list.iter().all(|n| *n <= limit)
-}
-
 pub fn split_sep(s: &str) -> impl Iterator<Item = &str> {
     let sep = s.chars().next().unwrap_or('/');
     s.split(sep).skip(1)
@@ -280,13 +276,6 @@ mod tests {
         assert!(!"-6".is_all_digits());
         assert!(!".6".is_all_digits());
         assert!(!"6.0".is_all_digits());
-    }
-
-    #[test]
-    fn is_within_limits_fn() {
-        assert!(is_within_limits(10, &[3, 10, 4]));
-        assert!(!is_within_limits(10, &[3, 11, 10, 4]));
-        assert!(is_within_limits(11, &[3, 11, 10, 4]));
     }
 
     #[test]
