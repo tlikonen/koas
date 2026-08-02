@@ -42,7 +42,8 @@ pub(super) async fn initialize(mut db: DBase) -> Result<DBase> {
             .execute(&mut *ta)
             .await?;
 
-        // Seuraavassa versiossa ehkä vaatimuksia: NOT NULL.
+        // UPDATE oppilaat SET lisatiedot = '' WHERE lisatiedot IS NULL
+        // ALTER TABLE oppilaat ALTER COLUMN lisatiedot SET NOT NULL
         sqlx::query(
             "CREATE TABLE oppilaat \
              (oid SERIAL PRIMARY KEY, \
@@ -57,7 +58,8 @@ pub(super) async fn initialize(mut db: DBase) -> Result<DBase> {
             .execute(&mut *ta)
             .await?;
 
-        // Seuraavassa versiossa ehkä vaatimuksia: NOT NULL.
+        // UPDATE ryhmat SET lisatiedot = '' WHERE lisatiedot IS NULL
+        // ALTER TABLE ryhmat ALTER COLUMN lisatiedot SET NOT NULL
         sqlx::query(
             "CREATE TABLE ryhmat \
              (rid SERIAL PRIMARY KEY, \
@@ -67,6 +69,14 @@ pub(super) async fn initialize(mut db: DBase) -> Result<DBase> {
         .execute(&mut *ta)
         .await?;
 
+        // ALTER TABLE oppilaat_ryhmat DROP CONSTRAINT oppilaat_ryhmat_oid_fkey
+        // ALTER TABLE oppilaat_ryhmat DROP CONSTRAINT oppilaat_ryhmat_rid_fkey
+        //
+        // ALTER TABLE oppilaat_ryhmat ADD FOREIGN KEY (oid) REFERENCES oppilaat(oid)
+        // ON DELETE CASCADE ON UPDATE CASCADE
+        //
+        // ALTER TABLE oppilaat_ryhmat ADD FOREIGN KEY (rid) REFERENCES ryhmat(rid)
+        // ON DELETE CASCADE ON UPDATE CASCADE
         sqlx::query(
             "CREATE TABLE oppilaat_ryhmat \
              (oid INTEGER NOT NULL REFERENCES oppilaat(oid) ON DELETE CASCADE, \
@@ -80,8 +90,18 @@ pub(super) async fn initialize(mut db: DBase) -> Result<DBase> {
             .execute(&mut *ta)
             .await?;
 
-        // Seuraavassa versiossa ehkä vaatimuksia: NOT NULL.
-        // Painokertoimeen ehkä vaatimus x IS NULL OR x >= 1.
+
+        // UPDATE suoritukset SET sija = i32::MAX WHERE sija IS NULL OR sija < 1;
+        // UPDATE suoritukset SET painokerroin = NULL WHERE painokerroin < 1;
+        // ALTER TABLE suoritukset ALTER COLUMN sija SET NOT NULL
+        // ALTER TABLE suoritukset ALTER COLUMN nimi SET NOT NULL
+        // ALTER TABLE suoritukset ALTER COLUMN lyhenne SET NOT NULL
+        // ALTER TABLE suoritukset ADD CHECK (sija >= 1);
+        // ALTER TABLE suoritukset ADD CHECK (painokerroin IS NULL or painokerroin >= 1);
+        //
+        // ALTER TABLE suoritukset DROP CONSTRAINT suoritukset_rid_fkey
+        // ALTER TABLE suoritukset ADD FOREIGN KEY (rid) REFERENCES ryhmat(rid)
+        // ON DELETE CASCADE ON UPDATE CASCADE
         sqlx::query(
             "CREATE TABLE suoritukset \
              (sid SERIAL PRIMARY KEY, \
@@ -98,10 +118,18 @@ pub(super) async fn initialize(mut db: DBase) -> Result<DBase> {
             .execute(&mut *ta)
             .await?;
 
-        // Seuraavassa tietokannan päivityksessä:
         // UPDATE arvosanat SET arvosana = NULL WHERE arvosana = '';
         // UPDATE arvosanat SET lisatiedot = NULL WHERE lisatiedot = '';
         // DELETE FROM arvosanat WHERE arvosana IS NULL AND lisatiedot IS NULL;
+        //
+        // ALTER TABLE arvosanat DROP CONSTRAINT arvosanat_oid_fkey
+        // ALTER TABLE arvosanat DROP CONSTRAINT arvosanat_sid_fkey
+        //
+        // ALTER TABLE arvosanat ADD FOREIGN KEY (oid) REFERENCES oppilaat(oid)
+        // ON DELETE CASCADE ON UPDATE CASCADE
+        //
+        // ALTER TABLE arvosanat ADD FOREIGN KEY (sid) REFERENCES suoritukset(sid)
+        // ON DELETE CASCADE ON UPDATE CASCADE
         sqlx::query(
             "CREATE TABLE arvosanat \
              (sid INTEGER NOT NULL REFERENCES suoritukset(sid) ON DELETE CASCADE, \
