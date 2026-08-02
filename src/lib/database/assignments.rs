@@ -271,7 +271,7 @@ impl Assignment {
 
         let mut position: i32 = 0;
         for sid in sid_list {
-            position += 1;
+            position = position.saturating_add(1);
             sqlx::query("UPDATE suoritukset SET sija = $1 WHERE sid = $2")
                 .bind(position)
                 .bind(sid)
