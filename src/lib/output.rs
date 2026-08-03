@@ -217,16 +217,7 @@ impl Cell {
         match self {
             Self::Empty => 0,
             Self::Left(s) | Self::Right(s) => s.chars().count(),
-            Self::Multi(v) => {
-                let mut width = 0;
-                for s in v {
-                    let count = s.chars().count();
-                    if count > width {
-                        width = count;
-                    }
-                }
-                width
-            }
+            Self::Multi(v) => v.iter().map(|s| s.chars().count()).max().unwrap_or(0),
             Self::Proportion { width, .. } => *width,
         }
     }
@@ -1394,10 +1385,20 @@ mod tests {
     fn cell_width() {
         assert_eq!(0, Cell::Empty.width());
         assert_eq!(3, Cell::Left("123".to_string()).width());
-        assert_eq!(4, Cell::Right("1234".to_string()).width());
+        assert_eq!(4, Cell::Right("123€".to_string()).width());
         assert_eq!(
             5,
-            Cell::Multi(vec!["123".to_string(), "12345".to_string()]).width()
+            Cell::Multi(vec!["123".to_string(), "12€45".to_string(), "".to_string()]).width()
+        );
+        assert_eq!(0, Cell::Multi(Vec::<String>::new()).width());
+        assert_eq!(
+            53,
+            Cell::Proportion {
+                proportion: 0.0,
+                width: 53,
+                width_max: 3,
+            }
+            .width()
         );
     }
 
