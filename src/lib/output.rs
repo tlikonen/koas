@@ -123,11 +123,11 @@ impl Table {
             match row.widths() {
                 None => continue,
                 Some(widths) => {
-                    for (i, e) in widths.iter().enumerate() {
+                    for (i, &e) in widths.iter().enumerate() {
                         if vec.get(i).is_none() {
-                            vec.push(*e);
-                        } else if *e > vec[i] {
-                            vec[i] = *e;
+                            vec.push(e);
+                        } else if e > vec[i] {
+                            vec[i] = e;
                         }
                     }
                 }
@@ -725,7 +725,7 @@ impl MakeTable for GradeDistribution {
 
         let mut integer_only = true;
         let mut highest_count: i32 = 0;
-        for (grade, count) in &self.data {
+        for (grade, &count) in &self.data {
             let gr = grade.as_str();
             if !GRADE_SERIES_4.contains(&gr) {
                 continue;
@@ -735,8 +735,8 @@ impl MakeTable for GradeDistribution {
                 integer_only = false;
             }
 
-            if *count > highest_count {
-                highest_count = *count;
+            if count > highest_count {
+                highest_count = count;
             }
         }
 
@@ -1070,8 +1070,8 @@ fn print_table_latex(tbl: &Table, stream: &mut OutBuf) -> Result<()> {
 
     // Choose "l" or "r" columns.
     for col in 0..=u8::MAX {
-        if let Some(count) = aligns.get(&col) {
-            if *count <= 0 {
+        if let Some(&count) = aligns.get(&col) {
+            if count <= 0 {
                 write!(stream, "l")?;
             } else {
                 write!(stream, "r")?;
