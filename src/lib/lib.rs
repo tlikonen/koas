@@ -5,10 +5,8 @@ pub mod output;
 mod prelude;
 pub mod tools;
 
-pub use crate::{
-    config::Config,
-    error::{Error, Result},
-};
+pub use crate::config::Config;
+pub use crate::error::{Error, Result};
 
 pub const PROGRAM_NAME: &str = env!("CARGO_PKG_NAME");
 pub const PROGRAM_VERSION: &str = env!("CARGO_PKG_VERSION");
