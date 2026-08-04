@@ -159,7 +159,7 @@ impl Assignment {
         {
             let mut rows = sqlx::query(
                 "SELECT sid FROM suoritukset \
-                 WHERE rid = $1 AND NOT sid = $2 ORDER BY sija, sid DESC",
+                 WHERE rid = $1 AND NOT sid = $2 ORDER BY sija, sid",
             )
             .bind(self.rid)
             .bind(self.sid)
@@ -259,7 +259,7 @@ impl Assignment {
 
         {
             let mut rows =
-                sqlx::query("SELECT sid FROM suoritukset WHERE rid = $1 ORDER BY sija, sid DESC")
+                sqlx::query("SELECT sid FROM suoritukset WHERE rid = $1 ORDER BY sija, sid")
                     .bind(rid)
                     .fetch(&mut *db);
 
