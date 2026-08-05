@@ -651,7 +651,7 @@ checksum = "97185bbe8f4edbaf6a3acc4f3f723358488d2da28e8f12a83529ddc6268f9c30"
 
 [[package]]
 name = "koas"
-version = "3.0.0-ennakko"
+version = "3.0.0"
 dependencies = [
  "approx",
  "futures",
