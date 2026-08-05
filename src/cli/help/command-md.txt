@@ -1,4 +1,4 @@
-pmd tietueet
+md tietueet
 
     Muokkaa arvosanakenttiä ja muuttaa ne desimaaliluvuiksi, jos mahdollista.
     Komento on käytettävissä vain vuorovaikutteisessa tilassa ja vain
